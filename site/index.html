@@ -115,7 +115,8 @@ td.num{font-variant-numeric:tabular-nums;text-align:right}
 .fchart .grid{stroke:var(--line);stroke-width:1}
 .fchart .zero{stroke:var(--muted);stroke-width:1}
 .fchart .hit{fill:transparent}
-.ftip{position:fixed;z-index:20;pointer-events:none;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;box-shadow:0 6px 24px rgba(0,0,0,.18);max-width:260px;font-variant-numeric:tabular-nums}
+.fchart .hit.on{fill:var(--ink);fill-opacity:.07}
+.ftip{position:absolute;z-index:20;pointer-events:none;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;box-shadow:0 6px 24px rgba(0,0,0,.18);max-width:260px;font-variant-numeric:tabular-nums}
 .ftip b{display:block;margin-bottom:4px}
 .ftip .row{display:flex;justify-content:space-between;gap:14px}
 #fditable td.num,#fditable th.num{text-align:right;white-space:nowrap}
@@ -759,20 +760,34 @@ function barChart(el, points, { height = 220, label, tip }) {
     if (lab && i % every === 0) g += `<text class="axis" x="${L + i * step + step / 2}" y="${H - 8}" text-anchor="middle">${esc(lab)}</text>`;
   });
   el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(el.dataset.title || "")}">${g}</svg>`;
+  // The tooltip sits in page coordinates just above the chosen column, so it scrolls with the chart.
   const tipEl = $("ftip");
+  if (tipEl.parentNode !== document.body) document.body.appendChild(tipEl);
   el.querySelectorAll(".hit").forEach((h) => {
-    const show = (cx, cy) => {
+    const show = () => {
+      document.querySelectorAll(".fchart .hit.on").forEach((x) => x.classList.remove("on"));
+      h.classList.add("on");
       tipEl.innerHTML = tip(points[+h.dataset.i]); tipEl.hidden = false;
-      tipEl.style.left = `${Math.max(8, Math.min(cx + 14, innerWidth - tipEl.offsetWidth - 8))}px`;
-      tipEl.style.top = `${Math.min(cy + 14, innerHeight - tipEl.offsetHeight - 8)}px`;
+      const r = h.getBoundingClientRect(), w = tipEl.offsetWidth, ht = tipEl.offsetHeight;
+      const left = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, document.documentElement.clientWidth - w - 8));
+      const top = r.top - ht - 6 >= 0 ? r.top - ht - 6 : r.top + 6;
+      tipEl.style.left = `${left + scrollX}px`; tipEl.style.top = `${top + scrollY}px`;
     };
-    h.addEventListener("mousemove", (ev) => show(ev.clientX, ev.clientY));
-    h.addEventListener("click", (ev) => show(ev.clientX, ev.clientY));
-    h.addEventListener("mouseleave", () => { tipEl.hidden = true; });
+    h.addEventListener("mouseenter", show);
+    h.addEventListener("click", (ev) => { ev.stopPropagation(); show(); });
+    h.addEventListener("mouseleave", (ev) => { if (ev.pointerType !== "touch" && matchMedia("(hover: hover)").matches) hideTip(); });
   });
 }
 
+function hideTip() {
+  $("ftip").hidden = true;
+  document.querySelectorAll(".fchart .hit.on").forEach((x) => x.classList.remove("on"));
+}
+// Tapping anywhere outside a bar closes the tooltip.
+document.addEventListener("click", (ev) => { if (!ev.target.closest?.(".fchart .hit")) hideTip(); });
+
 function renderFlowCharts() {
+  hideTip();
   const seg = flows.seg, r = flowRange(), d = flows.daily.filter((x) => inDays(x.day, r)), mon = flows.monthly.filter((m) => inMonths(m.month, r));
   $("fday").dataset.title = "FPI net investment by day";
   barChart($("fday"), d.map((x) => ({ ...x, v: x[seg] })), {
@@ -865,7 +880,9 @@ $("fdipreset").addEventListener("change", renderFdi);
   $("fpreset").value = "custom";
   renderFlows();
 }));
-addEventListener("resize", () => { clearTimeout(flows.t); flows.t = setTimeout(renderFlows, 150); });
+// Phones fire resize when the address bar shows or hides; only a width change needs a redraw.
+let lastW = innerWidth;
+addEventListener("resize", () => { if (innerWidth === lastW) return; lastW = innerWidth; clearTimeout(flows.t); flows.t = setTimeout(renderFlows, 150); });
 
 function render() {
   ["from", "to"].forEach((id) => { if (document.activeElement !== $(`${id}-txt`)) $(`${id}-txt`).value = toDMY($(id).value); });
