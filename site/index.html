@@ -56,6 +56,18 @@ nav.tabs button[aria-selected="true"]{color:var(--ink);border-color:var(--accent
 .filters label{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:12px}
 .reset{border:1px solid var(--ink);background:var(--panel);color:var(--ink);border-radius:8px;padding:7px 12px;font:inherit;font-weight:600;cursor:pointer}
 .reset:hover{background:var(--chip)}
+.ftoggle{display:none;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;padding:7px 12px;font:inherit;font-weight:600;cursor:pointer;white-space:nowrap}
+@media (max-width:600px){
+  .ftoggle{display:inline-flex}
+  .filters input[type=search]{flex:1 1 0}
+  .filterbar:not(.open) .filters > :not(#q):not(#ftoggle){display:none}
+  .filterbar{padding:10px}
+  .kpis{grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:minmax(132px,40%);overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:4px;margin-bottom:12px;scrollbar-width:none}
+  .kpis::-webkit-scrollbar{display:none}
+  .kpi{scroll-snap-align:start;padding:10px 12px}
+  .kpi .n{font-size:20px}
+  .kpi .s{display:none}
+}
 .filterbar{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px}
 .filterbar .filters{margin-bottom:0}
 .filters input[type=search]{flex:1 1 220px;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);font:inherit}
@@ -204,6 +216,7 @@ body.locked{overflow:hidden}
   <section class="filterbar" aria-label="Filters">
     <div class="filters">
       <input type="search" id="q" placeholder="Search investor, company, headline…" aria-label="Search">
+      <button class="ftoggle" id="ftoggle" type="button" aria-expanded="false">Filters</button>
       <select id="preset" aria-label="Period">
         <option value="all" selected>All time</option>
         <option value="1">Last 24 hours</option>
@@ -234,7 +247,6 @@ body.locked{overflow:hidden}
   </nav>
 
   <section id="tab-feed">
-    <div class="chips" id="typechips"></div>
     <div class="list" id="feed"></div>
   </section>
 
@@ -382,7 +394,26 @@ function ago(iso) {
   if (m < 1440) return `${Math.round(m / 60)}h ago`;
   return `${Math.round(m / 1440)}d ago`;
 }
-const money = (e) => e.amount_text || (e.amount_usd_m ? `$${e.amount_usd_m >= 1000 ? (e.amount_usd_m / 1000).toFixed(1) + "bn" : Math.round(e.amount_usd_m) + "m"}` : "");
+// Every amount is shown as "₹X cr (~$Y)". Rupee amounts keep the reported figure; others convert from US$.
+const CR_UNIT = { "lakh crore": 1e5, "lakh cr": 1e5, "crore": 1, "crores": 1, "cr": 1, "billion": 100, "bn": 100, "million": 0.1, "mn": 0.1, "lakh": 0.01 };
+function usdInr() {
+  let d = null;
+  try { d = flows.daily.slice().reverse().find((x) => x.usd && Math.abs(x.Total) > 100); } catch {}
+  const r = d ? d.Total * 10 / d.usd : 0;
+  return r > 60 && r < 140 ? r : 88;
+}
+function amountCr(e) {
+  const m = /(?:rs\.?|₹|inr)\s*([\d,]*\.?\d+)\s*(lakh\s+crore|lakh\s+cr|crores?|cr|billion|bn|million|mn|lakh)?\b/i.exec(e.amount_text || "");
+  if (m) {
+    const n = parseFloat(m[1].replace(/,/g, "")), u = (m[2] || "").toLowerCase().replace(/\s+/g, " ");
+    const cr = u ? n * CR_UNIT[u] : n / 1e7;
+    return { cr, usd: cr * 10 / usdInr() };
+  }
+  return e.amount_usd_m ? { cr: e.amount_usd_m * usdInr() / 10, usd: e.amount_usd_m } : null;
+}
+const fmtCr = (cr) => cr >= 1e5 ? `₹${+(cr / 1e5).toFixed(1)} lakh cr` : `₹${cr.toLocaleString("en-IN", { maximumFractionDigits: cr >= 100 ? 0 : cr >= 1 ? 1 : 2 })} cr`;
+const fmtUsd = (u) => u >= 1000 ? `$${+(u / 1000).toFixed(1)}bn` : `$${u >= 10 ? Math.round(u) : +u.toFixed(1)}m`;
+const money = (e) => { const a = amountCr(e); return a ? `${fmtCr(a.cr)} (~${fmtUsd(a.usd)})` : e.amount_text || ""; };
 
 // All stories are loaded once; every filter is applied in the page so the tiles, chips,
 // feed and investor list always describe the same set.
@@ -473,22 +504,12 @@ function renderKpis() {
     setTab("feed");
     render();
   });
-  $("updated").textContent = `Last updated: ${state.lastReview ? `${istTime(state.lastReview)} IST (${ago(state.lastReview)})` : "not yet"} · ${fmt(filtered().length)} of ${fmt(state.events.length)} stories match`;
-  $("kpi-note").textContent = "Counts follow the filters above. A deal reported by several outlets counts once. Data from April 2026 till Date.";
-}
-
-function renderChips() {
-  const counts = {};
-  base().forEach((e) => e.event_types.forEach((t) => counts[t] = (counts[t] || 0) + 1));
-  $("typechips").innerHTML = Object.entries(TYPES).filter(([t]) => counts[t]).map(([t, l]) =>
-    `<button class="chip" data-t="${t}" aria-pressed="${state.types.has(t)}"><span class="dot" style="background:${color(t)}"></span>${l} <span class="sub">${counts[t]}</span></button>`
-  ).join("") + (state.types.size ? `<button class="chip" data-t="">Clear</button>` : "");
-  $("typechips").querySelectorAll(".chip").forEach((c) => c.onclick = () => {
-    const t = c.dataset.t;
-    if (!t) state.types.clear();
-    else state.types.has(t) ? state.types.delete(t) : state.types.add(t);
-    render();
-  });
+  $("updated").textContent = `Last updated: ${state.lastReview ? `${istTime(state.lastReview)} IST (${ago(state.lastReview)})` : "not yet"}`;
+  const shown = filtered().length;
+  $("kpi-note").textContent = `${shown === state.events.length ? `${fmt(shown)} stories` : `Showing ${fmt(shown)} of ${fmt(state.events.length)} stories`}. Tap a box to filter. Counts follow the filters above; a deal reported by several outlets counts once. Data from April 2026 to date.`;
+  // On phones the filters fold away behind one button that shows how many are in use.
+  const active = [$("preset").value !== "all", !!$("source").value].filter(Boolean).length;
+  $("ftoggle").textContent = active ? `Filters (${active})` : "Filters";
 }
 
 function renderFeed() {
@@ -496,17 +517,18 @@ function renderFeed() {
   if (!rows.length) { $("feed").innerHTML = `<div class="empty">Nothing matches these filters. Try other dates or press Reset.</div>`; return; }
   $("feed").innerHTML = rows.slice(0, 400).map((e) => {
     const who = e.parties.length
-      ? `<span>${e.parties.map((p) => `<strong>${esc(p.name)}</strong>${p.role ? ` (${esc(p.role)})` : ""}`).join(", ")}</span>`
+      ? `<span>${e.parties.map((p) => `<strong>${esc(p.name)}</strong>${p.role && p.role !== "other" ? ` (${esc(p.role)})` : ""}`).join(", ")}</span>`
       : e.investor && `<strong>${esc(e.investor)}</strong>`;
+    // Separators stick to the word before them, so a wrapped line never starts with "·" or "→".
+    const deal = [who, e.target && esc(e.target)].filter(Boolean).join("&nbsp;→ ");
     const bits = [
-      who,
-      e.target && `→ ${esc(e.target)}`,
+      deal,
       e.origin_jurisdiction && `jurisdiction: ${esc(e.origin_jurisdiction)}`,
       money(e) && esc(money(e)),
       e.reports > 1 && `${e.reports} reports`,
       esc(e.source_name || e.source),
       ago(e.published_at || e.fetched_at),
-    ].filter(Boolean).join(" · ");
+    ].filter(Boolean).join("&nbsp;· ");
     return `<article class="card">
       <div>
         <div class="meta">${e.event_types.map((t) => `<span class="badge" style="background:${color(t)}">${TYPES[t] || t}</span>`).join("")}</div>
@@ -531,8 +553,21 @@ const invKey = (n) => n.toLowerCase().replace(/[.,']/g, "").replace(/\s*&\s*co\b
 const dmy = (iso) => toDMY(dayStr(new Date(iso)));
 let invShown = 60;
 
+// The first time each firm appears anywhere in the data, regardless of the filters.
+function firstSeen() {
+  const m = new Map();
+  state.events.forEach((e) => {
+    const t = e.published_at || e.fetched_at;
+    (e.parties.length ? e.parties : e.investor ? [{ name: e.investor }] : []).forEach((p) => {
+      const k = invKey((p.name || "").trim());
+      if (k && (!m.has(k) || t < m.get(k))) m.set(k, t);
+    });
+  });
+  return m;
+}
+
 function buildInvestors() {
-  const by = new Map();
+  const by = new Map(), seenFirst = firstSeen();
   filtered().forEach((e) => {
     const people = e.parties.length ? e.parties : e.investor ? [{ name: e.investor, role: null, type: e.investor_type }] : [];
     const seen = new Set();
@@ -558,7 +593,10 @@ function buildInvestors() {
       const t = e.published_at || e.fetched_at;
       if (!r.last || t > r.last) r.last = t;
       if (!r.first || t < r.first) r.first = t;
-      if (e.amount_usd_m && (!r.biggest || e.amount_usd_m > r.biggest.amount_usd_m)) r.biggest = e;
+      // A story's amount is this firm's only if no other firm is on the same side (e.g. one of several IPO anchors).
+      const side = (x) => x.role === "seller" ? "sell" : "buy";
+      const alone = people.filter((x) => side(x) === side(p)).length === 1;
+      if (alone && amountCr(e) && (!r.biggest || amountCr(e).usd > amountCr(r.biggest).usd)) r.biggest = e;
       by.set(k, r);
     });
   });
@@ -566,6 +604,7 @@ function buildInvestors() {
     ...r,
     name: [...r.names.entries()].sort((a, b) => b[1] - a[1] || a[0].length - b[0].length)[0][0],
     type: [...r.types.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || null,
+    first: seenFirst.get(r.key) || r.first,
     stories: r.stories.sort((a, b) => (b.published_at || b.fetched_at) > (a.published_at || a.fetched_at) ? 1 : -1),
   }));
 }
@@ -583,13 +622,13 @@ function renderInvestors() {
     .sort({
       active: (a, b) => b.stories.length - a.stories.length || (b.last > a.last ? 1 : -1),
       recent: (a, b) => (b.last > a.last ? 1 : -1),
-      size: (a, b) => (b.biggest?.amount_usd_m || 0) - (a.biggest?.amount_usd_m || 0) || b.stories.length - a.stories.length,
+      size: (a, b) => (b.biggest ? amountCr(b.biggest).usd : 0) - (a.biggest ? amountCr(a.biggest).usd : 0) || b.stories.length - a.stories.length,
       name: (a, b) => a.name.localeCompare(b.name),
     }[sort]);
   const monthAgo = new Date(Date.now() - 30 * 864e5).toISOString();
   const fresh = rows.filter((r) => r.first >= monthAgo).length;
   $("isum").textContent = rows.length
-    ? `${rows.length.toLocaleString("en-IN")} investor${rows.length === 1 ? "" : "s"} · ${fresh} new in the last 30 days · follows the filters above`
+    ? `${rows.length.toLocaleString("en-IN")} investor${rows.length === 1 ? "" : "s"} · ${fresh} first seen in the last 30 days · follows the filters above`
     : "";
   if (!rows.length) { $("investors").innerHTML = `<div class="empty" style="grid-column:1/-1">No named investors match these filters.</div>`; $("imore").hidden = true; return; }
   $("investors").innerHTML = rows.slice(0, invShown).map((r) => {
@@ -597,13 +636,13 @@ function renderInvestors() {
     const more = r.stories.slice(1, 6);
     const facts = [r.country, INV_TYPES[r.type], r.roles.size && [...r.roles].join(", ")].filter(Boolean).map(esc).join(" · ");
     return `<article class="inv">
-      <h3>${esc(r.name)}${r.first >= monthAgo ? `<span class="new">NEW</span>` : ""}</h3>
+      <h3>${esc(r.name)}${r.first >= monthAgo ? `<span class="new" title="First appeared on this tracker in the last 30 days">NEW</span>` : ""}</h3>
       ${facts ? `<div class="sub">${facts}</div>` : ""}
       <div class="cats">${Object.keys(TYPES).filter((t) => r.cats[t]).map((t) =>
         `<span class="cat" style="color:${color(t)}">${TYPES[t]}${r.cats[t] > 1 ? ` × ${r.cats[t]}` : ""}</span>`).join("")}</div>
       <div class="stats">
         <div><b>${r.stories.length}</b><span>Stor${r.stories.length === 1 ? "y" : "ies"}</span></div>
-        <div><b>${r.biggest ? esc(money(r.biggest)) : "–"}</b><span>Biggest deal</span></div>
+        <div><b>${r.biggest ? esc(money(r.biggest)) : "–"}</b><span>Largest amount</span></div>
         <div><b>${dmy(r.last)}</b><span>Last seen</span></div>
       </div>
       <div class="latest"><span class="sub">Latest:</span> <a href="${esc(latest.url)}" target="_blank" rel="noopener">${esc(latest.title)}</a>
@@ -886,7 +925,7 @@ addEventListener("resize", () => { if (innerWidth === lastW) return; lastW = inn
 
 function render() {
   ["from", "to"].forEach((id) => { if (document.activeElement !== $(`${id}-txt`)) $(`${id}-txt`).value = toDMY($(id).value); });
-  renderKpis(); renderChips(); renderFeed(); renderInvestors(); renderRuns(); renderFlows();
+  renderKpis(); renderFeed(); renderInvestors(); renderRuns(); renderFlows();
 }
 
 function setTab(t) {
@@ -922,6 +961,10 @@ $("preset").addEventListener("change", () => { applyPreset(); render(); });
 document.querySelectorAll(".cal").forEach((b) => b.onclick = () => {
   const el = $(b.dataset.for);
   try { el.showPicker(); } catch { el.focus(); el.click(); }
+});
+$("ftoggle").addEventListener("click", () => {
+  const open = document.querySelector(".filterbar").classList.toggle("open");
+  $("ftoggle").setAttribute("aria-expanded", open);
 });
 $("reset").addEventListener("click", () => {
   $("q").value = ""; $("iq").value = ""; $("icat").value = ""; $("itype").value = ""; $("isort").value = "active"; $("source").value = "";
