@@ -1,0 +1,8 @@
+{
+  // Cloudflare Worker settings: publish only the public website in site/.
+  "name": "india-capital-tracker",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./site"
+  }
+}
