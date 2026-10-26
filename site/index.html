@@ -88,6 +88,9 @@ td.num{font-variant-numeric:tabular-nums;text-align:right}
 .empty{color:var(--muted);padding:30px;text-align:center;background:var(--panel);border:1px dashed var(--line);border-radius:10px}
 .link{color:var(--accent);cursor:pointer;background:none;border:0;font:inherit;padding:0;text-align:left}
 .ok{color:var(--good)} .fail{color:var(--bad)}
+.fperiod{margin-bottom:6px}
+.fperiod .datef input[type=text]{width:8.5em}
+.fcover{margin:0 0 12px}
 .ftiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-bottom:12px}
 .ftile{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
 .ftile .l{color:var(--muted);font-size:12px}
@@ -254,7 +257,21 @@ body.locked{overflow:hidden}
   </section>
 
   <section id="tab-flows" hidden>
-    <p class="sub" style="margin:0 0 12px">Money moving into and out of India in aggregate. FPI figures are daily from NSDL (₹ crore); FDI figures are monthly from the RBI Bulletin (US$ million). This tab has its own periods and is not affected by the filters above.</p>
+    <p class="sub" style="margin:0 0 12px">Money moving into and out of India in aggregate. FPI figures are daily from NSDL (₹ crore); FDI figures are monthly from the RBI Bulletin (US$ million). Pick a period to narrow every chart and table below.</p>
+    <div class="filters fperiod" aria-label="Flows period">
+      <select id="fpreset" aria-label="Period">
+        <option value="30">Last 30 days</option>
+        <option value="90" selected>Last 3 months</option>
+        <option value="month">This month</option>
+        <option value="ytd">This calendar year</option>
+        <option value="fy">This financial year (from April)</option>
+        <option value="all">All available</option>
+        <option value="custom">Custom dates</option>
+      </select>
+      <label class="datef">From <input type="text" id="ffrom-txt" inputmode="numeric" placeholder="DD/MM/YYYY" maxlength="10" aria-label="From date, DD/MM/YYYY"><button type="button" class="cal" data-for="ffrom" aria-label="Pick from date">&#128197;</button><input type="date" id="ffrom" min="2025-01-01" tabindex="-1" aria-hidden="true"></label>
+      <label class="datef">To <input type="text" id="fto-txt" inputmode="numeric" placeholder="DD/MM/YYYY" maxlength="10" aria-label="To date, DD/MM/YYYY"><button type="button" class="cal" data-for="fto" aria-label="Pick to date">&#128197;</button><input type="date" id="fto" min="2025-01-01" tabindex="-1" aria-hidden="true"></label>
+    </div>
+    <p class="note fcover" id="fcover"></p>
     <div class="ftiles" id="ftiles"></div>
 
     <div class="fcard">
@@ -655,17 +672,38 @@ function tile(label, value, sub, sign) {
   return `<div class="ftile"><div class="l">${label}</div><div class="n">${arrow}${value}</div><div class="s">${sub}</div></div>`;
 }
 
+// The Flows period, as YYYY-MM-DD bounds. Months count if any of their days fall inside it.
+function flowRange() {
+  const v = $("fpreset").value, today = dayStr(new Date()), y = today.slice(0, 4);
+  if (v === "custom") return { from: $("ffrom").value || "2000-01-01", to: $("fto").value || today };
+  const from = { 30: dayStr(new Date(Date.now() - 29 * 864e5)), 90: dayStr(new Date(Date.now() - 89 * 864e5)), month: today.slice(0, 8) + "01",
+    ytd: `${y}-01-01`, fy: today.slice(5) >= "04" ? `${y}-04-01` : `${y - 1}-04-01`, all: "2000-01-01" }[v];
+  return { from, to: today };
+}
+const inDays = (day, r) => day >= r.from && day <= r.to;
+const inMonths = (iso, r) => iso.slice(0, 7) >= r.from.slice(0, 7) && iso.slice(0, 7) <= r.to.slice(0, 7);
+function rangeLabel(r) {
+  return r.from === "2000-01-01" ? `up to ${toDMY(r.to)}` : `${toDMY(r.from)} to ${toDMY(r.to)}`;
+}
+
 function renderFlowTiles() {
-  const d = flows.daily, last = d[d.length - 1];
+  const r = flowRange(), all = flows.daily, d = all.filter((x) => inDays(x.day, r)), last = all[all.length - 1];
   const t = [];
   if (last) {
     t.push(tile(`FPI net, ${toDMY(last.day)}`, crore(last.Total), `Equity ${crore(last.Equity)} · Debt ${crore(last.Debt)}`, Math.sign(last.Total)));
-    const m = last.day.slice(0, 7), md = d.filter((x) => x.day.startsWith(m)), ms = md.reduce((a, x) => a + x.Total, 0);
-    t.push(tile(`FPI net, ${monLabel(m)} so far`, crore(ms), `${md.length} trading day${md.length === 1 ? "" : "s"} · Equity ${crore(md.reduce((a, x) => a + x.Equity, 0))}`, Math.sign(ms)));
+    // Daily figures where we have them; before daily history starts, whole months from the monthly report.
+    const start = all[0].day, sum = (k) => d.reduce((a, x) => a + x[k], 0);
+    const early = flows.monthly.filter((m) => !m.partial && m.month < start.slice(0, 8) + "01" && m.month >= r.from && m.month <= r.to);
+    const ps = sum("Total") + early.reduce((a, m) => a + m.net, 0);
+    const parts = [];
+    if (d.length || !early.length) parts.push(`${d.length} trading day${d.length === 1 ? "" : "s"}`);
+    if (early.length) parts.push(`${d.length ? "plus " : ""}${early.length} full month${early.length === 1 ? "" : "s"} before ${toDMY(start)}`);
+    else parts.push(`Equity ${crore(sum("Equity"))}`);
+    t.push(tile(`FPI net, ${rangeLabel(r)}`, crore(ps), parts.join(" · "), Math.sign(ps)));
     const y = last.day.slice(0, 4), ys = flows.monthly.filter((x) => x.month.startsWith(y)).reduce((a, x) => a + x.net, 0);
     t.push(tile(`FPI net, ${y} so far`, crore(ys), `All segments, Jan–${MON[+last.day.slice(5, 7) - 1]}`, Math.sign(ys)));
   }
-  const months = [...new Set(flows.fdi.filter((r) => r.kind === "month").map((r) => r.period))].sort();
+  const months = [...new Set(flows.fdi.filter((x) => x.kind === "month" && inMonths(x.start_date, r)).map((x) => x.period))].sort();
   const lm = months[months.length - 1];
   if (lm) {
     const v = (code) => flows.fdi.find((r) => r.period === lm && r.code === code)?.usd_m;
@@ -719,19 +757,19 @@ function barChart(el, points, { height = 220, label, tip }) {
 }
 
 function renderFlowCharts() {
-  const seg = flows.seg, d = flows.daily.slice(-90);
+  const seg = flows.seg, r = flowRange(), d = flows.daily.filter((x) => inDays(x.day, r)), mon = flows.monthly.filter((m) => inMonths(m.month, r));
   $("fday").dataset.title = "FPI net investment by day";
   barChart($("fday"), d.map((x) => ({ ...x, v: x[seg] })), {
     label: (p) => `${p.day.slice(8, 10)} ${MON[+p.day.slice(5, 7) - 1]}`,
     tip: (p) => `<b>${toDMY(p.day)}</b><div class="row"><span>All segments</span><span>${crore(p.Total)}</span></div><div class="row"><span>Equity</span><span>${crore(p.Equity)}</span></div><div class="row"><span>Debt</span><span>${crore(p.Debt)}</span></div><div class="row"><span>In US$</span><span>${usdm(p.usd)}</span></div>`,
   });
-  $("fday-sub").textContent = `₹ crore · ${seg === "Total" ? "all segments" : seg.toLowerCase()} · ${d.length} trading day${d.length === 1 ? "" : "s"}${d.length ? ` from ${toDMY(d[0].day)}` : ""} · history builds up daily`;
+  $("fday-sub").textContent = `₹ crore · ${seg === "Total" ? "all segments" : seg.toLowerCase()} · ${d.length} trading day${d.length === 1 ? "" : "s"}${d.length ? ` from ${toDMY(d[0].day)} to ${toDMY(d[d.length - 1].day)}` : " in this period"}`;
   $("fmonth").dataset.title = "FPI net investment by month";
-  barChart($("fmonth"), flows.monthly.map((m) => ({ ...m, v: m.net })), {
-    label: (p) => MON[+p.month.slice(5, 7) - 1],
+  barChart($("fmonth"), mon.map((m) => ({ ...m, v: m.net })), {
+    label: (p) => mon.some((m) => m.month.slice(0, 4) !== p.month.slice(0, 4)) ? monLabel(p.month) : MON[+p.month.slice(5, 7) - 1],
     tip: (p) => `<b>${monLabel(p.month)}${p.partial ? " (so far)" : ""}</b><div class="row"><span>Net, all segments</span><span>${crore(p.net)}</span></div>`,
   });
-  $("fmonth-sub").textContent = `₹ crore · all segments${flows.monthly.some((m) => m.partial) ? " · lighter bar = month in progress" : ""}`;
+  $("fmonth-sub").textContent = `₹ crore · all segments${mon.some((m) => m.partial) ? " · lighter bar = month in progress" : ""}`;
   renderFdi();
 }
 
@@ -743,13 +781,15 @@ const FDI_ROWS = [
 
 function renderFdi() {
   const per = [...new Map(flows.fdi.map((r) => [r.period, r])).values()];
-  const months = per.filter((p) => p.kind === "month").sort((a, b) => a.start_date.localeCompare(b.start_date));
+  const r = flowRange();
+  const months = per.filter((p) => p.kind === "month" && inMonths(p.start_date, r)).sort((a, b) => a.start_date.localeCompare(b.start_date));
   const others = per.filter((p) => p.kind !== "month").sort((a, b) => b.start_date.localeCompare(a.start_date) || (a.kind === "fy") - (b.kind === "fy"));
   const cols = [...months, ...others];
-  const lastMonth = months.length ? MON[+months[months.length - 1].start_date.slice(5, 7) - 1] : "";
+  const allMonths = per.filter((p) => p.kind === "month").sort((a, b) => a.start_date.localeCompare(b.start_date));
+  const lastMonth = allMonths.length ? MON[+allMonths[allMonths.length - 1].start_date.slice(5, 7) - 1] : "";
   const head = (p) => p.kind === "month" ? monLabel(p.start_date) : p.kind === "fy" ? `FY ${p.period.slice(2)} (full year)` : `FY ${p.period.slice(4)}, Apr–${lastMonth}`;
   const val = (period, code) => flows.fdi.find((r) => r.period === period && r.code === code)?.usd_m ?? null;
-  $("fdi-sub").textContent = `US$ million · RBI Bulletin${per[0]?.bulletin ? `, ${per[0].bulletin} issue` : ""} · more months are added as each bulletin comes out`;
+  $("fdi-sub").textContent = `US$ million · RBI Bulletin${per[0]?.bulletin ? `, ${per[0].bulletin} issue` : ""} · ${months.length ? `${months.length} month${months.length === 1 ? "" : "s"} in this period` : "no RBI month in this period"}; financial-year columns always show`;
   $("fditable").innerHTML = `<thead><tr><th>Item</th>${cols.map((c) => `<th class="num">${esc(head(c))}${c.provisional ? " (P)" : ""}</th>`).join("")}</tr></thead><tbody>` +
     FDI_ROWS.map(([code, name, cls]) => `<tr class="${cls === "key" ? "key" : ""}"><td>${cls === "in" || cls === "out" ? `<span class="dot" style="background:var(--${cls})"></span> ` : ""}${name}</td>${cols.map((c) => `<td class="num">${usdm(val(c.period, code))}</td>`).join("")}</tr>`).join("") + `</tbody>`;
   // Money in and money out per month: inflows above the line, outflows below it.
@@ -764,6 +804,11 @@ function renderFdi() {
 
 function renderFlows() {
   if (!flows.loaded || state.tab !== "flows") return;
+  const r = flowRange();
+  if ($("fpreset").value !== "custom") { $("ffrom").value = r.from === "2000-01-01" ? "" : r.from; $("fto").value = r.to; }
+  ["ffrom", "fto"].forEach((id) => { if (document.activeElement !== $(`${id}-txt`)) $(`${id}-txt`).value = toDMY($(id).value); });
+  const fdiM = [...new Map(flows.fdi.filter((x) => x.kind === "month").map((x) => [x.period, x.start_date])).values()].sort();
+  $("fcover").textContent = `Data available: FPI daily from ${flows.daily.length ? toDMY(flows.daily[0].day) : "—"}, FPI monthly from ${flows.monthly.length ? monLabel(flows.monthly[0].month) : "—"}, FDI for ${fdiM.map((x) => monLabel(x)).join(", ") || "—"}. Earlier dates show nothing yet; history grows as new figures come out.`;
   renderFlowTiles(); renderFlowCharts();
 }
 document.querySelectorAll("#fseg button").forEach((b) => b.onclick = () => {
@@ -771,6 +816,12 @@ document.querySelectorAll("#fseg button").forEach((b) => b.onclick = () => {
   document.querySelectorAll("#fseg button").forEach((x) => x.setAttribute("aria-pressed", x === b));
   renderFlowCharts();
 });
+$("fpreset").addEventListener("change", renderFlows);
+["ffrom", "fto"].forEach((id) => $(id).addEventListener("change", () => {
+  if ($(id).value && !$(id).validity.valid) return;
+  $("fpreset").value = "custom";
+  renderFlows();
+}));
 addEventListener("resize", () => { clearTimeout(flows.t); flows.t = setTimeout(renderFlows, 150); });
 
 function render() {
@@ -782,6 +833,7 @@ function setTab(t) {
   state.tab = t;
   document.querySelectorAll("nav.tabs button").forEach((b) => b.setAttribute("aria-selected", b.dataset.tab === t));
   ["feed", "investors", "flows", "health"].forEach((x) => $(`tab-${x}`).hidden = x !== t);
+  document.querySelector(".filterbar").hidden = t === "flows";
   if (t === "flows") renderFlows();
 }
 document.querySelectorAll("nav.tabs button").forEach((b) => b.onclick = () => setTab(b.dataset.tab));
@@ -793,7 +845,7 @@ $("preset").addEventListener("change", () => { applyPreset(); render(); });
   render();
 }));
 // Dates are shown and typed as DD/MM/YYYY; the hidden native inputs (YYYY-MM-DD) hold the value and give the calendar.
-["from", "to"].forEach((id) => {
+["from", "to", "ffrom", "fto"].forEach((id) => {
   const txt = $(`${id}-txt`);
   txt.addEventListener("input", () => {
     const d = txt.value.replace(/\D/g, "").slice(0, 8);
@@ -815,7 +867,7 @@ $("reset").addEventListener("click", () => {
   $("q").value = ""; $("iq").value = ""; $("icat").value = ""; $("itype").value = ""; $("isort").value = "active"; $("source").value = "";
   $("preset").value = "all"; applyPreset(); state.types.clear(); setTab("feed"); render();
 });
-$("to").max = $("from").max = dayStr(new Date());
+$("to").max = $("from").max = $("fto").max = $("ffrom").max = dayStr(new Date());
 ["iq", "icat", "itype", "isort"].forEach((id) => $(id).addEventListener("input", () => { invShown = 60; renderInvestors(); }));
 $("imore").addEventListener("click", () => { invShown += 60; renderInvestors(); });
 
