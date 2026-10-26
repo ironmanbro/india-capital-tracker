@@ -272,7 +272,7 @@ body.locked{overflow:hidden}
     <button role="tab" aria-selected="true" data-tab="feed">Feed</button>
     <button role="tab" aria-selected="false" data-tab="investors">Investors</button>
     <button role="tab" aria-selected="false" data-tab="flows">Flows</button>
-    <button role="tab" aria-selected="false" data-tab="health">Sources</button>
+    <button role="tab" aria-selected="false" data-tab="health" hidden>Sources</button>
   </nav>
 
   <section id="tab-feed">
@@ -956,6 +956,21 @@ function setTab(t) {
   if (t === "flows") renderFlows();
 }
 document.querySelectorAll("nav.tabs button").forEach((b) => b.onclick = () => setTab(b.dataset.tab));
+
+// The Sources tab is for the site owner. Opening the site once with the private link (#owner-…) shows it
+// on that browser from then on; #owner-off hides it again. Only the link's hash is kept here.
+const OWNER_HASH = "7d81788ea0fd03da612522967efc44893e5d1e6cae50ca6415ee9c8b0b66bea6";
+async function checkOwner() {
+  const h = location.hash.slice(1);
+  if (h === "owner-off") { store("ict-owner"); history.replaceState(null, "", location.pathname + location.search); }
+  else if (h.startsWith("owner-") && crypto.subtle) {
+    const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(h));
+    if ([...new Uint8Array(d)].map((x) => x.toString(16).padStart(2, "0")).join("") === OWNER_HASH) store("ict-owner", "1");
+    history.replaceState(null, "", location.pathname + location.search);
+  }
+  document.querySelector('nav.tabs button[data-tab="health"]').hidden = load("ict-owner") !== "1";
+}
+checkOwner();
 ["q", "source"].forEach((id) => $(id).addEventListener("input", render));
 $("preset").addEventListener("change", () => { applyPreset(); render(); });
 ["from", "to"].forEach((id) => $(id).addEventListener("change", () => {
