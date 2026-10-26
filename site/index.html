@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>India Capital Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f7f9; --panel:#ffffff; --ink:#14171c; --muted:#5f6b7a; --line:#e3e6eb; --chip:#eef1f5;
+  --accent:#1f5eff; --accent-ink:#ffffff;
+  --relocation:#7a3cff; --fund_launch:#0a8a5f; --entry:#1f5eff; --exit:#c2410c; --other:#6b7280;
+  --good:#0a8a5f; --bad:#b91c1c;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1115; --panel:#171a20; --ink:#e8ebf0; --muted:#9aa4b2; --line:#2a2f38; --chip:#222731;
+    --accent:#6f95ff; --accent-ink:#0f1115;
+    --relocation:#a98bff; --fund_launch:#3ccf98; --entry:#6f95ff; --exit:#f2894e; --other:#9aa4b2;
+    --good:#3ccf98; --bad:#f26d6d;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1115; --panel:#171a20; --ink:#e8ebf0; --muted:#9aa4b2; --line:#2a2f38; --chip:#222731;
+  --accent:#6f95ff; --accent-ink:#0f1115;
+  --relocation:#a98bff; --fund_launch:#3ccf98; --entry:#6f95ff; --exit:#f2894e; --other:#9aa4b2;
+  --good:#3ccf98; --bad:#f26d6d;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 60px}
+header{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 16px;margin-bottom:16px}
+h1{font-size:20px;margin:0;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:13px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;text-align:left;color:inherit;font:inherit}
+.kpi:hover{border-color:var(--accent)}
+.kpi .n{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+.kpi .l{color:var(--muted);font-size:12px}
+.kpi .s{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums;margin-top:2px}
+.kpi[aria-pressed="true"]{border-color:var(--ink)}
+.kpi .bar{height:3px;border-radius:2px;margin-top:8px}
+nav.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:14px}
+nav.tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:8px 12px;color:var(--muted);font:inherit;font-weight:600;cursor:pointer}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-color:var(--accent)}
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.datef{position:relative;display:inline-flex;align-items:center;gap:4px}
+.datef input[type=date]{position:absolute;left:0;bottom:0;width:1px;height:1px;opacity:0;pointer-events:none;padding:0;border:0}
+.datef input[type=text]{width:8.5em}
+.cal{border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);padding:6px 8px;cursor:pointer;font:inherit;line-height:1}
+.filters input[type=text],.filters input[type=date]{padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);font:inherit}
+.filters label{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:12px}
+.reset{border:1px solid var(--ink);background:var(--panel);color:var(--ink);border-radius:8px;padding:7px 12px;font:inherit;font-weight:600;cursor:pointer}
+.reset:hover{background:var(--chip)}
+.filterbar{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px}
+.filterbar .filters{margin-bottom:0}
+.filters input[type=search]{flex:1 1 220px;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);font:inherit}
+select{padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);font:inherit}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.chip{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:4px 10px;font:inherit;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.chip[aria-pressed="true"]{background:var(--chip);border-color:var(--ink)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}
+.list{display:flex;flex-direction:column;gap:8px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;grid-template-columns:1fr auto;gap:6px 12px}
+.card.dim{opacity:.55}
+.meta{display:flex;flex-wrap:wrap;gap:4px 10px;color:var(--muted);font-size:12px;align-items:center}
+.meta .badge+.badge{margin-left:-4px}
+.badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;color:#fff;white-space:nowrap}
+.title{font-weight:600;color:var(--ink);text-decoration:none;overflow-wrap:anywhere}
+.title:hover{text-decoration:underline}
+.summary{color:var(--muted);font-size:13px;grid-column:1/-1;overflow-wrap:anywhere}
+.prio{display:inline-flex;gap:2px}
+.prio i{width:6px;height:6px;border-radius:50%;background:var(--line)}
+.prio i.on{background:var(--accent)}
+.actions{display:flex;gap:4px;align-items:flex-start}
+.actions button{border:1px solid var(--line);background:var(--panel);color:var(--muted);border-radius:6px;padding:3px 7px;font:inherit;font-size:11px;cursor:pointer}
+.actions button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.status{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:12px}
+td.num{font-variant-numeric:tabular-nums;text-align:right}
+.scroll{overflow-x:auto}
+.empty{color:var(--muted);padding:30px;text-align:center;background:var(--panel);border:1px dashed var(--line);border-radius:10px}
+.link{color:var(--accent);cursor:pointer;background:none;border:0;font:inherit;padding:0;text-align:left}
+.ok{color:var(--good)} .fail{color:var(--bad)}
+.inv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:10px}
+.inv{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.inv h3{margin:0;font-size:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;overflow-wrap:anywhere}
+.inv .new{font-size:10px;font-weight:700;letter-spacing:.05em;padding:2px 6px;border-radius:999px;background:var(--accent);color:var(--accent-ink)}
+.inv .cats{display:flex;flex-wrap:wrap;gap:4px}
+.inv .cat{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
+.inv .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:8px 0}
+.inv .stats b{display:block;font-size:15px;font-variant-numeric:tabular-nums}
+.inv .stats span{color:var(--muted);font-size:11px}
+.inv .latest{font-size:13px}
+.inv .latest a{color:var(--ink);font-weight:600;text-decoration:none;overflow-wrap:anywhere}
+.inv .latest a:hover{text-decoration:underline}
+.inv details{font-size:13px}
+.inv summary{cursor:pointer;color:var(--accent);font-size:12px}
+.inv details ul{margin:6px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.inv details a{color:var(--ink);text-decoration:none;overflow-wrap:anywhere}
+.inv details a:hover{text-decoration:underline}
+.inv .foot{display:flex;justify-content:flex-end}
+@media (max-width:600px){.inv-grid{grid-template-columns:1fr}}
+.note{font-size:12px;color:var(--muted);margin-top:18px}
+.maker{margin-top:6px;font-size:13px;color:var(--muted)}
+.maker a{color:var(--accent);text-decoration:none}
+.maker a:hover{text-decoration:underline}
+.maker strong{color:var(--ink)}
+.byline{margin-top:28px;padding-top:16px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:4px;font-size:13px}
+.byline a{color:var(--accent);text-decoration:none;overflow-wrap:anywhere}
+.byline a:hover{text-decoration:underline}
+@media (max-width:600px){.card{grid-template-columns:1fr}.actions{order:3}}
+.welcome{position:fixed;inset:0;z-index:50;background:rgba(10,12,16,.62);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px}
+.welcome[hidden]{display:none}
+.welcome .box{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:14px;max-width:520px;width:100%;max-height:calc(100vh - 32px);overflow:auto;padding:24px 22px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.welcome .eyebrow{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.welcome h2{margin:6px 0 4px;font-size:22px;letter-spacing:-.01em}
+.welcome .lead{color:var(--muted);margin:0 0 16px}
+.welcome .who{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:10px;margin-bottom:16px}
+.welcome .avatar{width:40px;height:40px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;font-weight:700;flex:none}
+.welcome .who a{color:var(--accent);text-decoration:none;font-size:13px}
+.welcome h3{font-size:13px;margin:0 0 6px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.welcome ul{margin:0 0 18px;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:13.5px}
+.welcome .enter{width:100%;border:0;border-radius:10px;background:var(--ink);color:var(--bg);font:inherit;font-weight:600;font-size:15px;padding:12px;cursor:pointer}
+.welcome .enter:hover{opacity:.9}
+.welcome .fine{font-size:11.5px;color:var(--muted);text-align:center;margin:10px 0 0}
+body.locked{overflow:hidden}
+</style>
+</head>
+<body>
+<div class="welcome" id="welcome" role="dialog" aria-modal="true" aria-labelledby="welcome-title" hidden>
+  <div class="box">
+    <div class="eyebrow">Welcome</div>
+    <h2 id="welcome-title">India Capital Tracker</h2>
+    <p class="lead">A live feed of foreign money moving into and out of India: investments, exits, offshore and GIFT City fund launches, and funds changing jurisdiction.</p>
+    <div class="who">
+      <div class="avatar" aria-hidden="true">KS</div>
+      <div><div><strong>Built by Kishan Singhania</strong></div>
+        <a href="https://www.linkedin.com/in/kishansinghania/" target="_blank" rel="noopener">Connect on LinkedIn →</a></div>
+    </div>
+    <h3>Before you continue</h3>
+    <ul>
+      <li>This is a <strong>personal project</strong>. It is not affiliated with, or endorsed by, any employer or financial institution.</li>
+      <li>Stories come from <strong>public sources</strong> (Google News and NSE). They may be incomplete, out of date or wrong. Always check the original article.</li>
+      <li>Nothing here is <strong>investment, legal or tax advice</strong>, or a recommendation to buy or sell anything.</li>
+      <li>Headlines and links belong to their publishers.</li>
+    </ul>
+    <button class="enter" id="welcome-enter">I understand, enter the tracker</button>
+  </div>
+</div>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>India Capital Tracker</h1>
+      <div class="sub">Foreign investments into India, exits from India, offshore and GIFT City fund launches, and jurisdiction moves</div>
+      <div class="maker">Built by <a href="https://www.linkedin.com/in/kishansinghania/" target="_blank" rel="noopener"><strong>Kishan Singhania</strong></a> · <a href="https://www.linkedin.com/in/kishansinghania/" target="_blank" rel="noopener">Connect on LinkedIn →</a></div>
+    </div>
+    <div>
+      <div class="sub" id="updated">Loading…</div>
+      <div class="sub" id="visits"></div>
+    </div>
+  </header>
+
+  <section class="filterbar" aria-label="Filters">
+    <div class="filters">
+      <input type="search" id="q" placeholder="Search investor, company, headline…" aria-label="Search">
+      <select id="preset" aria-label="Period">
+        <option value="all" selected>All time</option>
+        <option value="1">Last 24 hours</option>
+        <option value="7">Last 7 days</option>
+        <option value="30">Last 30 days</option>
+        <option value="90">Last 90 days</option>
+        <option value="custom">Custom dates</option>
+      </select>
+      <label class="datef">From <input type="text" id="from-txt" inputmode="numeric" placeholder="DD/MM/YYYY" maxlength="10" aria-label="From date, DD/MM/YYYY"><button type="button" class="cal" data-for="from" aria-label="Pick from date">&#128197;</button><input type="date" id="from" min="2026-04-01" tabindex="-1" aria-hidden="true"></label>
+      <label class="datef">To <input type="text" id="to-txt" inputmode="numeric" placeholder="DD/MM/YYYY" maxlength="10" aria-label="To date, DD/MM/YYYY"><button type="button" class="cal" data-for="to" aria-label="Pick to date">&#128197;</button><input type="date" id="to" min="2026-04-01" tabindex="-1" aria-hidden="true"></label>
+      <select id="source" aria-label="Source">
+        <option value="">All sources</option>
+        <option value="news">News</option>
+        <option value="nse">NSE bulk/block deals</option>
+      </select>
+      <button class="reset" id="reset" type="button">Reset</button>
+    </div>
+  </section>
+
+  <section class="kpis" id="kpis" aria-label="Story counts for the current filters"></section>
+  <p class="note" style="margin:-8px 0 16px" id="kpi-note"></p>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-tab="feed">Feed</button>
+    <button role="tab" aria-selected="false" data-tab="investors">Investors</button>
+    <button role="tab" aria-selected="false" data-tab="health">Sources</button>
+  </nav>
+
+  <section id="tab-feed">
+    <div class="chips" id="typechips"></div>
+    <div class="list" id="feed"></div>
+  </section>
+
+  <section id="tab-investors" hidden>
+    <div class="filters">
+      <input type="search" id="iq" placeholder="Find an investor, fund or company…" aria-label="Find an investor">
+      <select id="icat" aria-label="Category">
+        <option value="">All categories</option>
+        <option value="relocation">Jurisdiction moves</option>
+        <option value="fund_launch">Fund launches</option>
+        <option value="entry">Investments into India</option>
+        <option value="exit">Exits from India</option>
+      </select>
+      <select id="itype" aria-label="Investor type"><option value="">All investor types</option></select>
+      <select id="isort" aria-label="Sort">
+        <option value="active">Most active</option>
+        <option value="recent">Most recent</option>
+        <option value="size">Biggest disclosed deal</option>
+        <option value="name">Name A–Z</option>
+      </select>
+    </div>
+    <p class="sub" id="isum" style="margin:0 0 10px"></p>
+    <div class="inv-grid" id="investors"></div>
+    <div style="text-align:center;margin-top:12px"><button class="reset" id="imore" hidden>Show more investors</button></div>
+  </section>
+
+  <section id="tab-health" hidden>
+    <div class="scroll"><table id="runs"></table></div>
+    <p class="note">"Items read" is how many headlines or rows the source returned; "Added" is how many were new. For the review step, "Items read" is headlines checked and "Added" is stories kept.</p>
+  </section>
+  <p class="note">New stories are checked and added every 3 hours.</p>
+
+  <footer class="byline">
+    <div><strong>Built by Kishan Singhania</strong> ·
+      <a href="https://www.linkedin.com/in/kishansinghania/" target="_blank" rel="noopener">LinkedIn</a> ·
+      <a href="mailto:Kishansinghania18@gmail.com">Kishansinghania18@gmail.com</a></div>
+    <div class="sub">A personal project tracking foreign capital flowing into and out of India. Sources: Google News and NSE; stories may contain errors, so check the original article. Not affiliated with any employer. Not investment advice.</div>
+  </footer>
+</div>
+
+<script>
+const SUPABASE_URL = "https://urpphqybqmxlwhjghsmf.supabase.co";
+const KEY = "sb_publishable_zSo8W_FfT_fZEcfMWoumOw_Yv9mmVWB";
+
+const TYPES = {
+  relocation:  "Jurisdiction move",
+  fund_launch: "Fund launch",
+  entry:       "Investment into India",
+  exit:        "Exit from India",
+};
+const KPI_GROUPS = [
+  { label: "All stories", types: [] },
+  { label: "Jurisdiction moves", types: ["relocation"] },
+  { label: "Fund launches", types: ["fund_launch"] },
+  { label: "Investments into India", types: ["entry"] },
+  { label: "Exits from India", types: ["exit"] },
+];
+
+const state = { events: [], types: new Set(), tab: "feed" };
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const color = (t) => `var(--${TYPES[t] ? t : "other"})`;
+
+function store(k, v) { try { v === undefined ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch {} }
+function load(k) { try { return localStorage.getItem(k); } catch { return null; } }
+
+async function api(path, opts = {}) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    ...opts,
+    headers: { apikey: KEY, "Content-Type": "application/json", ...(opts.headers || {}) },
+  });
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).message || res.statusText);
+  return res.status === 204 ? null : res.json();
+}
+
+// e.g. "26 Oct 2026, 1:15 am"
+const istTime = (iso) => new Date(iso).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true });
+
+function ago(iso) {
+  if (!iso) return "";
+  const m = Math.round((Date.now() - new Date(iso)) / 60000);
+  if (m < 60) return `${m}m ago`;
+  if (m < 1440) return `${Math.round(m / 60)}h ago`;
+  return `${Math.round(m / 1440)}d ago`;
+}
+const money = (e) => e.amount_text || (e.amount_usd_m ? `$${e.amount_usd_m >= 1000 ? (e.amount_usd_m / 1000).toFixed(1) + "bn" : Math.round(e.amount_usd_m) + "m"}` : "");
+
+// All stories are loaded once; every filter is applied in the page so the tiles, chips,
+// feed and investor list always describe the same set.
+async function refresh() {
+  const cols = "id,source,source_name,url,title,summary,published_at,fetched_at,event_type,investor,investor_type,investor_country,origin_jurisdiction,target,amount_usd_m,amount_text,priority,classifier,reports,event_types,parties";
+  try {
+    const [events, runs, reviewed] = await Promise.all([
+      api(`stories?select=${cols}&order=published_at.desc.nullslast&limit=10000`),
+      api(`runs?select=*&order=started_at.desc&limit=60`),
+      api(`runs?select=finished_at&source=eq.review&order=finished_at.desc&limit=1`),
+    ]);
+    // Older stories carry one category; newer ones can carry several.
+    state.events = events.map((e) => ({ ...e, event_types: e.event_types?.length ? e.event_types : [e.event_type], parties: e.parties || [] }));
+    state.runs = runs;
+    state.lastReview = reviewed[0]?.finished_at || null;
+    render();
+  } catch (e) {
+    $("updated").textContent = `Could not load data: ${e.message}`;
+  }
+}
+
+const toDMY = (iso) => iso ? `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}` : "";
+function fromDMY(t) {
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(t.trim());
+  if (!m) return null;
+  const iso = `${m[3]}-${m[2]}-${m[1]}`;
+  const d = new Date(`${iso}T00:00:00`);
+  return !isNaN(d) && d.getDate() === Number(m[1]) && d.getMonth() + 1 === Number(m[2]) ? iso : null;
+}
+const dayStr = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const when = (e) => new Date(e.published_at || e.fetched_at);
+
+function applyPreset() {
+  const v = $("preset").value;
+  if (v === "custom") return;
+  if (v === "all") { $("from").value = ""; $("to").value = ""; return; }
+  $("from").value = dayStr(new Date(Date.now() - (Number(v) - 1) * 864e5));
+  $("to").value = dayStr(new Date());
+}
+
+// Every filter except the category; the tiles and chips use this so they can show each category's count.
+function base() {
+  const q = $("q").value.trim().toLowerCase();
+  const src = $("source").value;
+  const v = $("preset").value;
+  const from = v !== "all" && $("from").value ? new Date(`${$("from").value}T00:00:00`) : null;
+  const to = v !== "all" && $("to").value ? new Date(`${$("to").value}T23:59:59.999`) : null;
+  const sinceHours = v === "1" ? new Date(Date.now() - 864e5) : null;
+  return state.events.filter((e) => {
+    const t = when(e);
+    return (!sinceHours || t >= sinceHours) && (sinceHours || ((!from || t >= from) && (!to || t <= to))) &&
+      (!src || (src === "news" ? e.source === "news" : e.source.startsWith("nse"))) &&
+      (!q || [e.title, e.investor, e.target, e.summary, e.source_name, ...e.parties.map((p) => p.name)].some((x) => x && x.toLowerCase().includes(q)));
+  });
+}
+
+function filtered() {
+  return base().filter((e) => !state.types.size || e.event_types.some((t) => state.types.has(t)));
+}
+
+function periodLabel() {
+  const v = $("preset").value;
+  if (v === "all") return "All time";
+  if (v === "1") return "in the last 24 hours";
+  const f = $("from").value, t = $("to").value;
+  const fmt = toDMY;
+  if (f && t) return `${fmt(f)} – ${fmt(t)}`;
+  if (f) return `from ${fmt(f)}`;
+  if (t) return `up to ${fmt(t)}`;
+  return "All time";
+}
+
+// Header tiles: stories matching the current filters, by kind.
+function renderKpis() {
+  const fmt = (n) => n.toLocaleString("en-IN");
+  const rows = base();
+  $("kpis").innerHTML = KPI_GROUPS.map((g, i) => {
+    const n = rows.filter((e) => !g.types.length || e.event_types.some((t) => g.types.includes(t))).length;
+    const on = g.types.length ? g.types.length === state.types.size && g.types.every((t) => state.types.has(t)) : !state.types.size;
+    const bar = g.types.length ? color(g.types[0]) : "var(--ink)";
+    return `<button class="kpi" data-kpi="${i}" aria-pressed="${on}"><div class="n">${fmt(n)}</div>` +
+      `<div class="l">${g.label}</div><div class="s">${esc(periodLabel())}</div>` +
+      `<div class="bar" style="background:${bar}"></div></button>`;
+  }).join("");
+  $("kpis").querySelectorAll(".kpi").forEach((b) => b.onclick = () => {
+    state.types = new Set(KPI_GROUPS[b.dataset.kpi].types);
+    setTab("feed");
+    render();
+  });
+  $("updated").textContent = `Last updated: ${state.lastReview ? `${istTime(state.lastReview)} IST (${ago(state.lastReview)})` : "not yet"} · ${fmt(filtered().length)} of ${fmt(state.events.length)} stories match`;
+  $("kpi-note").textContent = "Counts follow the filters above. A deal reported by several outlets counts once. Data from April 2026 till Date.";
+}
+
+function renderChips() {
+  const counts = {};
+  base().forEach((e) => e.event_types.forEach((t) => counts[t] = (counts[t] || 0) + 1));
+  $("typechips").innerHTML = Object.entries(TYPES).filter(([t]) => counts[t]).map(([t, l]) =>
+    `<button class="chip" data-t="${t}" aria-pressed="${state.types.has(t)}"><span class="dot" style="background:${color(t)}"></span>${l} <span class="sub">${counts[t]}</span></button>`
+  ).join("") + (state.types.size ? `<button class="chip" data-t="">Clear</button>` : "");
+  $("typechips").querySelectorAll(".chip").forEach((c) => c.onclick = () => {
+    const t = c.dataset.t;
+    if (!t) state.types.clear();
+    else state.types.has(t) ? state.types.delete(t) : state.types.add(t);
+    render();
+  });
+}
+
+function renderFeed() {
+  const rows = filtered();
+  if (!rows.length) { $("feed").innerHTML = `<div class="empty">Nothing matches these filters. Try other dates or press Reset.</div>`; return; }
+  $("feed").innerHTML = rows.slice(0, 400).map((e) => {
+    const who = e.parties.length
+      ? `<span>${e.parties.map((p) => `<strong>${esc(p.name)}</strong>${p.role ? ` (${esc(p.role)})` : ""}`).join(", ")}</span>`
+      : e.investor && `<strong>${esc(e.investor)}</strong>`;
+    const bits = [
+      who,
+      e.target && `→ ${esc(e.target)}`,
+      e.origin_jurisdiction && `jurisdiction: ${esc(e.origin_jurisdiction)}`,
+      money(e) && esc(money(e)),
+      e.reports > 1 && `${e.reports} reports`,
+      esc(e.source_name || e.source),
+      ago(e.published_at || e.fetched_at),
+    ].filter(Boolean).join(" · ");
+    return `<article class="card">
+      <div>
+        <div class="meta">${e.event_types.map((t) => `<span class="badge" style="background:${color(t)}">${TYPES[t] || t}</span>`).join("")}</div>
+        <div style="margin:4px 0"><a class="title" href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a></div>
+        <div class="meta">${bits}</div>
+      </div>
+      ${e.summary && e.classifier !== "rules" ? `<div class="summary">${esc(e.summary)}</div>` : ""}
+    </article>`;
+  }).join("");
+}
+
+const INV_TYPES = {
+  pe_vc: "Private equity / VC", sovereign: "Sovereign wealth fund", pension: "Pension fund", asset_manager: "Asset manager",
+  fpi: "FPI", strategic: "Company (strategic)", bank: "Bank", family_office: "Family office", hedge_fund: "Hedge fund",
+  government: "Government", other: "Other",
+};
+// Vague placeholders the news uses instead of a name; they are not contactable leads.
+const GENERIC = /^(global|foreign|overseas|offshore|international|institutional)\s+(investors?|funds?|players?)$/i;
+// "Carlyle Group" and "Carlyle" are one firm: compare names without legal or group suffixes.
+const invKey = (n) => n.toLowerCase().replace(/[.,']/g, "").replace(/\s*&\s*co\b/g, "")
+  .replace(/\b(group|inc|llc|ltd|limited|plc|lp|pte|sa|ag|nv|bv|co|corp|corporation|holdings?)\b/g, "").replace(/\s+/g, " ").trim();
+const dmy = (iso) => toDMY(dayStr(new Date(iso)));
+let invShown = 60;
+
+function buildInvestors() {
+  const by = new Map();
+  filtered().forEach((e) => {
+    const people = e.parties.length ? e.parties : e.investor ? [{ name: e.investor, role: null, type: e.investor_type }] : [];
+    const seen = new Set();
+    people.forEach((p) => {
+      const name = (p.name || "").trim();
+      const k = invKey(name);
+      if (!k || GENERIC.test(name) || seen.has(k)) return;
+      seen.add(k);
+      const r = by.get(k) || { key: k, names: new Map(), stories: [], roles: new Set(), cats: {}, types: new Map(), country: null, first: null, last: null, biggest: null };
+      r.names.set(name, (r.names.get(name) || 0) + 1);
+      r.stories.push(e);
+      if (p.role) r.roles.add(p.role);
+      // In a two-sided deal the seller is on the exit side and the buyer on the investment side.
+      let cats = e.event_types;
+      if (cats.includes("exit") && cats.includes("entry")) {
+        if (p.role === "seller") cats = cats.filter((t) => t !== "entry");
+        else if (["buyer", "investor"].includes(p.role)) cats = cats.filter((t) => t !== "exit");
+      }
+      cats.forEach((t) => r.cats[t] = (r.cats[t] || 0) + 1);
+      const ty = p.type || (name === e.investor ? e.investor_type : null);
+      if (ty) r.types.set(ty, (r.types.get(ty) || 0) + 1);
+      if (name === e.investor && e.investor_country) r.country = e.investor_country;
+      const t = e.published_at || e.fetched_at;
+      if (!r.last || t > r.last) r.last = t;
+      if (!r.first || t < r.first) r.first = t;
+      if (e.amount_usd_m && (!r.biggest || e.amount_usd_m > r.biggest.amount_usd_m)) r.biggest = e;
+      by.set(k, r);
+    });
+  });
+  return [...by.values()].map((r) => ({
+    ...r,
+    name: [...r.names.entries()].sort((a, b) => b[1] - a[1] || a[0].length - b[0].length)[0][0],
+    type: [...r.types.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || null,
+    stories: r.stories.sort((a, b) => (b.published_at || b.fetched_at) > (a.published_at || a.fetched_at) ? 1 : -1),
+  }));
+}
+
+function renderInvestors() {
+  const all = buildInvestors();
+  // The type list offers only the types present in the current results.
+  const present = new Set(all.map((r) => r.type).filter(Boolean));
+  const tsel = $("itype"), cur = tsel.value;
+  tsel.innerHTML = `<option value="">All investor types</option>` + Object.entries(INV_TYPES).filter(([k]) => present.has(k))
+    .map(([k, l]) => `<option value="${k}"${k === cur ? " selected" : ""}>${l}</option>`).join("");
+  const q = $("iq").value.trim().toLowerCase(), cat = $("icat").value, ty = tsel.value, sort = $("isort").value;
+  const rows = all.filter((r) => (!q || [...r.names.keys()].some((n) => n.toLowerCase().includes(q)) || (r.country || "").toLowerCase().includes(q))
+      && (!cat || r.cats[cat]) && (!ty || r.type === ty))
+    .sort({
+      active: (a, b) => b.stories.length - a.stories.length || (b.last > a.last ? 1 : -1),
+      recent: (a, b) => (b.last > a.last ? 1 : -1),
+      size: (a, b) => (b.biggest?.amount_usd_m || 0) - (a.biggest?.amount_usd_m || 0) || b.stories.length - a.stories.length,
+      name: (a, b) => a.name.localeCompare(b.name),
+    }[sort]);
+  const monthAgo = new Date(Date.now() - 30 * 864e5).toISOString();
+  const fresh = rows.filter((r) => r.first >= monthAgo).length;
+  $("isum").textContent = rows.length
+    ? `${rows.length.toLocaleString("en-IN")} investor${rows.length === 1 ? "" : "s"} · ${fresh} new in the last 30 days · follows the filters above`
+    : "";
+  if (!rows.length) { $("investors").innerHTML = `<div class="empty" style="grid-column:1/-1">No named investors match these filters.</div>`; $("imore").hidden = true; return; }
+  $("investors").innerHTML = rows.slice(0, invShown).map((r) => {
+    const latest = r.stories[0];
+    const more = r.stories.slice(1, 6);
+    const facts = [r.country, INV_TYPES[r.type], r.roles.size && [...r.roles].join(", ")].filter(Boolean).map(esc).join(" · ");
+    return `<article class="inv">
+      <h3>${esc(r.name)}${r.first >= monthAgo ? `<span class="new">NEW</span>` : ""}</h3>
+      ${facts ? `<div class="sub">${facts}</div>` : ""}
+      <div class="cats">${Object.keys(TYPES).filter((t) => r.cats[t]).map((t) =>
+        `<span class="cat" style="color:${color(t)}">${TYPES[t]}${r.cats[t] > 1 ? ` × ${r.cats[t]}` : ""}</span>`).join("")}</div>
+      <div class="stats">
+        <div><b>${r.stories.length}</b><span>Stor${r.stories.length === 1 ? "y" : "ies"}</span></div>
+        <div><b>${r.biggest ? esc(money(r.biggest)) : "–"}</b><span>Biggest deal</span></div>
+        <div><b>${dmy(r.last)}</b><span>Last seen</span></div>
+      </div>
+      <div class="latest"><span class="sub">Latest:</span> <a href="${esc(latest.url)}" target="_blank" rel="noopener">${esc(latest.title)}</a>
+        <span class="sub"> · ${dmy(latest.published_at || latest.fetched_at)}</span></div>
+      ${more.length ? `<details><summary>${more.length} earlier stor${more.length === 1 ? "y" : "ies"}${r.stories.length > 6 ? ` (of ${r.stories.length - 1})` : ""}</summary><ul>${more.map((e) =>
+        `<li><a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a> <span class="sub">· ${dmy(e.published_at || e.fetched_at)}</span></li>`).join("")}</ul></details>` : ""}
+      <div class="foot"><button class="link" data-inv="${esc(r.name)}">Show all in feed →</button></div>
+    </article>`;
+  }).join("");
+  $("imore").hidden = rows.length <= invShown;
+  $("investors").querySelectorAll("[data-inv]").forEach((b) => b.onclick = () => {
+    $("q").value = b.dataset.inv; state.types.clear(); setTab("feed"); render();
+  });
+}
+
+const SOURCES = {
+  news: ["Google News (live)", "Checked every 30 minutes for the last 24 hours of news."],
+  review: ["Review and cleanup", "Checks new headlines, keeps the relevant ones and merges repeats. News appears on this page only after this step."],
+  nse_bulk: ["NSE bulk deals", "The exchange's daily file of large trades; only foreign buyers and sellers are kept."],
+  nse_block: ["NSE block deals", "The exchange's daily file of block trades; only foreign buyers and sellers are kept."],
+  news_backfill: ["Google News history (Apr 2026 to date)", "One-time collection of past weeks."],
+};
+// Plain-language reason for a failed run.
+function whyFailed(r) {
+  const err = r.error || "";
+  if (/HTTP 50[0-9]|HTTP 429/.test(err)) return "Google News briefly refused requests. Nothing is lost: the next run tries again automatically.";
+  if (/HTTP 4/.test(err)) return "The source refused the request. It is retried on the next run.";
+  return err ? "Something went wrong on this run; it is retried automatically." : "";
+}
+
+function renderRuns() {
+  const latest = new Map();
+  (state.runs || []).forEach((r) => { if (!latest.has(r.source)) latest.set(r.source, r); });
+  const order = ["review", "news", "nse_bulk", "nse_block", "news_backfill"];
+  const rows = [...latest.values()].sort((a, b) => order.indexOf(a.source) - order.indexOf(b.source));
+  $("runs").innerHTML = `<thead><tr><th>Source</th><th>Last run</th><th>Status</th><th class="num">Items read</th><th class="num">Added</th><th>What it means</th></tr></thead><tbody>` +
+    rows.map((r) => {
+      const [label, about] = SOURCES[r.source] || [r.source, ""];
+      return `<tr><td><strong>${esc(label)}</strong></td>
+        <td>${r.finished_at ? `${esc(istTime(r.finished_at))}<div class="sub">${ago(r.finished_at)}</div>` : "–"}</td>
+        <td class="${r.ok ? "ok" : "fail"}">${r.ok ? "Working" : "Retrying"}</td>
+        <td class="num">${r.items_found ?? ""}</td><td class="num">${r.items_new ?? ""}</td>
+        <td class="sub">${esc(r.ok ? about : whyFailed(r))}</td></tr>`;
+    }).join("") + `</tbody>`;
+}
+
+function render() {
+  ["from", "to"].forEach((id) => { if (document.activeElement !== $(`${id}-txt`)) $(`${id}-txt`).value = toDMY($(id).value); });
+  renderKpis(); renderChips(); renderFeed(); renderInvestors(); renderRuns();
+}
+
+function setTab(t) {
+  state.tab = t;
+  document.querySelectorAll("nav.tabs button").forEach((b) => b.setAttribute("aria-selected", b.dataset.tab === t));
+  ["feed", "investors", "health"].forEach((x) => $(`tab-${x}`).hidden = x !== t);
+}
+document.querySelectorAll("nav.tabs button").forEach((b) => b.onclick = () => setTab(b.dataset.tab));
+["q", "source"].forEach((id) => $(id).addEventListener("input", render));
+$("preset").addEventListener("change", () => { applyPreset(); render(); });
+["from", "to"].forEach((id) => $(id).addEventListener("change", () => {
+  if ($(id).value && !$(id).validity.valid) return;
+  $("preset").value = $("from").value || $("to").value ? "custom" : "all";
+  render();
+}));
+// Dates are shown and typed as DD/MM/YYYY; the hidden native inputs (YYYY-MM-DD) hold the value and give the calendar.
+["from", "to"].forEach((id) => {
+  const txt = $(`${id}-txt`);
+  txt.addEventListener("input", () => {
+    const d = txt.value.replace(/\D/g, "").slice(0, 8);
+    txt.value = [d.slice(0, 2), d.slice(2, 4), d.slice(4)].filter(Boolean).join("/");
+  });
+  txt.addEventListener("change", () => {
+    const iso = fromDMY(txt.value);
+    if (txt.value && !iso) { txt.setCustomValidity("Use DD/MM/YYYY"); txt.reportValidity(); return; }
+    txt.setCustomValidity("");
+    $(id).value = iso || "";
+    $(id).dispatchEvent(new Event("change"));
+  });
+});
+document.querySelectorAll(".cal").forEach((b) => b.onclick = () => {
+  const el = $(b.dataset.for);
+  try { el.showPicker(); } catch { el.focus(); el.click(); }
+});
+$("reset").addEventListener("click", () => {
+  $("q").value = ""; $("iq").value = ""; $("icat").value = ""; $("itype").value = ""; $("isort").value = "active"; $("source").value = "";
+  $("preset").value = "all"; applyPreset(); state.types.clear(); setTab("feed"); render();
+});
+$("to").max = $("from").max = dayStr(new Date());
+["iq", "icat", "itype", "isort"].forEach((id) => $(id).addEventListener("input", () => { invShown = 60; renderInvestors(); }));
+$("imore").addEventListener("click", () => { invShown += 60; renderInvestors(); });
+
+// Counts this page load once and shows the site's last-24-hour traffic.
+async function countVisit() {
+  let id = load("ict-visitor");
+  if (!id) { id = Math.random().toString(36).slice(2) + Date.now().toString(36); store("ict-visitor", id); }
+  try {
+    const v = await api("rpc/record_visit", { method: "POST", body: JSON.stringify({ p_visitor: id }) });
+    const n = (x) => Number(x).toLocaleString("en-IN");
+    $("visits").textContent = `Last 24 hours: ${n(v.visitors)} visitor${v.visitors === 1 ? "" : "s"} · ${n(v.page_views)} visit${v.page_views === 1 ? "" : "s"}`;
+  } catch {}
+}
+
+// The welcome screen shows on a visitor's first visit each day (Indian time).
+function showWelcome() {
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+  if (load("ict-welcome") === today) return;
+  const w = $("welcome");
+  w.hidden = false; document.body.classList.add("locked");
+  $("welcome-enter").focus();
+  $("welcome-enter").onclick = () => { store("ict-welcome", today); w.hidden = true; document.body.classList.remove("locked"); };
+}
+
+refresh();
+showWelcome();
+countVisit();
+setInterval(refresh, 5 * 60 * 1000);
+</script>
+</body>
+</html>

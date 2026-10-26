@@ -1,0 +1,387 @@
+<style>
+#dash-root .ict { display: flex; flex-direction: column; gap: var(--cds-gap-lg); font-family: var(--font-anthropic-sans); }
+#dash-root .ict-head h1 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; text-wrap: balance; }
+#dash-root .ict-take { color: var(--color-fg-muted); margin: var(--cds-gap-xs) 0 0; font-size: var(--cds-font-size-body); }
+#dash-root .ict-take b { font-weight: 600; color: var(--color-fg); }
+#dash-root .ict-controls { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm); align-items: center; }
+#dash-root .ict-controls select, #dash-root .ict-controls input { font: inherit; font-size: var(--cds-font-size-body); padding: var(--cds-pad-xs) var(--cds-pad-sm); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-panel); color: var(--color-fg); }
+#dash-root .ict-controls input[type=search] { flex: 1 1 14rem; min-width: 0; }
+#dash-root .ict-date { display: inline-flex; align-items: center; gap: var(--cds-gap-xs); color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+#dash-root .ict-reset { font: inherit; font-size: var(--cds-font-size-body); font-weight: 600; padding: var(--cds-pad-xs) var(--cds-pad-md); border: 1px solid var(--color-fg); border-radius: var(--cds-radius); background: var(--color-panel); color: var(--color-fg); cursor: pointer; }
+#dash-root .ict-reset:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+#dash-root .ict-filters { gap: var(--cds-gap-xs); }
+#dash-root .ict-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10.5rem), 1fr)); gap: var(--cds-gap-md); }
+#dash-root .ict-tile { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); display: flex; flex-direction: column; gap: var(--cds-gap-xs); text-align: left; font: inherit; color: inherit; cursor: pointer; }
+#dash-root .ict-tile:hover, #dash-root .ict-tile[aria-pressed="true"] { border-color: var(--color-fg-muted); }
+#dash-root .ict-tile:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+#dash-root .ict-tile .lbl { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+#dash-root .ict-tile .num { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; line-height: 1.1; min-height: 1.1em; }
+#dash-root .ict-tile .sub { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); font-variant-numeric: tabular-nums; }
+#dash-root .ict-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: flex; flex-direction: column; gap: var(--cds-gap-sm); min-width: 0; }
+#dash-root .ict-card h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0; }
+#dash-root .ict-note { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: 0; }
+#dash-root .ict-chart { position: relative; min-height: 220px; }
+#dash-root .ict-legend { display: flex; flex-wrap: wrap; gap: var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+#dash-root .ict-legend span { display: inline-flex; align-items: center; gap: var(--cds-gap-xs); }
+#dash-root .ict-legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+#dash-root .ict-tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); white-space: nowrap; z-index: 2; }
+#dash-root .ict-tip .d { color: var(--cds-text-secondary); }
+#dash-root .ict-tip i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; margin-right: 6px; }
+#dash-root .ict-chips { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs); }
+#dash-root .ict-chip { font: inherit; font-size: var(--cds-font-size-caption); border: 1px solid var(--color-border-line); background: var(--color-panel); color: var(--color-fg); border-radius: 999px; padding: 2px 10px; cursor: pointer; }
+#dash-root .ict-chip[aria-pressed="true"] { border-color: var(--color-fg); font-weight: 600; }
+#dash-root .ict-tablebox { max-height: 34rem; overflow: auto; border-top: 1px solid var(--color-border-line); }
+#dash-root .ict-table { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-body); }
+#dash-root .ict-table th { position: sticky; top: 0; background: var(--color-panel); text-align: left; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); font-weight: 600; padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); z-index: 1; }
+#dash-root .ict-table td { padding: var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); vertical-align: top; }
+#dash-root .ict-table td.n { text-align: right; font-variant-numeric: tabular-nums; }
+#dash-root .ict-table td.when { white-space: nowrap; color: var(--color-fg-muted); font-variant-numeric: tabular-nums; font-size: var(--cds-font-size-caption); }
+#dash-root .ict-table td.headline { min-width: 16rem; }
+#dash-root .ict-table td.headline a { color: var(--color-fg); text-decoration: none; font-weight: 500; }
+#dash-root .ict-table td.headline a:hover { text-decoration: underline; }
+#dash-root .ict-table .pill { display: inline-block; white-space: nowrap; font-size: var(--cds-font-size-caption); font-weight: 600; padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; }
+#dash-root .ict-table .summary { display: block; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); margin-top: 2px; }
+#dash-root .ict-empty { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); padding: var(--cds-pad-md) 0; }
+#dash-root .ict-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: var(--cds-gap-md); }
+#dash-root .ict-fail { display: flex; align-items: center; justify-content: center; gap: var(--cds-gap-xs); color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); min-height: 4rem; }
+#dash-root .ict-fail::before { content: ""; width: .375rem; height: .375rem; border-radius: 50%; background: var(--color-bad); }
+#dash-root [data-dash-source-state=empty] { color: transparent; }
+#dash-root [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+#dash-root .ok { color: var(--color-ok); } #dash-root .bad { color: var(--color-bad); }
+@media (max-width: 720px) { #dash-root .hide-narrow { display: none; } }
+.sr-sep{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.pill+.sr-sep+.pill{margin-left:4px}
+</style>
+
+<div class="ict">
+  <header class="ict-head" id="overview">
+    <h1>India Capital Tracker</h1>
+    <p class="ict-take" id="takeaway">Showing
+      <b data-source="kpis" data-field="total" data-where="grp=all" class="dash-skeleton">—</b> stories · <span class="ict-period">All time</span>:
+      <b data-source="kpis" data-field="total" data-where="grp=relocation" class="dash-skeleton">—</b> jurisdiction moves,
+      <b data-source="kpis" data-field="total" data-where="grp=launches" class="dash-skeleton">—</b> fund launches,
+      <b data-source="kpis" data-field="total" data-where="grp=investments" class="dash-skeleton">—</b> investments into India and
+      <b data-source="kpis" data-field="total" data-where="grp=exits" class="dash-skeleton">—</b> exits from India.</p>
+    <p class="ict-note">Last updated: <b data-source="runs" data-field="finished_ist" data-where="source=review" class="dash-skeleton">—</b> IST. New stories are checked and added every 3 hours.</p>
+  </header>
+
+  <section class="ict-card ict-filters" id="filters" aria-label="Filters">
+    <div class="ict-controls">
+      <input id="ict-q" type="search" placeholder="Search investor, company, headline" aria-label="Search">
+      <select id="ict-preset" aria-label="Period">
+        <option value="all">All time</option>
+        <option value="1">Today</option>
+        <option value="7">Last 7 days</option>
+        <option value="30">Last 30 days</option>
+        <option value="90">Last 90 days</option>
+        <option value="custom">Custom dates</option>
+      </select>
+      <label class="ict-date">From <input id="ict-from" type="date" min="2026-04-01" max="2099-12-31" aria-label="From date"></label>
+      <label class="ict-date">To <input id="ict-to" type="date" min="2026-04-01" max="2099-12-31" aria-label="To date"></label>
+      <button id="ict-reset" class="ict-reset" type="button">Reset</button>
+    </div>
+    <p class="ict-note" id="ict-active">Every number, the chart, the news list and the investor list follow these filters. Click a tile to show one kind; Reset shows all news.</p>
+  </section>
+
+  <section class="ict-tiles" id="tiles" aria-label="Story counts for the current filters">
+    <button class="ict-tile" data-grp="all" aria-pressed="false"><span class="lbl">All stories</span><span class="num dash-skeleton" data-source="kpis" data-field="total" data-where="grp=all">—</span><span class="sub ict-period">All time</span></button>
+    <button class="ict-tile" data-grp="relocation" aria-pressed="false"><span class="lbl">Jurisdiction moves</span><span class="num dash-skeleton" data-source="kpis" data-field="total" data-where="grp=relocation">—</span><span class="sub ict-period">All time</span></button>
+    <button class="ict-tile" data-grp="launches" aria-pressed="false"><span class="lbl">Fund launches</span><span class="num dash-skeleton" data-source="kpis" data-field="total" data-where="grp=launches">—</span><span class="sub ict-period">All time</span></button>
+    <button class="ict-tile" data-grp="investments" aria-pressed="false"><span class="lbl">Investments into India</span><span class="num dash-skeleton" data-source="kpis" data-field="total" data-where="grp=investments">—</span><span class="sub ict-period">All time</span></button>
+    <button class="ict-tile" data-grp="exits" aria-pressed="false"><span class="lbl">Exits from India</span><span class="num dash-skeleton" data-source="kpis" data-field="total" data-where="grp=exits">—</span><span class="sub ict-period">All time</span></button>
+  </section>
+  <p class="ict-note">Counts follow the filters above. A deal reported by several outlets counts once. Data from April 2026 till Date.</p>
+
+  <section class="ict-card" id="daily-card">
+    <h2>Stories over time</h2>
+    <p class="ict-note" id="daily-note">Per day, or per week when the range is longer than three months. India time.</p>
+    <div class="ict-legend" id="daily-legend" data-source="daily"></div>
+    <div class="ict-chart dash-skeleton" id="daily-chart" data-source="daily"></div>
+  </section>
+
+  <section class="ict-card" id="feed">
+    <h2>Feed</h2>
+    <p class="ict-note">Newest first. Four kinds of news only. Investments: foreign money going into Indian companies or assets. Exits: a foreign investor selling an Indian stake (fully or partly), a foreign company closing its Indian operations, or a fund investing in India being liquidated. Fund launches: funds set up outside India (offshore or GIFT City) to invest in India, including their registrations and closes. Jurisdiction moves: funds investing in India changing domicile. Several outlets covering the same deal show as one row; Reports is how many articles covered it.</p>
+    <p class="ict-note" id="ict-count"></p>
+    <div class="ict-tablebox">
+      <table class="ict-table" id="feed-table" data-source="feed" data-row-key="id">
+        <thead><tr>
+          <th data-field="seen_ist">Seen (IST)</th>
+          <th data-field="type_label">Type</th>
+          <th data-field="title">Headline</th>
+          <th data-field="investor">Investor</th>
+          <th data-field="target" class="hide-narrow">Target</th>
+          <th data-field="amount" class="hide-narrow">Amount</th>
+          <th data-field="source_name" class="hide-narrow">Source</th>
+          <th data-field="reports">Reports</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="ict-grid2">
+    <section class="ict-card" id="investors">
+      <h2>Investors to look at</h2>
+      <p class="ict-note">Named investors and funds matching the filters, with their role (buyer, seller, investor, fund). Click one to search for it.</p>
+      <div class="ict-tablebox" style="max-height: 24rem">
+        <table class="ict-table" id="inv-table" data-source="investors" data-row-key="investor">
+          <thead><tr>
+            <th data-field="investor">Investor</th>
+            <th data-field="signals">Signals</th>
+            <th data-field="roles">Role</th>
+            <th data-field="kinds" class="hide-narrow">Kinds</th>
+            <th data-field="last_seen">Last seen</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="ict-card" id="collection">
+      <h2>Collection status</h2>
+      <p class="ict-note">The collector runs every 30 minutes. NSE files hold the last trading day's bulk and block deals.</p>
+      <table class="ict-table" id="runs-table" data-source="runs" data-row-key="source">
+        <thead><tr>
+          <th data-field="source">Source</th>
+          <th data-field="status_label">Status</th>
+          <th data-field="items_found">Read</th>
+          <th data-field="items_new">New</th>
+          <th data-field="finished_ist">Last run (IST)</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </div>
+</div>
+
+<script>
+// Supabase's execute_sql answer wraps the rows in a text envelope; this pulls out the JSON array.
+const supabaseRows = ({ answer }) => {
+  let text = answer;
+  if (text && typeof text === 'object') {
+    if (typeof text.result === 'string') text = text.result;
+    else if (Array.isArray(text.content)) text = text.content.map((c) => c.text || '').join('');
+    else if (Array.isArray(text)) return text;
+    else text = JSON.stringify(text);
+  }
+  if (typeof text === 'string' && text.trim().startsWith('{')) {
+    try { const o = JSON.parse(text); if (typeof o.result === 'string') text = o.result; else if (o.error) throw new Error(o.error.message || String(o.error)); } catch (e) { if (!(e instanceof SyntaxError)) throw e; }
+  }
+  const m = String(text).match(/<untrusted-data-[^>]+>\s*(\[[\s\S]*\])\s*<\/untrusted-data-/);
+  if (!m) throw new Error(String(text).slice(0, 300));
+  return JSON.parse(m[1]);
+};
+['kpis', 'daily', 'feed', 'investors', 'runs'].forEach((id) =>
+  dash.loader(id, { description: 'Reads the rows out of the Supabase SQL answer', fn: supabaseRows }));
+</script>
+
+<script>
+const TYPE_COLORS = { 'Jurisdiction move': 0, 'Fund launch': 1, 'Investment into India': 2, 'Exit from India': 3 };
+const qIn = document.getElementById('ict-q');
+const presetSel = document.getElementById('ict-preset');
+const fromIn = document.getElementById('ict-from');
+const toIn = document.getElementById('ict-to');
+
+const dayStr = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const presetRange = (v) => v === 'all' ? [null, null] : [dayStr(new Date(Date.now() - (Number(v) - 1) * 864e5)), dayStr(new Date())];
+const wholeDate = (el) => el.value && el.validity.valid ? el.value : null;
+
+presetSel.addEventListener('change', () => {
+  if (presetSel.value === 'custom') { fromIn.focus(); return; }
+  const [start, end] = presetRange(presetSel.value);
+  dash.setParams({ start, end });
+});
+[fromIn, toIn].forEach((el) => {
+  el.addEventListener('change', () => {
+    if (el.value && !el.validity.valid) return;
+    dash.setParams({ start: wholeDate(fromIn), end: wholeDate(toIn) });
+  });
+  el.addEventListener('blur', showFilters);
+});
+let qTimer;
+qIn.addEventListener('input', () => {
+  clearTimeout(qTimer);
+  qTimer = setTimeout(() => { qTimer = null; dash.setParams({ q: qIn.value.trim() || null }); }, 500);
+});
+document.getElementById('ict-reset').addEventListener('click', () => { clearTimeout(qTimer); qTimer = null; qIn.value = ''; dash.resetParams(); });
+
+document.querySelectorAll('#tiles .ict-tile').forEach((b) => b.addEventListener('click', () => {
+  const g = b.dataset.grp;
+  dash.setParams({ kind: g === 'all' || dash.params().kind === g ? null : g });
+}));
+
+document.getElementById('inv-table').addEventListener('click', (ev) => {
+  const tr = ev.target.closest('tr[data-key]');
+  if (!tr) return;
+  qIn.value = tr.dataset.key;
+  dash.setParams({ q: tr.dataset.key, kind: null });
+  document.getElementById('feed').scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+
+function periodLabel(p) {
+  const fmt = (x) => new Date(`${x}T00:00:00`).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  if (p.start && p.end) return p.start === p.end ? `on ${fmt(p.start)}` : `${fmt(p.start)} – ${fmt(p.end)}`;
+  if (p.start) return `from ${fmt(p.start)}`;
+  if (p.end) return `up to ${fmt(p.end)}`;
+  return 'All time';
+}
+
+function showFilters() {
+  const p = dash.params();
+  if (document.activeElement !== fromIn) fromIn.value = p.start ?? '';
+  if (document.activeElement !== toIn) toIn.value = p.end ?? '';
+  if (document.activeElement !== qIn && !qTimer) qIn.value = p.q ?? '';
+  const match = ['all', '1', '7', '30', '90'].find((v) => { const [a, b] = presetRange(v); return (p.start ?? null) === a && (p.end ?? null) === b; });
+  if (document.activeElement !== presetSel) presetSel.value = match ?? 'custom';
+  document.querySelectorAll('.ict-period').forEach((el) => { el.textContent = periodLabel(p); });
+  document.querySelectorAll('#tiles .ict-tile').forEach((b) => {
+    b.setAttribute('aria-pressed', String(b.dataset.grp === (p.kind ?? 'all')));
+  });
+}
+
+function color(label) { return dash.colors[TYPE_COLORS[label] ?? 4]; }
+
+function failLine(el) { el.replaceChildren(); const d = document.createElement('div'); d.className = 'ict-fail'; d.textContent = 'Failed to load'; el.appendChild(d); }
+
+function drawFeed() {
+  const tbody = document.querySelector('#feed-table tbody');
+  const count = document.getElementById('ict-count');
+  const f = dash.data('feed');
+  if (f.status !== 'ok') {
+    tbody.replaceChildren(); count.textContent = '';
+    if (f.status === 'error') { const tr = tbody.insertRow(); const td = tr.insertCell(); td.colSpan = 8; failLine(td); }
+    return;
+  }
+  const rows = f.data;
+  count.textContent = `${d3.format(',')(rows.length)} stories${rows.length >= 1000 ? ' (newest 1,000 shown; narrow the dates to see older ones)' : ''}`;
+  if (!rows.length) {
+    const tr = document.createElement('tr'); const td = tr.insertCell(); td.colSpan = 8; td.className = 'ict-empty';
+    td.textContent = 'Nothing matches these filters. Try other dates or press Reset.';
+    tbody.replaceChildren(tr); return;
+  }
+  tbody.replaceChildren(...rows.map((r) => {
+    const tr = document.createElement('tr');
+    tr.dataset.key = String(r.id);
+    const cell = (text, cls) => { const td = tr.insertCell(); if (cls) td.className = cls; td.textContent = text ?? ''; return td; };
+    cell(r.seen_ist, 'when');
+    const tt = tr.insertCell();
+    String(r.type_label || '').split(', ').forEach((lab, i) => {
+      if (i) { const sep = document.createElement('span'); sep.className = 'sr-sep'; sep.textContent = ', '; tt.appendChild(sep); }
+      const pill = document.createElement('span'); pill.className = 'pill'; pill.style.color = color(lab); pill.textContent = lab; tt.appendChild(pill);
+    });
+    const h = tr.insertCell(); h.className = 'headline';
+    const a = document.createElement('a'); a.href = r.url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = r.title;
+    if (r.summary) a.title = r.summary;
+    h.appendChild(a);
+    cell(r.investor);
+    cell(r.target, 'hide-narrow');
+    cell(r.amount, 'hide-narrow');
+    cell(r.source_name, 'hide-narrow');
+    cell(r.reports, 'n');
+    return tr;
+  }));
+}
+
+function drawDaily() {
+  const box = document.getElementById('daily-chart');
+  const legend = document.getElementById('daily-legend');
+  const d = dash.data('daily');
+  const series = [
+    { key: 'moves', name: 'Jurisdiction moves' },
+    { key: 'launches', name: 'Fund launches' },
+    { key: 'investments', name: 'Investments into India' },
+    { key: 'exits', name: 'Exits from India' },
+  ];
+  legend.replaceChildren(...series.map((s, i) => { const sp = document.createElement('span'); const sw = document.createElement('i'); sw.style.background = dash.colors[i]; sp.append(sw, s.name); return sp; }));
+  if (d.status === 'error') { box.classList.remove('dash-skeleton'); failLine(box); return; }
+  if (d.status !== 'ok') { box.replaceChildren(); return; }
+  box.classList.remove('dash-skeleton');
+  const rows = d.data.map((r) => ({ ...r, date: new Date(r.day + 'T00:00:00Z') }));
+  if (!rows.length) { box.replaceChildren(); return; }
+  const weekly = rows[0].unit === 'week';
+  document.getElementById('daily-note').textContent = `${weekly ? 'Per week (weeks start Monday)' : 'Per day'} · ${periodLabel(dash.params())} · India time.`;
+  const W = Math.max(280, box.clientWidth), H = 220;
+  const stack = d3.stack().keys(series.map((s) => s.key))(rows);
+  const ymax = d3.max(stack.at(-1), (p) => p[1]) || 1;
+  const y = d3.scaleLinear([0, ymax], [H - 24, 8]).nice();
+  const fmtTick = d3.format(',');
+  const probe = d3.select(box).append('svg').attr('width', 0).attr('height', 0);
+  const tw = d3.max(y.ticks(4), (t) => probe.append('text').attr('font-size', 11).text(fmtTick(t)).node().getComputedTextLength()) || 20;
+  probe.remove();
+  const left = Math.ceil(tw) + 10;
+  const x = d3.scaleBand(rows.map((r) => r.day), [left, W - 4]).padding(0.25);
+  box.replaceChildren();
+  const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Stories over time, stacked by kind');
+  svg.append('g').selectAll('line').data(y.ticks(4)).join('line')
+    .attr('x1', left).attr('x2', W - 4).attr('y1', (t) => y(t)).attr('y2', (t) => y(t))
+    .attr('stroke', 'var(--cds-chart-grid)').attr('stroke-width', 1);
+  svg.append('g').selectAll('text').data(y.ticks(4)).join('text')
+    .attr('x', left - 6).attr('y', (t) => y(t)).attr('dy', '0.32em').attr('text-anchor', 'end')
+    .attr('font-size', 11).attr('fill', 'var(--color-fg-muted)').text(fmtTick);
+  const labelW = 46;
+  const every = Math.max(1, Math.ceil(labelW / x.step()));
+  svg.append('g').selectAll('text').data(rows.filter((_, i) => (rows.length - 1 - i) % every === 0)).join('text')
+    .attr('x', (r) => x(r.day) + x.bandwidth() / 2).attr('y', H - 6).attr('text-anchor', 'middle')
+    .attr('font-size', 11).attr('fill', 'var(--color-fg-muted)').text((r) => d3.utcFormat('%b %-d')(r.date));
+  svg.append('line').attr('x1', left).attr('x2', W - 4).attr('y1', y(0)).attr('y2', y(0)).attr('stroke', 'var(--cds-chart-axis)');
+  const bars = svg.append('g');
+  stack.forEach((layer, i) => {
+    bars.append('g').attr('fill', dash.colors[i]).selectAll('rect').data(layer).join('rect')
+      .attr('x', (p) => x(p.data.day)).attr('width', x.bandwidth())
+      .attr('y', (p) => y(p[1])).attr('height', (p) => Math.max(0, y(p[0]) - y(p[1])));
+  });
+  const tip = document.createElement('div'); tip.className = 'ict-tip'; tip.hidden = true; box.appendChild(tip);
+  svg.append('g').selectAll('rect').data(rows).join('rect')
+    .attr('x', (r) => x(r.day) - (x.step() - x.bandwidth()) / 2).attr('width', x.step())
+    .attr('y', 0).attr('height', H).attr('fill', 'transparent')
+    .on('mousemove', (ev, r) => {
+      tip.replaceChildren();
+      const dd = document.createElement('div'); dd.className = 'd'; dd.textContent = (weekly ? 'Week of ' : '') + d3.utcFormat('%a %b %-d')(r.date); tip.appendChild(dd);
+      series.forEach((s, i) => { const line = document.createElement('div'); const sw = document.createElement('i'); sw.style.background = dash.colors[i]; line.append(sw, `${s.name}: ${d3.format(',')(r[s.key])}`); tip.appendChild(line); });
+      tip.hidden = false;
+      const [mx, my] = d3.pointer(ev, box);
+      tip.style.left = `${Math.min(Math.max(0, mx + 12), box.clientWidth - tip.offsetWidth)}px`;
+      tip.style.top = `${Math.max(0, my - 60)}px`;
+    })
+    .on('mouseleave', () => { tip.hidden = true; });
+}
+
+function drawSimpleTable(id, sourceId, cols, keyCol, emptyText) {
+  const tbody = document.querySelector(`#${id} tbody`);
+  const d = dash.data(sourceId);
+  if (d.status === 'error') { const tr = document.createElement('tr'); const td = tr.insertCell(); td.colSpan = cols.length; failLine(td); tbody.replaceChildren(tr); return; }
+  if (d.status !== 'ok') { tbody.replaceChildren(); return; }
+  if (!d.data.length) { const tr = document.createElement('tr'); const td = tr.insertCell(); td.colSpan = cols.length; td.className = 'ict-empty'; td.textContent = emptyText; tbody.replaceChildren(tr); return; }
+  tbody.replaceChildren(...d.data.map((r) => {
+    const tr = document.createElement('tr'); tr.dataset.key = String(r[keyCol]);
+    if (id === 'inv-table') tr.style.cursor = 'pointer';
+    cols.forEach((c) => { const td = tr.insertCell(); if (c.cls) td.className = c.cls; td.textContent = r[c.f] ?? ''; });
+    return tr;
+  }));
+}
+
+dash.onData(() => {
+  showFilters();
+  const k = dash.data('kpis');
+  document.querySelectorAll('[data-source="kpis"]').forEach((el) => {
+    if (k.status === 'ok' || k.status === 'error') el.classList.remove('dash-skeleton');
+    if (k.status !== 'ok') { el.textContent = '—'; return; }
+    const grp = el.dataset.where.split('=')[1];
+    const row = k.data.find((r) => r.grp === grp);
+    el.textContent = row ? d3.format(',')(row[el.dataset.field]) : '—';
+  });
+
+  drawDaily();
+  drawFeed();
+  drawSimpleTable('inv-table', 'investors', [
+    { f: 'investor' }, { f: 'signals', cls: 'n' }, { f: 'roles' }, { f: 'kinds', cls: 'hide-narrow' }, { f: 'last_seen', cls: 'when' },
+  ], 'investor', 'No named investors match these filters.');
+  drawSimpleTable('runs-table', 'runs', [
+    { f: 'source' }, { f: 'status_label' }, { f: 'items_found', cls: 'n' }, { f: 'items_new', cls: 'n' }, { f: 'finished_ist', cls: 'when' },
+  ], 'source', 'No collection runs yet.');
+  document.querySelectorAll('#runs-table tbody tr').forEach((tr) => {
+    const td = tr.cells[1]; if (td) td.className = td.textContent === 'OK' ? 'ok' : 'bad';
+  });
+});
+</script>
