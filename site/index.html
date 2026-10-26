@@ -12,6 +12,7 @@
   --accent:#1f5eff; --accent-ink:#ffffff;
   --relocation:#7a3cff; --fund_launch:#0a8a5f; --entry:#1f5eff; --exit:#c2410c; --other:#6b7280;
   --good:#0a8a5f; --bad:#b91c1c;
+  --in:#1f5eff; --out:#c2410c;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
@@ -19,6 +20,7 @@
     --accent:#6f95ff; --accent-ink:#0f1115;
     --relocation:#a98bff; --fund_launch:#3ccf98; --entry:#6f95ff; --exit:#f2894e; --other:#9aa4b2;
     --good:#3ccf98; --bad:#f26d6d;
+    --in:#5a82f0; --out:#d9682c;
   }
 }
 :root[data-theme="dark"]{
@@ -26,6 +28,7 @@
   --accent:#6f95ff; --accent-ink:#0f1115;
   --relocation:#a98bff; --fund_launch:#3ccf98; --entry:#6f95ff; --exit:#f2894e; --other:#9aa4b2;
   --good:#3ccf98; --bad:#f26d6d;
+  --in:#5a82f0; --out:#d9682c;
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 Inter,system-ui,-apple-system,Segoe UI,sans-serif}
@@ -85,6 +88,32 @@ td.num{font-variant-numeric:tabular-nums;text-align:right}
 .empty{color:var(--muted);padding:30px;text-align:center;background:var(--panel);border:1px dashed var(--line);border-radius:10px}
 .link{color:var(--accent);cursor:pointer;background:none;border:0;font:inherit;padding:0;text-align:left}
 .ok{color:var(--good)} .fail{color:var(--bad)}
+.ftiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-bottom:12px}
+.ftile{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.ftile .l{color:var(--muted);font-size:12px}
+.ftile .n{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;margin:2px 0}
+.ftile .s{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+.ftile .arrow{font-size:14px;margin-right:4px}
+.fcard{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+.fhead{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:flex-start}
+.fhead h3{margin:0;font-size:15px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--panel);color:var(--muted);font:inherit;font-size:12px;padding:5px 10px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--chip);color:var(--ink);font-weight:600}
+.flegend{display:flex;flex-wrap:wrap;gap:4px 14px;color:var(--muted);font-size:12px;margin:8px 0 4px}
+.flegend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.fchart{position:relative;width:100%}
+.fchart svg{display:block;width:100%;height:auto;overflow:visible}
+.fchart .axis{fill:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+.fchart .grid{stroke:var(--line);stroke-width:1}
+.fchart .zero{stroke:var(--muted);stroke-width:1}
+.fchart .hit{fill:transparent}
+.ftip{position:fixed;z-index:20;pointer-events:none;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;box-shadow:0 6px 24px rgba(0,0,0,.18);max-width:260px;font-variant-numeric:tabular-nums}
+.ftip b{display:block;margin-bottom:4px}
+.ftip .row{display:flex;justify-content:space-between;gap:14px}
+#fditable td.num,#fditable th.num{text-align:right;white-space:nowrap}
+#fditable td:first-child{min-width:170px}
+#fditable tr.key td{font-weight:600}
 .inv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:10px}
 .inv{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:8px;min-width:0}
 .inv h3{margin:0;font-size:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;overflow-wrap:anywhere}
@@ -192,6 +221,7 @@ body.locked{overflow:hidden}
   <nav class="tabs" role="tablist">
     <button role="tab" aria-selected="true" data-tab="feed">Feed</button>
     <button role="tab" aria-selected="false" data-tab="investors">Investors</button>
+    <button role="tab" aria-selected="false" data-tab="flows">Flows</button>
     <button role="tab" aria-selected="false" data-tab="health">Sources</button>
   </nav>
 
@@ -221,6 +251,35 @@ body.locked{overflow:hidden}
     <p class="sub" id="isum" style="margin:0 0 10px"></p>
     <div class="inv-grid" id="investors"></div>
     <div style="text-align:center;margin-top:12px"><button class="reset" id="imore" hidden>Show more investors</button></div>
+  </section>
+
+  <section id="tab-flows" hidden>
+    <p class="sub" style="margin:0 0 12px">Money moving into and out of India in aggregate. FPI figures are daily from NSDL (₹ crore); FDI figures are monthly from the RBI Bulletin (US$ million). This tab has its own periods and is not affected by the filters above.</p>
+    <div class="ftiles" id="ftiles"></div>
+
+    <div class="fcard">
+      <div class="fhead"><div><h3>FPI net investment by day</h3><div class="sub" id="fday-sub">₹ crore</div></div>
+        <div class="seg" role="group" aria-label="Segment" id="fseg">
+          <button data-s="Total" aria-pressed="true">All</button><button data-s="Equity" aria-pressed="false">Equity</button><button data-s="Debt" aria-pressed="false">Debt</button>
+        </div></div>
+      <div class="flegend"><span><i style="background:var(--in)"></i>Net inflow</span><span><i style="background:var(--out)"></i>Net outflow</span></div>
+      <div class="fchart" id="fday"></div>
+    </div>
+
+    <div class="fcard">
+      <div class="fhead"><div><h3>FPI net investment by month</h3><div class="sub" id="fmonth-sub">₹ crore · all segments</div></div></div>
+      <div class="flegend"><span><i style="background:var(--in)"></i>Net inflow</span><span><i style="background:var(--out)"></i>Net outflow</span></div>
+      <div class="fchart" id="fmonth"></div>
+    </div>
+
+    <div class="fcard">
+      <div class="fhead"><div><h3>FDI: money in and money out</h3><div class="sub" id="fdi-sub">US$ million · RBI Bulletin</div></div></div>
+      <div class="flegend"><span><i style="background:var(--in)"></i>Gross FDI inflows</span><span><i style="background:var(--out)"></i>Repatriation and disinvestment (money taken out)</span></div>
+      <div class="fchart" id="ffdi"></div>
+      <div class="scroll" style="margin-top:10px"><table id="fditable"></table></div>
+      <p class="note" style="margin-top:8px">P = provisional; RBI may revise these figures. "FDI by India" is Indian companies investing abroad. Net FDI = direct investment into India minus FDI by India.</p>
+    </div>
+    <div class="ftip" id="ftip" hidden></div>
   </section>
 
   <section id="tab-health" hidden>
@@ -298,6 +357,7 @@ async function refresh() {
     state.events = events.map((e) => ({ ...e, event_types: e.event_types?.length ? e.event_types : [e.event_type], parties: e.parties || [] }));
     state.runs = runs;
     state.lastReview = reviewed[0]?.finished_at || null;
+    await loadFlows();
     render();
   } catch (e) {
     $("updated").textContent = `Could not load data: ${e.message}`;
@@ -524,6 +584,8 @@ const SOURCES = {
   nse_bulk: ["NSE bulk deals", "The exchange's daily file of large trades; only foreign buyers and sellers are kept."],
   nse_block: ["NSE block deals", "The exchange's daily file of block trades; only foreign buyers and sellers are kept."],
   news_backfill: ["Google News history (Apr 2026 to date)", "One-time collection of past weeks."],
+  nsdl_flows: ["NSDL FPI flows", "Daily FPI buying and selling by segment, checked twice a day. Feeds the Flows tab."],
+  rbi_fdi: ["RBI Bulletin (FDI)", "Monthly FDI inflows and outflows from the RBI Bulletin, checked daily. Feeds the Flows tab."],
 };
 // Plain-language reason for a failed run.
 function whyFailed(r) {
@@ -536,7 +598,7 @@ function whyFailed(r) {
 function renderRuns() {
   const latest = new Map();
   (state.runs || []).forEach((r) => { if (!latest.has(r.source)) latest.set(r.source, r); });
-  const order = ["review", "news", "nse_bulk", "nse_block", "news_backfill"];
+  const order = ["review", "news", "nse_bulk", "nse_block", "nsdl_flows", "rbi_fdi", "news_backfill"];
   const rows = [...latest.values()].sort((a, b) => order.indexOf(a.source) - order.indexOf(b.source));
   $("runs").innerHTML = `<thead><tr><th>Source</th><th>Last run</th><th>Status</th><th class="num">Items read</th><th class="num">Added</th><th>What it means</th></tr></thead><tbody>` +
     rows.map((r) => {
@@ -549,15 +611,178 @@ function renderRuns() {
     }).join("") + `</tbody>`;
 }
 
+// ---------- Flows ----------
+const crore = (n) => `${n < 0 ? "−" : n > 0 ? "+" : ""}₹${Math.abs(Math.round(n)).toLocaleString("en-IN")} cr`;
+const usdm = (n) => n == null || isNaN(n) ? "–" : `${n < 0 ? "−" : ""}$${Math.abs(Math.round(n)).toLocaleString("en-IN")}m`;
+const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const monLabel = (iso) => `${MON[+iso.slice(5, 7) - 1]} ${iso.slice(0, 4)}`;
+const flows = { daily: [], monthly: [], fdi: [], seg: "Total", loaded: false };
+const DEBT = ["Debt-General Limit", "Debt-VRR", "Debt-FAR"];
+
+async function loadFlows() {
+  try {
+    const since = dayStr(new Date(Date.now() - 400 * 864e5));
+    const [daily, monthly, fdi] = await Promise.all([
+      api(`fpi_flows?select=day,segment,route,net_cr,net_usd_m&route=in.(Sub-total,Total)&day=gte.${since}&order=day.asc&limit=20000`),
+      api(`fpi_monthly?select=month,segment,net_cr&segment=eq.Total&order=month.asc`),
+      api(`foreign_investment?select=period,kind,start_date,code,label,usd_m,provisional,bulletin&order=start_date.asc`),
+    ]);
+    // One row per day with the segments the charts use.
+    const byDay = new Map();
+    daily.forEach((r) => {
+      const d = byDay.get(r.day) || { day: r.day, Total: 0, Equity: 0, Debt: 0, usd: 0 };
+      if (r.segment === "Total") { d.Total = +r.net_cr; d.usd = +r.net_usd_m; }
+      else if (r.segment === "Equity") d.Equity = +r.net_cr;
+      else if (DEBT.includes(r.segment)) d.Debt += +r.net_cr;
+      byDay.set(r.day, d);
+    });
+    flows.daily = [...byDay.values()];
+    flows.monthly = monthly.map((m) => ({ month: m.month, net: +m.net_cr, partial: false }));
+    // NSDL's monthly table leaves out the month in progress; add it from the daily figures.
+    const cur = flows.daily.length ? flows.daily[flows.daily.length - 1].day.slice(0, 7) : null;
+    if (cur && !flows.monthly.some((m) => m.month.startsWith(cur))) {
+      flows.monthly.push({ month: `${cur}-01`, net: flows.daily.filter((d) => d.day.startsWith(cur)).reduce((a, d) => a + d.Total, 0), partial: true });
+    }
+    flows.fdi = fdi.map((r) => ({ ...r, usd_m: r.usd_m == null ? null : +r.usd_m }));
+    flows.loaded = true;
+  } catch (e) {
+    $("ftiles").innerHTML = `<div class="empty">Could not load flows: ${esc(e.message)}</div>`;
+  }
+}
+
+function tile(label, value, sub, sign) {
+  const arrow = sign > 0 ? `<span class="arrow" style="color:var(--in)" aria-hidden="true">▲</span>` : sign < 0 ? `<span class="arrow" style="color:var(--out)" aria-hidden="true">▼</span>` : "";
+  return `<div class="ftile"><div class="l">${label}</div><div class="n">${arrow}${value}</div><div class="s">${sub}</div></div>`;
+}
+
+function renderFlowTiles() {
+  const d = flows.daily, last = d[d.length - 1];
+  const t = [];
+  if (last) {
+    t.push(tile(`FPI net, ${toDMY(last.day)}`, crore(last.Total), `Equity ${crore(last.Equity)} · Debt ${crore(last.Debt)}`, Math.sign(last.Total)));
+    const m = last.day.slice(0, 7), md = d.filter((x) => x.day.startsWith(m)), ms = md.reduce((a, x) => a + x.Total, 0);
+    t.push(tile(`FPI net, ${monLabel(m)} so far`, crore(ms), `${md.length} trading day${md.length === 1 ? "" : "s"} · Equity ${crore(md.reduce((a, x) => a + x.Equity, 0))}`, Math.sign(ms)));
+    const y = last.day.slice(0, 4), ys = flows.monthly.filter((x) => x.month.startsWith(y)).reduce((a, x) => a + x.net, 0);
+    t.push(tile(`FPI net, ${y} so far`, crore(ys), `All segments, Jan–${MON[+last.day.slice(5, 7) - 1]}`, Math.sign(ys)));
+  }
+  const months = [...new Set(flows.fdi.filter((r) => r.kind === "month").map((r) => r.period))].sort();
+  const lm = months[months.length - 1];
+  if (lm) {
+    const v = (code) => flows.fdi.find((r) => r.period === lm && r.code === code)?.usd_m;
+    const p = flows.fdi.find((r) => r.period === lm)?.provisional;
+    t.push(tile(`Net FDI into India, ${monLabel(lm + "-01")}${p ? " (P)" : ""}`, usdm(v("1.1.1")), `In ${usdm(v("1.1.1.1"))} · Out ${usdm(v("1.1.1.2"))}`, Math.sign(v("1.1.1"))));
+  }
+  $("ftiles").innerHTML = t.join("") || `<div class="empty">No flow data yet.</div>`;
+}
+
+// Diverging bars on one zero line: blue above for net inflow, orange below for net outflow.
+function barChart(el, points, { height = 220, label, tip }) {
+  const W = Math.max(320, el.clientWidth || 800), H = height, L = 56, R = 8, T = 10, B = 26;
+  if (!points.length) { el.innerHTML = `<div class="empty">No data yet.</div>`; return; }
+  const vals = points.flatMap((p) => p.v2 == null ? [p.v] : [p.v, p.v2]);
+  // Round tick values (1, 2 or 5 times a power of ten); the scale is widened to the outer ticks.
+  const raw = (Math.max(0, ...vals) - Math.min(0, ...vals)) / 4 || 1, pow = 10 ** Math.floor(Math.log10(raw));
+  const tstep = [1, 2, 5, 10].map((m) => m * pow).find((s) => s >= raw);
+  const max = Math.ceil(Math.max(0, ...vals) / tstep) * tstep, min = Math.floor(Math.min(0, ...vals) / tstep) * tstep;
+  const span = (max - min) || 1, y = (v) => T + (max - v) / span * (H - T - B);
+  const step = (W - L - R) / points.length, bw = Math.max(2, Math.min(28, step - 2));
+  const ticks = []; for (let v = min; v <= max + tstep / 2; v += tstep) ticks.push(Math.round(v));
+  const fmt = (v) => v === 0 ? "0" : Math.abs(v) >= 1000 ? `${v < 0 ? "−" : ""}${(Math.abs(v) / 1000).toLocaleString("en-IN", { maximumFractionDigits: 1 })}k` : `${v < 0 ? "−" : ""}${Math.abs(v)}`;
+  const every = Math.ceil(points.length / Math.max(1, Math.floor((W - L) / 64)));
+  let g = ticks.map((v) => `<line class="${v === 0 ? "zero" : "grid"}" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text class="axis" x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${fmt(v)}</text>`).join("");
+  points.forEach((p, i) => {
+    const x = L + i * step + (step - bw) / 2, z = y(0);
+    // Rounded only at the data end; flat against the zero line.
+    for (const v of p.v2 == null ? [p.v] : [p.v, p.v2]) {
+      const h = Math.max(1, Math.abs(y(v) - z)), r = Math.min(4, bw / 2, h);
+      const d = v >= 0
+        ? `M${x},${z}V${z - h + r}Q${x},${z - h} ${x + r},${z - h}H${x + bw - r}Q${x + bw},${z - h} ${x + bw},${z - h + r}V${z}Z`
+        : `M${x},${z}V${z + h - r}Q${x},${z + h} ${x + r},${z + h}H${x + bw - r}Q${x + bw},${z + h} ${x + bw},${z + h - r}V${z}Z`;
+      g += `<path class="bar" d="${d}" fill="var(--${v >= 0 ? "in" : "out"})"${p.partial ? ' fill-opacity=".55"' : ""}/>`;
+    }
+    g += `<rect class="hit" data-i="${i}" x="${L + i * step}" y="${T}" width="${step}" height="${H - T - B}"/>`;
+    const lab = label(p, i);
+    if (lab && i % every === 0) g += `<text class="axis" x="${L + i * step + step / 2}" y="${H - 8}" text-anchor="middle">${esc(lab)}</text>`;
+  });
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(el.dataset.title || "")}">${g}</svg>`;
+  const tipEl = $("ftip");
+  el.querySelectorAll(".hit").forEach((h) => {
+    const show = (cx, cy) => {
+      tipEl.innerHTML = tip(points[+h.dataset.i]); tipEl.hidden = false;
+      tipEl.style.left = `${Math.max(8, Math.min(cx + 14, innerWidth - tipEl.offsetWidth - 8))}px`;
+      tipEl.style.top = `${Math.min(cy + 14, innerHeight - tipEl.offsetHeight - 8)}px`;
+    };
+    h.addEventListener("mousemove", (ev) => show(ev.clientX, ev.clientY));
+    h.addEventListener("click", (ev) => show(ev.clientX, ev.clientY));
+    h.addEventListener("mouseleave", () => { tipEl.hidden = true; });
+  });
+}
+
+function renderFlowCharts() {
+  const seg = flows.seg, d = flows.daily.slice(-90);
+  $("fday").dataset.title = "FPI net investment by day";
+  barChart($("fday"), d.map((x) => ({ ...x, v: x[seg] })), {
+    label: (p) => `${p.day.slice(8, 10)} ${MON[+p.day.slice(5, 7) - 1]}`,
+    tip: (p) => `<b>${toDMY(p.day)}</b><div class="row"><span>All segments</span><span>${crore(p.Total)}</span></div><div class="row"><span>Equity</span><span>${crore(p.Equity)}</span></div><div class="row"><span>Debt</span><span>${crore(p.Debt)}</span></div><div class="row"><span>In US$</span><span>${usdm(p.usd)}</span></div>`,
+  });
+  $("fday-sub").textContent = `₹ crore · ${seg === "Total" ? "all segments" : seg.toLowerCase()} · ${d.length} trading day${d.length === 1 ? "" : "s"}${d.length ? ` from ${toDMY(d[0].day)}` : ""} · history builds up daily`;
+  $("fmonth").dataset.title = "FPI net investment by month";
+  barChart($("fmonth"), flows.monthly.map((m) => ({ ...m, v: m.net })), {
+    label: (p) => MON[+p.month.slice(5, 7) - 1],
+    tip: (p) => `<b>${monLabel(p.month)}${p.partial ? " (so far)" : ""}</b><div class="row"><span>Net, all segments</span><span>${crore(p.net)}</span></div>`,
+  });
+  $("fmonth-sub").textContent = `₹ crore · all segments${flows.monthly.some((m) => m.partial) ? " · lighter bar = month in progress" : ""}`;
+  renderFdi();
+}
+
+const FDI_ROWS = [
+  ["1.1.1.1", "Gross FDI inflows", "in"], ["1.1.1.2", "Repatriation and disinvestment", "out"],
+  ["1.1.1", "Net direct investment into India", "key"], ["1.1.2", "FDI by India (outward)", ""],
+  ["1.1", "Net FDI", "key"], ["1.2.2", "Net FPI (RBI basis)", ""], ["1", "Total foreign investment inflows", "key"],
+];
+
+function renderFdi() {
+  const per = [...new Map(flows.fdi.map((r) => [r.period, r])).values()];
+  const months = per.filter((p) => p.kind === "month").sort((a, b) => a.start_date.localeCompare(b.start_date));
+  const others = per.filter((p) => p.kind !== "month").sort((a, b) => b.start_date.localeCompare(a.start_date) || (a.kind === "fy") - (b.kind === "fy"));
+  const cols = [...months, ...others];
+  const lastMonth = months.length ? MON[+months[months.length - 1].start_date.slice(5, 7) - 1] : "";
+  const head = (p) => p.kind === "month" ? monLabel(p.start_date) : p.kind === "fy" ? `FY ${p.period.slice(2)} (full year)` : `FY ${p.period.slice(4)}, Apr–${lastMonth}`;
+  const val = (period, code) => flows.fdi.find((r) => r.period === period && r.code === code)?.usd_m ?? null;
+  $("fdi-sub").textContent = `US$ million · RBI Bulletin${per[0]?.bulletin ? `, ${per[0].bulletin} issue` : ""} · more months are added as each bulletin comes out`;
+  $("fditable").innerHTML = `<thead><tr><th>Item</th>${cols.map((c) => `<th class="num">${esc(head(c))}${c.provisional ? " (P)" : ""}</th>`).join("")}</tr></thead><tbody>` +
+    FDI_ROWS.map(([code, name, cls]) => `<tr class="${cls === "key" ? "key" : ""}"><td>${cls === "in" || cls === "out" ? `<span class="dot" style="background:var(--${cls})"></span> ` : ""}${name}</td>${cols.map((c) => `<td class="num">${usdm(val(c.period, code))}</td>`).join("")}</tr>`).join("") + `</tbody>`;
+  // Money in and money out per month: inflows above the line, outflows below it.
+  const pts = months.map((m) => ({ v: val(m.period, "1.1.1.1") ?? 0, v2: -(val(m.period, "1.1.1.2") ?? 0), m }));
+  $("ffdi").dataset.title = "FDI money in and money out by month";
+  barChart($("ffdi"), pts, {
+    height: 200,
+    label: (p) => monLabel(p.m.start_date),
+    tip: (p) => `<b>${monLabel(p.m.start_date)}${p.m.provisional ? " (P)" : ""}</b><div class="row"><span>Gross inflows</span><span>${usdm(val(p.m.period, "1.1.1.1"))}</span></div><div class="row"><span>Taken out</span><span>${usdm(val(p.m.period, "1.1.1.2"))}</span></div><div class="row"><span>Net into India</span><span>${usdm(val(p.m.period, "1.1.1"))}</span></div>`,
+  });
+}
+
+function renderFlows() {
+  if (!flows.loaded || state.tab !== "flows") return;
+  renderFlowTiles(); renderFlowCharts();
+}
+document.querySelectorAll("#fseg button").forEach((b) => b.onclick = () => {
+  flows.seg = b.dataset.s;
+  document.querySelectorAll("#fseg button").forEach((x) => x.setAttribute("aria-pressed", x === b));
+  renderFlowCharts();
+});
+addEventListener("resize", () => { clearTimeout(flows.t); flows.t = setTimeout(renderFlows, 150); });
+
 function render() {
   ["from", "to"].forEach((id) => { if (document.activeElement !== $(`${id}-txt`)) $(`${id}-txt`).value = toDMY($(id).value); });
-  renderKpis(); renderChips(); renderFeed(); renderInvestors(); renderRuns();
+  renderKpis(); renderChips(); renderFeed(); renderInvestors(); renderRuns(); renderFlows();
 }
 
 function setTab(t) {
   state.tab = t;
   document.querySelectorAll("nav.tabs button").forEach((b) => b.setAttribute("aria-selected", b.dataset.tab === t));
-  ["feed", "investors", "health"].forEach((x) => $(`tab-${x}`).hidden = x !== t);
+  ["feed", "investors", "flows", "health"].forEach((x) => $(`tab-${x}`).hidden = x !== t);
+  if (t === "flows") renderFlows();
 }
 document.querySelectorAll("nav.tabs button").forEach((b) => b.onclick = () => setTab(b.dataset.tab));
 ["q", "source"].forEach((id) => $(id).addEventListener("input", render));
