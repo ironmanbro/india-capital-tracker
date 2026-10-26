@@ -91,6 +91,10 @@ td.num{font-variant-numeric:tabular-nums;text-align:right}
 .fperiod{margin-bottom:6px}
 .fperiod .datef input[type=text]{width:8.5em}
 .fcover{margin:0 0 12px}
+.fsec{font-size:17px;margin:22px 0 2px}
+.fsec:first-of-type{margin-top:4px}
+.fsec + .note{margin:0 0 10px}
+.fperiod select{max-width:100%}
 .ftiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-bottom:12px}
 .ftile{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
 .ftile .l{color:var(--muted);font-size:12px}
@@ -257,8 +261,11 @@ body.locked{overflow:hidden}
   </section>
 
   <section id="tab-flows" hidden>
-    <p class="sub" style="margin:0 0 12px">Money moving into and out of India in aggregate. FPI figures are daily from NSDL (₹ crore); FDI figures are monthly from the RBI Bulletin (US$ million). Pick a period to narrow every chart and table below.</p>
-    <div class="filters fperiod" aria-label="Flows period">
+    <p class="sub" style="margin:0 0 12px">Money moving into and out of India in aggregate. FPI figures are daily from NSDL (₹ crore); FDI figures are monthly from the RBI Bulletin (US$ million). Each section has its own period, because FPI figures come out daily and FDI figures about two months after the month ends.</p>
+
+    <h2 class="fsec">FPI · foreign portfolio investment</h2>
+    <p class="note">Shares and bonds bought and sold by foreign funds. Daily from NSDL, ₹ crore.</p>
+    <div class="filters fperiod" aria-label="FPI period">
       <select id="fpreset" aria-label="Period">
         <option value="30">Last 30 days</option>
         <option value="90" selected>Last 3 months</option>
@@ -289,6 +296,22 @@ body.locked{overflow:hidden}
       <div class="fchart" id="fmonth"></div>
     </div>
 
+    <h2 class="fsec">FDI · foreign direct investment</h2>
+    <p class="note">Long-term stakes in Indian companies. Monthly from the RBI Bulletin, US$ million.</p>
+    <div class="filters fperiod" aria-label="FDI period">
+      <select id="fdipreset" aria-label="FDI period">
+        <option value="3">Latest 3 months</option>
+        <option value="6">Latest 6 months</option>
+        <option value="12" selected>Latest 12 months</option>
+        <option value="fy">Latest financial year</option>
+        <option value="all">All available</option>
+        <option value="custom">Custom months</option>
+      </select>
+      <label>From <select id="fdifrom" aria-label="From month"></select></label>
+      <label>To <select id="fdito" aria-label="To month"></select></label>
+    </div>
+    <p class="note fcover" id="fdicover"></p>
+    <div class="ftiles" id="fditiles"></div>
     <div class="fcard">
       <div class="fhead"><div><h3>FDI: money in and money out</h3><div class="sub" id="fdi-sub">US$ million · RBI Bulletin</div></div></div>
       <div class="flegend"><span><i style="background:var(--in)"></i>Gross FDI inflows</span><span><i style="background:var(--out)"></i>Repatriation and disinvestment (money taken out)</span></div>
@@ -703,20 +726,13 @@ function renderFlowTiles() {
     const y = last.day.slice(0, 4), ys = flows.monthly.filter((x) => x.month.startsWith(y)).reduce((a, x) => a + x.net, 0);
     t.push(tile(`FPI net, ${y} so far`, crore(ys), `All segments, Jan–${MON[+last.day.slice(5, 7) - 1]}`, Math.sign(ys)));
   }
-  const months = [...new Set(flows.fdi.filter((x) => x.kind === "month" && inMonths(x.start_date, r)).map((x) => x.period))].sort();
-  const lm = months[months.length - 1];
-  if (lm) {
-    const v = (code) => flows.fdi.find((r) => r.period === lm && r.code === code)?.usd_m;
-    const p = flows.fdi.find((r) => r.period === lm)?.provisional;
-    t.push(tile(`Net FDI into India, ${monLabel(lm + "-01")}${p ? " (P)" : ""}`, usdm(v("1.1.1")), `In ${usdm(v("1.1.1.1"))} · Out ${usdm(v("1.1.1.2"))}`, Math.sign(v("1.1.1"))));
-  }
-  $("ftiles").innerHTML = t.join("") || `<div class="empty">No flow data yet.</div>`;
+  $("ftiles").innerHTML = t.join("") || `<div class="empty">No FPI data yet.</div>`;
 }
 
 // Diverging bars on one zero line: blue above for net inflow, orange below for net outflow.
 function barChart(el, points, { height = 220, label, tip }) {
   const W = Math.max(320, el.clientWidth || 800), H = height, L = 56, R = 8, T = 10, B = 26;
-  if (!points.length) { el.innerHTML = `<div class="empty">No data yet.</div>`; return; }
+  if (!points.length) { el.innerHTML = `<div class="empty">No data in this period.</div>`; return; }
   const vals = points.flatMap((p) => p.v2 == null ? [p.v] : [p.v, p.v2]);
   // Round tick values (1, 2 or 5 times a power of ten); the scale is widened to the outer ticks.
   const raw = (Math.max(0, ...vals) - Math.min(0, ...vals)) / 4 || 1, pow = 10 ** Math.floor(Math.log10(raw));
@@ -779,17 +795,43 @@ const FDI_ROWS = [
   ["1.1", "Net FDI", "key"], ["1.2.2", "Net FPI (RBI basis)", ""], ["1", "Total foreign investment inflows", "key"],
 ];
 
+// The FDI period counts back from the latest month RBI has published, not from today, so it is never empty.
+const addMonths = (iso, n) => { const d = new Date(`${iso.slice(0, 7)}-01T00:00:00`); d.setMonth(d.getMonth() + n); return dayStr(d).slice(0, 8) + "01"; };
+function fdiRange(all) {
+  const v = $("fdipreset").value, first = all[0]?.start_date, last = all[all.length - 1]?.start_date;
+  if (!last) return { from: "", to: "" };
+  if (v === "custom") return { from: $("fdifrom").value || first, to: $("fdito").value || last };
+  if (v === "all") return { from: first, to: last };
+  if (v === "fy") return { from: last.slice(5, 7) >= "04" ? `${last.slice(0, 4)}-04-01` : `${last.slice(0, 4) - 1}-04-01`, to: last };
+  return { from: addMonths(last, 1 - Number(v)), to: last };
+}
+
 function renderFdi() {
   const per = [...new Map(flows.fdi.map((r) => [r.period, r])).values()];
-  const r = flowRange();
-  const months = per.filter((p) => p.kind === "month" && inMonths(p.start_date, r)).sort((a, b) => a.start_date.localeCompare(b.start_date));
+  const all = per.filter((p) => p.kind === "month").sort((a, b) => a.start_date.localeCompare(b.start_date));
+  // Month pickers list every calendar month from the first to the latest RBI month.
+  const opts = []; for (let m = all[0]?.start_date; m && m <= all[all.length - 1].start_date; m = addMonths(m, 1)) opts.push(m);
+  ["fdifrom", "fdito"].forEach((id) => { if ($(id).options.length !== opts.length) $(id).innerHTML = opts.map((m) => `<option value="${m}">${monLabel(m)}</option>`).join(""); });
+  let r = fdiRange(all);
+  if (r.from > r.to) r = { from: r.to, to: r.from };
+  $("fdifrom").value = r.from < opts[0] ? opts[0] : r.from; $("fdito").value = r.to;
+  const months = all.filter((p) => p.start_date >= r.from && p.start_date <= r.to);
+  $("fdicover").textContent = `RBI months available so far: ${all.map((p) => monLabel(p.start_date)).join(", ") || "none"}. Latest is ${all.length ? monLabel(all[all.length - 1].start_date) : "—"}; a new month is added with each bulletin.`;
   const others = per.filter((p) => p.kind !== "month").sort((a, b) => b.start_date.localeCompare(a.start_date) || (a.kind === "fy") - (b.kind === "fy"));
   const cols = [...months, ...others];
-  const allMonths = per.filter((p) => p.kind === "month").sort((a, b) => a.start_date.localeCompare(b.start_date));
-  const lastMonth = allMonths.length ? MON[+allMonths[allMonths.length - 1].start_date.slice(5, 7) - 1] : "";
+  const lastMonth = all.length ? MON[+all[all.length - 1].start_date.slice(5, 7) - 1] : "";
   const head = (p) => p.kind === "month" ? monLabel(p.start_date) : p.kind === "fy" ? `FY ${p.period.slice(2)} (full year)` : `FY ${p.period.slice(4)}, Apr–${lastMonth}`;
   const val = (period, code) => flows.fdi.find((r) => r.period === period && r.code === code)?.usd_m ?? null;
-  $("fdi-sub").textContent = `US$ million · RBI Bulletin${per[0]?.bulletin ? `, ${per[0].bulletin} issue` : ""} · ${months.length ? `${months.length} month${months.length === 1 ? "" : "s"} in this period` : "no RBI month in this period"}; financial-year columns always show`;
+  $("fdi-sub").textContent = `US$ million · RBI Bulletin${per[0]?.bulletin ? `, ${per[0].bulletin} issue` : ""} · financial-year columns always show`;
+  // Period totals: sums of the RBI months that fall inside the period.
+  const tot = (code) => months.reduce((a, m) => a + (val(m.period, code) ?? 0), 0);
+  const span = months.length ? (months.length === 1 ? monLabel(months[0].start_date) : `${monLabel(months[0].start_date)} to ${monLabel(months[months.length - 1].start_date)}`) : "";
+  const n = `${months.length} month${months.length === 1 ? "" : "s"} of RBI data${months.some((m) => m.provisional) ? " · includes provisional (P)" : ""}`;
+  $("fditiles").innerHTML = months.length ? [
+    tile(`Gross FDI inflows, ${span}`, usdm(tot("1.1.1.1")), n, 0),
+    tile(`Taken out (repatriation), ${span}`, usdm(tot("1.1.1.2")), n, 0),
+    tile(`Net FDI into India, ${span}`, usdm(tot("1.1.1")), `Net FDI after outward investment ${usdm(tot("1.1"))}`, Math.sign(tot("1.1.1"))),
+  ].join("") : `<div class="empty">No RBI month in this period.</div>`;
   $("fditable").innerHTML = `<thead><tr><th>Item</th>${cols.map((c) => `<th class="num">${esc(head(c))}${c.provisional ? " (P)" : ""}</th>`).join("")}</tr></thead><tbody>` +
     FDI_ROWS.map(([code, name, cls]) => `<tr class="${cls === "key" ? "key" : ""}"><td>${cls === "in" || cls === "out" ? `<span class="dot" style="background:var(--${cls})"></span> ` : ""}${name}</td>${cols.map((c) => `<td class="num">${usdm(val(c.period, code))}</td>`).join("")}</tr>`).join("") + `</tbody>`;
   // Money in and money out per month: inflows above the line, outflows below it.
@@ -807,8 +849,7 @@ function renderFlows() {
   const r = flowRange();
   if ($("fpreset").value !== "custom") { $("ffrom").value = r.from === "2000-01-01" ? "" : r.from; $("fto").value = r.to; }
   ["ffrom", "fto"].forEach((id) => { if (document.activeElement !== $(`${id}-txt`)) $(`${id}-txt`).value = toDMY($(id).value); });
-  const fdiM = [...new Map(flows.fdi.filter((x) => x.kind === "month").map((x) => [x.period, x.start_date])).values()].sort();
-  $("fcover").textContent = `Data available: FPI daily from ${flows.daily.length ? toDMY(flows.daily[0].day) : "—"}, FPI monthly from ${flows.monthly.length ? monLabel(flows.monthly[0].month) : "—"}, FDI for ${fdiM.map((x) => monLabel(x)).join(", ") || "—"}. Earlier dates show nothing yet; history grows as new figures come out.`;
+  $("fcover").textContent = `Data available: FPI daily from ${flows.daily.length ? toDMY(flows.daily[0].day) : "—"}, FPI monthly from ${flows.monthly.length ? monLabel(flows.monthly[0].month) : "—"}. Earlier dates show nothing yet; history grows every trading day.`;
   renderFlowTiles(); renderFlowCharts();
 }
 document.querySelectorAll("#fseg button").forEach((b) => b.onclick = () => {
@@ -817,6 +858,8 @@ document.querySelectorAll("#fseg button").forEach((b) => b.onclick = () => {
   renderFlowCharts();
 });
 $("fpreset").addEventListener("change", renderFlows);
+$("fdipreset").addEventListener("change", renderFdi);
+["fdifrom", "fdito"].forEach((id) => $(id).addEventListener("change", () => { $("fdipreset").value = "custom"; renderFdi(); }));
 ["ffrom", "fto"].forEach((id) => $(id).addEventListener("change", () => {
   if ($(id).value && !$(id).validity.valid) return;
   $("fpreset").value = "custom";
