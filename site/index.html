@@ -147,7 +147,18 @@ td.num{font-variant-numeric:tabular-nums;text-align:right}
 .fchart .axis{fill:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
 .fchart .grid{stroke:var(--line);stroke-width:1}
 .fchart .zero{stroke:var(--muted);stroke-width:1}
+[hidden]{display:none!important}
 .fchart .hit{fill:transparent}
+.dlist{display:grid;gap:8px}
+.drow{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+.dname{font-weight:600;overflow-wrap:anywhere}
+.dname .new{font-size:10px;font-weight:700;letter-spacing:.05em;padding:2px 6px;border-radius:999px;background:var(--accent);color:var(--accent-ink);margin-left:6px;vertical-align:2px}
+.dmeta{color:var(--muted);font-size:12px;margin-top:3px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.dmeta .warn{color:var(--bad);font-weight:600}
+.daddr{color:var(--muted);font-size:12px;margin-top:2px;opacity:.85}
+.dsum{color:var(--muted);font-size:12px;margin:2px 0 10px}
+#dir-tiles{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+#dir-tiles .ftile .n{font-size:20px}
 .hbars{display:grid;gap:9px;margin-top:10px}
 .hrow{display:grid;grid-template-columns:minmax(110px,200px) 1fr 104px;gap:10px;align-items:center;font-size:13px}
 .hname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -272,6 +283,7 @@ body.locked{overflow:hidden}
     <button role="tab" aria-selected="true" data-tab="feed">Feed</button>
     <button role="tab" aria-selected="false" data-tab="investors">Investors</button>
     <button role="tab" aria-selected="false" data-tab="flows">Flows</button>
+    <button role="tab" aria-selected="false" data-tab="directory">Directory</button>
     <button role="tab" aria-selected="false" data-tab="health" hidden>Sources</button>
   </nav>
 
@@ -361,6 +373,33 @@ body.locked{overflow:hidden}
       <p class="note" style="margin-top:8px">Total FDI = equity + re-invested earnings + other capital, on the international definition DPIIT uses. The latest year is provisional and may be revised.</p>
     </div>
     <div class="ftip" id="ftip" hidden></div>
+  </section>
+
+  <section id="tab-directory" hidden>
+    <div class="fhead" style="margin-bottom:10px">
+      <p class="sub" style="margin:0;max-width:640px" id="dir-intro"></p>
+      <div class="seg" role="group" aria-label="Directory" id="dirseg">
+        <button data-v="fpi" aria-pressed="true">FPIs (NSDL)</button><button data-v="ifsca" aria-pressed="false">GIFT IFSC</button>
+      </div>
+    </div>
+    <div class="ftiles" id="dir-tiles"></div>
+    <div class="filters" id="dir-fpi-filters">
+      <input type="search" id="dq" placeholder="Search FPI name or registration number…" aria-label="Search FPIs">
+      <select id="dcountry-f" aria-label="Country"><option value="">All countries</option></select>
+      <select id="dcat-f" aria-label="Category"><option value="">Category I and II</option><option value="I">Category I</option><option value="II">Category II</option></select>
+      <select id="dyear-f" aria-label="Year registered"><option value="">Any year</option></select>
+      <select id="dsort-f" aria-label="Sort"><option value="new">Newest registrations first</option><option value="name">Name A–Z</option></select>
+    </div>
+    <div class="filters" id="dir-ifsca-filters" hidden>
+      <input type="search" id="iq2" placeholder="Search entity or fund name…" aria-label="Search GIFT IFSC entities">
+      <select id="icat2" aria-label="Category"></select>
+      <select id="itype2" aria-label="Type"><option value="">All types</option></select>
+      <select id="isort2" aria-label="Sort"><option value="new">Newest registrations first</option><option value="name">Name A–Z</option></select>
+    </div>
+    <div class="dsum" id="dir-sum"></div>
+    <div class="dlist" id="dir-list"></div>
+    <button class="reset" id="dir-more" type="button" hidden style="margin-top:10px">Show more</button>
+    <p class="note" id="dir-note" style="margin-top:12px"></p>
   </section>
 
   <section id="tab-health" hidden>
@@ -693,6 +732,8 @@ const SOURCES = {
   nse_block: ["NSE block deals", "The exchange's daily file of block trades; only foreign buyers and sellers are kept."],
   news_backfill: ["Google News history (Apr 2026 to date)", "One-time collection of past weeks."],
   nsdl_flows: ["NSDL FPI flows", "Daily FPI buying and selling by segment, checked twice a day. Feeds the Flows tab."],
+  nsdl_fpi_list: ["NSDL FPI register", "The full list of SEBI-registered FPIs, read daily. Feeds the Directory tab."],
+  ifsca_directory: ["IFSCA directory", "GIFT IFSC regulated entities and funds, list read daily and registration details filled in gradually. Feeds the Directory tab."],
   dpiit_fdi: ["DPIIT FDI fact sheet", "Quarterly FDI by country, sector and state, loaded when each new fact sheet comes out. Feeds the Flows tab."],
 };
 // Plain-language reason for a failed run.
@@ -707,7 +748,7 @@ function renderRuns() {
   const latest = new Map();
   // Only sources the site still uses; older ones (like the retired RBI FDI feed) are left out.
   (state.runs || []).forEach((r) => { if (SOURCES[r.source] && !latest.has(r.source)) latest.set(r.source, r); });
-  const order = ["review", "news", "nse_bulk", "nse_block", "nsdl_flows", "dpiit_fdi", "news_backfill"];
+  const order = ["review", "news", "nse_bulk", "nse_block", "nsdl_flows", "dpiit_fdi", "nsdl_fpi_list", "ifsca_directory", "news_backfill"];
   const rows = [...latest.values()].sort((a, b) => order.indexOf(a.source) - order.indexOf(b.source));
   $("runs").innerHTML = `<thead><tr><th>Source</th><th>Last run</th><th>Status</th><th class="num">Items read</th><th class="num">Added</th><th>What it means</th></tr></thead><tbody>` +
     rows.map((r) => {
@@ -951,11 +992,141 @@ function render() {
 function setTab(t) {
   state.tab = t;
   document.querySelectorAll("nav.tabs button").forEach((b) => b.setAttribute("aria-selected", b.dataset.tab === t));
-  ["feed", "investors", "flows", "health"].forEach((x) => $(`tab-${x}`).hidden = x !== t);
-  document.querySelector(".filterbar").hidden = t === "flows";
+  ["feed", "investors", "flows", "directory", "health"].forEach((x) => $(`tab-${x}`).hidden = x !== t);
+  // The news filters and story counts do not apply to the data tabs.
+  document.querySelector(".filterbar").hidden = t === "flows" || t === "directory";
+  ["kpis", "kpi-note"].forEach((id) => $(id).hidden = t === "directory");
   if (t === "flows") renderFlows();
+  if (t === "directory") openDirectory();
 }
 document.querySelectorAll("nav.tabs button").forEach((b) => b.onclick = () => setTab(b.dataset.tab));
+
+// ---------- Directory: NSDL's FPI register and IFSCA's directory of GIFT IFSC entities ----------
+// Both lists are too long to load at once, so each search asks the database for one page of matches.
+const dir = { view: "fpi", shown: 0, size: 50, stats: null, meta: false, seq: 0 };
+const titleCase = (s) => (s || "").toLowerCase().replace(/\b[a-z]/g, (c) => c.toUpperCase()).replace(/\b(Of|And|The)\b/g, (w) => w.toLowerCase()).replace(/\bIfsc\b/g, "IFSC").replace(/\[Gift City\]/i, "(GIFT City)");
+const nfmt = (n) => Number(n || 0).toLocaleString("en-IN");
+// PostgREST filter text: drop characters that have meaning in its syntax.
+const term = (s) => s.trim().replace(/[,()"*\\:]/g, " ").replace(/\s+/g, " ");
+
+async function apiPage(path) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { headers: { apikey: KEY, Prefer: "count=exact" } });
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).message || res.statusText);
+  const total = +(res.headers.get("content-range") || "").split("/")[1] || 0;
+  return { rows: await res.json(), total };
+}
+
+async function openDirectory() {
+  if (!dir.meta) {
+    try {
+      const [[st], countries, types] = await Promise.all([api("directory_stats?select=*"), api("fpi_country_counts?select=country,n&order=n.desc"), api("ifsca_type_counts?select=*&order=n.desc")]);
+      dir.stats = st;
+      $("dcountry-f").innerHTML = `<option value="">All countries</option>` + countries.filter((c) => c.country).map((c) => `<option value="${esc(c.country)}">${esc(titleCase(c.country))} (${nfmt(c.n)})</option>`).join("");
+      const y = new Date().getFullYear();
+      $("dyear-f").innerHTML = `<option value="">Any year</option>` + [0, 1, 2, 3, 4].map((i) => `<option value="${y - i}">Registered in ${y - i}</option>`).join("") + `<option value="older">Before ${y - 4}</option>`;
+      dir.types = types;
+      const cats = [...new Map(types.map((t) => [t.category, 0])).keys()].filter(Boolean);
+      const catN = (c) => types.filter((t) => t.category === c).reduce((a, t) => a + t.n, 0);
+      $("icat2").innerHTML = `<option value="">All categories</option>` + cats.sort((a, b) => catN(b) - catN(a)).map((c) => `<option value="${esc(c)}"${c === "Fund Management" ? " selected" : ""}>${esc(c)} (${nfmt(catN(c))})</option>`).join("");
+      fillIfscaTypes();
+      dir.meta = true;
+    } catch (e) { $("dir-list").innerHTML = `<div class="empty">Could not load the directory: ${esc(e.message)}</div>`; return; }
+  }
+  renderDirTiles(); runDirSearch(true);
+}
+
+function fillIfscaTypes() {
+  const cat = $("icat2").value, cur = $("itype2").value;
+  const list = (dir.types || []).filter((t) => t.sub_category && (!cat || t.category === cat));
+  const merged = [...list.reduce((m, t) => m.set(t.sub_category, (m.get(t.sub_category) || 0) + t.n), new Map())].sort((a, b) => b[1] - a[1]);
+  $("itype2").innerHTML = `<option value="">All types</option>` + merged.map(([k, n]) => `<option value="${esc(k)}"${k === cur ? " selected" : ""}>${esc(k)} (${nfmt(n)})</option>`).join("");
+}
+
+function renderDirTiles() {
+  const s = dir.stats || {}, fpi = dir.view === "fpi";
+  $("dir-intro").textContent = fpi
+    ? "Every foreign portfolio investor registered with SEBI, from NSDL's FPI register. Updated daily."
+    : "Every entity in IFSCA's directory of regulated entities at GIFT IFSC: fund managers, their schemes, banks, insurers and more. Updated daily.";
+  $("dir-tiles").innerHTML = fpi ? [
+    tile("FPIs on the register", nfmt(s.fpis), `Category I ${nfmt(s.fpi_cat1)} · Category II ${nfmt(s.fpi_cat2)}`, 0),
+    tile(`Registered in ${new Date().getFullYear()}`, nfmt(s.fpi_this_year), "From the year in the registration number", 0),
+    tile("Based in GIFT IFSC", nfmt(s.fpi_gift), "FPIs whose country is India IFSC (GIFT City)", 0),
+    tile("Registered in the last 30 days", nfmt(s.fpi_new_30d), "New FPIs, newest first in the list below", 0),
+  ].join("") : [
+    tile("Entities in the directory", nfmt(s.ifsca), "All categories, including surrendered or cancelled", 0),
+    tile("Fund management entries", nfmt(s.ifsca_funds), "Fund managers and their schemes", 0),
+    tile("Registered in the last 30 days", nfmt(s.ifsca_new_30d), s.ifsca_detailed < s.ifsca ? `Registration dates read for ${nfmt(s.ifsca_detailed)} of ${nfmt(s.ifsca)} so far` : "From IFSCA's registration dates", 0),
+  ].join("");
+  $("dir-note").textContent = fpi
+    ? "Source: NSDL's register of SEBI-registered FPIs. Addresses and phone numbers are left out because many FPIs are individuals. Registration dates are worked out from NSDL's validity date (a first registration runs three years); older registrations show the year from the registration number."
+    : "Source: IFSCA's Directory of Regulated Entities. Contact people, phone numbers and e-mails are left out. Registration details are being read entry by entry; until that finishes some entries show no date.";
+  $("dir-fpi-filters").hidden = !fpi; $("dir-ifsca-filters").hidden = fpi;
+}
+
+function dirPath() {
+  const enc = encodeURIComponent, off = `&limit=${dir.size}&offset=${dir.shown}`;
+  if (dir.view === "fpi") {
+    const q = term($("dq").value), f = [];
+    if (q) f.push(`or=(name.ilike.*${enc(q)}*,reg_no.ilike.*${enc(q)}*)`);
+    if ($("dcountry-f").value) f.push(`country=eq.${enc($("dcountry-f").value)}`);
+    if ($("dcat-f").value) f.push(`category=eq.${$("dcat-f").value}`);
+    const y = $("dyear-f").value;
+    if (y === "older") f.push(`reg_year=lt.${new Date().getFullYear() - 4}`); else if (y) f.push(`reg_year=eq.${y}`);
+    const order = $("dsort-f").value === "name" ? "name.asc" : "registered_on.desc.nullslast,reg_year.desc.nullslast,serial.desc.nullslast";
+    return `fpi_registry?select=reg_no,name,country,category,sub_category,status,valid_upto,reg_year,registered_on&${f.map((x) => x + "&").join("")}order=${order}${off}`;
+  }
+  const q = term($("iq2").value), f = [];
+  if (q) f.push(`name=ilike.*${enc(q)}*`);
+  if ($("icat2").value) f.push(`category=eq.${enc($("icat2").value)}`);
+  if ($("itype2").value) f.push(`sub_category=eq.${enc($("itype2").value)}`);
+  const order = $("isort2").value === "name" ? "name.asc" : "reg_date.desc.nullslast,first_seen.desc,name.asc";
+  return `ifsca_entities?select=name,category,sub_category,reg_no,reg_date,address,website,first_seen&${f.map((x) => x + "&").join("")}order=${order}${off}`;
+}
+
+function dirRow(r) {
+  if (dir.view === "fpi") {
+    // registered_on is known for registrations of the last three years; older ones show the year only.
+    const isNew = r.registered_on && Date.now() - new Date(r.registered_on) < 30 * 864e5;
+    const meta = [r.reg_no, r.country && titleCase(r.country), r.category && `Category ${r.category}`, r.sub_category,
+      r.registered_on ? `Registered ${toDMY(r.registered_on)}` : r.reg_year && `Registered ${r.reg_year}`, r.valid_upto && `Valid up to ${toDMY(r.valid_upto)}`,
+      r.status && r.status !== "Registered" && `<span class="warn">${esc(r.status)}</span>`].filter(Boolean);
+    return `<div class="drow"><div class="dname">${esc(r.name)}${isNew ? `<span class="new" title="Registered in the last 30 days">NEW</span>` : ""}</div>
+      <div class="dmeta">${meta.map((m) => m.startsWith("<span") ? m : esc(m)).join(" · ")}</div></div>`;
+  }
+  const isNew = r.reg_date && Date.now() - new Date(r.reg_date) < 30 * 864e5;
+  const site = r.website && /^(https?:\/\/)?[\w.-]+\.[a-z]{2,}/i.test(r.website) ? (/^https?:/i.test(r.website) ? r.website : `https://${r.website}`) : null;
+  const meta = [r.category, r.sub_category, r.reg_no, r.reg_date ? `Registered ${toDMY(r.reg_date)}` : null].filter(Boolean).map(esc);
+  if (site) meta.push(`<a href="${esc(site)}" target="_blank" rel="noopener">Website</a>`);
+  return `<div class="drow"><div class="dname">${esc(r.name)}${isNew ? `<span class="new" title="Registered in the last 30 days">NEW</span>` : ""}</div>
+    <div class="dmeta">${meta.join(" · ")}</div>${r.address ? `<div class="daddr">${esc(r.address)}</div>` : ""}</div>`;
+}
+
+async function runDirSearch(reset) {
+  if (reset) { dir.shown = 0; $("dir-list").innerHTML = `<div class="empty">Loading…</div>`; }
+  const seq = ++dir.seq;
+  try {
+    const { rows, total } = await apiPage(dirPath());
+    if (seq !== dir.seq) return; // a newer search has started
+    const html = rows.map(dirRow).join("");
+    if (reset) $("dir-list").innerHTML = html || `<div class="empty">Nothing matches. Try a shorter name or clear the filters.</div>`;
+    else $("dir-list").insertAdjacentHTML("beforeend", html);
+    dir.shown += rows.length;
+    const what = dir.view === "fpi" ? "FPI" : "entr";
+    $("dir-sum").textContent = total ? `${nfmt(total)} ${what}${dir.view === "fpi" ? (total === 1 ? "" : "s") : (total === 1 ? "y" : "ies")} match · showing ${nfmt(dir.shown)}` : "";
+    $("dir-more").hidden = dir.shown >= total;
+  } catch (e) { if (seq === dir.seq) $("dir-list").innerHTML = `<div class="empty">Search failed: ${esc(e.message)}</div>`; }
+}
+
+document.querySelectorAll("#dirseg button").forEach((b) => b.onclick = () => {
+  dir.view = b.dataset.v;
+  document.querySelectorAll("#dirseg button").forEach((x) => x.setAttribute("aria-pressed", x === b));
+  renderDirTiles(); runDirSearch(true);
+});
+let dirTimer;
+["dq", "iq2"].forEach((id) => $(id).addEventListener("input", () => { clearTimeout(dirTimer); dirTimer = setTimeout(() => runDirSearch(true), 300); }));
+["dcountry-f", "dcat-f", "dyear-f", "dsort-f", "itype2", "isort2"].forEach((id) => $(id).addEventListener("change", () => runDirSearch(true)));
+$("icat2").addEventListener("change", () => { fillIfscaTypes(); runDirSearch(true); });
+$("dir-more").addEventListener("click", () => runDirSearch(false));
 
 // The Sources tab is for the site owner. Opening the site once with the private link (#owner-…) shows it
 // on that browser from then on; #owner-off hides it again. Only the link's hash is kept here.
