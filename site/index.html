@@ -185,9 +185,18 @@ td.num{font-variant-numeric:tabular-nums;text-align:right}
 .fmore td{background:var(--bg);font-size:12.5px;color:var(--muted)}
 .fmore dl{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:0}
 .fmore dt{color:var(--muted)}.fmore dd{margin:0;color:var(--ink)}
+.ftable a{color:var(--accent);text-decoration:none}
+.ftable a:hover{text-decoration:underline}
+.ftable tbody tr.x{cursor:pointer}
+.ftable tbody tr.open td{background:var(--chip)}
+.fcat{display:block;font-size:11px;opacity:.8;margin-top:2px}
+.h-person{font-size:13px;min-width:120px}
+.freach{font-size:12.5px;line-height:1.5}
+.freach a{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
+.t-ifsc .fmore dd{overflow-wrap:anywhere}
 .cm{display:none;font-family:Inter,system-ui,sans-serif;letter-spacing:0}
 @media (max-width:700px){
-  .ftable .h-type,.ftable .h-valid,.ftable .h-status,.ftable .h-cat,.ftable .h-country{display:none}
+  .ftable .h-type,.ftable .h-valid,.ftable .h-status,.ftable .h-cat,.ftable .h-country,.ftable .h-person,.ftable .h-reach{display:none}
   .ftable tbody tr.r{cursor:pointer}
   .cm{display:inline}
 }
@@ -427,7 +436,6 @@ body.locked{overflow:hidden}
       <input type="search" id="iq2" placeholder="Search entity or fund name…" aria-label="Search GIFT IFSC entities">
       <select id="icat2" aria-label="Category"></select>
       <select id="itype2" aria-label="Type"><option value="">All types</option></select>
-      <select id="isort2" aria-label="Sort"><option value="new">Newest registrations first</option><option value="name">Name A–Z</option></select>
       <button class="reset" id="leads-csv" type="button" hidden title="Only visible to you">Download all (CSV)</button>
     </div>
     <div class="dsum" id="dir-sum"></div>
@@ -1037,7 +1045,13 @@ document.querySelectorAll("nav.tabs button").forEach((b) => b.onclick = () => se
 
 // ---------- Directory: NSDL's FPI register and IFSCA's directory of GIFT IFSC entities ----------
 // Both lists are too long to load at once, so each search asks the database for one page of matches.
-const dir = { view: "fpi", shown: 0, size: 50, stats: null, meta: false, seq: 0, sort: { col: "registered", desc: true } };
+const dir = { view: "fpi", shown: 0, size: 50, stats: null, meta: false, seq: 0, sort: { col: "registered", desc: true }, isort: { col: "registered", desc: true } };
+// GIFT IFSC table columns that can be sorted.
+const IFSC_SORT = {
+  name: [(d) => `name.${d ? "desc" : "asc"}`, false],
+  type: [(d) => `sub_category.${d ? "desc" : "asc"}.nullslast,name.asc`, false],
+  registered: [(d) => d ? "reg_date.desc.nullslast,first_seen.desc,name.asc" : "reg_date.asc.nullslast,name.asc", true],
+};
 // FPI table columns that can be sorted, and the database order for each direction.
 const FPI_SORT = {
   name: [(d) => `name.${d ? "desc" : "asc"}`, false],
@@ -1133,7 +1147,7 @@ function dirPath() {
   if (q) f.push(`name=ilike.*${enc(q)}*`);
   if ($("icat2").value) f.push(`category=eq.${enc($("icat2").value)}`);
   if ($("itype2").value) f.push(`sub_category=eq.${enc($("itype2").value)}`);
-  const order = $("isort2").value === "name" ? "name.asc" : "reg_date.desc.nullslast,first_seen.desc,name.asc";
+  const order = IFSC_SORT[dir.isort.col][0](dir.isort.desc);
   return `ifsca_entities?select=enc_id,name,category,sub_category,reg_no,reg_date,address,website,first_seen,ifsca_contacts(contact_name,phone,email,remarks)&${f.map((x) => x + "&").join("")}order=${order}${off}`;
 }
 
@@ -1164,46 +1178,61 @@ function dirRow(r) {
       <dt>Valid up to</dt><dd>${r.valid_upto ? toDMY(r.valid_upto) : "–"}</dd>
       <dt>Status</dt><dd>${esc(st)}</dd></dl></td></tr>`;
   }
-  const isNew = r.reg_date && Date.now() - new Date(r.reg_date) < 30 * 864e5;
+  const days = r.reg_date ? Math.floor((Date.now() - new Date(`${r.reg_date}T00:00:00+05:30`)) / 864e5) : null;
+  const isNew = days != null && days < 30;
   const site = r.website && /^(https?:\/\/)?[\w.-]+\.[a-z]{2,}/i.test(r.website) ? (/^https?:/i.test(r.website) ? r.website : `https://${r.website}`) : null;
-  const meta = [r.category, r.sub_category, r.reg_no, r.reg_date ? `Registered ${toDMY(r.reg_date)}` : null].filter(Boolean).map(esc);
-  if (site) meta.push(`<a href="${esc(site)}" target="_blank" rel="noopener">Website</a>`);
-  return `<div class="drow"><div class="dname">${esc(r.name)}${isNew ? `<span class="new" title="Registered in the last 30 days">NEW</span>` : ""}</div>
-    <div class="dmeta">${meta.join(" · ")}</div>${r.address ? `<div class="daddr">${esc(r.address)}</div>` : ""}${contactLine(r)}</div>`;
+  const c = (Array.isArray(r.ifsca_contacts) ? r.ifsca_contacts[0] : r.ifsca_contacts) || {};
+  const tel = c.phone && `<a href="tel:${esc(c.phone.replace(/[^\d+]/g, ""))}">${esc(c.phone)}</a>`;
+  const mail = c.email && `<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>`;
+  const when = r.reg_date ? `${toDMY(r.reg_date)}<small>${ago2(days)}</small>` : "–";
+  const allCats = !$("icat2").value;
+  return `<tr class="r x" title="Click for address and more">
+    <td><div class="fn">${esc(r.name)}${isNew ? `<span class="new" title="Registered in the last 30 days">NEW</span>` : ""}</div><div class="freg">${esc(r.reg_no || "No registration number listed")}<span class="cm"> · ${esc(r.sub_category || "")}</span></div></td>
+    <td class="h-type ftype">${esc(r.sub_category || "–")}${allCats && r.category ? `<small class="fcat">${esc(r.category)}</small>` : ""}</td>
+    <td class="fwhen">${when}</td>
+    <td class="h-person">${c.contact_name ? esc(c.contact_name) : `<span class="ftype">–</span>`}</td>
+    <td class="h-reach freach">${[tel, mail].filter(Boolean).join("") || `<span class="ftype">–</span>`}</td>
+  </tr><tr class="fmore" hidden><td colspan="5"><dl>
+    <dt>Category</dt><dd>${esc(r.category || "–")} · ${esc(r.sub_category || "–")}</dd>
+    <dt>Contact</dt><dd>${[c.contact_name && esc(c.contact_name), tel, mail].filter(Boolean).join(" · ") || "–"}</dd>
+    <dt>Address</dt><dd>${esc(r.address || "–")}</dd>
+    ${site ? `<dt>Website</dt><dd><a href="${esc(site)}" target="_blank" rel="noopener">${esc(r.website)}</a></dd>` : ""}
+    ${c.remarks ? `<dt>Remarks</dt><dd>${esc(c.remarks)}</dd>` : ""}
+  </dl></td></tr>`;
 }
+const ago2 = (d) => d === 0 ? "today" : d === 1 ? "yesterday" : d < 60 ? `${d} days ago` : d < 730 ? `${Math.round(d / 30)} months ago` : `${Math.round(d / 365)} years ago`;
 
-function fpiTable(rows) {
+function dirTable(rows) {
+  const fpi = dir.view === "fpi", sort = fpi ? dir.sort : dir.isort;
   const th = (col, label, cls = "") => {
-    const on = dir.sort.col === col;
-    return `<th class="${cls}"${on ? ` aria-sort="${dir.sort.desc ? "descending" : "ascending"}"` : ""}><button data-sort="${col}" title="Sort by ${label.toLowerCase()}">${label}<span class="arr">${on && !dir.sort.desc ? "▲" : "▼"}</span></button></th>`;
+    const on = sort.col === col;
+    return `<th class="${cls}"${on ? ` aria-sort="${sort.desc ? "descending" : "ascending"}"` : ""}><button data-sort="${col}" title="Sort by ${label.toLowerCase()}">${label}<span class="arr">${on && !sort.desc ? "▲" : "▼"}</span></button></th>`;
   };
-  return `<div class="ftable-wrap"><div class="scroll"><table class="ftable"><thead><tr>
-    ${th("name", "FPI")}${th("country", "Country", "h-country")}<th class="h-cat">Cat.</th><th class="h-type">Type</th>
-    ${th("registered", "Registered")}${th("valid", "Valid until", "h-valid")}<th class="h-status">Status</th>
-  </tr></thead><tbody id="dir-tbody">${rows}</tbody></table></div></div>`;
+  const head = fpi
+    ? `${th("name", "FPI")}${th("country", "Country", "h-country")}<th class="h-cat">Cat.</th><th class="h-type">Type</th>
+       ${th("registered", "Registered")}${th("valid", "Valid until", "h-valid")}<th class="h-status">Status</th>`
+    : `${th("name", "Entity")}${th("type", "Type", "h-type")}${th("registered", "Registered")}<th class="h-person">Contact person</th><th class="h-reach">Phone and email</th>`;
+  return `<div class="ftable-wrap"><div class="scroll"><table class="ftable ${fpi ? "t-fpi" : "t-ifsc"}"><thead><tr>${head}</tr></thead><tbody id="dir-tbody">${rows}</tbody></table></div></div>`;
 }
-// Header buttons sort; on phones, tapping a row shows the columns that are hidden there.
+// Header buttons sort. A row opens its details: always for GIFT IFSC (address), on phones for FPIs (hidden columns).
 $("dir-list").addEventListener("click", (ev) => {
   const sb = ev.target.closest("th button[data-sort]");
   if (sb) {
-    const col = sb.dataset.sort;
-    dir.sort = dir.sort.col === col ? { col, desc: !dir.sort.desc } : { col, desc: FPI_SORT[col][1] };
+    const col = sb.dataset.sort, key = dir.view === "fpi" ? "sort" : "isort", map = dir.view === "fpi" ? FPI_SORT : IFSC_SORT;
+    dir[key] = dir[key].col === col ? { col, desc: !dir[key].desc } : { col, desc: map[col][1] };
     runDirSearch(true);
     return;
   }
+  if (ev.target.closest("a")) return;
   const tr = ev.target.closest("tr.r");
-  if (tr && matchMedia("(max-width:700px)").matches) tr.nextElementSibling.hidden = !tr.nextElementSibling.hidden;
+  if (tr && (tr.classList.contains("x") || matchMedia("(max-width:700px)").matches)) {
+    tr.nextElementSibling.hidden = !tr.nextElementSibling.hidden;
+    tr.classList.toggle("open", !tr.nextElementSibling.hidden);
+  }
 });
 
 // Contact details as IFSCA's directory publishes them. The CSV download stays an owner shortcut.
 const LEADS_URL = `${SUPABASE_URL}/functions/v1/leads`;
-function contactLine(r) {
-  const c = (Array.isArray(r.ifsca_contacts) ? r.ifsca_contacts[0] : r.ifsca_contacts) || {};
-  const bits = [c.contact_name && `<b>${esc(c.contact_name)}</b>`,
-    c.phone && `<a href="tel:${esc(c.phone.replace(/[^\d+]/g, ""))}">${esc(c.phone)}</a>`,
-    c.email && `<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>`, c.remarks && esc(c.remarks)].filter(Boolean);
-  return bits.length ? `<div class="dcontact">${bits.join("")}</div>` : "";
-}
 $("leads-csv").addEventListener("click", () => {
   const cat = $("icat2").value;
   location.href = `${LEADS_URL}?format=csv&key=${encodeURIComponent(dir.ownerKey)}${cat ? `&category=${encodeURIComponent(cat)}` : ""}`;
@@ -1217,11 +1246,8 @@ async function runDirSearch(reset) {
     if (seq !== dir.seq) return; // a newer search has started
     const html = rows.map(dirRow).join("");
     const none = `<div class="empty">Nothing matches. Try a shorter name or clear the filters.</div>`;
-    if (dir.view === "fpi") {
-      if (reset) $("dir-list").innerHTML = html ? fpiTable(html) : none;
-      else $("dir-tbody").insertAdjacentHTML("beforeend", html);
-    } else if (reset) $("dir-list").innerHTML = html || none;
-    else $("dir-list").insertAdjacentHTML("beforeend", html);
+    if (reset) $("dir-list").innerHTML = html ? dirTable(html) : none;
+    else $("dir-tbody").insertAdjacentHTML("beforeend", html);
     dir.shown += rows.length;
     const what = dir.view === "fpi" ? "FPI" : "entr";
     $("dir-sum").textContent = total ? `${nfmt(total)} ${what}${dir.view === "fpi" ? (total === 1 ? "" : "s") : (total === 1 ? "y" : "ies")} match · showing ${nfmt(dir.shown)}` : "";
@@ -1236,7 +1262,7 @@ document.querySelectorAll("#dirseg button").forEach((b) => b.onclick = () => {
 });
 let dirTimer;
 ["dq", "iq2"].forEach((id) => $(id).addEventListener("input", () => { clearTimeout(dirTimer); dirTimer = setTimeout(() => runDirSearch(true), 300); }));
-["dcountry-f", "dcat-f", "dyear-f", "itype2", "isort2"].forEach((id) => $(id).addEventListener("change", () => runDirSearch(true)));
+["dcountry-f", "dcat-f", "dyear-f", "itype2"].forEach((id) => $(id).addEventListener("change", () => runDirSearch(true)));
 $("icat2").addEventListener("change", () => { fillIfscaTypes(); runDirSearch(true); });
 $("dir-more").addEventListener("click", () => runDirSearch(false));
 
