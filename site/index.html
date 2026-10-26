@@ -428,7 +428,7 @@ body.locked{overflow:hidden}
       <select id="icat2" aria-label="Category"></select>
       <select id="itype2" aria-label="Type"><option value="">All types</option></select>
       <select id="isort2" aria-label="Sort"><option value="new">Newest registrations first</option><option value="name">Name A–Z</option></select>
-      <button class="reset" id="leads-csv" type="button" hidden title="Only visible to you">Download leads (CSV)</button>
+      <button class="reset" id="leads-csv" type="button" hidden title="Only visible to you">Download all (CSV)</button>
     </div>
     <div class="dsum" id="dir-sum"></div>
     <div class="dlist" id="dir-list"></div>
@@ -1113,7 +1113,7 @@ function renderDirTiles() {
   ].join("");
   $("dir-note").textContent = fpi
     ? "Source: NSDL's register of SEBI-registered FPIs. Addresses and phone numbers are left out because many FPIs are individuals. Registration dates are worked out from NSDL's validity date (a first registration runs three years); older registrations show the year from the registration number."
-    : "Source: IFSCA's Directory of Regulated Entities. Contact people, phone numbers and e-mails are left out. Registration details are being read entry by entry; until that finishes some entries show no date.";
+    : "Source: IFSCA's Directory of Regulated Entities, including the contact details IFSCA publishes there. Some entries have no contact listed.";
   $("dir-fpi-filters").hidden = !fpi; $("dir-ifsca-filters").hidden = fpi;
 }
 
@@ -1134,7 +1134,7 @@ function dirPath() {
   if ($("icat2").value) f.push(`category=eq.${enc($("icat2").value)}`);
   if ($("itype2").value) f.push(`sub_category=eq.${enc($("itype2").value)}`);
   const order = $("isort2").value === "name" ? "name.asc" : "reg_date.desc.nullslast,first_seen.desc,name.asc";
-  return `ifsca_entities?select=enc_id,name,category,sub_category,reg_no,reg_date,address,website,first_seen&${f.map((x) => x + "&").join("")}order=${order}${off}`;
+  return `ifsca_entities?select=enc_id,name,category,sub_category,reg_no,reg_date,address,website,first_seen,ifsca_contacts(contact_name,phone,email,remarks)&${f.map((x) => x + "&").join("")}order=${order}${off}`;
 }
 
 function dirRow(r) {
@@ -1169,7 +1169,7 @@ function dirRow(r) {
   const meta = [r.category, r.sub_category, r.reg_no, r.reg_date ? `Registered ${toDMY(r.reg_date)}` : null].filter(Boolean).map(esc);
   if (site) meta.push(`<a href="${esc(site)}" target="_blank" rel="noopener">Website</a>`);
   return `<div class="drow"><div class="dname">${esc(r.name)}${isNew ? `<span class="new" title="Registered in the last 30 days">NEW</span>` : ""}</div>
-    <div class="dmeta">${meta.join(" · ")}</div>${r.address ? `<div class="daddr">${esc(r.address)}</div>` : ""}${contactLine(r.enc_id)}</div>`;
+    <div class="dmeta">${meta.join(" · ")}</div>${r.address ? `<div class="daddr">${esc(r.address)}</div>` : ""}${contactLine(r)}</div>`;
 }
 
 function fpiTable(rows) {
@@ -1195,24 +1195,14 @@ $("dir-list").addEventListener("click", (ev) => {
   if (tr && matchMedia("(max-width:700px)").matches) tr.nextElementSibling.hidden = !tr.nextElementSibling.hidden;
 });
 
-// Owner only: contact details come from the private leads function, never from the public tables.
+// Contact details as IFSCA's directory publishes them. The CSV download stays an owner shortcut.
 const LEADS_URL = `${SUPABASE_URL}/functions/v1/leads`;
-async function loadLeads() {
-  if (!dir.ownerKey || dir.leads) return;
-  try {
-    const res = await fetch(`${LEADS_URL}?key=${encodeURIComponent(dir.ownerKey)}`);
-    if (!res.ok) throw new Error(res.status === 401 ? "owner link not recognised" : res.statusText);
-    dir.leads = new Map((await res.json()).map((r) => [r.enc_id, r]));
-  } catch (e) { dir.leadsError = e.message; }
-}
-function contactLine(id) {
-  if (!dir.ownerKey) return "";
-  const c = dir.leads?.get(id);
-  if (!c) return dir.leadsError ? `<div class="dcontact"><span class="lock">Contacts unavailable: ${esc(dir.leadsError)}</span></div>` : "";
+function contactLine(r) {
+  const c = (Array.isArray(r.ifsca_contacts) ? r.ifsca_contacts[0] : r.ifsca_contacts) || {};
   const bits = [c.contact_name && `<b>${esc(c.contact_name)}</b>`,
     c.phone && `<a href="tel:${esc(c.phone.replace(/[^\d+]/g, ""))}">${esc(c.phone)}</a>`,
     c.email && `<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>`, c.remarks && esc(c.remarks)].filter(Boolean);
-  return `<div class="dcontact">${bits.length ? bits.join("") : `<span class="lock">No contact details on IFSCA's directory yet</span>`}<span class="lock">· only you can see this</span></div>`;
+  return bits.length ? `<div class="dcontact">${bits.join("")}</div>` : "";
 }
 $("leads-csv").addEventListener("click", () => {
   const cat = $("icat2").value;
@@ -1223,7 +1213,6 @@ async function runDirSearch(reset) {
   if (reset) { dir.shown = 0; $("dir-list").innerHTML = `<div class="empty">Loading…</div>`; }
   const seq = ++dir.seq;
   try {
-    if (dir.view === "ifsca") await loadLeads();
     const { rows, total } = await apiPage(dirPath());
     if (seq !== dir.seq) return; // a newer search has started
     const html = rows.map(dirRow).join("");
