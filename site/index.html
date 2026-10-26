@@ -157,6 +157,37 @@ td.num{font-variant-numeric:tabular-nums;text-align:right}
 .dmeta .warn{color:var(--bad);font-weight:600}
 .daddr{color:var(--muted);font-size:12px;margin-top:2px;opacity:.85}
 .dsum{color:var(--muted);font-size:12px;margin:2px 0 10px}
+.ftable-wrap{border:1px solid var(--line);border-radius:10px;background:var(--panel);overflow:hidden}
+.ftable{border:0;border-radius:0;table-layout:auto}
+.ftable thead th{position:sticky;top:0;z-index:1;background:var(--chip);font-size:11px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;padding:9px 12px}
+.ftable th button{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:4px;color:inherit}
+.ftable th button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+.ftable th .arr{opacity:.35;font-size:10px}
+.ftable th[aria-sort="ascending"] .arr,.ftable th[aria-sort="descending"] .arr{opacity:1;color:var(--accent)}
+.ftable td{padding:10px 12px;vertical-align:middle}
+.ftable tbody tr.r:hover td{background:var(--chip)}
+.ftable tbody tr.r:last-child td{border-bottom:0}
+.fn{font-weight:600;line-height:1.3;overflow-wrap:anywhere}
+.fn .new{font-size:10px;font-weight:700;letter-spacing:.05em;padding:2px 6px;border-radius:999px;background:var(--accent);color:var(--accent-ink);margin-left:6px;vertical-align:1px}
+.freg{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11.5px;color:var(--muted);margin-top:3px;letter-spacing:.02em}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;border:1px solid var(--line);white-space:nowrap}
+.pill.c1{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,transparent);background:color-mix(in srgb,var(--accent) 9%,transparent)}
+.pill.c2{color:var(--muted)}
+.ftype{color:var(--muted);font-size:12.5px;line-height:1.35}
+.fwhen{white-space:nowrap;font-variant-numeric:tabular-nums}
+.fwhen small{display:block;color:var(--muted);font-size:11px}
+.stat{display:inline-flex;align-items:center;gap:6px;font-size:12px;white-space:nowrap}
+.stat i{width:7px;height:7px;border-radius:50%;background:var(--good)}
+.stat.late i{background:#d97706}.stat.bad i{background:var(--bad)}
+.fmore td{background:var(--bg);font-size:12.5px;color:var(--muted)}
+.fmore dl{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:0}
+.fmore dt{color:var(--muted)}.fmore dd{margin:0;color:var(--ink)}
+.cm{display:none;font-family:Inter,system-ui,sans-serif;letter-spacing:0}
+@media (max-width:700px){
+  .ftable .h-type,.ftable .h-valid,.ftable .h-status,.ftable .h-cat,.ftable .h-country{display:none}
+  .ftable tbody tr.r{cursor:pointer}
+  .cm{display:inline}
+}
 #dir-tiles{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
 #dir-tiles .ftile .n{font-size:20px}
 .hbars{display:grid;gap:9px;margin-top:10px}
@@ -388,7 +419,6 @@ body.locked{overflow:hidden}
       <select id="dcountry-f" aria-label="Country"><option value="">All countries</option></select>
       <select id="dcat-f" aria-label="Category"><option value="">Category I and II</option><option value="I">Category I</option><option value="II">Category II</option></select>
       <select id="dyear-f" aria-label="Year registered"><option value="">Any year</option></select>
-      <select id="dsort-f" aria-label="Sort"><option value="new">Newest registrations first</option><option value="name">Name A–Z</option></select>
     </div>
     <div class="filters" id="dir-ifsca-filters" hidden>
       <input type="search" id="iq2" placeholder="Search entity or fund name…" aria-label="Search GIFT IFSC entities">
@@ -1003,7 +1033,27 @@ document.querySelectorAll("nav.tabs button").forEach((b) => b.onclick = () => se
 
 // ---------- Directory: NSDL's FPI register and IFSCA's directory of GIFT IFSC entities ----------
 // Both lists are too long to load at once, so each search asks the database for one page of matches.
-const dir = { view: "fpi", shown: 0, size: 50, stats: null, meta: false, seq: 0 };
+const dir = { view: "fpi", shown: 0, size: 50, stats: null, meta: false, seq: 0, sort: { col: "registered", desc: true } };
+// FPI table columns that can be sorted, and the database order for each direction.
+const FPI_SORT = {
+  name: [(d) => `name.${d ? "desc" : "asc"}`, false],
+  country: [(d) => `country.${d ? "desc" : "asc"},name.asc`, false],
+  registered: [(d) => d ? "registered_on.desc.nullslast,reg_year.desc.nullslast,serial.desc.nullslast" : "reg_year.asc.nullslast,serial.asc.nullslast", true],
+  valid: [(d) => `valid_upto.${d ? "desc" : "asc"}.nullslast,name.asc`, false],
+};
+const SHORT_COUNTRY = { "UNITED STATES OF AMERICA": "USA", "UNITED KINGDOM": "UK", "UNITED ARAB EMIRATES": "UAE", "INDIA IFSC [GIFT CITY]": "GIFT IFSC", "KOREA, REPUBLIC OF": "South Korea", "HONG KONG SAR": "Hong Kong" };
+// SEBI's sub-category names are long; the table shows a short form and keeps the full name on hover.
+const FPI_TYPE = {
+  "Appropriately Regulated Fund": "Regulated fund",
+  "Unregulated fund whose Investment Manager is Category I FPI": "Unregulated fund, Category I manager",
+  "Unregulated fund - Limited Partnership / Trust": "Unregulated fund (LP or trust)",
+  "Appropriately Regulated - Investment Manager": "Regulated investment manager",
+  "Appropriately regulated fund not eligible as Category-I FPI": "Regulated fund (Category II)",
+  "Entity whose Investment Manager is Category I FPI from FATF member country": "Entity with Category I manager",
+  "Entity controlled or at least 75% owned by Government and Government related investor(s)": "Government-owned entity",
+  "Appropriately Regulated - Insurance or Reinsurance Entity": "Insurer or reinsurer",
+  "Appropriately Regulated - Bank": "Bank",
+};
 const titleCase = (s) => (s || "").toLowerCase().replace(/\b[a-z]/g, (c) => c.toUpperCase()).replace(/\b(Of|And|The)\b/g, (w) => w.toLowerCase()).replace(/\bIfsc\b/g, "IFSC").replace(/\[Gift City\]/i, "(GIFT City)");
 const nfmt = (n) => Number(n || 0).toLocaleString("en-IN");
 // PostgREST filter text: drop characters that have meaning in its syntax.
@@ -1072,7 +1122,7 @@ function dirPath() {
     if ($("dcat-f").value) f.push(`category=eq.${$("dcat-f").value}`);
     const y = $("dyear-f").value;
     if (y === "older") f.push(`reg_year=lt.${new Date().getFullYear() - 4}`); else if (y) f.push(`reg_year=eq.${y}`);
-    const order = $("dsort-f").value === "name" ? "name.asc" : "registered_on.desc.nullslast,reg_year.desc.nullslast,serial.desc.nullslast";
+    const order = FPI_SORT[dir.sort.col][0](dir.sort.desc);
     return `fpi_registry?select=reg_no,name,country,category,sub_category,status,valid_upto,reg_year,registered_on&${f.map((x) => x + "&").join("")}order=${order}${off}`;
   }
   const q = term($("iq2").value), f = [];
@@ -1086,12 +1136,29 @@ function dirPath() {
 function dirRow(r) {
   if (dir.view === "fpi") {
     // registered_on is known for registrations of the last three years; older ones show the year only.
-    const isNew = r.registered_on && Date.now() - new Date(r.registered_on) < 30 * 864e5;
-    const meta = [r.reg_no, r.country && titleCase(r.country), r.category && `Category ${r.category}`, r.sub_category,
-      r.registered_on ? `Registered ${toDMY(r.registered_on)}` : r.reg_year && `Registered ${r.reg_year}`, r.valid_upto && `Valid up to ${toDMY(r.valid_upto)}`,
-      r.status && r.status !== "Registered" && `<span class="warn">${esc(r.status)}</span>`].filter(Boolean);
-    return `<div class="drow"><div class="dname">${esc(r.name)}${isNew ? `<span class="new" title="Registered in the last 30 days">NEW</span>` : ""}</div>
-      <div class="dmeta">${meta.map((m) => m.startsWith("<span") ? m : esc(m)).join(" · ")}</div></div>`;
+    const days = r.registered_on ? Math.floor((Date.now() - new Date(`${r.registered_on}T00:00:00+05:30`)) / 864e5) : null;
+    const isNew = days != null && days < 30;
+    const cat = r.category ? `<span class="pill ${r.category === "I" ? "c1" : "c2"}" title="Category ${r.category} FPI">Cat ${r.category}</span>` : "";
+    const type = r.sub_category ? `<span title="${esc(r.sub_category)}">${esc(FPI_TYPE[r.sub_category] || r.sub_category)}</span>` : "–";
+    const when = r.registered_on
+      ? `${toDMY(r.registered_on)}<small>${days === 0 ? "today" : days === 1 ? "yesterday" : days < 60 ? `${days} days ago` : r.reg_year}</small>`
+      : r.reg_year ? `${r.reg_year}<small>year only</small>` : "–";
+    const st = r.status || "Registered";
+    const stat = `<span class="stat${/late/i.test(st) ? " late" : st !== "Registered" ? " bad" : ""}"><i></i>${esc(st === "On Late Fee Window" ? "Late-fee window" : st)}</span>`;
+    const country = r.country ? SHORT_COUNTRY[r.country] || titleCase(r.country) : "–";
+    return `<tr class="r" data-reg="${esc(r.reg_no)}">
+      <td><div class="fn">${esc(r.name)}${isNew ? `<span class="new" title="Registered in the last 30 days">NEW</span>` : ""}</div><div class="freg">${esc(r.reg_no)}<span class="cm"> · ${esc(country)}</span></div></td>
+      <td class="h-country">${esc(country)}</td>
+      <td class="h-cat">${cat}</td>
+      <td class="h-type ftype">${type}</td>
+      <td class="fwhen">${when}</td>
+      <td class="h-valid fwhen">${r.valid_upto ? toDMY(r.valid_upto) : "–"}</td>
+      <td class="h-status">${stat}</td>
+    </tr><tr class="fmore" hidden><td colspan="7"><dl>
+      <dt>Category</dt><dd>${r.category ? `Category ${esc(r.category)}` : "–"}</dd>
+      <dt>Type</dt><dd>${esc(r.sub_category || "–")}</dd>
+      <dt>Valid up to</dt><dd>${r.valid_upto ? toDMY(r.valid_upto) : "–"}</dd>
+      <dt>Status</dt><dd>${esc(st)}</dd></dl></td></tr>`;
   }
   const isNew = r.reg_date && Date.now() - new Date(r.reg_date) < 30 * 864e5;
   const site = r.website && /^(https?:\/\/)?[\w.-]+\.[a-z]{2,}/i.test(r.website) ? (/^https?:/i.test(r.website) ? r.website : `https://${r.website}`) : null;
@@ -1101,6 +1168,29 @@ function dirRow(r) {
     <div class="dmeta">${meta.join(" · ")}</div>${r.address ? `<div class="daddr">${esc(r.address)}</div>` : ""}</div>`;
 }
 
+function fpiTable(rows) {
+  const th = (col, label, cls = "") => {
+    const on = dir.sort.col === col;
+    return `<th class="${cls}"${on ? ` aria-sort="${dir.sort.desc ? "descending" : "ascending"}"` : ""}><button data-sort="${col}" title="Sort by ${label.toLowerCase()}">${label}<span class="arr">${on && !dir.sort.desc ? "▲" : "▼"}</span></button></th>`;
+  };
+  return `<div class="ftable-wrap"><div class="scroll"><table class="ftable"><thead><tr>
+    ${th("name", "FPI")}${th("country", "Country", "h-country")}<th class="h-cat">Cat.</th><th class="h-type">Type</th>
+    ${th("registered", "Registered")}${th("valid", "Valid until", "h-valid")}<th class="h-status">Status</th>
+  </tr></thead><tbody id="dir-tbody">${rows}</tbody></table></div></div>`;
+}
+// Header buttons sort; on phones, tapping a row shows the columns that are hidden there.
+$("dir-list").addEventListener("click", (ev) => {
+  const sb = ev.target.closest("th button[data-sort]");
+  if (sb) {
+    const col = sb.dataset.sort;
+    dir.sort = dir.sort.col === col ? { col, desc: !dir.sort.desc } : { col, desc: FPI_SORT[col][1] };
+    runDirSearch(true);
+    return;
+  }
+  const tr = ev.target.closest("tr.r");
+  if (tr && matchMedia("(max-width:700px)").matches) tr.nextElementSibling.hidden = !tr.nextElementSibling.hidden;
+});
+
 async function runDirSearch(reset) {
   if (reset) { dir.shown = 0; $("dir-list").innerHTML = `<div class="empty">Loading…</div>`; }
   const seq = ++dir.seq;
@@ -1108,7 +1198,11 @@ async function runDirSearch(reset) {
     const { rows, total } = await apiPage(dirPath());
     if (seq !== dir.seq) return; // a newer search has started
     const html = rows.map(dirRow).join("");
-    if (reset) $("dir-list").innerHTML = html || `<div class="empty">Nothing matches. Try a shorter name or clear the filters.</div>`;
+    const none = `<div class="empty">Nothing matches. Try a shorter name or clear the filters.</div>`;
+    if (dir.view === "fpi") {
+      if (reset) $("dir-list").innerHTML = html ? fpiTable(html) : none;
+      else $("dir-tbody").insertAdjacentHTML("beforeend", html);
+    } else if (reset) $("dir-list").innerHTML = html || none;
     else $("dir-list").insertAdjacentHTML("beforeend", html);
     dir.shown += rows.length;
     const what = dir.view === "fpi" ? "FPI" : "entr";
@@ -1124,7 +1218,7 @@ document.querySelectorAll("#dirseg button").forEach((b) => b.onclick = () => {
 });
 let dirTimer;
 ["dq", "iq2"].forEach((id) => $(id).addEventListener("input", () => { clearTimeout(dirTimer); dirTimer = setTimeout(() => runDirSearch(true), 300); }));
-["dcountry-f", "dcat-f", "dyear-f", "dsort-f", "itype2", "isort2"].forEach((id) => $(id).addEventListener("change", () => runDirSearch(true)));
+["dcountry-f", "dcat-f", "dyear-f", "itype2", "isort2"].forEach((id) => $(id).addEventListener("change", () => runDirSearch(true)));
 $("icat2").addEventListener("change", () => { fillIfscaTypes(); runDirSearch(true); });
 $("dir-more").addEventListener("click", () => runDirSearch(false));
 
