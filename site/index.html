@@ -148,6 +148,17 @@ td.num{font-variant-numeric:tabular-nums;text-align:right}
 .fchart .grid{stroke:var(--line);stroke-width:1}
 .fchart .zero{stroke:var(--muted);stroke-width:1}
 .fchart .hit{fill:transparent}
+.hbars{display:grid;gap:9px;margin-top:10px}
+.hrow{display:grid;grid-template-columns:minmax(110px,200px) 1fr 104px;gap:10px;align-items:center;font-size:13px}
+.hname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.htrack{display:grid;gap:3px}
+.htrack i{display:block;border-radius:0 4px 4px 0;min-width:2px}
+.htrack i.cur{background:var(--in);height:12px}
+.htrack i.prev{background:var(--muted);opacity:.45;height:6px}
+.hval{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.hval span{display:block;font-weight:400;color:var(--muted);font-size:11px}
+.flegend i.prev{opacity:.45;height:6px;margin-top:3px}
+@media (max-width:600px){.hrow{grid-template-columns:1fr auto;gap:2px 10px}.htrack{grid-column:1/-1;grid-row:2}.hval span{display:inline;margin-left:6px}}
 .fchart .hit.on{fill:var(--ink);fill-opacity:.07}
 .ftip{position:absolute;z-index:20;pointer-events:none;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;box-shadow:0 6px 24px rgba(0,0,0,.18);max-width:260px;font-variant-numeric:tabular-nums}
 .ftip b{display:block;margin-bottom:4px}
@@ -352,6 +363,29 @@ body.locked{overflow:hidden}
       <div class="fchart" id="ffdi"></div>
       <div class="scroll" style="margin-top:10px"><table id="fditable"></table></div>
       <p class="note" style="margin-top:8px">P = provisional; RBI may revise these figures. "FDI by India" is Indian companies investing abroad. Net FDI = direct investment into India minus FDI by India.</p>
+    </div>
+
+    <h3 class="fsec" style="font-size:15px;margin-top:18px">Country, sector and state detail</h3>
+    <p class="note" id="dpiit-sub">From DPIIT's quarterly FDI fact sheet. Financial-year figures, not affected by the period above.</p>
+    <div class="fcard">
+      <div class="fhead"><div><h3>Where FDI comes from</h3><div class="sub" id="dcountry-sub">FDI equity inflow by source country · US$</div></div></div>
+      <div class="flegend" id="dlegend1"></div>
+      <div class="hbars" id="dcountry"></div>
+      <p class="note" style="margin-top:10px">The ten largest source countries since 2000, ordered by the latest year. Much of the money routed through Singapore and Mauritius comes from funds based elsewhere.</p>
+    </div>
+    <div class="fcard">
+      <div class="fhead"><div><h3>Where FDI goes</h3><div class="sub" id="dwhere-sub">FDI equity inflow · US$</div></div>
+        <div class="seg" role="group" aria-label="Show sectors or states" id="dseg">
+          <button data-s="sector" aria-pressed="true">Sectors</button><button data-s="state" aria-pressed="false">States</button>
+        </div></div>
+      <div class="flegend" id="dlegend2"></div>
+      <div class="hbars" id="dwhere"></div>
+      <p class="note" style="margin-top:10px" id="dwhere-note"></p>
+    </div>
+    <div class="fcard">
+      <div class="fhead"><div><h3>FDI into India over 26 years</h3><div class="sub" id="dannual-sub">Total FDI inflow by financial year · US$ million</div></div></div>
+      <div class="fchart" id="dannual"></div>
+      <p class="note" style="margin-top:8px">Total FDI = equity + re-invested earnings + other capital, on the international definition DPIIT uses. It is a different measure from the RBI table above, so the two totals do not match.</p>
     </div>
     <div class="ftip" id="ftip" hidden></div>
   </section>
@@ -687,6 +721,7 @@ const SOURCES = {
   news_backfill: ["Google News history (Apr 2026 to date)", "One-time collection of past weeks."],
   nsdl_flows: ["NSDL FPI flows", "Daily FPI buying and selling by segment, checked twice a day. Feeds the Flows tab."],
   rbi_fdi: ["RBI Bulletin (FDI)", "Monthly FDI inflows and outflows from the RBI Bulletin, checked daily. Feeds the Flows tab."],
+  dpiit_fdi: ["DPIIT FDI fact sheet", "Quarterly FDI by country, sector and state, loaded when each new fact sheet comes out. Feeds the Flows tab."],
 };
 // Plain-language reason for a failed run.
 function whyFailed(r) {
@@ -699,7 +734,7 @@ function whyFailed(r) {
 function renderRuns() {
   const latest = new Map();
   (state.runs || []).forEach((r) => { if (!latest.has(r.source)) latest.set(r.source, r); });
-  const order = ["review", "news", "nse_bulk", "nse_block", "nsdl_flows", "rbi_fdi", "news_backfill"];
+  const order = ["review", "news", "nse_bulk", "nse_block", "nsdl_flows", "rbi_fdi", "dpiit_fdi", "news_backfill"];
   const rows = [...latest.values()].sort((a, b) => order.indexOf(a.source) - order.indexOf(b.source));
   $("runs").innerHTML = `<thead><tr><th>Source</th><th>Last run</th><th>Status</th><th class="num">Items read</th><th class="num">Added</th><th>What it means</th></tr></thead><tbody>` +
     rows.map((r) => {
@@ -717,17 +752,19 @@ const crore = (n) => `${n < 0 ? "−" : n > 0 ? "+" : ""}₹${Math.abs(Math.roun
 const usdm = (n) => n == null || isNaN(n) ? "–" : `${n < 0 ? "−" : ""}$${Math.abs(Math.round(n)).toLocaleString("en-IN")}m`;
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const monLabel = (iso) => `${MON[+iso.slice(5, 7) - 1]} ${iso.slice(0, 4)}`;
-const flows = { daily: [], monthly: [], fdi: [], seg: "Total", loaded: false };
+const flows = { daily: [], monthly: [], fdi: [], dpiit: [], seg: "Total", dseg: "sector", loaded: false };
 const DEBT = ["Debt-General Limit", "Debt-VRR", "Debt-FAR"];
 
 async function loadFlows() {
   try {
     const since = dayStr(new Date(Date.now() - 400 * 864e5));
-    const [daily, monthly, fdi] = await Promise.all([
+    const [daily, monthly, fdi, dpiit] = await Promise.all([
       api(`fpi_flows?select=day,segment,route,net_cr,net_usd_m&route=in.(Sub-total,Total)&day=gte.${since}&order=day.asc&limit=20000`),
       api(`fpi_monthly?select=month,segment,net_cr&segment=eq.Total&order=month.asc`),
       api(`foreign_investment?select=period,kind,start_date,code,label,usd_m,provisional,bulletin&order=start_date.asc`),
+      api(`dpiit_fdi?select=kind,name,fy,usd_m,edition&order=fy.asc`).catch(() => []),
     ]);
+    flows.dpiit = dpiit.map((r) => ({ ...r, usd_m: +r.usd_m }));
     // One row per day with the segments the charts use.
     const byDay = new Map();
     daily.forEach((r) => {
@@ -919,13 +956,62 @@ function renderFdi() {
   });
 }
 
+// ---------- DPIIT fact sheet: by country, sector and state, and the long-run total ----------
+function hbars(el, legendEl, kind) {
+  const rows = flows.dpiit.filter((r) => r.kind === kind && r.fy !== "cumulative");
+  const fys = [...new Set(rows.map((r) => r.fy))].sort();
+  const cur = fys[fys.length - 1], prev = fys[fys.length - 2];
+  if (!cur) { el.innerHTML = `<div class="empty">No DPIIT data yet.</div>`; legendEl.innerHTML = ""; return; }
+  const fyl = (fy) => `FY ${fy}`;
+  legendEl.innerHTML = `<span><i style="background:var(--in)"></i>${fyl(cur)}</span>${prev ? `<span><i class="prev" style="background:var(--muted)"></i>${fyl(prev)}</span>` : ""}`;
+  const v = (name, fy) => rows.find((r) => r.name === name && r.fy === fy)?.usd_m ?? null;
+  const names = [...new Set(rows.map((r) => r.name))].sort((a, b) => (v(b, cur) ?? 0) - (v(a, cur) ?? 0));
+  const max = Math.max(...names.flatMap((n) => [v(n, cur) ?? 0, v(n, prev) ?? 0]), 1);
+  el.innerHTML = names.map((n) => {
+    const a = v(n, cur), b = v(n, prev);
+    const ch = a != null && b ? Math.round((a / b - 1) * 100) : null;
+    return `<div class="hrow"><div class="hname" title="${esc(n)}">${esc(n)}</div>
+      <div class="htrack"><i class="cur" style="width:${(a ?? 0) / max * 100}%"></i>${prev ? `<i class="prev" style="width:${(b ?? 0) / max * 100}%"></i>` : ""}</div>
+      <div class="hval">${a == null ? "–" : fmtUsd(a)}<span>${b == null ? "" : `${fmtUsd(b)}${ch == null ? "" : ` · ${ch >= 0 ? "+" : "−"}${Math.abs(ch)}%`}`}</span></div></div>`;
+  }).join("");
+  return { cur, prev };
+}
+
+function renderDpiit() {
+  if (!flows.dpiit.length) { ["dcountry", "dwhere", "dannual"].forEach((id) => $(id).innerHTML = `<div class="empty">No DPIIT data yet.</div>`); return; }
+  const ed = flows.dpiit[0].edition;
+  $("dpiit-sub").textContent = `From DPIIT's quarterly FDI fact sheet, data up to ${ed}. Financial-year figures, not affected by the period above.`;
+  const c = hbars($("dcountry"), $("dlegend1"), "country");
+  $("dcountry-sub").textContent = `FDI equity inflow by source country · US$ · FY ${c.cur}${c.prev ? ` vs FY ${c.prev}` : ""}`;
+  const w = hbars($("dwhere"), $("dlegend2"), flows.dseg);
+  $("dwhere-sub").textContent = `FDI equity inflow by ${flows.dseg === "state" ? "state" : "sector"} · US$ · FY ${w.cur}${w.prev ? ` vs FY ${w.prev}` : ""}`;
+  $("dwhere-note").textContent = flows.dseg === "state"
+    ? "The ten states with the most FDI equity since October 2019, when state-wise data began, ordered by the latest year."
+    : "The ten sectors with the most FDI equity since 2000, ordered by the latest year. Services covers banking, insurance, outsourcing, R&D and similar.";
+  const yrs = [...new Set(flows.dpiit.filter((r) => r.kind === "annual").map((r) => r.fy))].sort();
+  const av = (fy, name) => flows.dpiit.find((r) => r.kind === "annual" && r.fy === fy && r.name === name)?.usd_m ?? 0;
+  const pts = yrs.map((fy, i) => ({ fy, v: av(fy, "Total FDI"), eq: av(fy, "Equity"), prev: i ? av(yrs[i - 1], "Total FDI") : null, partial: i === yrs.length - 1 }));
+  $("dannual").dataset.title = "Total FDI into India by financial year";
+  barChart($("dannual"), pts, {
+    height: 220,
+    label: (p) => `FY${p.fy.slice(5)}`,
+    tip: (p) => `<b>FY ${p.fy}${p.partial ? " (provisional)" : ""}</b><div class="row"><span>Total FDI</span><span>${fmtUsd(p.v)}</span></div><div class="row"><span>of which equity</span><span>${fmtUsd(p.eq)}</span></div>${p.prev ? `<div class="row"><span>Change on year</span><span>${p.v >= p.prev ? "+" : "−"}${Math.abs(Math.round((p.v / p.prev - 1) * 100))}%</span></div>` : ""}`,
+  });
+  $("dannual-sub").textContent = `Total FDI inflow by financial year · US$ million · FY ${yrs[0]} to FY ${yrs[yrs.length - 1]} · lighter bar = provisional`;
+}
+document.querySelectorAll("#dseg button").forEach((b) => b.onclick = () => {
+  flows.dseg = b.dataset.s;
+  document.querySelectorAll("#dseg button").forEach((x) => x.setAttribute("aria-pressed", x === b));
+  renderDpiit();
+});
+
 function renderFlows() {
   if (!flows.loaded || state.tab !== "flows") return;
   const r = flowRange();
   if ($("fpreset").value !== "custom") { $("ffrom").value = r.from === "2000-01-01" ? "" : r.from; $("fto").value = r.to; }
   ["ffrom", "fto"].forEach((id) => { if (document.activeElement !== $(`${id}-txt`)) $(`${id}-txt`).value = toDMY($(id).value); });
   $("fcover").textContent = `Data available: FPI daily from ${flows.daily.length ? toDMY(flows.daily[0].day) : "—"}, FPI monthly from ${flows.monthly.length ? monLabel(flows.monthly[0].month) : "—"}. Earlier dates show nothing yet; history grows every trading day.`;
-  renderFlowTiles(); renderFlowCharts();
+  renderFlowTiles(); renderFlowCharts(); renderDpiit();
 }
 document.querySelectorAll("#fseg button").forEach((b) => b.onclick = () => {
   flows.seg = b.dataset.s;

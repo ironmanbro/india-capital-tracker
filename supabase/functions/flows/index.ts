@@ -2,11 +2,13 @@
 //   POST /functions/v1/flows          (both)
 //   POST /functions/v1/flows?only=nsdl
 //   POST /functions/v1/flows?only=rbi
+//   POST /functions/v1/flows?only=dpiit&u=<DPIIT fact sheet PDF>   (quarterly; the PDF link changes each edition)
 // Requires header x-ingest-key = app_secrets.ingest_key. NSDL refuses requests from outside
 // India, so callers send x-region: ap-south-1 (Mumbai).
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { extractText, getDocumentProxy } from "npm:unpdf@0.12.1";
+import { parseFactSheet } from "./dpiit.ts";
 
 const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36";
@@ -187,10 +189,29 @@ async function runRbi() {
   }
 }
 
+async function runDpiit(u: string) {
+  const started = new Date();
+  try {
+    if (!/^https:\/\/(www\.)?dpiit\.gov\.in\/.+\.pdf/i.test(u)) throw new Error("expected a dpiit.gov.in PDF link");
+    const buf = new Uint8Array(await (await get(u)).arrayBuffer());
+    const pages = (await extractText(await getDocumentProxy(buf), { mergePages: false })).text as string[];
+    const { edition, fys, rows } = parseFactSheet(pages);
+    const now = new Date().toISOString();
+    const { error } = await db.from("dpiit_fdi").upsert(rows.map((r) => ({ ...r, edition, source_url: u, updated_at: now })), { onConflict: "kind,name,fy" });
+    if (error) throw new Error(error.message);
+    await logRun("dpiit_fdi", started, true, rows.length, rows.length);
+    return { edition, fys, rows: rows.length };
+  } catch (e) {
+    await logRun("dpiit_fdi", started, false, 0, 0, (e as Error).message);
+    return { error: (e as Error).message };
+  }
+}
+
 Deno.serve(async (req) => {
   const { data: secret } = await db.from("app_secrets").select("value").eq("name", "ingest_key").single();
   if (!secret || req.headers.get("x-ingest-key") !== secret.value) return new Response("unauthorized", { status: 401 });
-  const only = new URL(req.url).searchParams.get("only");
+  const params = new URL(req.url).searchParams, only = params.get("only");
+  if (only === "dpiit") return Response.json({ dpiit: await runDpiit(params.get("u") || "") });
   const [nsdl, rbi] = await Promise.all([only === "rbi" ? null : runNsdl(), only === "nsdl" ? null : runRbi()]);
   return Response.json({ nsdl, rbi });
 });
