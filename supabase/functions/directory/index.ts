@@ -1,9 +1,10 @@
 // Directories: every SEBI-registered FPI (NSDL's register) and every entity in IFSCA's directory of
 // GIFT IFSC regulated entities (fund managers, schemes, banks, ...).
 //   POST /functions/v1/directory?only=nsdl    whole FPI register in one request
-//   POST /functions/v1/directory?only=ifsca   directory list (at most once a day) + registration details for up to 100 entries
+//   POST /functions/v1/directory?only=ifsca   directory list (at most once a day) + registration details for up to 150 entries
 // Requires header x-ingest-key = app_secrets.ingest_key; NSDL needs x-region: ap-south-1 (Mumbai).
-// Contact people, phone numbers, e-mails and FPI addresses are deliberately not stored: many FPIs are individuals.
+// FPI addresses and phone numbers are not stored: many FPIs are individuals. IFSCA contact details go to the
+// private ifsca_contacts table, which the public key cannot read; the owner-only leads function serves them.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 
@@ -118,10 +119,10 @@ async function runIfsca(force: boolean) {
     const stale = !st || Date.now() - new Date(st.updated_at).getTime() > 20 * 3600e3;
     const listed = force || stale ? await refreshIfscaList() : null;
     // Registration details (number, date, address, website): new entries first, a batch per run.
-    const { data: todo } = await db.from("ifsca_entities").select("enc_id").is("detail_at", null).order("first_seen").limit(100);
+    const { data: todo } = await db.from("ifsca_entities").select("enc_id").is("detail_at", null).order("first_seen").limit(150);
     let done = 0;
     const queue = [...(todo ?? [])];
-    await Promise.all(Array.from({ length: 5 }, async () => {
+    await Promise.all(Array.from({ length: 6 }, async () => {
       for (let t = queue.shift(); t; t = queue.shift()) {
         try {
           const d = await getJson(`${IFSCA}/DirectoryDetailGet?EncryptedId=${encodeURIComponent(t.enc_id)}`);
@@ -130,6 +131,10 @@ async function runIfsca(force: boolean) {
             reg_no: clean(d.RegistrationNumber), reg_date: dmy(clean(d.DateOfRegistration)),
             address: clean(d.RegisteredAddress), website: clean(d.Website), detail_at: new Date().toISOString(),
           }).eq("enc_id", t.enc_id);
+          await db.from("ifsca_contacts").upsert({
+            enc_id: t.enc_id, contact_name: clean(d.NameofContactPerson)?.replace(/[\u200b\u00a0]/g, " ").trim() || null,
+            phone: clean(d.ContactNumber), email: clean(d.Email) || clean(d.EmailId), remarks: clean(d.Remarks), updated_at: new Date().toISOString(),
+          }, { onConflict: "enc_id" });
           done++;
         } catch { /* left for the next run */ }
       }
