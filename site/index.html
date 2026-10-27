@@ -333,6 +333,12 @@ header .eyebrow{color:var(--muted);font-size:12px;font-weight:700;letter-spacing
 .bk .m{color:var(--muted);font-size:12px}
 .bmore{width:100%;margin-top:2px}
 /* Floating notice */
+#q,#iq,#dq,#iq2{display:none!important}
+@media (max-width:700px){.filterbar:not(.open) .filters > #ftoggle{margin-left:auto}}
+.totop{position:fixed;right:22px;bottom:22px;width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:var(--glass),var(--panel);color:var(--ink);box-shadow:var(--shadow);display:grid;place-items:center;cursor:pointer;opacity:0;pointer-events:none;transform:translateY(10px);transition:opacity .2s,transform .2s;z-index:30}
+.totop.show{opacity:1;pointer-events:auto;transform:none}
+.totop svg{width:20px;height:20px}
+@media (max-width:700px){.totop{right:14px;bottom:92px}}
 .toast{position:fixed;top:16px;left:50%;transform:translate(-50%,-140%);transition:transform .35s ease;background:#050608;color:#eceef2;border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:7px 8px 7px 10px;display:flex;gap:10px;align-items:center;font-weight:600;font-size:13px;box-shadow:0 10px 30px rgba(0,0,0,.45);z-index:60;max-width:calc(100vw - 32px)}
 .toast.show{transform:translate(-50%,0)}
 .toast .ok2{width:22px;height:22px;border-radius:50%;background:#16a37a;display:grid;place-items:center;flex:none}
@@ -389,6 +395,7 @@ header .eyebrow{color:var(--muted);font-size:12px;font-weight:700;letter-spacing
       <div class="hstatus"><div class="sub" id="updated">Loading…</div><div class="sub" id="visits"></div></div>
     </div>
   </header>
+  <button class="totop" id="totop" type="button" aria-label="Back to top" title="Back to top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
   <div class="toast" id="toast" role="status" aria-live="polite"><span class="ok2">&#10003;</span><span id="toast-t"></span><button type="button" id="toast-b">View</button></div>
 
   <section class="filterbar" aria-label="Filters">
@@ -1151,11 +1158,12 @@ function setTab(t) {
   document.querySelector(".filterbar").hidden = !stories;
   ["kpis", "kpi-note"].forEach((id) => $(id).hidden = !stories);
   setTitle();
+  if (typeof syncSearch === "function") syncSearch();
   if (t === "flows") renderFlows();
   if (t === "directory") openDirectory();
 }
-document.querySelectorAll("nav.tabs button").forEach((b) => b.onclick = () => setTab(b.dataset.tab));
-document.querySelectorAll("[data-go]").forEach((b) => b.onclick = () => setTab(b.dataset.go));
+document.querySelectorAll("nav.tabs button").forEach((b) => b.onclick = () => { setTab(b.dataset.tab); scrollTo({ top: 0, behavior: "smooth" }); });
+document.querySelectorAll("[data-go]").forEach((b) => b.onclick = () => { setTab(b.dataset.go); scrollTo({ top: 0, behavior: "smooth" }); });
 
 // ---------- Page titles ----------
 const TITLES = {
@@ -1184,13 +1192,26 @@ applyTheme(load("ict-theme"));
 $("theme").onclick = () => { const v = document.documentElement.dataset.theme === "light" ? "dark" : "light"; store("ict-theme", v); applyTheme(v); };
 
 // ---------- One search box: the directory when it is open, the stories otherwise ----------
+// The tab's own (hidden) box that the header search fills in.
+const searchBox = () => state.tab === "directory" ? (dir.view === "fpi" ? "dq" : "iq2") : state.tab === "investors" ? "iq" : "q";
+const SEARCH_HINT = { investors: "Search investors, funds or companies…", directory: "Search FPI names or registration numbers…", directory_ifsca: "Search GIFT IFSC entities or funds…" };
+function syncSearch() {
+  const k = state.tab === "directory" && dir.view !== "fpi" ? "directory_ifsca" : state.tab;
+  $("gq").placeholder = SEARCH_HINT[k] || "Search investors, companies or headlines…";
+  $("gq").value = $(searchBox()).value;
+}
 $("gq").addEventListener("input", () => {
   const v = $("gq").value;
-  if (state.tab === "directory") { $(dir.view === "fpi" ? "dq" : "iq2").value = v; clearTimeout(dirTimer); dirTimer = setTimeout(() => runDirSearch(true), 300); return; }
+  if (state.tab === "directory") { $(searchBox()).value = v; clearTimeout(dirTimer); dirTimer = setTimeout(() => runDirSearch(true), 300); return; }
+  if (state.tab === "investors") { $("iq").value = v; invShown = 60; renderInvestors(); return; }
   $("q").value = v;
-  if (state.tab !== "feed" && state.tab !== "investors") setTab("feed");
+  if (state.tab !== "feed") setTab("feed");
   render();
 });
+
+// Back to top: a button once the page is scrolled, and every menu tap starts at the top.
+addEventListener("scroll", () => $("totop").classList.toggle("show", scrollY > 600), { passive: true });
+$("totop").onclick = () => scrollTo({ top: 0, behavior: "smooth" });
 
 // ---------- Floating notice: what is new since this browser's last visit ----------
 function showToast(text, tab) {
@@ -1518,7 +1539,7 @@ async function runDirSearch(reset) {
 document.querySelectorAll("#dirseg button").forEach((b) => b.onclick = () => {
   dir.view = b.dataset.v;
   document.querySelectorAll("#dirseg button").forEach((x) => x.setAttribute("aria-pressed", x === b));
-  renderDirTiles(); runDirSearch(true);
+  syncSearch(); renderDirTiles(); runDirSearch(true);
 });
 let dirTimer;
 ["dq", "iq2"].forEach((id) => $(id).addEventListener("input", () => { clearTimeout(dirTimer); dirTimer = setTimeout(() => runDirSearch(true), 300); }));
