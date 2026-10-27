@@ -29,27 +29,26 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f6f7f9; --panel:#ffffff; --ink:#14171c; --muted:#5f6b7a; --line:#e3e6eb; --chip:#eef1f5;
+  --bg:#0e0f12; --panel:#17191e; --ink:#eceef2; --muted:#8f97a5; --line:rgba(255,255,255,.08); --chip:rgba(255,255,255,.07);
+  --accent:#6f95ff; --accent-ink:#0e0f12;
+  --relocation:#a98bff; --fund_launch:#3ccf98; --entry:#6f95ff; --exit:#f2894e; --other:#9aa4b2;
+  --good:#3ccf98; --bad:#f26d6d;
+  --in:#5a82f0; --out:#d9682c;
+  --glass:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.012));
+  --shadow:0 10px 30px rgba(0,0,0,.28);
+  --page:radial-gradient(1100px 560px at 75% -8%,#1b2132 0,transparent 62%),#0e0f12;
+  color-scheme:dark;
+}
+:root[data-theme="light"]{
+  --bg:#f4f5f8; --panel:#ffffff; --ink:#14171c; --muted:#5f6b7a; --line:#e3e6eb; --chip:#eef1f5;
   --accent:#1f5eff; --accent-ink:#ffffff;
   --relocation:#7a3cff; --fund_launch:#0a8a5f; --entry:#1f5eff; --exit:#c2410c; --other:#6b7280;
   --good:#0a8a5f; --bad:#b91c1c;
   --in:#1f5eff; --out:#c2410c;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#0f1115; --panel:#171a20; --ink:#e8ebf0; --muted:#9aa4b2; --line:#2a2f38; --chip:#222731;
-    --accent:#6f95ff; --accent-ink:#0f1115;
-    --relocation:#a98bff; --fund_launch:#3ccf98; --entry:#6f95ff; --exit:#f2894e; --other:#9aa4b2;
-    --good:#3ccf98; --bad:#f26d6d;
-    --in:#5a82f0; --out:#d9682c;
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#0f1115; --panel:#171a20; --ink:#e8ebf0; --muted:#9aa4b2; --line:#2a2f38; --chip:#222731;
-  --accent:#6f95ff; --accent-ink:#0f1115;
-  --relocation:#a98bff; --fund_launch:#3ccf98; --entry:#6f95ff; --exit:#f2894e; --other:#9aa4b2;
-  --good:#3ccf98; --bad:#f26d6d;
-  --in:#5a82f0; --out:#d9682c;
+  --glass:linear-gradient(180deg,#fff,#fbfbfd);
+  --shadow:0 6px 20px rgba(20,23,28,.06);
+  --page:radial-gradient(1100px 560px at 75% -8%,#e6ecff 0,transparent 62%),#f4f5f8;
+  color-scheme:light;
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 Inter,system-ui,-apple-system,Segoe UI,sans-serif}
@@ -260,6 +259,97 @@ td.num{font-variant-numeric:tabular-nums;text-align:right}
 .welcome .enter:hover{opacity:.9}
 .welcome .fine{font-size:11.5px;color:var(--muted);text-align:center;margin:10px 0 0}
 body.locked{overflow:hidden}
+/* ---------- Glass layout: icon sidebar, rounded glass cards ---------- */
+body{background:var(--page);background-attachment:fixed}
+.wrap{max-width:1240px;margin:0 0 0 92px;padding:22px 26px 60px}
+nav.tabs{position:fixed;left:14px;top:18px;bottom:18px;width:66px;flex-direction:column;align-items:center;gap:8px;border:1px solid var(--line);border-radius:22px;background:var(--glass),var(--panel);box-shadow:var(--shadow);padding:12px 0;margin:0;z-index:20}
+nav.tabs .logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#5a82f0,#3b5bd6);color:#fff;display:grid;place-items:center;font-weight:800;font-size:12px;letter-spacing:.02em;box-shadow:0 6px 18px rgba(90,130,240,.35);margin-bottom:10px}
+nav.tabs button{width:52px;border:0;border-radius:14px;padding:8px 0 6px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-size:10px;font-weight:600}
+nav.tabs button svg{width:19px;height:19px}
+nav.tabs button:hover{color:var(--ink);background:var(--chip)}
+nav.tabs button[aria-selected="true"]{background:var(--chip);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
+nav.tabs .grow{flex:1}
+header{align-items:flex-start;margin-bottom:18px}
+header h1{font-size:30px;letter-spacing:-.02em;font-weight:800}
+header .eyebrow{color:var(--muted);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
+.htools{display:flex;gap:6px;align-items:center;background:var(--glass),var(--panel);border:1px solid var(--line);border-radius:999px;padding:5px 6px;box-shadow:var(--shadow)}
+.htools input{border:0;background:none;color:var(--ink);font:inherit;padding:6px 10px;width:260px;outline:none}
+.htools .ib{width:34px;height:34px;border-radius:50%;border:0;background:none;color:var(--muted);display:grid;place-items:center;cursor:pointer}
+.htools .ib:hover{background:var(--chip);color:var(--ink)}
+.hstatus{margin-top:8px;text-align:right}
+.kpi,.ftile,.fcard,.filterbar,.inv,.card,.drow,.ftable-wrap,table,.empty,.ovc,.bcol,.bk{background:var(--glass),var(--panel);border:1px solid var(--line);box-shadow:var(--shadow)}
+.kpi,.ftile{border-radius:16px}
+.fcard,.inv,.ovc,.bcol{border-radius:22px}
+.card,.drow,.bk{border-radius:16px}
+.filterbar{border-radius:999px;padding:6px 8px}
+.filterbar .filters{gap:6px}
+.filters input[type=search],select,.filters input[type=text],.cal,.reset,.ftoggle{border-radius:999px;border-color:var(--line);background:var(--chip)}
+.reset{border-color:var(--line)}
+.ftable-wrap,table{border-radius:18px}
+.empty{border-style:dashed;border-radius:18px}
+.kpi[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),var(--shadow)}
+.badge{border-radius:999px;background:var(--chip)!important;color:var(--ink);display:inline-flex;align-items:center;gap:6px;font-weight:600}
+.badge::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--dotc,var(--accent))}
+.seg{border-radius:999px;padding:3px;background:var(--chip);border-color:var(--line)}
+.seg button{border-radius:999px;background:none}
+.seg button[aria-pressed="true"]{background:var(--panel);box-shadow:0 1px 4px rgba(0,0,0,.25)}
+/* Overview */
+.ovgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.ovc{padding:18px 20px}
+.ovc.span2{grid-column:1/-1}
+.ovh{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
+.ovh h3{margin:0;font-size:16px}
+.ovh .link{font-size:13px;font-weight:600}
+.ovrow{display:flex;gap:12px;align-items:center;padding:11px 0;border-top:1px solid var(--line)}
+.ovrow:first-of-type{border-top:0}
+.ovrow .t{font-weight:600;overflow-wrap:anywhere}
+.ovrow .t a{color:var(--ink);text-decoration:none}.ovrow .t a:hover{text-decoration:underline}
+.ovrow .side{margin-left:auto;white-space:nowrap;color:var(--muted);font-size:12.5px;font-variant-numeric:tabular-nums}
+.ovrow .amt{margin-left:auto;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums;font-size:13px}
+.ovrow .stripe{width:3px;align-self:stretch;border-radius:3px;flex:none}
+.tg{display:inline-flex;align-items:center;gap:6px;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:600;background:var(--chip);color:var(--ink);white-space:nowrap}
+.tg i{width:7px;height:7px;border-radius:50%}
+.amtflag{padding:2px 8px;border-radius:7px;font-size:11px;font-weight:700;background:color-mix(in srgb,var(--out) 16%,transparent);color:var(--out);white-space:nowrap}
+.feat{background:linear-gradient(135deg,color-mix(in srgb,var(--in) 32%,var(--panel)),var(--panel));border:1px solid color-mix(in srgb,var(--in) 40%,transparent);border-radius:16px;padding:14px 16px;margin-bottom:6px}
+.feat small{color:var(--muted)}.feat .t{font-size:17px;font-weight:700;margin:3px 0}.feat a{color:var(--ink);text-decoration:none}
+.rings{display:flex;align-items:center;gap:28px;padding:6px 0;flex-wrap:wrap}
+.rstats div{border-left:3px solid var(--line);padding:2px 0 2px 10px;margin:10px 0}
+.rstats span{color:var(--muted);font-size:12px;display:block}.rstats b{font-size:20px;font-variant-numeric:tabular-nums}
+.wbars{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;align-items:end;height:140px;margin-top:12px}
+.wbar{background:var(--chip);border-radius:12px;height:100%;display:flex;align-items:flex-end;overflow:hidden;position:relative}
+.wbar i{display:block;width:100%;border-radius:12px;background:linear-gradient(180deg,#7b9cf5,#3d5fd0);min-height:4px}
+.wbar b{position:absolute;top:8px;width:100%;text-align:center;font-size:12px;color:var(--ink);font-weight:700;z-index:1;text-shadow:0 1px 3px rgba(0,0,0,.35)}
+.wdays{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;text-align:center;color:var(--muted);font-size:12px;margin-top:6px}
+.up{color:var(--good);font-size:12px;font-weight:700}.down{color:var(--bad);font-size:12px;font-weight:700}
+/* Feed board */
+.fbar{display:flex;justify-content:flex-end;margin:-4px 0 10px}
+.board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;align-items:start}
+.bcol{padding:12px}
+.bcolh{display:flex;align-items:center;gap:8px;font-weight:700;padding:4px 6px 10px}
+.bcolh .c{color:var(--muted);background:var(--chip);border-radius:999px;padding:0 8px;font-size:12px}
+.bk{padding:12px;margin-bottom:10px;box-shadow:none;background:var(--chip)}
+.bk .t{font-weight:600;font-size:13.5px;margin:7px 0;display:block;color:var(--ink);text-decoration:none;overflow-wrap:anywhere}
+.bk .t:hover{text-decoration:underline}
+.bk .m{color:var(--muted);font-size:12px}
+.bmore{width:100%;margin-top:2px}
+/* Floating notice */
+.toast{position:fixed;top:16px;left:50%;transform:translate(-50%,-140%);transition:transform .35s ease;background:#050608;color:#eceef2;border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:7px 8px 7px 10px;display:flex;gap:10px;align-items:center;font-weight:600;font-size:13px;box-shadow:0 10px 30px rgba(0,0,0,.45);z-index:60;max-width:calc(100vw - 32px)}
+.toast.show{transform:translate(-50%,0)}
+.toast .ok2{width:22px;height:22px;border-radius:50%;background:#16a37a;display:grid;place-items:center;flex:none}
+.toast button{background:#1d2026;color:#eceef2;border:0;border-radius:999px;padding:4px 10px;font:inherit;font-size:12px;cursor:pointer;flex:none}
+@media (max-width:900px){.board{grid-template-columns:1fr 1fr}}
+@media (max-width:700px){
+  .wrap{margin:0;padding:18px 16px 96px}
+  nav.tabs{left:10px;right:10px;top:auto;bottom:10px;width:auto;height:auto;flex-direction:row;justify-content:space-around;border-radius:20px;padding:6px}
+  nav.tabs .logo,nav.tabs .grow{display:none}
+  nav.tabs button{width:auto;flex:1;padding:6px 0 4px}
+  header h1{font-size:24px}
+  .htools{width:100%}.htools input{width:100%;min-width:0}
+  .hstatus{text-align:left}
+  .ovgrid{grid-template-columns:1fr}
+  .filterbar{border-radius:18px}
+  .fbar{display:none}
+}
 </style>
 </head>
 <body>
@@ -286,15 +376,20 @@ body.locked{overflow:hidden}
 <div class="wrap">
   <header>
     <div>
-      <h1>India Capital Tracker</h1>
-      <div class="sub">Foreign investments into India, exits from India, offshore and GIFT City fund launches, and jurisdiction moves</div>
+      <div class="eyebrow">India Capital Tracker</div>
+      <h1 id="ptitle">Overview</h1>
+      <div class="sub" id="psub">Foreign investments into India, exits from India, offshore and GIFT City fund launches, and jurisdiction moves</div>
       <div class="maker">Built by <a href="https://www.linkedin.com/in/kishansinghania/" target="_blank" rel="noopener"><strong>Kishan Singhania</strong></a> · <a href="https://www.linkedin.com/in/kishansinghania/" target="_blank" rel="noopener">Connect on LinkedIn →</a></div>
     </div>
     <div>
-      <div class="sub" id="updated">Loading…</div>
-      <div class="sub" id="visits"></div>
+      <div class="htools">
+        <input type="search" id="gq" placeholder="Search investors, companies, FPIs, GIFT funds…" aria-label="Search everything">
+        <button class="ib" id="theme" type="button" aria-label="Switch light or dark" title="Light or dark">&#9788;</button>
+      </div>
+      <div class="hstatus"><div class="sub" id="updated">Loading…</div><div class="sub" id="visits"></div></div>
     </div>
   </header>
+  <div class="toast" id="toast" role="status" aria-live="polite"><span class="ok2">&#10003;</span><span id="toast-t"></span><button type="button" id="toast-b">View</button></div>
 
   <section class="filterbar" aria-label="Filters">
     <div class="filters">
@@ -322,15 +417,31 @@ body.locked{overflow:hidden}
   <section class="kpis" id="kpis" aria-label="Story counts for the current filters"></section>
   <p class="note" style="margin:-8px 0 16px" id="kpi-note"></p>
 
-  <nav class="tabs" role="tablist">
-    <button role="tab" aria-selected="true" data-tab="feed">Feed</button>
-    <button role="tab" aria-selected="false" data-tab="investors">Investors</button>
-    <button role="tab" aria-selected="false" data-tab="flows">Flows</button>
-    <button role="tab" aria-selected="false" data-tab="directory">Directory</button>
-    <button role="tab" aria-selected="false" data-tab="health" hidden>Sources</button>
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <div class="logo" aria-hidden="true">ICT</div>
+    <button role="tab" aria-selected="true" data-tab="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Home</button>
+    <button role="tab" aria-selected="false" data-tab="feed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7 9h10M7 13h10M7 17h6"/></svg>Feed</button>
+    <button role="tab" aria-selected="false" data-tab="investors"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20c-.5-2.5-2-4.2-4-5"/></svg>Investors</button>
+    <button role="tab" aria-selected="false" data-tab="flows"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Flows</button>
+    <button role="tab" aria-selected="false" data-tab="directory"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M9 7h6"/></svg>Directory</button>
+    <div class="grow"></div>
+    <button role="tab" aria-selected="false" data-tab="health" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v3M12 18v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M3 12h3M18 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/><circle cx="12" cy="12" r="3.5"/></svg>Sources</button>
   </nav>
 
-  <section id="tab-feed">
+  <section id="tab-overview">
+    <div class="ftiles" id="ov-tiles"></div>
+    <div class="ovgrid">
+      <div class="ovc"><div class="ovh"><div><h3>Latest FPI flow</h3><div class="sub" id="ov-flow-sub">NSDL</div></div><button class="link" data-go="flows">Flows ↗</button></div><div id="ov-flow"></div></div>
+      <div class="ovc"><div class="ovh"><div><h3>Biggest deals this week</h3><div class="sub">Largest reported amounts, last 7 days</div></div><button class="link" data-go="feed">Feed ↗</button></div><div id="ov-deals"></div></div>
+      <div class="ovc"><div class="ovh"><div><h3>Latest stories</h3><div class="sub">Checked and added every 3 hours</div></div><button class="link" data-go="feed">All stories</button></div><div id="ov-stories"></div></div>
+      <div class="ovc"><div class="ovh"><div><h3>New registrations</h3><div class="sub">NSDL FPIs and GIFT IFSC entities</div></div><button class="link" data-go="directory">Directory ↗</button></div><div id="ov-regs"><div class="sub">Loading…</div></div></div>
+      <div class="ovc span2"><div class="ovh"><div><h3>This week</h3><div class="sub">Stories added per day</div></div></div><div id="ov-week"></div></div>
+    </div>
+  </section>
+
+  <section id="tab-feed" hidden>
+    <div class="fbar"><div class="seg" role="group" aria-label="Feed layout" id="fview"><button data-v="board" aria-pressed="true">Board</button><button data-v="list" aria-pressed="false">List</button></div></div>
+    <div class="board" id="board"></div>
     <div class="list" id="feed"></div>
   </section>
 
@@ -476,7 +587,7 @@ const KPI_GROUPS = [
   { label: "Jurisdiction moves", types: ["relocation"] },
 ];
 
-const state = { events: [], types: new Set(), tab: "feed" };
+const state = { events: [], types: new Set(), tab: "overview" };
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const color = (t) => `var(--${TYPES[t] ? t : "other"})`;
@@ -640,7 +751,7 @@ function renderFeed() {
     ].filter(Boolean).join("&nbsp;· ");
     return `<article class="card">
       <div>
-        <div class="meta">${[...e.event_types].sort((a, b) => Object.keys(TYPES).indexOf(a) - Object.keys(TYPES).indexOf(b)).map((t) => `<span class="badge" style="background:${color(t)}">${TYPES[t] || t}</span>`).join("")}</div>
+        <div class="meta">${[...e.event_types].sort((a, b) => Object.keys(TYPES).indexOf(a) - Object.keys(TYPES).indexOf(b)).map((t) => `<span class="badge" style="--dotc:${color(t)}">${TYPES[t] || t}</span>`).join("")}</div>
         <div style="margin:4px 0"><a class="title" href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a></div>
         <div class="meta">${bits}</div>
       </div>
@@ -1028,20 +1139,169 @@ addEventListener("resize", () => { if (innerWidth === lastW) return; lastW = inn
 
 function render() {
   ["from", "to"].forEach((id) => { if (document.activeElement !== $(`${id}-txt`)) $(`${id}-txt`).value = toDMY($(id).value); });
-  renderKpis(); renderFeed(); renderInvestors(); renderRuns(); renderFlows();
+  renderKpis(); renderFeed(); renderBoard(); renderInvestors(); renderRuns(); renderFlows(); renderOverview(); setTitle();
 }
 
 function setTab(t) {
   state.tab = t;
   document.querySelectorAll("nav.tabs button").forEach((b) => b.setAttribute("aria-selected", b.dataset.tab === t));
-  ["feed", "investors", "flows", "directory", "health"].forEach((x) => $(`tab-${x}`).hidden = x !== t);
-  // The news filters and story counts do not apply to the data tabs.
-  document.querySelector(".filterbar").hidden = t === "flows" || t === "directory";
-  ["kpis", "kpi-note"].forEach((id) => $(id).hidden = t === "directory");
+  ["overview", "feed", "investors", "flows", "directory", "health"].forEach((x) => $(`tab-${x}`).hidden = x !== t);
+  // The news filters and story counts only apply to the story tabs.
+  const stories = t === "feed" || t === "investors";
+  document.querySelector(".filterbar").hidden = !stories;
+  ["kpis", "kpi-note"].forEach((id) => $(id).hidden = !stories);
+  setTitle();
   if (t === "flows") renderFlows();
   if (t === "directory") openDirectory();
 }
 document.querySelectorAll("nav.tabs button").forEach((b) => b.onclick = () => setTab(b.dataset.tab));
+document.querySelectorAll("[data-go]").forEach((b) => b.onclick = () => setTab(b.dataset.go));
+
+// ---------- Page titles ----------
+const TITLES = {
+  feed: ["Feed", "Investments, exits, fund launches and jurisdiction moves"],
+  investors: ["Investors", "Every named investor in the stories, with their deals"],
+  flows: ["Flows", "FPI money in and out each day, and where FDI comes from"],
+  directory: ["Directory", "Every SEBI-registered FPI and every GIFT IFSC entity"],
+  health: ["Sources", "When each source last ran"],
+};
+function setTitle() {
+  const t = state.tab;
+  if (t === "overview") {
+    const h = +new Date().toLocaleString("en-GB", { timeZone: "Asia/Kolkata", hour: "numeric", hour12: false });
+    $("ptitle").textContent = h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+    const day = new Date().toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata", weekday: "long", day: "numeric", month: "long" });
+    const wk = state.events.filter((e) => Date.now() - new Date(e.published_at || e.fetched_at) < 7 * 864e5).length;
+    $("psub").textContent = `${day} · ${wk} stor${wk === 1 ? "y" : "ies"} in the last 7 days · foreign capital into and out of India`;
+  } else {
+    [$("ptitle").textContent, $("psub").textContent] = TITLES[t] || ["", ""];
+  }
+}
+
+// ---------- Light or dark (dark is the default) ----------
+function applyTheme(v) { if (v === "light") document.documentElement.dataset.theme = "light"; else delete document.documentElement.dataset.theme; }
+applyTheme(load("ict-theme"));
+$("theme").onclick = () => { const v = document.documentElement.dataset.theme === "light" ? "dark" : "light"; store("ict-theme", v); applyTheme(v); };
+
+// ---------- One search box: the directory when it is open, the stories otherwise ----------
+$("gq").addEventListener("input", () => {
+  const v = $("gq").value;
+  if (state.tab === "directory") { $(dir.view === "fpi" ? "dq" : "iq2").value = v; clearTimeout(dirTimer); dirTimer = setTimeout(() => runDirSearch(true), 300); return; }
+  $("q").value = v;
+  if (state.tab !== "feed" && state.tab !== "investors") setTab("feed");
+  render();
+});
+
+// ---------- Floating notice: what is new since this browser's last visit ----------
+function showToast(text, tab) {
+  $("toast-t").textContent = text;
+  $("toast-b").onclick = () => { setTab(tab); $("toast").classList.remove("show"); };
+  $("toast").classList.add("show");
+  setTimeout(() => $("toast").classList.remove("show"), 6000);
+}
+let toastDone = false;
+function newSinceLastVisit() {
+  if (toastDone || !state.events.length) return;
+  toastDone = true;
+  const last = load("ict-last-visit");
+  store("ict-last-visit", new Date().toISOString());
+  if (!last) return;
+  const n = state.events.filter((e) => (e.fetched_at || e.published_at) > last).length;
+  if (n) setTimeout(() => showToast(`${n} new stor${n === 1 ? "y" : "ies"} since your last visit`, "feed"), 900);
+}
+
+// ---------- Overview ----------
+const typeOf = (e) => [...e.event_types].sort((a, b) => Object.keys(TYPES).indexOf(a) - Object.keys(TYPES).indexOf(b))[0];
+const tg = (t) => `<span class="tg"><i style="background:${color(t)}"></i>${TYPES[t] || t}</span>`;
+let ovRegs = null;
+async function loadOverviewRegs() {
+  try {
+    const [st, f, i] = await Promise.all([
+      api("directory_stats?select=*"),
+      api("fpi_registry?select=name,country,category,registered_on&registered_on=not.is.null&order=registered_on.desc,serial.desc&limit=4"),
+      api("ifsca_entities?select=name,category,sub_category,reg_date&category=eq.Fund%20Management&reg_date=not.is.null&order=reg_date.desc&limit=3"),
+    ]);
+    ovRegs = { st: st[0] || {}, f, i };
+  } catch { ovRegs = { st: {}, f: [], i: [] }; }
+  renderOverview();
+}
+function renderOverview() {
+  if (!$("tab-overview") || !state.events.length) return;
+  const now = Date.now(), t7 = (e) => now - new Date(e.published_at || e.fetched_at) < 7 * 864e5;
+  const d = flows.daily, last = d[d.length - 1];
+  const mon = last ? d.filter((x) => x.day.startsWith(last.day.slice(0, 7))).reduce((a, x) => a + x.Total, 0) : null;
+  const st = ovRegs?.st || {};
+  $("ov-tiles").innerHTML = [
+    last && tile(`FPI net, ${toDMY(last.day)}`, crore(last.Total), `Equity ${crore(last.Equity)} · Debt ${crore(last.Debt)}`, Math.sign(last.Total)),
+    last && tile(`FPI net, ${monLabel(last.day)} so far`, crore(mon), "All segments", Math.sign(mon)),
+    tile("New FPIs, last 30 days", st.fpi_new_30d != null ? nfmt(st.fpi_new_30d) : "–", "NSDL register", 0),
+    tile("New GIFT IFSC entities, 30 days", st.ifsca_new_30d != null ? nfmt(st.ifsca_new_30d) : "–", "IFSCA directory", 0),
+  ].filter(Boolean).join("");
+  // Rings: the size of equity and debt flows against the larger of the two.
+  if (last) {
+    const big = Math.max(Math.abs(last.Equity), Math.abs(last.Debt), 1), C1 = 2 * Math.PI * 60, C2 = 2 * Math.PI * 40;
+    const ring = (r, v, c, C) => `<circle cx="75" cy="75" r="${r}" fill="none" stroke="var(--chip)" stroke-width="14"/><circle cx="75" cy="75" r="${r}" fill="none" stroke="${v < 0 ? "var(--out)" : "var(--in)"}" stroke-width="14" stroke-linecap="round" stroke-dasharray="${Math.max(4, Math.abs(v) / big * C * .92)} ${C}" transform="rotate(-90 75 75)"/>`;
+    $("ov-flow-sub").textContent = `NSDL · ${toDMY(last.day)} · outer ring equity, inner ring debt`;
+    $("ov-flow").innerHTML = `<div class="rings"><svg width="150" height="150" viewBox="0 0 150 150" role="img" aria-label="Equity and debt flows">${ring(60, last.Equity, 0, C1)}${ring(40, last.Debt, 0, C2)}</svg>
+      <div class="rstats"><div style="border-color:${last.Equity < 0 ? "var(--out)" : "var(--in)"}"><span>Equity</span><b>${crore(last.Equity)}</b></div>
+      <div style="border-color:${last.Debt < 0 ? "var(--out)" : "var(--in)"}"><span>Debt</span><b>${crore(last.Debt)}</b></div>
+      <div><span>All segments</span><b>${crore(last.Total)}</b> <span style="display:inline">${usdm(last.usd)}</span></div></div></div>`;
+  } else $("ov-flow").innerHTML = `<div class="sub">No FPI figures yet.</div>`;
+  // Biggest deals of the week by reported amount.
+  const deals = state.events.filter((e) => t7(e) && amountCr(e)).sort((a, b) => amountCr(b).usd - amountCr(a).usd);
+  $("ov-deals").innerHTML = deals.length ? `<div class="feat"><small>${TYPES[typeOf(deals[0])]} · ${ago(deals[0].published_at || deals[0].fetched_at)}</small>
+      <div class="t"><a href="${esc(deals[0].url)}" target="_blank" rel="noopener">${esc(deals[0].title)}</a></div><small>${esc(money(deals[0]))} · ${esc(deals[0].source_name || "")}</small></div>` +
+    deals.slice(1, 4).map((e) => `<div class="ovrow"><span class="stripe" style="background:${color(typeOf(e))}"></span><div><div class="t"><a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.investor || e.title)}</a></div><div class="sub">${esc(e.target || e.title).slice(0, 80)}</div></div><span class="amt">${esc(money(e).split(" (")[0])}</span></div>`).join("")
+    : `<div class="sub">No deals with a reported amount in the last 7 days.</div>`;
+  $("ov-stories").innerHTML = state.events.slice(0, 6).map((e) => `<div class="ovrow"><div style="min-width:0"><div class="t"><a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a></div>
+      <div class="meta" style="margin-top:5px">${tg(typeOf(e))}<span>${esc(e.source_name || e.source)}</span><span>${ago(e.published_at || e.fetched_at)}</span></div></div>${amountCr(e) ? `<span class="amtflag">${esc(money(e).split(" (")[0])}</span>` : ""}</div>`).join("");
+  if (ovRegs) {
+    const rows = [...ovRegs.f.map((r) => ({ n: r.name, m: `FPI · ${r.country ? SHORT_COUNTRY[r.country] || titleCase(r.country) : ""} · Cat ${r.category || ""}`, d: r.registered_on, c: "var(--in)" })),
+      ...ovRegs.i.map((r) => ({ n: r.name, m: `GIFT IFSC · ${r.sub_category || r.category}`, d: r.reg_date, c: "var(--fund_launch)" }))].sort((a, b) => b.d.localeCompare(a.d)).slice(0, 7);
+    $("ov-regs").innerHTML = rows.map((r) => `<div class="ovrow"><div style="min-width:0"><div class="t">${esc(r.n)}</div><div class="meta" style="margin-top:5px"><span class="tg"><i style="background:${r.c}"></i>${esc(r.m)}</span></div></div><span class="side">${toDMY(r.d)}</span></div>`).join("") || `<div class="sub">No new registrations.</div>`;
+  }
+  // This week vs the week before, by publication day (IST).
+  const ist = (iso) => new Date(iso).toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+  const days = [...Array(7)].map((_, i) => ist(new Date(now - (6 - i) * 864e5).toISOString()));
+  const count = (day) => state.events.filter((e) => ist(e.published_at || e.fetched_at) === day).length;
+  const n = days.map(count), tot = n.reduce((a, b) => a + b, 0);
+  const prev = [...Array(7)].map((_, i) => count(ist(new Date(now - (13 - i) * 864e5).toISOString()))).reduce((a, b) => a + b, 0);
+  const ch = prev ? Math.round((tot / prev - 1) * 100) : null, mx = Math.max(...n, 1);
+  $("ov-week").innerHTML = `<div><b style="font-size:26px">${tot}</b> <span class="sub">stories in the last 7 days</span> ${ch == null ? "" : `<span class="${ch >= 0 ? "up" : "down"}">${ch >= 0 ? "+" : "−"}${Math.abs(ch)}% vs the week before</span>`}</div>
+    <div class="wbars">${n.map((v) => `<div class="wbar"><b>${v || ""}</b><i style="height:${v / mx * 100}%"></i></div>`).join("")}</div>
+    <div class="wdays">${days.map((d) => `<span>${new Date(`${d}T12:00:00`).toLocaleDateString("en-GB", { weekday: "short" })}</span>`).join("")}</div>`;
+  newSinceLastVisit();
+}
+
+// ---------- Feed board: one column per category (desktop); the list stays on phones ----------
+let feedView = load("ict-feed-view") || "board";
+const boardOn = () => feedView === "board" && matchMedia("(min-width:701px)").matches;
+function renderBoard() {
+  const on = boardOn();
+  $("board").hidden = !on; $("feed").hidden = on;
+  document.querySelectorAll("#fview button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.v === feedView));
+  if (!on) return;
+  const rows = filtered();
+  const cols = Object.keys(TYPES).filter((t) => !state.types.size || state.types.has(t));
+  $("board").style.gridTemplateColumns = `repeat(${cols.length},minmax(0,1fr))`;
+  $("board").innerHTML = cols.map((t) => {
+    const list = rows.filter((e) => e.event_types.includes(t));
+    const card = (e) => {
+      const who = e.parties.length ? e.parties[0].name : e.investor;
+      return `<div class="bk"><div class="meta">${who ? `<span class="tg"><i style="background:${color(t)}"></i>${esc(who).slice(0, 26)}</span>` : ""}${amountCr(e) ? `<span class="amtflag">${esc(money(e).split(" (")[0])}</span>` : ""}</div>
+        <a class="t" href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a><div class="m">${ago(e.published_at || e.fetched_at)} · ${esc(e.source_name || e.source)}${e.reports > 1 ? ` · ${e.reports} reports` : ""}</div></div>`;
+    };
+    return `<div class="bcol"><div class="bcolh"><span class="tg" style="background:none;padding:0"><i style="background:${color(t)}"></i></span>${KPI_GROUPS.find((g) => g.types[0] === t)?.label || TYPES[t]}<span class="c">${list.length}</span></div>
+      ${list.slice(0, 12).map(card).join("") || `<div class="sub" style="padding:8px">Nothing in this period.</div>`}
+      ${list.length > 12 ? `<button class="reset bmore" data-more="${t}">Show all ${list.length}</button>` : ""}</div>`;
+  }).join("");
+}
+document.querySelectorAll("#fview button").forEach((b) => b.onclick = () => { feedView = b.dataset.v; store("ict-feed-view", feedView); renderBoard(); });
+$("board").addEventListener("click", (ev) => {
+  const m = ev.target.closest("[data-more]");
+  if (m) { feedView = "list"; state.types = new Set([m.dataset.more]); render(); }
+});
+addEventListener("resize", () => { clearTimeout(state.bt); state.bt = setTimeout(renderBoard, 200); });
 
 // ---------- Directory: NSDL's FPI register and IFSCA's directory of GIFT IFSC entities ----------
 // Both lists are too long to load at once, so each search asks the database for one page of matches.
@@ -1342,7 +1602,9 @@ function showWelcome() {
   $("welcome-enter").onclick = () => { store("ict-welcome", today); w.hidden = true; document.body.classList.remove("locked"); };
 }
 
+setTab("overview");
 refresh();
+loadOverviewRegs();
 showWelcome();
 countVisit();
 setInterval(refresh, 5 * 60 * 1000);
