@@ -323,6 +323,17 @@ header .eyebrow{color:var(--muted);font-size:12px;font-weight:700;letter-spacing
 .wbar{background:var(--chip);border-radius:12px;height:100%;display:flex;align-items:flex-end;overflow:hidden;position:relative}
 .wbar i{display:block;width:100%;border-radius:12px;background:linear-gradient(180deg,#7b9cf5,#3d5fd0);min-height:4px}
 .wbar b{position:absolute;top:8px;width:100%;text-align:center;font-size:12px;color:var(--ink);font-weight:700;z-index:1;text-shadow:0 1px 3px rgba(0,0,0,.35)}
+.flowwrap{display:grid;grid-template-columns:minmax(260px,auto) minmax(0,1fr);gap:16px;align-items:center}
+#ov-fpibars{min-width:0;width:100%}
+@media (max-width:1100px){.flowwrap{grid-template-columns:1fr}}
+.m30{display:grid;grid-template-columns:1.1fr 1fr;gap:28px}
+@media (max-width:900px){.m30{grid-template-columns:1fr}}
+.m30row{display:grid;grid-template-columns:minmax(150px,210px) 1fr auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.m30row:first-child{border-top:0}
+.m30l b{display:block;font-size:13.5px}.m30l .sub{font-size:12px}
+.m30bar{height:12px;border-radius:999px;background:var(--chip);overflow:hidden}.m30bar i{display:block;height:100%;border-radius:999px;min-width:3px}
+.m30v{text-align:right;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}.m30v .sub{display:block;font-weight:400;font-size:11.5px}
+.rank{width:24px;height:24px;border-radius:8px;background:var(--chip);display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--muted);flex:none}
 .wdays{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;text-align:center;color:var(--muted);font-size:12px;margin-top:6px}
 .up{color:var(--good);font-size:12px;font-weight:700}.down{color:var(--bad);font-size:12px;font-weight:700}
 /* Feed board */
@@ -442,11 +453,11 @@ header .eyebrow{color:var(--muted);font-size:12px;font-weight:700;letter-spacing
   <section id="tab-overview">
     <div class="ftiles" id="ov-tiles"></div>
     <div class="ovgrid">
-      <div class="ovc"><div class="ovh"><div><h3>Latest FPI flow</h3><div class="sub" id="ov-flow-sub">NSDL</div></div><button class="link" data-go="flows">Flows ↗</button></div><div id="ov-flow"></div></div>
+      <div class="ovc"><div class="ovh"><div><h3>Latest FPI flow</h3><div class="sub" id="ov-flow-sub">NSDL</div></div><button class="link" data-go="flows">Flows ↗</button></div><div class="flowwrap"><div id="ov-flow"></div><div class="fchart" id="ov-fpibars"></div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Biggest deals this week</h3><div class="sub">Largest reported amounts, last 7 days</div></div><button class="link" data-go="feed">Feed ↗</button></div><div id="ov-deals"></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Latest stories</h3><div class="sub">Checked and added every 3 hours</div></div><button class="link" data-go="feed">All stories</button></div><div id="ov-stories"></div></div>
       <div class="ovc"><div class="ovh"><div><h3>New registrations</h3><div class="sub">NSDL FPIs and GIFT IFSC entities</div></div><button class="link" data-go="directory">Directory ↗</button></div><div id="ov-regs"><div class="sub">Loading…</div></div></div>
-      <div class="ovc span2"><div class="ovh"><div><h3>This week</h3><div class="sub">Stories added per day</div></div></div><div id="ov-week"></div></div>
+      <div class="ovc span2"><div class="ovh"><div><h3>The last 30 days</h3><div class="sub">Reported deal value by category, and the most active investors</div></div><button class="link" data-go="investors">Investors ↗</button></div><div id="ov-week"></div></div>
     </div>
   </section>
 
@@ -473,6 +484,7 @@ header .eyebrow{color:var(--muted);font-size:12px;font-weight:700;letter-spacing
         <option value="size">Biggest disclosed deal</option>
         <option value="name">Name A–Z</option>
       </select>
+      <button class="reset" id="ireset" type="button">Reset</button>
     </div>
     <p class="sub" id="isum" style="margin:0 0 10px"></p>
     <div class="inv-grid" id="investors"></div>
@@ -594,8 +606,8 @@ const KPI_GROUPS = [
   { label: "All stories", types: [] },
   { label: "Investments into India", types: ["entry"] },
   { label: "Exits from India", types: ["exit"] },
-  { label: "Fund launches", types: ["fund_launch"] },
-  { label: "Jurisdiction moves", types: ["relocation"] },
+  // Both are rare, so they share a box: offshore/GIFT City fund launches and funds moving jurisdiction.
+  { label: "Fund launches & moves", types: ["fund_launch", "relocation"] },
 ];
 
 const state = { events: [], types: new Set(), tab: "overview" };
@@ -1165,6 +1177,7 @@ function setTab(t) {
   if (typeof syncSearch === "function") syncSearch();
   if (t === "flows") renderFlows();
   if (t === "directory") openDirectory();
+  if (t === "overview" && typeof renderOverview === "function") requestAnimationFrame(renderOverview);
 }
 document.querySelectorAll("nav.tabs button").forEach((b) => b.onclick = () => { setTab(b.dataset.tab); scrollTo({ top: 0, behavior: "smooth" }); });
 document.querySelectorAll("[data-go]").forEach((b) => b.onclick = () => { setTab(b.dataset.go); scrollTo({ top: 0, behavior: "smooth" }); });
@@ -1271,6 +1284,18 @@ function renderOverview() {
       <div class="rstats"><div style="border-color:${last.Equity < 0 ? "var(--out)" : "var(--in)"}"><span>Equity</span><b>${crore(last.Equity)}</b></div>
       <div style="border-color:${last.Debt < 0 ? "var(--out)" : "var(--in)"}"><span>Debt</span><b>${crore(last.Debt)}</b></div>
       <div><span>All segments</span><b>${crore(last.Total)}</b> <span style="display:inline">${usdm(last.usd)}</span></div></div></div>`;
+    // Drawn at the card's width, so wait until the layout has given it one.
+    const wait = !$("ov-fpibars").clientWidth;
+    if (wait && state.tab === "overview") requestAnimationFrame(renderOverview);
+    if (!wait) {
+    const pts = d.slice(-20).map((x) => ({ ...x, v: x.Total }));
+    $("ov-fpibars").dataset.title = "FPI net investment, recent trading days";
+    barChart($("ov-fpibars"), pts, {
+      height: 190,
+      label: (p) => `${p.day.slice(8, 10)} ${MON[+p.day.slice(5, 7) - 1]}`,
+      tip: (p) => `<b>${toDMY(p.day)}</b><div class="row"><span>All segments</span><span>${crore(p.Total)}</span></div><div class="row"><span>Equity</span><span>${crore(p.Equity)}</span></div><div class="row"><span>Debt</span><span>${crore(p.Debt)}</span></div>`,
+    });
+    }
   } else $("ov-flow").innerHTML = `<div class="sub">No FPI figures yet.</div>`;
   // Biggest deals of the week by reported amount.
   const deals = state.events.filter((e) => t7(e) && amountCr(e)).sort((a, b) => amountCr(b).usd - amountCr(a).usd);
@@ -1285,16 +1310,27 @@ function renderOverview() {
       ...ovRegs.i.map((r) => ({ n: r.name, m: `GIFT IFSC · ${r.sub_category || r.category}`, d: r.reg_date, c: "var(--fund_launch)" }))].sort((a, b) => b.d.localeCompare(a.d)).slice(0, 7);
     $("ov-regs").innerHTML = rows.map((r) => `<div class="ovrow"><div style="min-width:0"><div class="t">${esc(r.n)}</div><div class="meta" style="margin-top:5px"><span class="tg"><i style="background:${r.c}"></i>${esc(r.m)}</span></div></div><span class="side">${toDMY(r.d)}</span></div>`).join("") || `<div class="sub">No new registrations.</div>`;
   }
-  // This week vs the week before, by publication day (IST).
-  const ist = (iso) => new Date(iso).toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
-  const days = [...Array(7)].map((_, i) => ist(new Date(now - (6 - i) * 864e5).toISOString()));
-  const count = (day) => state.events.filter((e) => ist(e.published_at || e.fetched_at) === day).length;
-  const n = days.map(count), tot = n.reduce((a, b) => a + b, 0);
-  const prev = [...Array(7)].map((_, i) => count(ist(new Date(now - (13 - i) * 864e5).toISOString()))).reduce((a, b) => a + b, 0);
-  const ch = prev ? Math.round((tot / prev - 1) * 100) : null, mx = Math.max(...n, 1);
-  $("ov-week").innerHTML = `<div><b style="font-size:26px">${tot}</b> <span class="sub">stories in the last 7 days</span> ${ch == null ? "" : `<span class="${ch >= 0 ? "up" : "down"}">${ch >= 0 ? "+" : "−"}${Math.abs(ch)}% vs the week before</span>`}</div>
-    <div class="wbars">${n.map((v) => `<div class="wbar"><b>${v || ""}</b><i style="height:${v / mx * 100}%"></i></div>`).join("")}</div>
-    <div class="wdays">${days.map((d) => `<span>${new Date(`${d}T12:00:00`).toLocaleDateString("en-GB", { weekday: "short" })}</span>`).join("")}</div>`;
+  // The last 30 days: reported amounts by category, and investors with the most stories.
+  const m30 = state.events.filter((e) => now - new Date(e.published_at || e.fetched_at) < 30 * 864e5);
+  const groups = KPI_GROUPS.filter((g) => g.types.length).map((g) => {
+    const list = m30.filter((e) => e.event_types.some((t) => g.types.includes(t)));
+    // Headline pledges (e.g. "$100bn over 10 years") would swamp the sums, so amounts over $10bn are left out.
+    const withAmt = list.filter((e) => amountCr(e) && amountCr(e).usd <= 10000);
+    return { g, n: list.length, k: withAmt.length, cr: withAmt.reduce((a, e) => a + amountCr(e).cr, 0) };
+  });
+  const top = Math.max(...groups.map((x) => x.cr), 1);
+  const inv = new Map();
+  m30.forEach((e) => (e.parties.length ? e.parties : e.investor ? [{ name: e.investor }] : []).forEach((p) => {
+    const k = invKey((p.name || "").trim()); if (!k || GENERIC.test(p.name || "")) return;
+    const r = inv.get(k) || { name: p.name, n: 0, cr: 0, types: new Set() };
+    const a = amountCr(e); r.n++; r.cr += a && a.usd <= 10000 ? a.cr : 0; e.event_types.forEach((t) => r.types.add(t)); inv.set(k, r);
+  }));
+  const busiest = [...inv.values()].sort((a, b) => b.n - a.n || b.cr - a.cr).slice(0, 6);
+  $("ov-week").innerHTML = `<div class="m30"><div>
+      ${groups.map((x) => `<div class="m30row"><div class="m30l"><b>${x.g.label}</b><span class="sub">${x.n} stor${x.n === 1 ? "y" : "ies"}${x.k ? ` · ${x.k} with an amount` : ""}</span></div>
+        <div class="m30bar"><i style="width:${x.cr / top * 100}%;background:${color(x.g.types[0])}"></i></div><div class="m30v">${x.cr ? fmtCr(x.cr) : "–"}<span class="sub">${x.cr ? `~${fmtUsd(x.cr * 10 / usdInr())}` : ""}</span></div></div>`).join("")}
+      <p class="note" style="margin:8px 0 0">Sum of amounts reported in the news, including announced plans. Many deals disclose no amount; pledges over $10bn are left out.</p></div>
+    <div>${busiest.map((r, i) => `<div class="ovrow"><span class="rank">${i + 1}</span><div style="min-width:0"><div class="t">${esc(r.name)}</div><div class="meta" style="margin-top:4px">${[...r.types].map(tg).join("")}</div></div><span class="side">${r.n} stor${r.n === 1 ? "y" : "ies"}${r.cr ? `<br>${fmtCr(r.cr)}` : ""}</span></div>`).join("") || `<div class="sub">No named investors in the last 30 days.</div>`}</div></div>`;
   newSinceLastVisit();
 }
 
@@ -1307,26 +1343,27 @@ function renderBoard() {
   document.querySelectorAll("#fview button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.v === feedView));
   if (!on) return;
   const rows = filtered();
-  const cols = Object.keys(TYPES).filter((t) => !state.types.size || state.types.has(t));
+  const cols = KPI_GROUPS.map((g, i) => ({ ...g, i })).filter((g) => g.types.length && (!state.types.size || g.types.some((t) => state.types.has(t))));
   $("board").style.gridTemplateColumns = `repeat(${cols.length},minmax(0,1fr))`;
-  $("board").innerHTML = cols.map((t) => {
-    const list = rows.filter((e) => e.event_types.includes(t));
+  $("board").innerHTML = cols.map((g) => {
+    const t = g.types[0], list = rows.filter((e) => e.event_types.some((x) => g.types.includes(x)));
     const card = (e) => {
-      const who = e.parties.length ? e.parties[0].name : e.investor;
-      return `<div class="bk"><div class="meta">${who ? `<span class="tg"><i style="background:${color(t)}"></i>${esc(who).slice(0, 26)}</span>` : ""}${amountCr(e) ? `<span class="amtflag">${esc(money(e).split(" (")[0])}</span>` : ""}</div>
+      const who = e.parties.length ? e.parties[0].name : e.investor, own = e.event_types.find((x) => g.types.includes(x));
+      const kind = g.types.length > 1 ? `<span class="tg"><i style="background:${color(own)}"></i>${TYPES[own]}</span>` : "";
+      return `<div class="bk"><div class="meta">${kind}${who ? `<span class="tg"><i style="background:${color(own)}"></i>${esc(who).slice(0, 26)}</span>` : ""}${amountCr(e) ? `<span class="amtflag">${esc(money(e).split(" (")[0])}</span>` : ""}</div>
         <a class="t" href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a><div class="m">${ago(e.published_at || e.fetched_at)} · ${esc(e.source_name || e.source)}${e.reports > 1 ? ` · ${e.reports} reports` : ""}</div></div>`;
     };
-    return `<div class="bcol"><div class="bcolh"><span class="tg" style="background:none;padding:0"><i style="background:${color(t)}"></i></span>${KPI_GROUPS.find((g) => g.types[0] === t)?.label || TYPES[t]}<span class="c">${list.length}</span></div>
+    return `<div class="bcol"><div class="bcolh"><span class="tg" style="background:none;padding:0"><i style="background:${color(t)}"></i></span>${g.label}<span class="c">${list.length}</span></div>
       ${list.slice(0, 12).map(card).join("") || `<div class="sub" style="padding:8px">Nothing in this period.</div>`}
-      ${list.length > 12 ? `<button class="reset bmore" data-more="${t}">Show all ${list.length}</button>` : ""}</div>`;
+      ${list.length > 12 ? `<button class="reset bmore" data-more="${g.i}">Show all ${list.length}</button>` : ""}</div>`;
   }).join("");
 }
 document.querySelectorAll("#fview button").forEach((b) => b.onclick = () => { feedView = b.dataset.v; store("ict-feed-view", feedView); renderBoard(); });
 $("board").addEventListener("click", (ev) => {
   const m = ev.target.closest("[data-more]");
-  if (m) { feedView = "list"; state.types = new Set([m.dataset.more]); render(); }
+  if (m) { feedView = "list"; state.types = new Set(KPI_GROUPS[m.dataset.more].types); render(); }
 });
-addEventListener("resize", () => { clearTimeout(state.bt); state.bt = setTimeout(renderBoard, 200); });
+addEventListener("resize", () => { clearTimeout(state.bt); state.bt = setTimeout(() => { renderBoard(); if (state.tab === "overview") renderOverview(); }, 200); });
 
 // ---------- Directory: NSDL's FPI register and IFSCA's directory of GIFT IFSC entities ----------
 // Both lists are too long to load at once, so each search asks the database for one page of matches.
@@ -1605,6 +1642,9 @@ $("reset").addEventListener("click", () => {
 $("to").max = $("from").max = $("fto").max = $("ffrom").max = dayStr(new Date());
 ["iq", "icat", "itype", "isort"].forEach((id) => $(id).addEventListener("input", () => { invShown = 60; renderInvestors(); }));
 $("imore").addEventListener("click", () => { invShown += 60; renderInvestors(); });
+$("ireset").addEventListener("click", () => {
+  $("iq").value = ""; $("gq").value = ""; $("icat").value = ""; $("itype").value = ""; $("isort").value = "active"; invShown = 60; renderInvestors();
+});
 
 // Counts this page load once and shows the site's last-24-hour traffic.
 async function countVisit() {
