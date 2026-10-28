@@ -505,8 +505,8 @@ abbr.term{text-decoration:underline dotted;text-underline-offset:3px;cursor:help
         <option value="90">Last 90 days</option>
         <option value="custom">Custom dates</option>
       </select>
-      <label class="datef">From <input type="text" id="from-txt" inputmode="numeric" placeholder="DD/MM/YYYY" maxlength="10" aria-label="From date, DD/MM/YYYY"><button type="button" class="cal" data-for="from" aria-label="Pick from date">&#128197;</button><input type="date" id="from" min="2026-04-01" tabindex="-1" aria-hidden="true"></label>
-      <label class="datef">To <input type="text" id="to-txt" inputmode="numeric" placeholder="DD/MM/YYYY" maxlength="10" aria-label="To date, DD/MM/YYYY"><button type="button" class="cal" data-for="to" aria-label="Pick to date">&#128197;</button><input type="date" id="to" min="2026-04-01" tabindex="-1" aria-hidden="true"></label>
+      <label class="datef">From <input type="text" id="from-txt" inputmode="numeric" placeholder="DD/MM/YYYY" maxlength="10" aria-label="From date, DD/MM/YYYY"><button type="button" class="cal" data-for="from" aria-label="Pick from date">&#128197;</button><input type="date" id="from" min="2025-04-01" tabindex="-1" aria-hidden="true"></label>
+      <label class="datef">To <input type="text" id="to-txt" inputmode="numeric" placeholder="DD/MM/YYYY" maxlength="10" aria-label="To date, DD/MM/YYYY"><button type="button" class="cal" data-for="to" aria-label="Pick to date">&#128197;</button><input type="date" id="to" min="2025-04-01" tabindex="-1" aria-hidden="true"></label>
       <select id="source" aria-label="Source">
         <option value="">All sources</option>
         <option value="news">News</option>
@@ -880,6 +880,12 @@ function periodLabel() {
   return "All time";
 }
 
+// The month of the oldest story, so the note follows the history as it grows.
+function firstMonth() {
+  const t = state.events.reduce((m, e) => { const x = e.published_at || e.fetched_at; return x && (!m || x < m) ? x : m; }, null);
+  return t ? new Date(t).toLocaleString("en-GB", { month: "long", year: "numeric" }) : "the start";
+}
+
 // Header tiles: stories matching the current filters, by kind.
 function renderKpis() {
   const fmt = (n) => n.toLocaleString("en-IN");
@@ -899,7 +905,7 @@ function renderKpis() {
   });
   $("updated").textContent = `Last updated: ${state.lastReview ? `${istTime(state.lastReview)} IST (${ago(state.lastReview)})` : "not yet"}`;
   const shown = filtered().length;
-  $("kpi-note").textContent = `${shown === state.events.length ? `${fmt(shown)} stories` : `Showing ${fmt(shown)} of ${fmt(state.events.length)} stories`}. Tap a box to filter. Counts follow the filters above; a deal reported by several outlets counts once. Data from April 2026 to date.`;
+  $("kpi-note").textContent = `${shown === state.events.length ? `${fmt(shown)} stories` : `Showing ${fmt(shown)} of ${fmt(state.events.length)} stories`}. Tap a box to filter. Counts follow the filters above; a deal reported by several outlets counts once. Data from ${firstMonth()} to date.`;
   // On phones the filters fold away behind one button that shows how many are in use.
   const active = [$("preset").value !== "all", !!$("source").value, !!$("stage").value, $("flow").value !== "capital"].filter(Boolean).length;
   $("ftoggle").textContent = active ? `Filters (${active})` : "Filters";
