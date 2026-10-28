@@ -68,6 +68,8 @@ nav.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:
 nav.tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:8px 12px;color:var(--muted);font:inherit;font-weight:600;cursor:pointer}
 nav.tabs button[aria-selected="true"]{color:var(--ink);border-color:var(--accent)}
 .filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+/* A long option name must not make a dropdown wider than the screen. */
+.filters select{max-width:100%;min-width:0;text-overflow:ellipsis}
 .datef{position:relative;display:inline-flex;align-items:center;gap:4px}
 .datef input[type=date]{position:absolute;left:0;bottom:0;width:1px;height:1px;opacity:0;pointer-events:none;padding:0;border:0}
 .datef input[type=text]{width:8.5em}
@@ -812,6 +814,8 @@ const KPI_GROUPS = [
 const state = { events: [], types: new Set(), tab: "overview" };
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+// Links built from stored data open only if they are web addresses (never javascript: or data:).
+const safeUrl = (u) => /^https?:\/\//i.test(String(u ?? "").trim()) ? esc(String(u).trim()) : "#";
 const color = (t) => `var(--${TYPES[t] ? t : "other"})`;
 
 function store(k, v) { try { v === undefined ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch {} }
@@ -987,7 +991,7 @@ function renderFeed() {
     return `<article class="card">
       <div>
         <div class="meta">${isNew(e) ? `<span class="newtag">New</span>` : ""}${[...e.event_types].sort((a, b) => Object.keys(TYPES).indexOf(a) - Object.keys(TYPES).indexOf(b)).map((t) => `<span class="badge" style="--dotc:${color(t)}">${TYPES[t] || t}</span>`).join("")}${stageTag(e)}${presTag(e)}</div>
-        <div style="margin:4px 0"><a class="title" href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a></div>
+        <div style="margin:4px 0"><a class="title" href="${safeUrl(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a></div>
         <div class="meta">${bits}&nbsp;· <button class="link sharebtn" type="button" data-share="${esc(e.id)}">Copy link</button></div>
       </div>
       ${e.summary && e.classifier !== "rules" ? `<div class="summary">${esc(e.summary)}</div>` : ""}
@@ -1495,7 +1499,7 @@ const pgBar = (n) => n > PAGE ? `<div class="pgbar"><span class="sub">Showing ${
 const pgHide = (i, paged) => paged && i >= PAGE ? " hidden data-pi" : "";
 function netStories(list, limit = 15, paged = false) {
   const rows = [...list].sort((a, b) => (b.published_at || b.fetched_at) > (a.published_at || a.fetched_at) ? 1 : -1).slice(0, limit);
-  const body = `<ul class="slist">${rows.map((e, i) => `<li${pgHide(i, paged)}><a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a>
+  const body = `<ul class="slist">${rows.map((e, i) => `<li${pgHide(i, paged)}><a href="${safeUrl(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a>
     <div class="sub">${dmy(e.published_at || e.fetched_at)} · ${esc(e.source_name || e.source || "")}${money(e) ? ` · ${esc(money(e))}` : ""}</div></li>`).join("")}</ul>`;
   return paged ? `<div class="pg">${body}${pgBar(rows.length)}</div>` : body;
 }
@@ -2468,10 +2472,10 @@ function renderOverview() {
   // Biggest deals of the week by reported amount.
   const deals = state.events.filter((e) => t7(e) && amountCr(e) && FIRM.has(e.deal_stage) && e.flow_kind !== "presence").sort((a, b) => amountCr(b).usd - amountCr(a).usd);
   $("ov-deals").innerHTML = deals.length ? `<div class="feat"><small>${TYPES[typeOf(deals[0])]} · ${ago(deals[0].published_at || deals[0].fetched_at)}</small>
-      <div class="t"><a href="${esc(deals[0].url)}" target="_blank" rel="noopener">${esc(deals[0].title)}</a></div><small>${esc(money(deals[0]))} · ${esc(deals[0].source_name || "")}</small></div>` +
-    deals.slice(1, 4).map((e) => `<div class="ovrow"><span class="stripe" style="background:${color(typeOf(e))}"></span><div><div class="t"><a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.investor || e.title)}</a></div><div class="sub">${esc(e.target || e.title).slice(0, 80)}</div></div><span class="amt">${esc(money(e).split(" (")[0])}</span></div>`).join("")
+      <div class="t"><a href="${safeUrl(deals[0].url)}" target="_blank" rel="noopener">${esc(deals[0].title)}</a></div><small>${esc(money(deals[0]))} · ${esc(deals[0].source_name || "")}</small></div>` +
+    deals.slice(1, 4).map((e) => `<div class="ovrow"><span class="stripe" style="background:${color(typeOf(e))}"></span><div><div class="t"><a href="${safeUrl(e.url)}" target="_blank" rel="noopener">${esc(e.investor || e.title)}</a></div><div class="sub">${esc(e.target || e.title).slice(0, 80)}</div></div><span class="amt">${esc(money(e).split(" (")[0])}</span></div>`).join("")
     : `<div class="sub">No deals with a reported amount in the last 7 days.</div>`;
-  $("ov-stories").innerHTML = state.events.slice(0, 6).map((e) => `<div class="ovrow"><div style="min-width:0"><div class="t"><a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a></div>
+  $("ov-stories").innerHTML = state.events.slice(0, 6).map((e) => `<div class="ovrow"><div style="min-width:0"><div class="t"><a href="${safeUrl(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a></div>
       <div class="meta" style="margin-top:5px">${tg(typeOf(e))}<span>${esc(e.source_name || e.source)}</span><span>${ago(e.published_at || e.fetched_at)}</span></div></div>${amountCr(e) ? `<span class="amtflag">${esc(money(e).split(" (")[0])}</span>` : ""}</div>`).join("");
   if (ovRegs) {
     const rows = [...ovRegs.f.map((r) => ({ n: r.name, m: `FPI · ${r.country ? SHORT_COUNTRY[r.country] || titleCase(r.country) : ""} · Cat ${r.category || ""}`, d: r.registered_on, c: "var(--in)" })),
@@ -2520,7 +2524,7 @@ function renderBoard() {
       const who = e.parties.length ? e.parties[0].name : e.investor, own = e.event_types.find((x) => g.types.includes(x));
       const kind = g.types.length > 1 ? `<span class="tg"><i style="background:${color(own)}"></i>${TYPES[own]}</span>` : "";
       return `<div class="bk"><div class="meta">${isNew(e) ? `<span class="newtag">New</span>` : ""}${kind}${stageTag(e)}${presTag(e)}${who ? `<span class="tg"><i style="background:${color(own)}"></i>${esc(who).slice(0, 26)}</span>` : ""}${amountCr(e) ? `<span class="amtflag">${esc(money(e).split(" (")[0])}</span>` : ""}</div>
-        <a class="t" href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a><div class="m">${ago(e.published_at || e.fetched_at)} · ${esc(e.source_name || e.source)}${e.reports > 1 ? ` · ${e.reports} reports` : ""} · <button class="link sharebtn" type="button" data-share="${esc(e.id)}">Copy link</button></div></div>`;
+        <a class="t" href="${safeUrl(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a><div class="m">${ago(e.published_at || e.fetched_at)} · ${esc(e.source_name || e.source)}${e.reports > 1 ? ` · ${e.reports} reports` : ""} · <button class="link sharebtn" type="button" data-share="${esc(e.id)}">Copy link</button></div></div>`;
     };
     return `<div class="bcol"><div class="bcolh"><span class="tg" style="background:none;padding:0"><i style="background:${color(t)}"></i></span>${g.label}<span class="c">${list.length}</span></div>
       ${list.slice(0, 12).map(card).join("") || `<div class="sub" style="padding:8px">Nothing in this period.</div>`}
@@ -2689,7 +2693,7 @@ function dirRow(r) {
     <dt>Category</dt><dd>${esc(r.category || "–")} · ${esc(r.sub_category || "–")}</dd>
     <dt>Contact</dt><dd>${[c.contact_name && esc(c.contact_name), tel, mail].filter(Boolean).join(" · ") || "–"}</dd>
     <dt>Address</dt><dd>${esc(r.address || "–")}</dd>
-    ${site ? `<dt>Website</dt><dd><a href="${esc(site)}" target="_blank" rel="noopener">${esc(r.website)}</a></dd>` : ""}
+    ${site ? `<dt>Website</dt><dd><a href="${safeUrl(site)}" target="_blank" rel="noopener">${esc(r.website)}</a></dd>` : ""}
     ${c.remarks ? `<dt>Remarks</dt><dd>${esc(c.remarks)}</dd>` : ""}
   </dl></td></tr>`;
 }
@@ -2824,7 +2828,8 @@ async function countVisit() {
   try {
     const v = await api("rpc/record_visit", { method: "POST", body: JSON.stringify({ p_visitor: id }) });
     const n = (x) => Number(x).toLocaleString("en-IN");
-    $("visits").textContent = `Last 24 hours: ${n(v.visitors)} visitor${v.visitors === 1 ? "" : "s"} · ${n(v.page_views)} visit${v.page_views === 1 ? "" : "s"}`;
+    $("visits").textContent = `Last 24 hours: ${n(v.visitors)} visitor${v.visitors === 1 ? "" : "s"} · ${n(v.page_views)} visit${v.page_views === 1 ? "" : "s"}`
+      + (v.total_visitors ? ` · All time: ${n(v.total_visitors)} visitor${v.total_visitors === 1 ? "" : "s"} · ${n(v.total_views)} visit${v.total_views === 1 ? "" : "s"} since ${dmy(v.since)}` : "");
   } catch {}
 }
 
