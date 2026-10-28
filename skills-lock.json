@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "skills": {
+    "handoff": {
+      "source": "thedotmack/claude-mem",
+      "sourceType": "github",
+      "skillPath": "plugin/skills/handoff/SKILL.md",
+      "computedHash": "29d1a928f006a57c785d56a86f3b178e4f87c5a02d1e9d6ceffabc4e38aa4e89"
+    },
+    "headroom": {
+      "source": "roman-ryzenadvanced/headroom-skill",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "7fea85d5f95be81ca42aa135f3a97fe15fbe95864312911ad8d1594c1bcbe4c9"
+    },
+    "make-plan": {
+      "source": "thedotmack/claude-mem",
+      "sourceType": "github",
+      "skillPath": "plugin/skills/make-plan/SKILL.md",
+      "computedHash": "05a10a38728d19d0f89c2d1eae66e562e3ee9d2c31381ad9c4252eaeb243c6e8"
+    },
+    "ponytail": {
+      "source": "DietrichGebert/ponytail",
+      "sourceType": "github",
+      "skillPath": "skills/ponytail/SKILL.md",
+      "computedHash": "061f887d9e3e735f85db3be3655a8936a00f24d5fb65ac4ab74a968a770fe342"
+    },
+    "ui-ux-pro-max": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/ui-ux-pro-max/SKILL.md",
+      "computedHash": "d63bd281a96b8dfa52a2656ec6e6af743bfcfde6f6bfb6c9edc203cbff377b16"
+    },
+    "what-the": {
+      "source": "thedotmack/claude-mem",
+      "sourceType": "github",
+      "skillPath": "plugin/skills/what-the/SKILL.md",
+      "computedHash": "89d95f90e4299972cec11765a2db44dd4cb60c8c9f10b58eebfbcb1eec7aaf41"
+    }
+  }
+}
