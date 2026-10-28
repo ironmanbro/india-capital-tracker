@@ -1526,8 +1526,11 @@ function parseShp(text) {
   for (const el of doc.documentElement.children) {
     const ref = el.getAttribute("contextRef");
     if (!ref || !el.textContent.trim()) continue;
-    if (!facts.has(ref)) facts.set(ref, {});
-    facts.get(ref)[el.localName] = el.textContent.trim();
+    // NSE files keep a holder's name under "D_<Category>_Context15" and its shares and percentage under
+    // "<Category>_Context15": pair them by the shared part.
+    const key = ref.replace(/^D_/, "");
+    if (!facts.has(key)) facts.set(key, {});
+    facts.get(key)[el.localName] = el.textContent.trim();
   }
   const pick = (g, ...res) => { for (const re of res) for (const k in g) if (re.test(k)) return g[k]; return ""; };
   const any = (...res) => { for (const re of res) for (const g of facts.values()) for (const k in g) if (re.test(k)) return g[k]; return ""; };
@@ -1536,8 +1539,8 @@ function parseShp(text) {
     const holder = pick(g, /^NameOf(The)?Shareholders?$/i, /NameOf(The)?Shareholder|ShareholderName|NameOfTheEntity$/i);
     const pct = parseFloat(pick(g, /ShareholdingAsAPercentage|AsAPercentageOfTotal/i, /Percent/i));
     if (!holder || !Number.isFinite(pct)) return;
-    const shares = parseFloat(pick(g, /^NumberOfFullyPaidUpEquityShares/i, /TotalNumberOfShares|NumberOfShares/i).replace(/,/g, ""));
-    const where = `${ref} ${ctx.get(ref)?.dims || ""}`;
+    const shares = parseFloat(pick(g, /^NumberOfFullyPaidUpEquityShares/i, /^NumberOfShares$/i).replace(/,/g, ""));
+    const where = `${ref.replace(/_Context\d*I?$/, "")} ${(ctx.get(ref) || ctx.get("D_" + ref))?.dims || ""}`;
     const category = where.replace(/Member\b/g, "").replace(/([a-z])([A-Z])/g, "$1 $2").replace(/[^A-Za-z]+/g, " ").match(/foreign portfolio[a-z ]*|foreign[a-z ]*|insurance[a-z ]*|mutual fund[a-z ]*|bodies corporate|promoter[a-z ]*|individual[a-z ]*/i)?.[0].trim() || "";
     rows.push({ holder, pct, shares: Number.isFinite(shares) ? shares : null, category, foreign: /foreign|fpi|fii|overseas/i.test(where) });
   });
