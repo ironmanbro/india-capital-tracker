@@ -167,6 +167,7 @@ td.num{font-variant-numeric:tabular-nums;text-align:right}
 .ftable th .arr{opacity:.35;font-size:10px}
 .ftable th[aria-sort="ascending"] .arr,.ftable th[aria-sort="descending"] .arr{opacity:1;color:var(--accent)}
 .ftable td{padding:10px 12px;vertical-align:middle}
+.ftable th.num{text-align:right}
 .ftable tbody tr.r:hover td{background:var(--chip)}
 .ftable tbody tr.r:last-child td{border-bottom:0}
 .fn{font-weight:600;line-height:1.3;overflow-wrap:anywhere}
@@ -680,6 +681,12 @@ section.enter :is(.kpi,.ftile,.card,.inv,.bk,.ovc,.fcard,.drow):nth-child(n+5):n
   <section id="tab-health" hidden>
     <div class="scroll"><table id="runs"></table></div>
     <p class="note">"Items read" is how many headlines or rows the source returned; "Added" is how many were new. For the review step, "Items read" is headlines checked and "Added" is stories kept.</p>
+    <div class="fcard" style="margin-top:16px">
+      <div class="fhead"><div><h3>Add a shareholding pattern</h3>
+        <div class="sub">Download a company's shareholding-pattern XBRL file from NSE or BSE in your browser, then choose it here. It is read on this device; nothing is saved until you press Save.</div></div></div>
+      <input type="file" id="shp-file" accept=".xml,.xbrl,text/xml" style="margin-top:10px">
+      <div id="shp-out"></div>
+    </div>
   </section>
   <p class="note">New stories are checked and added every 3 hours.</p>
 
@@ -1457,10 +1464,115 @@ function renderFirm() {
       <aside class="netpanel"><h3>Linked firms</h3><div class="sub">Named on the same deal stories</div>
         <ul>${links.map(([k, ed]) => `<li><a href="#firm/${encodeURIComponent(k)}">${esc(net.g.nodes.get(k).name)}</a><div class="sub">${ed.stories.size} stor${ed.stories.size === 1 ? "y" : "ies"}</div></li>`).join("") || `<li class="sub">None yet</li>`}</ul></aside>
     </div>
+    ${stakesHtml(n.key)}
     <p class="note">Built from news stories, which may contain errors; check the original article. A link is not an ownership record.</p>`;
   $("firm-graph").onclick = () => { net.center = n.key; net.edge = null; location.hash = ""; setTab("network"); };
   setTitle();
 }
+// ---------- Stakes over 1% from shareholding-pattern filings (added by hand on the Sources tab) ----------
+state.holdings = [];
+async function loadHoldings() {
+  try {
+    state.holdings = await api("shareholdings?select=company,symbol,period_end,holder,category,pct&order=period_end.desc&limit=10000");
+    if (state.tab === "firm") renderFirm();
+  } catch {}
+}
+// The latest filing for each company, as rows where this firm is the holder or the company.
+function firmStakes(key) {
+  const latest = new Map();
+  state.holdings.forEach((h) => { if (!latest.has(h.company) || h.period_end > latest.get(h.company)) latest.set(h.company, h.period_end); });
+  const cur = state.holdings.filter((h) => h.period_end === latest.get(h.company));
+  return { holds: cur.filter((h) => invKey(h.holder) === key), heldBy: cur.filter((h) => invKey(h.company) === key) };
+}
+function stakesHtml(key) {
+  const { holds, heldBy } = firmStakes(key);
+  if (!holds.length && !heldBy.length) return "";
+  const row = (name, h) => `<tr><td>${esc(name)}</td><td class="num">${(+h.pct).toFixed(2)}%</td><td>${dmy(h.period_end)}</td></tr>`;
+  const table = (head, rows) => `<div class="ftable-wrap" style="margin-top:8px"><table class="ftable"><thead><tr><th>${head}</th><th class="num">Stake</th><th>As of</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  return `<div class="fcard" style="margin-top:14px"><div class="fhead"><div><h3>Stakes over 1%</h3><div class="sub">From the company's quarterly shareholding-pattern filing</div></div></div>
+    ${holds.length ? table("Company", holds.sort((a, b) => b.pct - a.pct).map((h) => row(h.company, h)).join("")) : ""}
+    ${heldBy.length ? table("Shareholder", heldBy.sort((a, b) => b.pct - a.pct).map((h) => row(h.holder, h)).join("")) : ""}</div>`;
+}
+
+// Reads a shareholding-pattern XBRL file without relying on exact element names, which differ between
+// taxonomy versions: facts are grouped by context, and a context with a shareholder name, a share count and a
+// percentage is one holder. The owner checks every row before saving.
+function parseShp(text) {
+  const doc = new DOMParser().parseFromString(text, "application/xml");
+  if (doc.getElementsByTagName("parsererror").length) throw new Error("This is not an XML file.");
+  const ctx = new Map();
+  for (const c of doc.getElementsByTagNameNS("*", "context")) {
+    const p = c.getElementsByTagNameNS("*", "instant")[0] || c.getElementsByTagNameNS("*", "endDate")[0];
+    const dims = [...c.getElementsByTagNameNS("*", "explicitMember"), ...c.getElementsByTagNameNS("*", "typedMember")]
+      .map((m) => `${m.getAttribute("dimension") || ""} ${m.textContent.trim()}`).join(" ");
+    ctx.set(c.getAttribute("id"), { period: p?.textContent.trim() || "", dims });
+  }
+  const facts = new Map();
+  for (const el of doc.documentElement.children) {
+    const ref = el.getAttribute("contextRef");
+    if (!ref || !el.textContent.trim()) continue;
+    if (!facts.has(ref)) facts.set(ref, {});
+    facts.get(ref)[el.localName] = el.textContent.trim();
+  }
+  const pick = (g, ...res) => { for (const re of res) for (const k in g) if (re.test(k)) return g[k]; return ""; };
+  const any = (...res) => { for (const re of res) for (const g of facts.values()) for (const k in g) if (re.test(k)) return g[k]; return ""; };
+  const rows = [];
+  facts.forEach((g, ref) => {
+    const holder = pick(g, /^NameOf(The)?Shareholders?$/i, /NameOf(The)?Shareholder|ShareholderName|NameOfTheEntity$/i);
+    const pct = parseFloat(pick(g, /ShareholdingAsAPercentage|AsAPercentageOfTotal/i, /Percent/i));
+    if (!holder || !Number.isFinite(pct)) return;
+    const shares = parseFloat(pick(g, /^NumberOfFullyPaidUpEquityShares/i, /TotalNumberOfShares|NumberOfShares/i).replace(/,/g, ""));
+    const where = `${ref} ${ctx.get(ref)?.dims || ""}`;
+    const category = where.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/[^A-Za-z]+/g, " ").match(/foreign portfolio[a-z ]*|foreign[a-z ]*|insurance[a-z ]*|mutual fund[a-z ]*|bodies corporate|promoter[a-z ]*|individual[a-z ]*/i)?.[0].trim() || "";
+    rows.push({ holder, pct, shares: Number.isFinite(shares) ? shares : null, category, foreign: /foreign|fpi|fii|overseas/i.test(where) });
+  });
+  // Some filings store 1.23% as 0.0123.
+  if (rows.length && rows.every((r) => r.pct <= 1)) rows.forEach((r) => r.pct = +(r.pct * 100).toFixed(4));
+  const periods = [...ctx.values()].map((c) => c.period).filter(Boolean).sort();
+  const date = any(/DateOfReport|PeriodEnd|QuarterEnd|ShareholdingPatternAsOn/i) || periods[periods.length - 1] || "";
+  return {
+    company: any(/^NameOfTheCompany$|NameOfTheListedEntity|^NameOfCompany$/i, /CompanyName|EntityName/i),
+    symbol: any(/^Symbol$|NSESymbol|ScripSymbol/i, /ScripCode/i),
+    period_end: /^\d{4}-\d{2}-\d{2}/.test(date) ? date.slice(0, 10) : "",
+    rows: rows.filter((r) => r.pct >= 1).sort((a, b) => b.pct - a.pct),
+  };
+}
+$("shp-file").addEventListener("change", async () => {
+  const f = $("shp-file").files[0], out = $("shp-out");
+  if (!f) return;
+  let p;
+  try { p = parseShp(await f.text()); } catch (e) { out.innerHTML = `<div class="empty">${esc(e.message)}</div>`; return; }
+  if (!p.rows.length) { out.innerHTML = `<div class="empty">No named shareholders with 1% or more were found in this file.</div>`; return; }
+  // Use the name the stories already know ("Lenskart" for "Lenskart Solutions Limited") so the profile finds it.
+  const filed = p.company, ck = invKey(filed);
+  if (state.events.length) ensureNet();
+  const known = [...(net.g?.nodes.values() || [])].filter((n) => ck === n.key || ck.startsWith(n.key + " ")).sort((a, b) => b.key.length - a.key.length)[0];
+  if (known) p.company = known.name;
+  out.innerHTML = `<div class="filters" style="margin:12px 0">
+      <label>Company <input type="text" id="shp-co" value="${esc(p.company)}" style="width:16em"></label>
+      <label>Symbol <input type="text" id="shp-sym" value="${esc(p.symbol)}" style="width:7em"></label>
+      <label>Quarter ending <input type="date" id="shp-date" value="${esc(p.period_end)}"></label></div>
+    ${known && filed !== known.name ? `<p class="sub" style="margin:-4px 0 10px">Filed as "${esc(filed)}"; saved as "${esc(known.name)}" to match the stories. Change it above if that is wrong.</p>` : ""}
+    <div class="ftable-wrap"><table class="ftable"><thead><tr><th>Save</th><th>Shareholder</th><th>Category in the file</th><th class="num">Shares</th><th class="num">Stake</th></tr></thead><tbody>
+      ${p.rows.map((r, i) => `<tr><td><input type="checkbox" data-i="${i}" ${r.foreign ? "checked" : ""} aria-label="Save ${esc(r.holder)}"></td><td>${esc(r.holder)}</td><td>${esc(r.category || "—")}</td><td class="num">${r.shares == null ? "—" : r.shares.toLocaleString("en-IN")}</td><td class="num">${r.pct.toFixed(2)}%</td></tr>`).join("")}
+    </tbody></table></div>
+    <p class="sub" style="margin:8px 0">Foreign holders are ticked. Check the names and stakes against the filing before saving.</p>
+    <button class="reset" id="shp-save" type="button">Save ticked rows</button> <span class="sub" id="shp-msg"></span>`;
+  $("shp-save").onclick = async () => {
+    const rows = [...out.querySelectorAll("input[data-i]:checked")].map((c) => p.rows[+c.dataset.i]).map(({ holder, category, shares, pct }) => ({ holder, category, shares, pct }));
+    const body = { key: dir.ownerKey, company: $("shp-co").value.trim(), symbol: $("shp-sym").value.trim(), period_end: $("shp-date").value, file: f.name, rows };
+    if (!dir.ownerKey) { $("shp-msg").textContent = "Open the site with your owner link first."; return; }
+    if (!body.company || !body.period_end || !rows.length) { $("shp-msg").textContent = "Fill in the company and quarter, and tick at least one row."; return; }
+    $("shp-msg").textContent = "Saving…";
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/holdings`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+      if (!res.ok) throw new Error(await res.text());
+      $("shp-msg").textContent = `Saved ${(await res.json()).saved} rows.`;
+      loadHoldings();
+    } catch (e) { $("shp-msg").textContent = `Not saved: ${e.message}`; }
+  };
+});
+
 function route() {
   const m = location.hash.match(/^#firm\/(.+)$/);
   if (m) { net.firm = decodeURIComponent(m[1]); setTab("firm"); scrollTo(0, 0); }
@@ -2001,6 +2113,7 @@ function showWelcome() {
 setTab("overview");
 route();
 refresh();
+loadHoldings();
 loadOverviewRegs();
 showWelcome();
 countVisit();
