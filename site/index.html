@@ -233,6 +233,9 @@ h1,h2,h3{text-wrap:balance}
 .skel{height:64px;margin-bottom:8px;border-radius:10px;background:linear-gradient(90deg,var(--panel),var(--chip),var(--panel));background-size:200% 100%;animation:skel 1.2s linear infinite}
 @keyframes skel{to{background-position:-200% 0}}
 @media (prefers-reduced-motion:reduce){.skel{animation:none}}
+.about dl{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin:10px 0 0}
+.about dt{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.about dd{margin:2px 0 0;font-weight:600;overflow-wrap:anywhere}
 .pgbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:8px}
 .pgbar .link{min-height:32px}
 .backbtn{margin:0 0 10px;font-weight:600}
@@ -1127,7 +1130,7 @@ function renderInvestors() {
     : "";
   if (!rows.length) { $("investors").innerHTML = `${state.holdings.length ? `<div class="empty">No investors match these filters.</div>` : `<div class="skel"></div><div class="skel"></div><div class="skel"></div>`}`; $("imore").hidden = true; return; }
   $("investors").innerHTML = rows.slice(0, invShown).map((r) => {
-    const n = r.news, h = r.hold, facts = n ? [n.country, INV_TYPES[n.type]].filter(Boolean).map(esc).join(" · ") : "Foreign holder named in filings";
+    const n = r.news, h = r.hold, facts = n ? [n.country, INV_TYPES[n.type]].filter(Boolean).map(esc).join(" · ") : (() => { const g = state.registry.get(r.key); return g ? [titleCase(g.country), g.sub_category].filter(Boolean).map(esc).join(" · ") : "Foreign holder named in filings"; })();
     return `<a class="irow" href="#firm/${encodeURIComponent(r.key)}" aria-label="Open profile of ${esc(r.name)}">
       <div class="in"><b>${esc(r.name)}</b>${n && n.first >= monthAgo ? `<span class="new" title="First appeared on this tracker in the last 30 days">NEW</span>` : ""}<div class="sub">${facts}</div>
         ${n ? `<div class="cats">${Object.keys(TYPES).filter((t) => n.cats[t]).map((t) => `<span class="cat" style="color:${color(t)}">${TYPES[t]}${n.cats[t] > 1 ? ` × ${n.cats[t]}` : ""}</span>`).join("")}</div>` : ""}</div>
@@ -1631,6 +1634,7 @@ function renderFirm() {
       ${buy ? tile("As investor or buyer", buy) : ""}${sell ? tile("As seller", sell) : ""}${target ? tile("As the company invested in", target) : ""}
       ${big ? tile("Largest disclosed deal", esc(money(big)), esc(big.title)) : ""}
     </div>
+    ${aboutHtml(n.key)}
     ${held.length ? stakesHtml(n.key) : ""}
     <div class="netwrap" style="margin-top:14px">
       <div class="fcard" style="margin:0"><div class="fhead"><h3>Stories</h3></div>${netStories(list, 200, true)}</div>
@@ -1651,7 +1655,7 @@ function renderFirm() {
   setTitle();
 }
 // ---------- Stakes over 1% from shareholding-pattern filings (added by hand on the Sources tab) ----------
-state.holdings = [];
+state.holdings = []; state.registry = new Map(); state.profiles = new Map();
 async function loadHoldings() {
   try {
     const all = [];
@@ -1662,6 +1666,10 @@ async function loadHoldings() {
     }
     state.holdings = all;
     mergeFirms();
+    // Facts about each holder: the SEBI register (matched by name) and Wikidata/Wikipedia for the best known.
+    const [reg, prof] = await Promise.all([api("holder_registry?select=*&limit=1000").catch(() => []), api("investor_profiles?select=*&limit=1000").catch(() => [])]);
+    state.registry = new Map(reg.map((r) => [invKey(r.holder), r]));
+    state.profiles = new Map(prof.filter((r) => r.label).map((r) => [invKey(r.holder), r]));
     net.src = null; // rebuild the graph with the stakes
     if (state.tab === "firm") renderFirm();
     if (state.tab === "network") renderNetwork();
@@ -1676,6 +1684,25 @@ function firmStakes(key) {
   // Filings use the full legal name ("Lenskart Solutions Limited"); the stories use the short one.
   const co = (x) => invKey(x).replace(/\b(solutions|industries|enterprises|technologies|technology|services|india)\b/g, "").replace(/\s+/g, " ").trim();
   return { holds: cur.filter((h) => invKey(h.holder) === key), heldBy: cur.filter((h) => co(h.company) === co(key)) };
+}
+// What we know about who the holder is. Each fact comes from the SEBI/NSDL register or from Wikidata and is
+// left out when no source has it; nothing is guessed.
+function aboutHtml(key) {
+  const r = state.registry.get(key), w = state.profiles.get(key);
+  if (!r && !w) return "";
+  const rows = [], add = (l, v) => { if (v) rows.push(`<div><dt>${l}</dt><dd>${v}</dd></div>`); };
+  const place = [w?.headquarters, w?.country].filter(Boolean).filter((x, i, a) => a.indexOf(x) === i).join(", ") || (r?.country ? titleCase(r.country) : "");
+  add("Type", esc(w?.description || r?.sub_category || ""));
+  add("Based in", esc(place));
+  add("Founded", w?.inception ? esc(w.inception.slice(0, 4)) : "");
+  add("Owner or parent", esc(w?.owner || w?.parent || ""));
+  add("Registered in India as an FPI since", r?.reg_year ? `${r.reg_year}${r.category ? ` (Category ${esc(r.category)})` : ""}` : "");
+  add("SEBI registration", r ? `${esc(r.reg_no)}${r.valid_upto ? ` · valid until ${dmy(r.valid_upto)}` : ""}${r.status && r.status !== "Registered" ? ` · ${esc(r.status)}` : ""}` : "");
+  add("Website", w?.website && /^https?:\/\//.test(w.website) ? `<a href="${esc(w.website)}" target="_blank" rel="noopener">${esc(w.website.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, ""))}</a>` : "");
+  const src = [r && "SEBI/NSDL FPI register", w && `<a href="https://www.wikidata.org/wiki/${esc(w.wikidata_id)}" target="_blank" rel="noopener">Wikidata</a>`, w?.wikipedia_url && `<a href="${esc(w.wikipedia_url)}" target="_blank" rel="noopener">Wikipedia</a>`].filter(Boolean).join(" · ");
+  return `<div class="fcard about" style="margin-top:14px"><div class="fhead"><h3>About this investor</h3></div>
+    <dl>${rows.join("")}</dl>${w?.summary ? `<p class="sub" style="margin:10px 0 0">${esc(w.summary)}</p>` : ""}
+    <p class="sub" style="margin:8px 0 0">Sources: ${src}${w ? `. Checked ${dmy(w.checked_at)}` : ""}. Only facts found in these sources are shown.</p></div>`;
 }
 function stakesHtml(key) {
   const { holds, heldBy } = firmStakes(key);
