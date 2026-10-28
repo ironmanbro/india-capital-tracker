@@ -24,6 +24,9 @@ Deno.serve(async (req) => {
   const { data: secret } = await db.from("app_secrets").select("value").eq("name", "owner_key_hash").single();
   if (!secret || (await sha256(String(b.key || ""))) !== secret.value) return bad("unauthorized", 401);
 
+  // Check-only call: the page uses it to confirm an owner link without keeping the key's hash in its source.
+  if (b.check === true) return Response.json({ ok: true }, { headers: CORS });
+
   const company = text(b.company), period_end = String(b.period_end || "");
   if (!company) return bad("company is required");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(period_end)) return bad("period_end must be YYYY-MM-DD");
