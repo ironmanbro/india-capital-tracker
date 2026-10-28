@@ -53,14 +53,15 @@ Deno.serve(async (req) => {
   have?.forEach((r) => done.add(norm(r.holder)));
   const todo = [...count.entries()].sort((a, b) => b[1].n - a[1].n).slice(0, TOP).filter(([k]) => !done.has(k)).map(([, c]) => c.holder).slice(0, PER_RUN);
   const deadline = Date.now() + 100_000;
-  let found = 0, errors = 0;
+  let found = 0, errors = 0, lastError = "";
   for (const holder of todo) {
     if (Date.now() > deadline) break;
     try {
       const f = await lookup(holder);
       if (f) found++;
       await db.from("investor_profiles").upsert({ holder, ...(f ?? {}), checked_at: new Date().toISOString() });
-    } catch { errors++; }
+    } catch (e) { errors++; lastError = (e as Error).message; await new Promise((r) => setTimeout(r, 1500)); }
+    await new Promise((r) => setTimeout(r, 400));
   }
-  return Response.json({ todo: todo.length, found, errors });
+  return Response.json({ todo: todo.length, found, errors, lastError });
 });
