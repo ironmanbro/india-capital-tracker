@@ -229,7 +229,9 @@ td.num{font-variant-numeric:tabular-nums;text-align:right}
 body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);padding-bottom:env(safe-area-inset-bottom)}
 h1,h2,h3{text-wrap:balance}
 .sub,.note,p{text-wrap:pretty}
-@media (pointer:coarse){.reset,.link,.seg button,.irow .go{min-height:44px}}
+@media (pointer:coarse){.reset,.link,.seg button,.irow .go,select,input:not([type=range]):not([type=checkbox]):not([type=radio]):not([type=hidden]){min-height:44px}}
+.filterbar.noq #q{display:none}
+@media (max-width:700px){.filterbar.noq:not(.open) .filters::before{content:"Filter the news side by date, source or stage";color:var(--muted);font-size:12px;align-self:center;margin-left:8px;flex:1}}
 .skel{height:64px;margin-bottom:8px;border-radius:10px;background:linear-gradient(90deg,var(--panel),var(--chip),var(--panel));background-size:200% 100%;animation:skel 1.2s linear infinite}
 @keyframes skel{to{background-position:-200% 0}}
 @media (prefers-reduced-motion:reduce){.skel{animation:none}}
@@ -2319,6 +2321,7 @@ function setTab(t) {
   // The news filters and story counts only apply to the story tabs.
   const stories = t === "feed" || t === "investors";
   document.querySelector(".filterbar").hidden = !stories;
+  document.querySelector(".filterbar").classList.toggle("noq", t === "investors");
   ["kpis", "kpi-note"].forEach((id) => $(id).hidden = t !== "feed");
   setTitle();
   if (typeof syncSearch === "function") syncSearch();
