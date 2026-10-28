@@ -325,8 +325,11 @@ async function runShp(deadline: number) {
     const res = await fetch(SHP_FEED, { headers: { ...NSE_HEADERS, accept: "application/rss+xml,application/xml,*/*" } });
     if (!res.ok) throw new Error(`feed HTTP ${res.status}`);
     const items = parseFeed(await res.text()).filter((i) => i.link);
-    const { data: done } = await db.from("shp_filings").select("link").in("link", items.map((i) => i.link));
-    const seen = new Set(done?.map((d) => d.link));
+    const seen = new Set<string>();
+    for (let i = 0; i < items.length; i += 100) {
+      const { data } = await db.from("shp_filings").select("link").in("link", items.slice(i, i + 100).map((x) => x.link));
+      data?.forEach((d) => seen.add(d.link));
+    }
     const todo = items.filter((i) => !seen.has(i.link)).reverse().slice(0, 15);
     const errors: string[] = [];
     let saved = 0;
