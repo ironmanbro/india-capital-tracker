@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>India Capital Tracker</title>
 <meta name="description" content="Track foreign capital moving into and out of India: investments, exits, FPI and FDI flows, and offshore and GIFT City fund launches, in one place.">
 <meta name="author" content="Kishan Singhania">
@@ -217,7 +217,30 @@ td.num{font-variant-numeric:tabular-nums;text-align:right}
 .ftip{position:absolute;z-index:20;pointer-events:none;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;box-shadow:0 6px 24px rgba(0,0,0,.18);max-width:260px;font-variant-numeric:tabular-nums}
 .ftip b{display:block;margin-bottom:4px}
 .ftip .row{display:flex;justify-content:space-between;gap:14px}
-.inv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:10px}
+.irow{display:grid;grid-template-columns:minmax(0,2.6fr) repeat(4,minmax(0,1fr)) auto;gap:12px;align-items:center;padding:12px 14px;margin-bottom:8px;background:var(--panel);border:1px solid var(--line);border-radius:10px;color:var(--ink);text-decoration:none;min-height:44px}
+.irow:hover,.irow:focus-visible{border-color:var(--accent)}
+.irow .in b{font-size:15px;overflow-wrap:anywhere;margin-right:6px}
+.irow .in .new{font-size:10px;font-weight:700;letter-spacing:.05em;padding:2px 6px;border-radius:999px;background:var(--accent);color:var(--accent-ink)}
+.irow .in .cats{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.irow .ic b{display:block;font-size:15px;font-variant-numeric:tabular-nums}
+.irow .ic span{display:block;font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.irow .go{color:var(--accent);font-size:12px;font-weight:600;white-space:nowrap}
+[hidden]{display:none!important}
+body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);padding-bottom:env(safe-area-inset-bottom)}
+h1,h2,h3{text-wrap:balance}
+.sub,.note,p{text-wrap:pretty}
+@media (pointer:coarse){.reset,.link,.seg button,.irow .go{min-height:44px}}
+.skel{height:64px;margin-bottom:8px;border-radius:10px;background:linear-gradient(90deg,var(--panel),var(--chip),var(--panel));background-size:200% 100%;animation:skel 1.2s linear infinite}
+@keyframes skel{to{background-position:-200% 0}}
+@media (prefers-reduced-motion:reduce){.skel{animation:none}}
+.pgbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.pgbar .link{min-height:32px}
+.backbtn{margin:0 0 10px;font-weight:600}
+.c3{position:relative}
+#c3{display:block;width:100%;height:620px;touch-action:none;cursor:grab}
+#c3:active{cursor:grabbing}
+.c3bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:8px 12px}
+@media (max-width:600px){#c3{height:520px}}
 .inv{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:8px;min-width:0}
 .inv h3{margin:0;font-size:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;overflow-wrap:anywhere}
 .inv .new{font-size:10px;font-weight:700;letter-spacing:.05em;padding:2px 6px;border-radius:999px;background:var(--accent);color:var(--accent-ink)}
@@ -235,7 +258,7 @@ td.num{font-variant-numeric:tabular-nums;text-align:right}
 .inv details a{color:var(--ink);text-decoration:none;overflow-wrap:anywhere}
 .inv details a:hover{text-decoration:underline}
 .inv .foot{display:flex;justify-content:flex-end}
-@media (max-width:600px){.inv-grid{grid-template-columns:1fr}}
+@media (max-width:700px){.irow{grid-template-columns:repeat(2,minmax(0,1fr))}.irow .in,.irow .go{grid-column:1/-1}}
 .note{font-size:12px;color:var(--muted);margin-top:18px}
 .maker{margin-top:6px;font-size:13px;color:var(--muted)}
 .maker a{color:var(--accent);text-decoration:none}
@@ -487,7 +510,7 @@ abbr.term{text-decoration:underline dotted;text-underline-offset:3px;cursor:help
     </div>
     <div>
       <div class="htools">
-        <input type="search" id="gq" placeholder="Search investors, companies, FPIs, GIFT funds…" aria-label="Search everything">
+        <input type="search" id="gq" title="Press / to search" placeholder="Search investors, companies, FPIs, GIFT funds…" aria-label="Search everything">
         <button class="ib" id="theme" type="button" aria-label="Switch light or dark" title="Light or dark">&#9788;</button>
       </div>
       <div class="hstatus"><div class="sub" id="updated">Loading…</div><div class="sub" id="visits"></div></div>
@@ -573,8 +596,9 @@ abbr.term{text-decoration:underline dotted;text-underline-offset:3px;cursor:help
 
   <section id="tab-investors" hidden>
     <div class="seg" id="iview" role="group" aria-label="Investors from" style="margin-bottom:10px">
-      <button type="button" data-v="news" aria-pressed="true">In the news</button>
-      <button type="button" data-v="holders" aria-pressed="false">Foreign holders (filings)</button>
+      <button type="button" data-v="all" aria-pressed="true">All</button>
+      <button type="button" data-v="news" aria-pressed="false">In the news</button>
+      <button type="button" data-v="holders" aria-pressed="false">Filed holders</button>
     </div>
     <div class="filters">
       <input type="search" id="iq" placeholder="Find an investor, fund or company…" aria-label="Find an investor">
@@ -588,6 +612,7 @@ abbr.term{text-decoration:underline dotted;text-underline-offset:3px;cursor:help
       <select id="itype" aria-label="Investor type"><option value="">All investor types</option></select>
       <select id="isort" aria-label="Sort">
         <option value="active">Most active</option>
+        <option value="holdings">Most companies held</option>
         <option value="recent">Most recent</option>
         <option value="size">Biggest disclosed deal</option>
         <option value="name">Name A–Z</option>
@@ -596,7 +621,7 @@ abbr.term{text-decoration:underline dotted;text-underline-offset:3px;cursor:help
     </div>
     <p class="dsrc" data-src="review" data-what="Built from the reviewed stories" style="margin:0 0 6px"></p>
     <p class="sub" id="isum" style="margin:0 0 10px"></p>
-    <div class="inv-grid" id="investors"></div>
+    <div id="investors"></div>
     <div style="text-align:center;margin-top:12px"><button class="reset" id="imore" hidden>Show more investors</button></div>
   </section>
 
@@ -834,6 +859,7 @@ async function refresh() {
     ]);
     // Older stories carry one category; newer ones can carry several.
     state.events = events.map((e) => ({ ...e, event_types: e.event_types?.length ? e.event_types : [e.event_type], parties: e.parties || [] }));
+    mergeFirms();
     state.runs = runs;
     state.latest = Object.fromEntries(latest.map((r) => [r.source, r.finished_at]));
     state.lastReview = reviewed[0]?.finished_at || null;
@@ -982,7 +1008,19 @@ const ALIAS = {
   "nps korea": "national pension service of korea", "national pension service": "national pension service of korea",
   "ihc": "international holding company", "ta": "ta associates",
 };
-const invKey = (n) => { const k = baseKey(n); return ALIAS[k] || k; };
+// A holder named in a filing joins the news firm it matches once words like "Fund" are dropped (see mergeFirms).
+const EXTRA = new Map(), loose = (k) => k.replace(/\b(funds?|investments?|trust)\b/g, "").replace(/\s+/g, " ").trim();
+const invKey = (n) => { const k = baseKey(n); return ALIAS[k] || EXTRA.get(k) || k; };
+function mergeFirms() {
+  if (!state.events?.length || !state.holdings?.length) return;
+  EXTRA.clear();
+  const news = new Map();
+  firstSeen().forEach((_, k) => { const l = loose(k); if (l.length > 2 && !news.has(l)) news.set(l, k); });
+  state.holdings.forEach((h) => {
+    const b = baseKey(h.holder), k = ALIAS[b] || b, hit = news.get(loose(k));
+    if (hit && hit !== k) EXTRA.set(b, hit);
+  });
+}
 const dmy = (iso) => toDMY(dayStr(new Date(iso)));
 let invShown = 60;
 
@@ -1042,8 +1080,8 @@ function buildInvestors() {
   }));
 }
 
-// Foreign holders named in shareholding filings: one row per holder, each opening that holder's profile.
-state.iv = "news";
+// Foreign holders named in shareholding filings, one entry per firm (the same firm in the news shares its key).
+state.iv = "all";
 function buildHolders() {
   const latest = new Map(), by = new Map();
   state.holdings.forEach((h) => { if (!latest.has(h.company) || h.period_end > latest.get(h.company)) latest.set(h.company, h.period_end); });
@@ -1055,71 +1093,51 @@ function buildHolders() {
     by.set(k, r);
   });
   by.forEach((r) => r.name = [...r.names.entries()].sort((a, b) => b[1] - a[1])[0][0]);
-  return [...by.values()].sort((a, b) => b.cos.length - a.cos.length || b.top.pct - a.top.pct);
-}
-function renderHolders() {
-  $("imore").hidden = true;
-  const q = $("iq").value.trim().toLowerCase(), all = buildHolders(), rows = all.filter((r) => !q || [...r.names.keys()].some((n) => n.toLowerCase().includes(q)));
-  $("isum").textContent = `${rows.length.toLocaleString("en-IN")} foreign holder${rows.length === 1 ? "" : "s"} with 1% or more of a listed company, from the latest shareholding filings. Open one for its stakes and stories.`;
-  if (!rows.length) { $("investors").innerHTML = `<div class="empty" style="grid-column:1/-1">${state.holdings.length ? "No holders match." : "Loading…"}</div>`; return; }
-  $("investors").innerHTML = `<div class="ftable-wrap" style="grid-column:1/-1"><table class="ftable"><thead><tr><th>Holder</th><th class="num">Companies</th><th>Largest stake</th><th class="num">%</th></tr></thead><tbody>${rows.slice(0, invShown * 5).map((r) =>
-    `<tr><td><a href="#firm/${encodeURIComponent(r.key)}">${esc(r.name)}</a></td><td class="num">${r.cos.length}</td><td>${esc(titleCase(r.top.company))}</td><td class="num">${(+r.top.pct).toFixed(2)}</td></tr>`).join("")}</tbody></table></div>`;
-  $("imore").hidden = rows.length <= invShown * 5;
+  return by;
 }
 document.querySelectorAll("#iview button").forEach((b) => b.onclick = () => {
-  state.iv = b.dataset.v;
+  state.iv = b.dataset.v; invShown = 60;
   document.querySelectorAll("#iview button").forEach((x) => x.setAttribute("aria-pressed", x === b));
-  document.querySelectorAll("#icat,#itype,#isort").forEach((x) => x.hidden = state.iv === "holders");
   renderInvestors();
 });
 function renderInvestors() {
-  if (state.iv === "holders") return renderHolders();
-  const all = buildInvestors();
+  const news = buildInvestors(), holders = buildHolders();
   // The type list offers only the types present in the current results.
-  const present = new Set(all.map((r) => r.type).filter(Boolean));
+  const present = new Set(news.map((r) => r.type).filter(Boolean));
   const tsel = $("itype"), cur = tsel.value;
   tsel.innerHTML = `<option value="">All investor types</option>` + Object.entries(INV_TYPES).filter(([k]) => present.has(k))
     .map(([k, l]) => `<option value="${k}"${k === cur ? " selected" : ""}>${l}</option>`).join("");
-  const q = $("iq").value.trim().toLowerCase(), cat = $("icat").value, ty = tsel.value, sort = $("isort").value;
-  const rows = all.filter((r) => (!q || [...r.names.keys()].some((n) => n.toLowerCase().includes(q)) || (r.country || "").toLowerCase().includes(q))
-      && (!cat || r.cats[cat]) && (!ty || r.type === ty))
+  const q = $("iq").value.trim().toLowerCase(), cat = $("icat").value, ty = tsel.value, sort = $("isort").value, src = state.iv;
+  const all = new Map(news.map((r) => [r.key, { key: r.key, name: r.name, news: r, hold: null }]));
+  holders.forEach((h, k) => { const x = all.get(k); if (x) x.hold = h; else all.set(k, { key: k, name: h.name, news: null, hold: h }); });
+  const nm = (r) => [...(r.news?.names.keys() || []), ...(r.hold?.names.keys() || [])];
+  const stories = (r) => r.news?.stories.length || 0, held = (r) => r.hold?.cos.length || 0, last = (r) => r.news?.last || "";
+  const rows = [...all.values()].filter((r) => (!q || nm(r).some((n) => n.toLowerCase().includes(q)) || (r.news?.country || "").toLowerCase().includes(q))
+      && (src === "all" || (src === "news" ? r.news : r.hold)) && (!cat || r.news?.cats[cat]) && (!ty || r.news?.type === ty))
     .sort({
-      active: (a, b) => b.stories.length - a.stories.length || (b.last > a.last ? 1 : -1),
-      recent: (a, b) => (b.last > a.last ? 1 : -1),
-      size: (a, b) => (b.biggest ? amountCr(b.biggest).usd : 0) - (a.biggest ? amountCr(a.biggest).usd : 0) || b.stories.length - a.stories.length,
+      active: (a, b) => stories(b) + held(b) - stories(a) - held(a) || (last(b) > last(a) ? 1 : -1),
+      holdings: (a, b) => held(b) - held(a) || (b.hold?.top.pct || 0) - (a.hold?.top.pct || 0),
+      recent: (a, b) => (last(b) > last(a) ? 1 : -1),
+      size: (a, b) => (b.news?.biggest ? amountCr(b.news.biggest).usd : 0) - (a.news?.biggest ? amountCr(a.news.biggest).usd : 0) || stories(b) - stories(a),
       name: (a, b) => a.name.localeCompare(b.name),
     }[sort]);
-  const monthAgo = new Date(Date.now() - 30 * 864e5).toISOString();
-  const fresh = rows.filter((r) => r.first >= monthAgo).length;
+  const monthAgo = new Date(Date.now() - 30 * 864e5).toISOString(), both = rows.filter((r) => r.news && r.hold).length;
   $("isum").textContent = rows.length
-    ? `${rows.length.toLocaleString("en-IN")} investor${rows.length === 1 ? "" : "s"} · ${fresh} first seen in the last 30 days · follows the filters above`
+    ? `${rows.length.toLocaleString("en-IN")} investor${rows.length === 1 ? "" : "s"} · ${rows.filter((r) => r.news).length.toLocaleString("en-IN")} in the news · ${rows.filter((r) => r.hold).length.toLocaleString("en-IN")} with filed stakes of 1% or more${both ? ` · ${both} in both` : ""}`
     : "";
-  if (!rows.length) { $("investors").innerHTML = `<div class="empty" style="grid-column:1/-1">No named investors match these filters.</div>`; $("imore").hidden = true; return; }
+  if (!rows.length) { $("investors").innerHTML = `${state.holdings.length ? `<div class="empty">No investors match these filters.</div>` : `<div class="skel"></div><div class="skel"></div><div class="skel"></div>`}`; $("imore").hidden = true; return; }
   $("investors").innerHTML = rows.slice(0, invShown).map((r) => {
-    const latest = r.stories[0];
-    const more = r.stories.slice(1, 6);
-    const facts = [r.country, INV_TYPES[r.type], r.roles.size && [...r.roles].join(", ")].filter(Boolean).map(esc).join(" · ");
-    return `<article class="inv">
-      <h3>${esc(r.name)}${r.first >= monthAgo ? `<span class="new" title="First appeared on this tracker in the last 30 days">NEW</span>` : ""}</h3>
-      ${facts ? `<div class="sub">${facts}</div>` : ""}
-      <div class="cats">${Object.keys(TYPES).filter((t) => r.cats[t]).map((t) =>
-        `<span class="cat" style="color:${color(t)}">${TYPES[t]}${r.cats[t] > 1 ? ` × ${r.cats[t]}` : ""}</span>`).join("")}</div>
-      <div class="stats">
-        <div><b>${r.stories.length}</b><span>Stor${r.stories.length === 1 ? "y" : "ies"}</span></div>
-        <div><b>${r.biggest ? esc(money(r.biggest)) : "–"}</b><span>Largest agreed or completed</span></div>
-        <div><b>${dmy(r.last)}</b><span>Last seen</span></div>
-      </div>
-      <div class="latest"><span class="sub">Latest:</span> <a href="${esc(latest.url)}" target="_blank" rel="noopener">${esc(latest.title)}</a>
-        <span class="sub"> · ${dmy(latest.published_at || latest.fetched_at)}</span></div>
-      ${more.length ? `<details><summary>${more.length} earlier stor${more.length === 1 ? "y" : "ies"}${r.stories.length > 6 ? ` (of ${r.stories.length - 1})` : ""}</summary><ul>${more.map((e) =>
-        `<li><a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a> <span class="sub">· ${dmy(e.published_at || e.fetched_at)}</span></li>`).join("")}</ul></details>` : ""}
-      <div class="foot"><button class="link" data-inv="${esc(r.name)}">Show all in feed →</button></div>
-    </article>`;
+    const n = r.news, h = r.hold, facts = n ? [n.country, INV_TYPES[n.type]].filter(Boolean).map(esc).join(" · ") : "Foreign holder named in filings";
+    return `<a class="irow" href="#firm/${encodeURIComponent(r.key)}" aria-label="Open profile of ${esc(r.name)}">
+      <div class="in"><b>${esc(r.name)}</b>${n && n.first >= monthAgo ? `<span class="new" title="First appeared on this tracker in the last 30 days">NEW</span>` : ""}<div class="sub">${facts}</div>
+        ${n ? `<div class="cats">${Object.keys(TYPES).filter((t) => n.cats[t]).map((t) => `<span class="cat" style="color:${color(t)}">${TYPES[t]}${n.cats[t] > 1 ? ` × ${n.cats[t]}` : ""}</span>`).join("")}</div>` : ""}</div>
+      <div class="ic"><b>${n ? n.stories.length : "–"}</b><span>In the news</span></div>
+      <div class="ic"><b>${h ? h.cos.length : "–"}</b><span>Companies held</span></div>
+      <div class="ic"><b>${h ? (+h.top.pct).toFixed(2) + "%" : "–"}</b><span>${h ? esc(titleCase(h.top.company).slice(0, 22)) : "Largest stake"}</span></div>
+      <div class="ic"><b>${n?.biggest ? esc(money(n.biggest)) : "–"}</b><span>Largest deal</span></div>
+      <span class="go">Profile →</span></a>`;
   }).join("");
   $("imore").hidden = rows.length <= invShown;
-  $("investors").querySelectorAll("[data-inv]").forEach((b) => b.onclick = () => {
-    $("q").value = b.dataset.inv; state.types.clear(); setTab("feed"); render();
-  });
 }
 
 const SOURCES = {
@@ -1394,7 +1412,7 @@ function render() {
 // ---------- Network: which firms appear on the same deal stories ----------
 // Built from every loaded story, not the Feed filters. Investors link to the company they bought into or sold;
 // a story with no company links its firms to each other (co-investors, or buyer and seller).
-const net = { src: null, g: null, center: null, edge: null, hops: innerWidth < 700 ? 1 : 2, view: "one", f: { kind: "all", links: "all", period: "all", type: "all" }, sig: "" };
+const net = { src: null, g: null, center: null, edge: null, hops: innerWidth < 700 ? 1 : 2, view: "all", flat: false, f: { kind: "all", links: "all", period: "all", type: "all" }, sig: "" };
 // A link's weight counts its stories and any filed stakes; its label says which.
 const edgeW = (ed) => ed.stories.size + ed.stakes.length;
 const edgeLabel = (ed) => [ed.stories.size && `${ed.stories.size} stor${ed.stories.size === 1 ? "y" : "ies"} name both`,
@@ -1458,10 +1476,15 @@ function buildNetwork() {
   return { nodes, edges, adj };
 }
 
-function netStories(list, limit = 15) {
+// With paged set, the first 5 show and "View more" / "View all" reveal the rest (see the [data-pg] handler).
+const PAGE = 5;
+const pgBar = (n) => n > PAGE ? `<div class="pgbar"><span class="sub">Showing ${PAGE} of ${n}</span><button class="link" type="button" data-pg="10">View ${Math.min(10, n - PAGE)} more</button><button class="link" type="button" data-pg="all">View all ${n}</button></div>` : "";
+const pgHide = (i, paged) => paged && i >= PAGE ? " hidden data-pi" : "";
+function netStories(list, limit = 15, paged = false) {
   const rows = [...list].sort((a, b) => (b.published_at || b.fetched_at) > (a.published_at || a.fetched_at) ? 1 : -1).slice(0, limit);
-  return `<ul class="slist">${rows.map((e) => `<li><a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a>
+  const body = `<ul class="slist">${rows.map((e, i) => `<li${pgHide(i, paged)}><a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a>
     <div class="sub">${dmy(e.published_at || e.fetched_at)} · ${esc(e.source_name || e.source || "")}${money(e) ? ` · ${esc(money(e))}` : ""}</div></li>`).join("")}</ul>`;
+  return paged ? `<div class="pg">${body}${pgBar(rows.length)}</div>` : body;
 }
 
 function ensureNet() {
@@ -1544,6 +1567,11 @@ function renderNetwork() {
 }
 
 $("net-graph").addEventListener("click", (ev) => {
+  const c = ev.target.closest("button[id^=c3]")?.id;
+  if (c === "c3spin") return net.c3.spin();
+  if (c === "c3in") return net.c3.zoom(1.3);
+  if (c === "c3out") return net.c3.zoom(1 / 1.3);
+  if (c === "c3flat" || c === "c3on") { net.flat = c === "c3flat"; return renderNetwork(); }
   const n = ev.target.closest(".nn"), e = ev.target.closest(".ne");
   if (n) { net.center = n.dataset.k; net.edge = null; net.view = "one"; renderNetwork(); }
   else if (e) { net.edge = e.dataset.e; renderNetwork(); }
@@ -1589,30 +1617,36 @@ function renderFirm() {
   // Stories about the companies this firm holds, even where the firm itself is not named.
   const heldNews = new Set();
   (net.g.adj.get(n.key) || new Map()).forEach((e, k) => { if (e.stakes.length) net.g.nodes.get(k).stories.forEach((x) => { if (!n.stories.has(x)) heldNews.add(x); }); });
+  const back = { investors: "Investors", network: "Network", feed: "Feed", flows: "Flows", directory: "Directory" }[net.back] || (net.back === "overview" ? "Home" : "Investors");
   box.innerHTML = `
+    <button class="link backbtn" id="firm-back" type="button">← Back to ${back}</button>
     <div class="fhead" style="margin-bottom:14px"><div><h2 style="margin:0;font-size:26px;letter-spacing:-.02em">${esc(n.name)}</h2>
       <div class="sub">${others.length ? `Also written as ${others.map(esc).join(", ")} · ` : ""}First seen ${dmy(first)} · latest ${dmy(last)}</div></div>
       <div style="display:flex;gap:8px"><button class="reset" id="firm-follow" type="button" aria-pressed="${follows().includes(n.key)}">${follows().includes(n.key) ? "★ Following" : "☆ Follow"}</button>
-      <button class="reset" id="firm-graph" type="button">Show in Network</button></div></div>
+      <button class="reset" id="firm-graph" type="button">Show in Network</button>
+      <button class="reset" id="firm-feed" type="button">Show in Feed</button></div></div>
     <div class="ftiles">
       ${held.length ? tile("Listed companies held (1%+)", held.length, `Filings as of ${dmy(held.reduce((m, h) => h.period_end > m ? h.period_end : m, ""))}`) + tile("Largest stake", `${(+topHeld.pct).toFixed(2)}%`, esc(titleCase(topHeld.company))) : ""}
       ${tile("Stories", list.length, Object.entries(cats).map(([k, v]) => `${v} ${(CAT_WORDS[k] || [k, k])[v === 1 ? 0 : 1]}`).join(" · "))}
       ${buy ? tile("As investor or buyer", buy) : ""}${sell ? tile("As seller", sell) : ""}${target ? tile("As the company invested in", target) : ""}
       ${big ? tile("Largest disclosed deal", esc(money(big)), esc(big.title)) : ""}
     </div>
-    <div class="netwrap">
-      <div class="fcard" style="margin:0"><div class="fhead"><h3>Stories</h3></div>${netStories(list, 200)}</div>
+    ${held.length ? stakesHtml(n.key) : ""}
+    <div class="netwrap" style="margin-top:14px">
+      <div class="fcard" style="margin:0"><div class="fhead"><h3>Stories</h3></div>${netStories(list, 200, true)}</div>
       <aside class="netpanel"><h3>Linked firms</h3><div class="sub">Named on the same deal stories, or holding a stake</div>
-        <ul>${links.map(([k, ed]) => `<li><a href="#firm/${encodeURIComponent(k)}">${esc(net.g.nodes.get(k).name)}</a><div class="sub">${esc(edgeLabel(ed))}</div></li>`).join("") || `<li class="sub">None yet</li>`}</ul></aside>
+        <div class="pg"><ul>${links.map(([k, ed], i) => `<li${pgHide(i, true)}><a href="#firm/${encodeURIComponent(k)}">${esc(net.g.nodes.get(k).name)}</a><div class="sub">${esc(edgeLabel(ed))}</div></li>`).join("") || `<li class="sub">None yet</li>`}</ul>${pgBar(links.length)}</div></aside>
     </div>
-    ${stakesHtml(n.key)}
-    ${heldNews.size ? `<div class="fcard" style="margin-top:14px"><div class="fhead"><div><h3>News on companies it holds</h3><div class="sub">Stories about the companies above, where this firm is not named</div></div></div>${netStories(heldNews, 15)}</div>` : ""}
+    ${held.length ? "" : stakesHtml(n.key)}
+    ${heldNews.size ? `<div class="fcard" style="margin-top:14px"><div class="fhead"><div><h3>News on companies it holds</h3><div class="sub">Stories about the companies above, where this firm is not named</div></div></div>${netStories(heldNews, 50, true)}</div>` : ""}
     <p class="note">Built from news stories, which may contain errors; check the original article. A link is not an ownership record.</p>`;
   $("firm-follow").onclick = () => {
     const f = follows(), on = f.includes(n.key);
     setFollows(on ? f.filter((k) => k !== n.key) : [...f, n.key]);
     renderFirm();
   };
+  $("firm-back").onclick = () => { location.hash = ""; setTab(net.back && net.back !== "firm" ? net.back : "investors"); scrollTo(0, 0); };
+  $("firm-feed").onclick = () => { $("q").value = n.name; state.types.clear(); location.hash = ""; setTab("feed"); render(); };
   $("firm-graph").onclick = () => { net.center = n.key; net.edge = null; net.view = "one"; location.hash = ""; setTab("network"); };
   setTitle();
 }
@@ -1627,10 +1661,11 @@ async function loadHoldings() {
       if (part.length < 1000) break;
     }
     state.holdings = all;
+    mergeFirms();
     net.src = null; // rebuild the graph with the stakes
     if (state.tab === "firm") renderFirm();
     if (state.tab === "network") renderNetwork();
-    if (state.tab === "investors" && state.iv === "holders") renderInvestors();
+    if (state.tab === "investors") renderInvestors();
   } catch {}
 }
 // The latest filing for each company, as rows where this firm is the holder or the company.
@@ -1648,10 +1683,10 @@ function stakesHtml(key) {
   const kOf = new Map();
   net.g?.adj.get(key)?.forEach((e, k) => e.stakes.forEach((x) => kOf.set(x, k)));
   const row = (name, h) => `<tr><td>${(kOf.get(h) || (name === h.holder && invKey(h.holder))) ? `<a href="#firm/${encodeURIComponent(kOf.get(h) || invKey(h.holder))}">${esc(name)}</a>` : esc(name)}${h.source === "nse_rss" ? ` <span class="sub" title="Read automatically from the filing; not checked by hand">auto</span>` : ""}</td><td class="num">${(+h.pct).toFixed(2)}%</td><td>${dmy(h.period_end)}</td></tr>`;
-  const table = (head, rows) => `<div class="ftable-wrap" style="margin-top:8px"><table class="ftable"><thead><tr><th>${head}</th><th class="num">Stake</th><th>As of</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  const table = (head, rows) => `<div class="pg"><div class="ftable-wrap" style="margin-top:8px"><table class="ftable"><thead><tr><th>${head}</th><th class="num">Stake</th><th>As of</th></tr></thead><tbody>${rows.map((r, i) => r.replace("<tr>", `<tr${pgHide(i, true)}>`)).join("")}</tbody></table></div>${pgBar(rows.length)}</div>`;
   return `<div class="fcard" style="margin-top:14px"><div class="fhead"><div><h3>Stakes over 1%</h3><div class="sub">From the company's quarterly shareholding-pattern filing</div></div></div>
-    ${holds.length ? table("Company", holds.sort((a, b) => b.pct - a.pct).map((h) => row(h.company, h)).join("")) : ""}
-    ${heldBy.length ? table("Shareholder", heldBy.sort((a, b) => b.pct - a.pct).map((h) => row(h.holder, h)).join("")) : ""}</div>`;
+    ${holds.length ? table("Company", holds.sort((a, b) => b.pct - a.pct).map((h) => row(h.company, h))) : ""}
+    ${heldBy.length ? table("Shareholder", heldBy.sort((a, b) => b.pct - a.pct).map((h) => row(h.holder, h))) : ""}</div>`;
 }
 
 // Reads a shareholding-pattern XBRL file without relying on exact element names, which differ between
@@ -1939,6 +1974,10 @@ function glossify(root) {
     if (out) { out.append(t.data.slice(last)); t.replaceWith(out); }
   });
 }
+// "/" or Ctrl/Cmd+K jumps to the search box.
+document.addEventListener("keydown", (ev) => {
+  if ((ev.key === "/" || (ev.key === "k" && (ev.ctrlKey || ev.metaKey))) && !/^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement?.tagName)) { ev.preventDefault(); $("gq").focus(); }
+});
 function openGloss(term) {
   $("gloss-list").innerHTML = Object.entries(GLOSSARY).map(([k, v]) => `<dt id="g-${esc(k.replace(/\s/g, "-"))}"${k === term ? ' class="on"' : ""}>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("");
   $("gloss").showModal();
@@ -1955,7 +1994,7 @@ function glossifyPage() { document.querySelectorAll(GLOSS_AREAS.join(",")).forEa
 
 function route() {
   const m = location.hash.match(/^#firm\/(.+)$/);
-  if (m) { net.firm = decodeURIComponent(m[1]); setTab("firm"); scrollTo(0, 0); }
+  if (m) { if (state.tab !== "firm") net.back = state.tab; net.firm = decodeURIComponent(m[1]); setTab("firm"); scrollTo(0, 0); }
   else if (state.tab === "firm") setTab("network");
 }
 addEventListener("hashchange", route);
@@ -2006,6 +2045,15 @@ function renderPath() {
 }
 
 document.querySelectorAll("#nview button").forEach((b) => b.onclick = () => { net.view = b.dataset.v; net.edge = null; renderNetwork(); });
+// "View 10 more" / "View all" on a profile list: reveal the hidden rows of the nearest .pg block.
+document.addEventListener("click", (ev) => {
+  const b = ev.target.closest("[data-pg]");
+  if (!b) return;
+  const box = b.closest(".pg"), hid = [...box.querySelectorAll("[data-pi]")], n = b.dataset.pg === "all" ? hid.length : +b.dataset.pg;
+  hid.slice(0, n).forEach((x) => { x.hidden = false; x.removeAttribute("data-pi"); });
+  const left = hid.length - n, bar = box.querySelector(".pgbar"), total = box.querySelectorAll("li,tbody tr").length;
+  if (left <= 0) bar.remove(); else { bar.querySelector(".sub").textContent = `Showing ${total - left} of ${total}`; b.parentNode.querySelector('[data-pg="10"]').textContent = `View ${Math.min(10, left)} more`; }
+});
 $("net-panel").addEventListener("click", (ev) => {
   const k = ev.target.closest("[data-k]")?.dataset.k;
   if (k) { net.center = k; net.edge = null; net.view = "one"; renderNetwork(); }
@@ -2070,10 +2118,24 @@ function renderAllFirms() {
         if (i) lines.push([k, x, adj.get(k).get(x)]);
       });
     });
-    net.all = { pos, lines, core: cs };
+    // The same layout in 3D: best-connected firms get a depth from their name, and the firms linked to one
+    // fill a ball around it.
+    const hz = (k) => { let h = 2166136261; for (let i = 0; i < k.length; i++) h = Math.imul(h ^ k.charCodeAt(i), 16777619); return ((h >>> 0) % 10000) / 10000; };
+    const pos3 = new Map();
+    core.forEach((n) => {
+      const [cx, cy] = pos.get(n.key), cz = (hz(n.key) - 0.5) * ext * 1.6, list = sat.get(n.key);
+      pos3.set(n.key, [cx, cy, cz]);
+      list.forEach((k, i) => {
+        const y = 1 - 2 * (i + 0.5) / list.length, rr = Math.sqrt(1 - y * y), a = i * 2.39996, r = r0(n) + 7 * Math.cbrt(i + 1);
+        pos3.set(k, [cx + r * rr * Math.cos(a), cy + r * y, cz + r * rr * Math.sin(a)]);
+      });
+    });
+    pos.forEach(([x, y], k) => { if (!pos3.has(k)) pos3.set(k, [x, y, (hz(k) - 0.5) * ext * 1.6]); });
+    net.all = { pos, pos3, lines, core: cs };
     net.allId = id;
   }
   const { pos, lines, core } = net.all;
+  if (!net.flat) return render3D(linked, deg);
   let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
   pos.forEach(([x, y]) => { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); });
   const pad = 30, vw = x1 - x0 + 2 * pad, vh = y1 - y0 + 2 * pad, s = Math.max(vw / (sm ? 700 : 1000), vh / (sm ? 820 : 640), 0.5), f = sm ? 1.7 : 1;
@@ -2087,7 +2149,82 @@ function renderAllFirms() {
       return `<g class="nn" data-k="${esc(n.key)}" tabindex="${core.has(n.key) ? 0 : -1}" role="button" aria-label="${esc(n.name)}: ${deg(n.key)} links">
         <circle cx="${p[0]}" cy="${p[1]}" r="${r}" fill="${fillOf(n)}" stroke="var(--panel)" stroke-width="${0.8 * s}"><title>${esc(n.name)} · ${deg(n.key)} linked firm${deg(n.key) === 1 ? "" : "s"}</title></circle>
         ${named.has(n.key) ? `<text x="${p[0]}" y="${p[1] - r - 4 * s}" text-anchor="middle" font-size="${11 * f * s}" font-weight="600" fill="var(--ink)" paint-order="stroke" stroke="var(--panel)" stroke-width="${3 * s}">${esc(n.name.length > 20 ? n.name.slice(0, 19) + "…" : n.name)}</text>` : ""}</g>`; }).join("")}</svg>
-    <div class="flegend" style="padding:0 16px 12px"><span><i style="background:var(--entry)"></i>Investor or buyer</span><span><i style="background:var(--muted)"></i>Company invested in</span><span>Big dots are the best-connected firms; small dots ring the firm they link to</span></div>`;
+    <div class="flegend" style="padding:0 16px 12px"><span><i style="background:var(--entry)"></i>Investor or buyer</span><span><i style="background:var(--muted)"></i>Company invested in</span><span>Big dots are the best-connected firms; small dots ring the firm they link to</span><button class="reset" id="c3on" type="button">3D view</button></div>`;
+  allPanel(dots.length, linked, deg);
+}
+// The constellation in 3D on a canvas: drag to rotate, wheel or +/- to zoom, click a dot to open its links.
+function render3D(linked, deg) {
+  const { pos3, lines, core } = net.all, sm = innerWidth < 700;
+  $("net-graph").innerHTML = `<div class="c3"><canvas id="c3" role="img" aria-label="All ${linked.length} linked firms as a rotatable 3D constellation"></canvas>
+    <div class="c3bar"><button class="reset" id="c3spin" type="button">Pause</button><button class="reset" id="c3in" type="button" aria-label="Zoom in">+</button><button class="reset" id="c3out" type="button" aria-label="Zoom out">−</button><button class="reset" id="c3flat" type="button">Flat view</button><span class="sub">Drag to rotate · scroll to zoom · click a dot</span></div></div>
+    <div class="flegend" style="padding:0 16px 12px"><span><i style="background:var(--entry)"></i>Investor or buyer</span><span><i style="background:var(--muted)"></i>Company invested in</span><span>Big dots are the best-connected firms</span></div>`;
+  allPanel(linked.length, linked, deg);
+  const cv = $("c3"), ctx = cv.getContext("2d"), dpr = devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+  cv.width = W * dpr; cv.height = H * dpr; ctx.scale(dpr, dpr);
+  const cs = getComputedStyle(document.documentElement), col = (n, d) => cs.getPropertyValue(n).trim() || d;
+  const C = { entry: col("--entry", "#6d8dff"), muted: col("--muted", "#98a0ad"), ink: col("--ink", "#fff"), line: col("--line", "#444"), panel: col("--panel", "#111") };
+  const dots = linked.filter((n) => pos3.has(n.key)).map((n) => ({ n, p: pos3.get(n.key), core: core.has(n.key), fill: n.asTarget > n.asFirm ? C.muted : C.entry }));
+  let R = 1; dots.forEach((d) => { R = Math.max(R, Math.hypot(...d.p)); });
+  const v = net.v3 || (net.v3 = { ry: 0.6, rx: -0.35, zoom: 1, spin: !matchMedia("(prefers-reduced-motion: reduce)").matches });
+  const named = new Set(linked.slice(0, sm ? 6 : 14).map((n) => n.key)), pr = new Map();
+  let hover = null, dirty = true;
+  $("c3spin").textContent = v.spin ? "Pause" : "Spin";
+  const proj = (p) => {
+    const cy = Math.cos(v.ry), sy = Math.sin(v.ry), cx = Math.cos(v.rx), sx = Math.sin(v.rx);
+    const x = p[0] * cy + p[2] * sy, z1 = -p[0] * sy + p[2] * cy, y = p[1] * cx - z1 * sx, z = p[1] * sx + z1 * cx;
+    const f = 2.2 * R, k = f / (f + z), sc = Math.min(W, H) / (2.1 * R) * v.zoom;
+    return [W / 2 + x * k * sc, H / 2 + y * k * sc, z, k * v.zoom * Math.min(W, H) / 620];
+  };
+  const draw = () => {
+    ctx.clearRect(0, 0, W, H); pr.clear();
+    dots.forEach((d) => pr.set(d.n.key, proj(d.p)));
+    ctx.lineWidth = 0.6; ctx.strokeStyle = C.line; ctx.globalAlpha = 0.5; ctx.beginPath();
+    lines.forEach(([a, b]) => { const p = pr.get(a), q = pr.get(b); if (p && q) { ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); } });
+    ctx.stroke();
+    const order = [...dots].sort((a, b) => pr.get(b.n.key)[2] - pr.get(a.n.key)[2]);
+    order.forEach((d) => {
+      const [x, y, z, k] = pr.get(d.n.key), r = (d.core ? Math.min(13, 3 + 1.2 * Math.sqrt(deg(d.n.key))) : 1.9) * k;
+      ctx.globalAlpha = Math.max(0.3, Math.min(1, 0.85 - z / (3 * R)));
+      ctx.fillStyle = d.fill; ctx.beginPath(); ctx.arc(x, y, Math.max(r, 0.8), 0, 6.2832); ctx.fill();
+    });
+    ctx.globalAlpha = 1; ctx.font = "600 11px system-ui,sans-serif"; ctx.textAlign = "center"; ctx.lineWidth = 3; ctx.strokeStyle = C.panel; ctx.fillStyle = C.ink;
+    const label = (d) => { const [x, y, , k] = pr.get(d.n.key), t = d.n.name.length > 22 ? d.n.name.slice(0, 21) + "…" : d.n.name, yy = y - (Math.min(13, 3 + 1.2 * Math.sqrt(deg(d.n.key))) * k) - 5; ctx.strokeText(t, x, yy); ctx.fillText(t, x, yy); };
+    order.filter((d) => named.has(d.n.key) && pr.get(d.n.key)[2] < 0.35 * R).forEach(label);
+    if (hover && !named.has(hover.n.key)) label(hover);
+  };
+  const pick = (mx, my) => {
+    let best = null, bd = 1e9;
+    dots.forEach((d) => { const [x, y, z, k] = pr.get(d.n.key), r = (d.core ? 8 : 4) * Math.max(k, 0.6) + 4, dd = Math.hypot(x - mx, y - my); if (dd < r && dd - z / R < bd) { bd = dd - z / R; best = d; } });
+    return best;
+  };
+  const xy = (ev) => { const b = cv.getBoundingClientRect(); return [ev.clientX - b.left, ev.clientY - b.top]; };
+  let drag = null;
+  cv.onpointerdown = (ev) => { cv.setPointerCapture(ev.pointerId); drag = { x: ev.clientX, y: ev.clientY, moved: 0 }; };
+  cv.onpointermove = (ev) => {
+    if (drag) {
+      const dx = ev.clientX - drag.x, dy = ev.clientY - drag.y;
+      drag.moved += Math.abs(dx) + Math.abs(dy); drag.x = ev.clientX; drag.y = ev.clientY;
+      v.ry += dx * 0.008; v.rx = Math.max(-1.4, Math.min(1.4, v.rx - dy * 0.008));
+      if (drag.moved > 5) { v.spin = false; $("c3spin").textContent = "Spin"; }
+    } else { const h = pick(...xy(ev)); if (h !== hover) { hover = h; cv.style.cursor = h ? "pointer" : "grab"; } }
+    dirty = true;
+  };
+  cv.onpointerup = (ev) => {
+    const was = drag; drag = null;
+    if (was && was.moved < 5) { const h = pick(...xy(ev)); if (h) { net.center = h.n.key; net.edge = null; net.view = "one"; renderNetwork(); } }
+  };
+  cv.onwheel = (ev) => { ev.preventDefault(); v.zoom = Math.max(0.5, Math.min(5, v.zoom * Math.exp(-ev.deltaY * 0.0012))); dirty = true; };
+  net.c3 = { zoom: (f) => { v.zoom = Math.max(0.5, Math.min(5, v.zoom * f)); dirty = true; }, spin: () => { v.spin = !v.spin; $("c3spin").textContent = v.spin ? "Pause" : "Spin"; } };
+  const tick = () => {
+    if (!cv.isConnected || state.tab !== "network" || net.view !== "all" || net.flat) return;
+    if (v.spin) { v.ry += 0.003; dirty = true; }
+    if (dirty) { dirty = false; draw(); }
+    requestAnimationFrame(tick);
+  };
+  tick();
+}
+function allPanel(count, linked, deg) {
+  const { nodes, edges } = net.g, dots = linked.filter((n) => net.all.pos.has(n.key));
   const inv = dots.filter((n) => !isCompany(n)).length;
   $("net-panel").innerHTML = `<h3>Whole network</h3>
     <div class="sub">${dots.length.toLocaleString("en-IN")} linked firms (${inv.toLocaleString("en-IN")} investors, ${(dots.length - inv).toLocaleString("en-IN")} companies) · ${edges.size.toLocaleString("en-IN")} links. Click any dot to open its links.</div>
@@ -2111,11 +2248,12 @@ function setTab(t) {
   // The news filters and story counts only apply to the story tabs.
   const stories = t === "feed" || t === "investors";
   document.querySelector(".filterbar").hidden = !stories;
-  ["kpis", "kpi-note"].forEach((id) => $(id).hidden = !stories);
+  ["kpis", "kpi-note"].forEach((id) => $(id).hidden = t !== "feed");
   setTitle();
   if (typeof syncSearch === "function") syncSearch();
   if (t === "flows") renderFlows();
   if (t === "directory") openDirectory();
+  if (t === "investors" && state.events?.length) renderInvestors();
   if (t === "network") renderNetwork();
   if (t === "firm") renderFirm();
   if (typeof syncUrl === "function") syncUrl();
@@ -2127,7 +2265,7 @@ document.querySelectorAll("[data-go]").forEach((b) => b.onclick = () => { setTab
 // ---------- Page titles ----------
 const TITLES = {
   feed: ["Feed", "Investments, exits, fund launches and jurisdiction moves"],
-  investors: ["Investors", "Every named investor in the stories, with their deals"],
+  investors: ["Investors", "Foreign investors from the news and from shareholding filings, one profile each"],
   network: ["Network", "Which firms appear together on the same deals"],
   firm: ["Profile", "One firm's deals, links and sources"],
   flows: ["Flows", "FPI money in and out each day, and where FDI comes from"],
