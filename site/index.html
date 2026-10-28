@@ -2203,7 +2203,7 @@ function render3D(linked, deg) {
   let R = 1; dots.forEach((d) => { R = Math.max(R, Math.hypot(...d.p)); });
   const v = net.v3 || (net.v3 = { ry: 0.6, rx: -0.35, zoom: 1, spin: !matchMedia("(prefers-reduced-motion: reduce)").matches });
   const named = new Set(linked.slice(0, sm ? 6 : 14).map((n) => n.key)), pr = new Map();
-  let hover = null, dirty = true;
+  let cur = null, near = [], labels = [], dirty = true, touch = false;
   $("c3spin").textContent = v.spin ? "Pause" : "Spin";
   const slider = $("c3z"), setZoom = (z) => { v.zoom = Math.max(0.5, Math.min(5, z)); slider.value = v.zoom; dirty = true; };
   slider.value = v.zoom; slider.oninput = () => setZoom(+slider.value);
@@ -2228,34 +2228,61 @@ function render3D(linked, deg) {
     ctx.globalAlpha = 1; ctx.font = "600 11px system-ui,sans-serif"; ctx.textAlign = "center"; ctx.lineWidth = 3; ctx.strokeStyle = C.panel; ctx.fillStyle = C.ink;
     const label = (d) => { const [x, y, , k] = pr.get(d.n.key), t = d.n.name.length > 22 ? d.n.name.slice(0, 21) + "…" : d.n.name, yy = y - (Math.min(13, 3 + 1.2 * Math.sqrt(deg(d.n.key))) * k) - 5; ctx.strokeText(t, x, yy); ctx.fillText(t, x, yy); };
     order.filter((d) => named.has(d.n.key) && pr.get(d.n.key)[2] < 0.35 * R).forEach(label);
-    if (hover && !named.has(hover.n.key)) label(hover);
-  };
-  const pick = (mx, my) => {
-    let best = null, bd = 1e9;
-    dots.forEach((d) => { const [x, y, z, k] = pr.get(d.n.key), r = (d.core ? 8 : 4) * Math.max(k, 0.6) + 4, dd = Math.hypot(x - mx, y - my); if (dd < r && dd - z / R < bd) { bd = dd - z / R; best = d; } });
-    return best;
+    // Names of the dots closest to the cursor or finger, each beside its own dot; the closest is outlined and
+    // is the one a click or tap opens. Each name is itself clickable.
+    labels = []; near = [];
+    if (cur) {
+      const R = touch ? 90 : 64;
+      near = dots.map((d) => { const q = pr.get(d.n.key); return { d, q, dist: Math.hypot(q[0] - cur.x, q[1] - cur.y) }; }).filter((x) => x.dist < R).sort((a, b) => a.dist - b.dist || a.q[2] - b.q[2]).slice(0, 8);
+      ctx.font = "600 12px system-ui,sans-serif"; ctx.textAlign = "left";
+      near.forEach((x, i) => {
+        const [px, py] = x.q, t = x.d.n.name.length > 30 ? x.d.n.name.slice(0, 29) + "…" : x.d.n.name, w = ctx.measureText(t).width + 14, h = 20;
+        let bx = px + 9, by = py - 24;
+        if (bx + w > W - 4) bx = px - 9 - w;
+        by = Math.max(4, Math.min(H - h - 4, by));
+        for (let k = 0; k < 20 && labels.some((l) => bx < l.x + l.w && bx + w > l.x && by < l.y + l.h && by + h > l.y); k++) by += h + 2;
+        by = Math.min(by, H - h - 4);
+        labels.push({ d: x.d, x: bx, y: by, w, h });
+        ctx.strokeStyle = i === 0 ? C.entry : C.line; ctx.lineWidth = i === 0 ? 2 : 1;
+        ctx.beginPath(); ctx.arc(px, py, (x.d.core ? Math.min(13, 3 + 1.2 * Math.sqrt(deg(x.d.n.key))) : 2.4) * x.q[3] + 3, 0, 6.2832); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(bx + (bx > px ? 0 : w), by + h / 2); ctx.stroke();
+        ctx.fillStyle = C.panel; ctx.globalAlpha = 0.95; ctx.beginPath(); ctx.roundRect(bx, by, w, h, 6); ctx.fill(); ctx.globalAlpha = 1; ctx.stroke();
+        ctx.fillStyle = C.ink; ctx.fillText(t, bx + 7, by + 14);
+      });
+    }
   };
   const xy = (ev) => { const b = cv.getBoundingClientRect(); return [ev.clientX - b.left, ev.clientY - b.top]; };
+  const open = (d) => { net.center = d.n.key; net.edge = null; net.view = "one"; renderNetwork(); };
+  const labelAt = (x, y) => labels.find((l) => x >= l.x && x <= l.x + l.w && y >= l.y && y <= l.y + l.h);
   let drag = null;
-  cv.onpointerdown = (ev) => { cv.setPointerCapture(ev.pointerId); drag = { x: ev.clientX, y: ev.clientY, moved: 0 }; };
+  cv.onpointerdown = (ev) => { cv.setPointerCapture(ev.pointerId); touch = ev.pointerType !== "mouse"; drag = { x: ev.clientX, y: ev.clientY, moved: 0 }; };
   cv.onpointermove = (ev) => {
     if (drag) {
       const dx = ev.clientX - drag.x, dy = ev.clientY - drag.y;
       drag.moved += Math.abs(dx) + Math.abs(dy); drag.x = ev.clientX; drag.y = ev.clientY;
       v.ry += dx * 0.008; v.rx = Math.max(-1.4, Math.min(1.4, v.rx - dy * 0.008));
-      if (drag.moved > 5) { v.spin = false; $("c3spin").textContent = "Spin"; }
-    } else { const h = pick(...xy(ev)); if (h !== hover) { hover = h; cv.style.cursor = h ? "pointer" : "grab"; } }
+      if (drag.moved > 5) { v.spin = false; cur = null; $("c3spin").textContent = "Spin"; }
+    } else if (ev.pointerType === "mouse") { const [x, y] = xy(ev); cur = { x, y }; cv.style.cursor = labelAt(x, y) ? "pointer" : "grab"; }
     dirty = true;
   };
+  cv.onpointerleave = () => { if (!touch) { cur = null; dirty = true; } };
   cv.onpointerup = (ev) => {
     const was = drag; drag = null;
-    if (was && was.moved < 5) { const h = pick(...xy(ev)); if (h) { net.center = h.n.key; net.edge = null; net.view = "one"; renderNetwork(); } }
+    if (!was || was.moved >= 5) return;
+    const [x, y] = xy(ev), hit = labelAt(x, y);
+    if (hit) return open(hit.d);
+    cur = { x, y }; draw();
+    // A mouse click opens the closest dot; a tap does too when only one dot is under the finger, otherwise
+    // the names appear and the next tap picks one.
+    const close = near.filter((n) => n.dist < (touch ? 20 : 16));
+    if (close.length && (!touch || close.length === 1)) open(close[0].d);
+    dirty = true;
   };
   cv.onwheel = (ev) => { ev.preventDefault(); setZoom(v.zoom * Math.exp(-ev.deltaY * 0.0012)); };
   net.c3 = { zoom: (f) => setZoom(v.zoom * f), spin: () => { v.spin = !v.spin; $("c3spin").textContent = v.spin ? "Pause" : "Spin"; } };
   const tick = () => {
     if (!cv.isConnected || state.tab !== "network" || net.view !== "all" || net.flat) return;
-    if (v.spin) { v.ry += 0.003; dirty = true; }
+    if (v.spin && !cur) { v.ry += 0.003; dirty = true; }
     if (dirty) { dirty = false; draw(); }
     requestAnimationFrame(tick);
   };
