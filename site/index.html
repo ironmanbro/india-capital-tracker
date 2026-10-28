@@ -385,7 +385,18 @@ section.enter{animation:secIn .38s cubic-bezier(.2,.8,.2,1) both}
 @keyframes secIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .toast{transition:transform .5s cubic-bezier(.2,1.25,.3,1)}
 @media (max-width:700px){.kpi,.ftile,.fcard,.filterbar,.inv,.card,.drow,.ftable-wrap,.ovc,.bcol,.htools{-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}}
-@media (prefers-reduced-motion:reduce){section.enter{animation:none}*{transition-duration:.01ms!important}}
+/* Touch screens have no hover, so cards rise in one after another and press in when tapped. */
+section.enter :is(.kpi,.ftile,.card,.inv,.bk,.ovc,.fcard,.drow){animation:cardIn .5s cubic-bezier(.2,.8,.2,1) both}
+section.enter :is(.kpi,.ftile,.card,.inv,.bk,.ovc,.fcard,.drow):nth-child(2){animation-delay:.05s}
+section.enter :is(.kpi,.ftile,.card,.inv,.bk,.ovc,.fcard,.drow):nth-child(3){animation-delay:.1s}
+section.enter :is(.kpi,.ftile,.card,.inv,.bk,.ovc,.fcard,.drow):nth-child(4){animation-delay:.15s}
+section.enter :is(.kpi,.ftile,.card,.inv,.bk,.ovc,.fcard,.drow):nth-child(n+5){animation-delay:.2s}
+@keyframes cardIn{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+.card:active,.inv:active,.bk:active,.ftile:active,.ovc:active{transform:scale(.98)}
+*{-webkit-tap-highlight-color:transparent}
+/* Reduce motion: keep a plain fade, drop movement. */
+@media (prefers-reduced-motion:reduce){section.enter,section.enter *{animation-name:fadeOnly!important}*{transition-duration:.01ms!important}}
+@keyframes fadeOnly{from{opacity:0}to{opacity:1}}
 .toast{position:fixed;top:16px;left:50%;transform:translate(-50%,-140%);transition:transform .35s ease;background:#050608;color:#eceef2;border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:7px 8px 7px 10px;display:flex;gap:10px;align-items:center;font-weight:600;font-size:13px;box-shadow:0 10px 30px rgba(0,0,0,.45);z-index:60;max-width:calc(100vw - 32px)}
 .toast.show{transform:translate(-50%,0)}
 .toast .ok2{width:22px;height:22px;border-radius:50%;background:#16a37a;display:grid;place-items:center;flex:none}
