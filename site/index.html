@@ -412,8 +412,8 @@ section.enter :is(.kpi,.ftile,.card,.inv,.bk,.ovc,.fcard,.drow):nth-child(n+5):n
 .netsvg{overflow:hidden}.netsvg svg{display:block;width:100%;height:auto}
 .netpanel{padding:16px 18px;max-height:680px;overflow:auto}
 .netpanel h3{margin:0 0 2px;font-size:16px;overflow-wrap:anywhere}
-.netpanel ul{list-style:none;padding:0;margin:12px 0;display:grid;gap:12px}
-.netpanel li a{color:var(--ink);font-weight:600;text-decoration:none;overflow-wrap:anywhere}.netpanel li a:hover{text-decoration:underline}
+.netpanel ul,.slist{list-style:none;padding:0;margin:12px 0;display:grid;gap:12px}
+.netpanel li a,.slist li a{color:var(--ink);font-weight:600;text-decoration:none;overflow-wrap:anywhere}.netpanel li a:hover,.slist li a:hover{text-decoration:underline}
 .nn,.ne{cursor:pointer}.nn:focus{outline:none}.nn:focus circle,.nn:hover circle{stroke:var(--accent);stroke-width:3}
 .ne:hover line:first-child{stroke:var(--accent)}
 @media (max-width:900px){.netwrap{grid-template-columns:1fr}.netpanel{max-height:none}}
@@ -581,6 +581,8 @@ section.enter :is(.kpi,.ftile,.card,.inv,.bk,.ovc,.fcard,.drow):nth-child(n+5):n
       <aside class="netpanel" id="net-panel" aria-live="polite"></aside>
     </div>
   </section>
+
+  <section id="tab-firm" hidden><div id="firm-body"></div></section>
 
   <section id="tab-flows" hidden>
     <p class="sub" style="margin:0 0 12px">Money moving into and out of India in aggregate. FPI figures are daily from NSDL (₹ crore); FDI figures are by financial year from DPIIT's quarterly fact sheet (US$).</p>
@@ -1284,6 +1286,7 @@ function render() {
   ["from", "to"].forEach((id) => { if (document.activeElement !== $(`${id}-txt`)) $(`${id}-txt`).value = toDMY($(id).value); });
   renderKpis(); renderFeed(); renderBoard(); renderInvestors(); renderRuns(); renderFlows(); renderOverview(); setTitle(); renderSources();
   if (state.tab === "network") renderNetwork();
+  if (state.tab === "firm") renderFirm();
 }
 
 // ---------- Network: which firms appear on the same deal stories ----------
@@ -1326,15 +1329,13 @@ function buildNetwork() {
   return { nodes, edges, adj };
 }
 
-function netStories(list) {
-  const rows = [...list].sort((a, b) => (b.published_at || b.fetched_at) > (a.published_at || a.fetched_at) ? 1 : -1).slice(0, 15);
-  return `<ul>${rows.map((e) => `<li><a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a>
+function netStories(list, limit = 15) {
+  const rows = [...list].sort((a, b) => (b.published_at || b.fetched_at) > (a.published_at || a.fetched_at) ? 1 : -1).slice(0, limit);
+  return `<ul class="slist">${rows.map((e) => `<li><a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a>
     <div class="sub">${dmy(e.published_at || e.fetched_at)} · ${esc(e.source_name || e.source || "")}${money(e) ? ` · ${esc(money(e))}` : ""}</div></li>`).join("")}</ul>`;
 }
 
-function renderNetwork() {
-  if (!state.events?.length) return;
-  document.querySelectorAll("#nhops button").forEach((x) => x.setAttribute("aria-pressed", +x.dataset.h === net.hops));
+function ensureNet() {
   if (net.src !== state.events) {
     net.src = state.events; net.g = buildNetwork();
     const deg = (k) => net.g.adj.get(k)?.size || 0;
@@ -1342,6 +1343,12 @@ function renderNetwork() {
     $("nq-list").innerHTML = ranked.map((n) => `<option value="${esc(n.name)}">`).join("");
     if (!net.g.nodes.has(net.center)) net.center = ranked[0]?.key || null;
   }
+}
+
+function renderNetwork() {
+  if (!state.events?.length) return;
+  document.querySelectorAll("#nhops button").forEach((x) => x.setAttribute("aria-pressed", +x.dataset.h === net.hops));
+  ensureNet();
   const { nodes, adj } = net.g, c = nodes.get(net.center);
   if (!c) { $("net-graph").innerHTML = `<div class="empty">No linked firms yet.</div>`; $("net-panel").innerHTML = ""; return; }
   // First ring: the centre's direct links, strongest first. Second ring: a few of each one's own links.
@@ -1389,7 +1396,8 @@ function renderNetwork() {
   const ed = net.edge && net.g.edges.get(net.edge);
   $("net-panel").innerHTML = ed
     ? `<h3>${esc(nodes.get(ed.a).name)} ↔ ${esc(nodes.get(ed.b).name)}</h3><div class="sub">${w(ed)} stor${w(ed) === 1 ? "y" : "ies"} name both</div>${netStories(ed.stories)}<button class="link" id="net-back">← All of ${esc(c.name)}'s stories</button>`
-    : `<h3>${esc(c.name)}</h3><div class="sub">${c.stories.size} stor${c.stories.size === 1 ? "y" : "ies"} · linked to ${nb.size} firm${nb.size === 1 ? "" : "s"}${nb.size > hop1.length ? ` (top ${hop1.length} shown)` : ""}</div>${netStories(c.stories)}`;
+    : `<h3>${esc(c.name)}</h3><div class="sub">${c.stories.size} stor${c.stories.size === 1 ? "y" : "ies"} · linked to ${nb.size} firm${nb.size === 1 ? "" : "s"}${nb.size > hop1.length ? ` (top ${hop1.length} shown)` : ""}</div>
+      <a class="link" href="#firm/${encodeURIComponent(c.key)}" style="display:inline-block;margin-top:8px;text-decoration:none">Open profile →</a>${netStories(c.stories)}`;
   $("net-back")?.addEventListener("click", () => { net.edge = null; renderNetwork(); });
 }
 
@@ -1407,6 +1415,59 @@ $("nq").addEventListener("change", () => {
   const hit = net.g?.nodes.get(k) || [...(net.g?.nodes.values() || [])].find((n) => net.g.adj.has(n.key) && n.name.toLowerCase().includes(q));
   if (v && hit) { net.center = hit.key; net.edge = null; renderNetwork(); }
 });
+// ---------- Firm profile (#firm/<key>), opened from the Network tab ----------
+const CAT_WORDS = { entry: ["investment", "investments"], exit: ["exit", "exits"], fund_launch: ["fund launch", "fund launches"], relocation: ["move", "moves"] };
+function renderFirm() {
+  const box = $("firm-body");
+  if (!state.events?.length) { box.innerHTML = `<div class="empty">Loading…</div>`; return; }
+  ensureNet();
+  const n = net.g.nodes.get(net.firm);
+  if (!n) { box.innerHTML = `<div class="empty">No firm by that name in the stories.</div>`; return; }
+  const list = [...n.stories], cats = {};
+  let buy = 0, sell = 0, target = 0, big = null, first = null, last = null;
+  list.forEach((e) => {
+    const ps = e.parties.length ? e.parties : e.investor ? [{ name: e.investor, role: "investor" }] : [];
+    const tname = e.target || ps.find((p) => p.role === "target")?.name;
+    if (tname && invKey(tname.trim()) === n.key) target++;
+    const me = ps.find((p) => invKey((p.name || "").trim()) === n.key), side = (x) => x.role === "seller" ? "sell" : "buy";
+    if (!(tname && invKey(tname.trim()) === n.key)) { if (me?.role === "seller") sell++; else buy++; }
+    // As on the Investors tab, a deal's amount counts as this firm's only if no other firm is on its side.
+    const alone = !me || ps.filter((x) => x.role !== "target" && side(x) === side(me)).length === 1;
+    e.event_types.forEach((t) => cats[t] = (cats[t] || 0) + 1);
+    const a = amountCr(e);
+    if (alone && a && FIRM.has(e.deal_stage) && (!big || a.usd > amountCr(big).usd)) big = e;
+    const t = e.published_at || e.fetched_at;
+    if (!first || t < first) first = t;
+    if (!last || t > last) last = t;
+  });
+  const links = [...(net.g.adj.get(n.key) || new Map()).entries()].sort((a, b) => b[1].stories.size - a[1].stories.size);
+  const tile = (l, v, s) => `<div class="ftile"><div class="l">${l}</div><div class="n">${v}</div>${s ? `<div class="s">${s}</div>` : ""}</div>`;
+  const others = [...n.names.keys()].filter((x) => x !== n.name);
+  box.innerHTML = `
+    <div class="fhead" style="margin-bottom:14px"><div><h2 style="margin:0;font-size:26px;letter-spacing:-.02em">${esc(n.name)}</h2>
+      <div class="sub">${others.length ? `Also written as ${others.map(esc).join(", ")} · ` : ""}First seen ${dmy(first)} · latest ${dmy(last)}</div></div>
+      <button class="reset" id="firm-graph" type="button">Show in Network</button></div>
+    <div class="ftiles">
+      ${tile("Stories", list.length, Object.entries(cats).map(([k, v]) => `${v} ${(CAT_WORDS[k] || [k, k])[v === 1 ? 0 : 1]}`).join(" · "))}
+      ${buy ? tile("As investor or buyer", buy) : ""}${sell ? tile("As seller", sell) : ""}${target ? tile("As the company invested in", target) : ""}
+      ${big ? tile("Largest disclosed deal", esc(money(big)), esc(big.title)) : ""}
+    </div>
+    <div class="netwrap">
+      <div class="fcard" style="margin:0"><div class="fhead"><h3>Stories</h3></div>${netStories(list, 200)}</div>
+      <aside class="netpanel"><h3>Linked firms</h3><div class="sub">Named on the same deal stories</div>
+        <ul>${links.map(([k, ed]) => `<li><a href="#firm/${encodeURIComponent(k)}">${esc(net.g.nodes.get(k).name)}</a><div class="sub">${ed.stories.size} stor${ed.stories.size === 1 ? "y" : "ies"}</div></li>`).join("") || `<li class="sub">None yet</li>`}</ul></aside>
+    </div>
+    <p class="note">Built from news stories, which may contain errors; check the original article. A link is not an ownership record.</p>`;
+  $("firm-graph").onclick = () => { net.center = n.key; net.edge = null; location.hash = ""; setTab("network"); };
+  setTitle();
+}
+function route() {
+  const m = location.hash.match(/^#firm\/(.+)$/);
+  if (m) { net.firm = decodeURIComponent(m[1]); setTab("firm"); scrollTo(0, 0); }
+  else if (state.tab === "firm") setTab("network");
+}
+addEventListener("hashchange", route);
+
 document.querySelectorAll("#nhops button").forEach((b) => b.onclick = () => {
   net.hops = +b.dataset.h;
   document.querySelectorAll("#nhops button").forEach((x) => x.setAttribute("aria-pressed", x === b));
@@ -1414,9 +1475,11 @@ document.querySelectorAll("#nhops button").forEach((b) => b.onclick = () => {
 });
 
 function setTab(t) {
+  const was = state.tab;
   state.tab = t;
   document.querySelectorAll("nav.tabs button").forEach((b) => b.setAttribute("aria-selected", b.dataset.tab === t));
-  ["overview", "feed", "investors", "network", "flows", "directory", "health"].forEach((x) => $(`tab-${x}`).hidden = x !== t);
+  ["overview", "feed", "investors", "network", "firm", "flows", "directory", "health"].forEach((x) => $(`tab-${x}`).hidden = x !== t);
+  if (was === "firm" && t !== "firm" && location.hash.startsWith("#firm/")) history.replaceState(null, "", location.pathname + location.search);
   // Fade the section in when it changes.
   const sec = $(`tab-${t}`); sec.classList.remove("enter"); void sec.offsetWidth; sec.classList.add("enter");
   // The news filters and story counts only apply to the story tabs.
@@ -1428,6 +1491,7 @@ function setTab(t) {
   if (t === "flows") renderFlows();
   if (t === "directory") openDirectory();
   if (t === "network") renderNetwork();
+  if (t === "firm") renderFirm();
   if (t === "overview" && typeof renderOverview === "function") requestAnimationFrame(renderOverview);
 }
 document.querySelectorAll("nav.tabs button").forEach((b) => b.onclick = () => { setTab(b.dataset.tab); scrollTo({ top: 0, behavior: "smooth" }); });
@@ -1437,6 +1501,8 @@ document.querySelectorAll("[data-go]").forEach((b) => b.onclick = () => { setTab
 const TITLES = {
   feed: ["Feed", "Investments, exits, fund launches and jurisdiction moves"],
   investors: ["Investors", "Every named investor in the stories, with their deals"],
+  network: ["Network", "Which firms appear together on the same deals"],
+  firm: ["Profile", "One firm's deals, links and sources"],
   flows: ["Flows", "FPI money in and out each day, and where FDI comes from"],
   directory: ["Directory", "Every SEBI-registered FPI and every GIFT IFSC entity"],
   health: ["Sources", "When each source last ran"],
@@ -1933,6 +1999,7 @@ function showWelcome() {
 }
 
 setTab("overview");
+route();
 refresh();
 loadOverviewRegs();
 showWelcome();
