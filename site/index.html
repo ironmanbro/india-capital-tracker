@@ -1589,6 +1589,8 @@ $("nq").addEventListener("change", () => {
   if (v && hit) { net.center = hit.key; net.edge = null; net.view = "one"; renderNetwork(); }
 });
 // ---------- Firm profile (#firm/<key>), opened from the Network tab ----------
+// A story about a private (unlisted) funding round: seed, Series A-H, growth, bridge or pre-IPO.
+const ROUND = /\b(pre-?seed|seed|series [a-h]|pre-series [a-c]|bridge|growth (?:round|capital)|funding round|pre-ipo|venture debt)\b/i;
 const CAT_WORDS = { entry: ["investment", "investments"], exit: ["exit", "exits"], fund_launch: ["fund launch", "fund launches"], relocation: ["move", "moves"] };
 function renderFirm() {
   const box = $("firm-body");
@@ -1596,7 +1598,7 @@ function renderFirm() {
   ensureNet();
   const n = net.g.nodes.get(net.firm);
   if (!n) { box.innerHTML = `<div class="empty">No firm by that name in the stories.</div>`; return; }
-  const list = [...n.stories], cats = {};
+  const list = [...n.stories], cats = {}, priv = list.filter((e) => ROUND.test(e.title)), rest = list.filter((e) => !ROUND.test(e.title));
   let buy = 0, sell = 0, target = 0, big = null, first = null, last = null;
   list.forEach((e) => {
     const ps = e.parties.length ? e.parties : e.investor ? [{ name: e.investor, role: "investor" }] : [];
@@ -1630,14 +1632,16 @@ function renderFirm() {
       <button class="reset" id="firm-feed" type="button">Show in Feed</button></div></div>
     <div class="ftiles">
       ${held.length ? tile("Listed companies held (1%+)", held.length, `Filings as of ${dmy(held.reduce((m, h) => h.period_end > m ? h.period_end : m, ""))}`) + tile("Largest stake", `${(+topHeld.pct).toFixed(2)}%`, esc(titleCase(topHeld.company))) : ""}
+      ${priv.length ? tile("Private rounds", priv.length, "Unlisted companies") : ""}
       ${tile("Stories", list.length, Object.entries(cats).map(([k, v]) => `${v} ${(CAT_WORDS[k] || [k, k])[v === 1 ? 0 : 1]}`).join(" · "))}
       ${buy ? tile("As investor or buyer", buy) : ""}${sell ? tile("As seller", sell) : ""}${target ? tile("As the company invested in", target) : ""}
       ${big ? tile("Largest disclosed deal", esc(money(big)), esc(big.title)) : ""}
     </div>
     ${aboutHtml(n.key)}
     ${held.length ? stakesHtml(n.key) : ""}
+    ${priv.length ? `<div class="fcard" style="margin-top:14px"><div class="fhead"><div><h3>Private (unlisted) deals</h3><div class="sub">Funding rounds in companies that are not listed, from startup and business news. Amounts are as reported.</div></div></div>${netStories(priv, 200, true)}</div>` : ""}
     <div class="netwrap" style="margin-top:14px">
-      <div class="fcard" style="margin:0"><div class="fhead"><h3>Stories</h3></div>${netStories(list, 200, true)}</div>
+      <div class="fcard" style="margin:0"><div class="fhead"><h3>Stories</h3></div>${rest.length ? netStories(rest, 200, true) : `<div class="sub" style="margin-top:8px">No other stories.</div>`}</div>
       <aside class="netpanel"><h3>Linked firms</h3><div class="sub">Named on the same deal stories, or holding a stake</div>
         <div class="pg"><ul>${links.map(([k, ed], i) => `<li${pgHide(i, true)}><a href="#firm/${encodeURIComponent(k)}">${esc(net.g.nodes.get(k).name)}</a><div class="sub">${esc(edgeLabel(ed))}</div></li>`).join("") || `<li class="sub">None yet</li>`}</ul>${pgBar(links.length)}</div></aside>
     </div>
