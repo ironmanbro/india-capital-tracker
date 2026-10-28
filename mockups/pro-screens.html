@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>India Capital Tracker — professional mockup</title>
+<style>
+:root{--bg:#f4f5f7;--panel:#fff;--sub:#f8f9fb;--line:#e2e5ea;--ink:#101828;--mut:#5d6675;--accent:#1d4ed8;--navy:#0f2a52;--up:#0b7a4b;--dn:#bf3b2f;--in:#1d4ed8;--out:#d9822b;--tagbg:#eef2f9;--shadow:0 1px 2px rgba(16,24,40,.04)}
+:root[data-theme=dark]{--bg:#0a0d12;--panel:#10141b;--sub:#0d1117;--line:#222a35;--ink:#e7eaf0;--mut:#8b94a3;--accent:#6e9bff;--navy:#10141b;--up:#3ecf8e;--dn:#f26d6d;--in:#5b8cff;--out:#e8923a;--tagbg:#18202c;--shadow:none}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+.top{background:var(--navy);color:#fff;border-bottom:1px solid var(--line)}
+:root[data-theme=dark] .top{background:var(--panel)}
+.bar{max-width:1240px;margin:0 auto;padding:0 24px;height:56px;display:flex;align-items:center;gap:28px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:650;font-size:15px;white-space:nowrap}
+.mark{width:26px;height:26px;border-radius:6px;background:#fff;color:var(--navy);display:grid;place-items:center;font-size:11px;font-weight:800}
+:root[data-theme=dark] .mark{background:var(--accent);color:#0a0d12}
+.tabs{display:flex;gap:2px;height:100%}.tabs a{display:flex;align-items:center;padding:0 14px;color:rgba(255,255,255,.7);text-decoration:none;font-size:13.5px;font-weight:500;border-bottom:2px solid transparent;margin-top:2px}
+.tabs a:hover{color:#fff}.tabs a.cur{color:#fff;border-color:#fff}
+:root[data-theme=dark] .tabs a.cur{border-color:var(--accent)}
+.sp{flex:1}.gs{background:rgba(255,255,255,.1);border-radius:6px;padding:7px 12px;font-size:13px;color:rgba(255,255,255,.75);width:260px}
+.live{font-size:12px;color:rgba(255,255,255,.75);display:flex;align-items:center;gap:6px;white-space:nowrap}.live i{width:7px;height:7px;border-radius:50%;background:#3ecf8e}
+.tick{background:var(--panel);border-bottom:1px solid var(--line)}
+.tick div{max-width:1240px;margin:0 auto;padding:0 24px;display:flex;gap:28px;height:38px;align-items:center;font-size:12.5px;overflow-x:auto;white-space:nowrap}
+.tick span{color:var(--mut)}.tick b{font-weight:600;margin-left:6px}
+.up{color:var(--up)}.dn{color:var(--dn)}
+main{max-width:1240px;margin:0 auto;padding:22px 24px 56px}
+.scr{display:none}.scr.on{display:block}
+.pt{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+h1{font-size:22px;font-weight:650;letter-spacing:-.01em}.pt p{color:var(--mut);font-size:13px;margin-top:2px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow)}
+.ph{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--line)}
+.ph h3{font-size:14px;font-weight:600}.ph small{color:var(--mut);font-size:12px}.ph a{color:var(--accent);font-size:12.5px;text-decoration:none;font-weight:500}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
+.kpi{padding:14px 16px}.kpi .l{color:var(--mut);font-size:12px;font-weight:500}.kpi .v{font-size:26px;font-weight:650;letter-spacing:-.02em;margin:4px 0 2px}.kpi .d{font-size:12px;color:var(--mut)}
+.kpi svg{display:block;margin-top:8px;width:100%;height:28px}
+.g2{display:grid;grid-template-columns:1.5fr 1fr;gap:12px;margin-bottom:12px}.g2b{display:grid;grid-template-columns:1.5fr 1fr;gap:12px}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut);font-weight:600;text-align:left;padding:9px 16px;background:var(--sub);border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px 16px;border-bottom:1px solid var(--line);vertical-align:middle}tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:var(--sub)}
+.r{text-align:right}td.r,th.r{font-variant-numeric:tabular-nums}
+.hl{font-weight:550;max-width:420px}.mo{display:none;font-weight:400;font-size:12px;margin-top:6px}.m{color:var(--mut)}
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:4px;background:var(--tagbg);white-space:nowrap}
+.tag i{width:6px;height:6px;border-radius:50%}
+.fb{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--sub);border-radius:8px 8px 0 0}
+.in,.sel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:7px 10px;font-size:13px;color:var(--ink);min-width:0}.in.s{flex:1 1 240px;color:var(--mut)}.sel{color:var(--mut)}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:7px 12px;font-size:13px;font-weight:550;color:var(--ink)}.btn.p{background:var(--accent);color:#fff;border-color:var(--accent)}
+:root[data-theme=dark] .btn.p{color:#0a0d12}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}.chips span{font-size:12.5px;padding:5px 11px;border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--mut);font-weight:500}.chips span.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--panel)}.seg span{padding:6px 14px;font-size:12.5px;color:var(--mut);font-weight:550;border-left:1px solid var(--line)}.seg span:first-child{border-left:0}.seg span.on{background:var(--ink);color:var(--bg)}
+.pg{display:flex;justify-content:space-between;align-items:center;padding:11px 16px;border-top:1px solid var(--line);font-size:12.5px;color:var(--mut)}
+.chart{padding:8px 12px 12px}.chart svg{width:100%;height:auto;display:block}
+.lg{display:flex;gap:16px;font-size:12px;color:var(--mut);padding:0 16px 12px}.lg i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px}
+.bar2{height:6px;background:var(--line);border-radius:3px;width:120px;display:inline-block;vertical-align:middle}.bar2 i{display:block;height:6px;border-radius:3px;background:var(--in)}
+.note{color:var(--mut);font-size:12px;margin-top:22px;padding-top:14px;border-top:1px solid var(--line)}
+@media(max-width:900px){.kpis{grid-template-columns:1fr 1fr}.g2,.g2b{grid-template-columns:1fr}.gs{display:none}.bar{gap:14px;padding:0 16px;overflow-x:auto}main{padding:16px 16px 48px}.tick div{padding:0 16px}.brand span.n{display:none}.hm{display:none}}
+@media(max-width:700px){.mh{display:none}.mo{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.hl{max-width:none;min-width:150px}}
+@media(max-width:560px){.kpis{gap:8px}.kpi .v{font-size:21px}.live{display:none}}
+</style></head><body>
+<div class="top"><div class="bar"><div class="brand"><div class="mark">ICT</div><span class="n">India Capital Tracker</span></div>
+<nav class="tabs"><a href="#home" data-s="home">Overview</a><a href="#feed" data-s="feed">Feed</a><a href="#investors" data-s="investors">Investors</a><a href="#flows" data-s="flows">Flows</a><a href="#directory" data-s="directory">Directory</a></nav>
+<div class="sp"></div><div class="gs">Search investors, companies, FPIs…</div><div class="live"><i></i>Updated 28 Oct, 6:30 pm IST</div></div></div>
+<div class="tick"><div><span>FPI equity<b class="dn">−₹1,103 cr</b></span><span>FPI debt<b class="up">+₹1,181 cr</b></span><span>Oct net<b class="dn">−₹4,820 cr</b></span><span>New FPIs, 30d<b>96</b></span><span>New GIFT IFSC, 30d<b>14</b></span><span>Stories, 7d<b>8</b></span></div></div>
+<main>
+<section class="scr" id="s-home"><div class="pt"><div><h1>Overview</h1><p>Foreign capital into and out of India · Wednesday 28 October 2026</p></div></div>
+<div class="kpis" id="kpis"></div>
+<div class="g2"><div class="panel"><div class="ph"><div><h3>Net FPI flow, last 30 days</h3><small>All segments, ₹ crore · Source: NSDL</small></div><a href="#flows">Flows →</a></div><div class="chart" id="c1"></div><div class="lg"><span><i style="background:var(--in)"></i>Net inflow</span><span><i style="background:var(--out)"></i>Net outflow</span></div></div>
+<div class="panel"><div class="ph"><div><h3>Biggest deals this week</h3><small>Agreed or completed</small></div><a href="#feed">Feed →</a></div><div class="tw"><table id="t-deals"></table></div></div></div>
+<div class="g2b"><div class="panel"><div class="ph"><div><h3>Latest stories</h3><small>Checked and added every 3 hours</small></div><a href="#feed">All stories →</a></div><div class="tw"><table id="t-home"></table></div></div>
+<div class="panel"><div class="ph"><div><h3>New registrations</h3><small>NSDL FPIs and GIFT IFSC entities</small></div><a href="#directory">Directory →</a></div><div class="tw"><table id="t-reg"></table></div></div></div></section>
+
+<section class="scr" id="s-feed"><div class="pt"><div><h1>Feed</h1><p>8 stories match your filters · sorted by newest</p></div></div>
+<div class="chips"><span class="on">All 8</span><span>Investment 4</span><span>Exit 2</span><span>Fund launch 1</span><span>Move 1</span></div>
+<div class="panel"><div class="fb"><div class="in s">Search investor, company, headline…</div><div class="sel">All investor types ▾</div><div class="sel">All countries ▾</div><div class="sel">21 Oct – 28 Oct ▾</div><div class="sel">Min amount ▾</div><div class="btn">Reset</div></div>
+<div class="tw"><table id="t-feed"></table></div><div class="pg"><span>Showing 1–8 of 8</span><span><span class="btn">‹ Prev</span> <span class="btn">Next ›</span></span></div></div></section>
+
+<section class="scr" id="s-investors"><div class="pt"><div><h1>Investors</h1><p>Ranked by reported deal value, last 90 days</p></div><div class="seg"><span class="on">All</span><span>Sovereign</span><span>Private equity</span><span>Pension</span><span>Asset manager</span></div></div>
+<div class="panel"><div class="fb"><div class="in s">Find an investor, fund or company…</div><div class="sel">All countries ▾</div><div class="sel">Sort: reported value ▾</div></div><div class="tw"><table id="t-inv"></table></div><div class="pg"><span>Showing 1–8 of 143 investors</span><span><span class="btn">Show more</span></span></div></div></section>
+
+<section class="scr" id="s-flows"><div class="pt"><div><h1>Flows</h1><p>Net FPI investment (NSDL) and FDI (DPIIT), ₹ crore</p></div><div class="seg"><span class="on">Daily</span><span>Monthly</span><span>FDI</span></div></div>
+<div class="kpis" id="fk"></div>
+<div class="panel" style="margin-bottom:12px"><div class="ph"><div><h3>Net FPI flow by day</h3><small>1 Oct – 28 Oct 2026</small></div><div class="seg"><span class="on">Total</span><span>Equity</span><span>Debt</span></div></div><div class="chart" id="c2"></div><div class="lg"><span><i style="background:var(--in)"></i>Net inflow</span><span><i style="background:var(--out)"></i>Net outflow</span></div></div>
+<div class="panel"><div class="ph"><div><h3>Daily detail</h3><small>Equity, debt and total</small></div><span class="btn">Export CSV</span></div><div class="tw"><table id="t-fl"></table></div></div></section>
+
+<section class="scr" id="s-directory"><div class="pt"><div><h1>Directory</h1><p>NSDL foreign portfolio investors and GIFT IFSC entities</p></div><div class="seg"><span class="on">FPIs</span><span>GIFT IFSC</span></div></div>
+<div class="kpis" id="dk"></div>
+<div class="panel"><div class="fb"><div class="in s">Search name or registration number…</div><div class="sel">All countries ▾</div><div class="sel">All categories ▾</div><div class="sel">Registered: any ▾</div></div><div class="tw"><table id="t-dir"></table></div><div class="pg"><span>Showing 1–8 of 12,874</span><span><span class="btn">‹ Prev</span> <span class="btn">Next ›</span></span></div></div>
+<p class="note">Sources: NSDL FPI register, IFSCA directory. Registration data may lag official sources.</p></section>
+<p class="note">A personal project by Kishan Singhania tracking foreign capital into and out of India. Sources: Google News, NSE, NSDL, IFSCA, DPIIT. Stories may contain errors; check the original article. Not investment advice. Sample data shown in this mockup.</p>
+</main>
+<script>
+const $=i=>document.getElementById(i);
+const fx=n=>(n<0?'−':n>0?'+':'')+'₹'+Math.abs(n).toLocaleString('en-IN')+' cr';
+const T={e:['Investment','var(--in)'],x:['Exit','var(--out)'],f:['Fund launch','var(--up)'],m:['Move','#8b5cf6']};
+const tag=k=>`<span class="tag"><i style="background:${T[k][1]}"></i>${T[k][0]}</span>`;
+const S=[['28 Oct','Temasek commits $1.2bn to Indian renewables platform','e','Temasek','Greenko',10560,'Reuters'],['27 Oct','GIC picks up stake in Mumbai logistics parks','e','GIC','Welspun One',3960,'Mint'],['26 Oct','Blackstone sells part of stake in IT services firm','x','Blackstone','Mphasis',5984,'Economic Times'],['25 Oct','Vanguard launches India-focused fund at GIFT City','f','Vanguard','GIFT City',0,'Reuters'],['25 Oct','ADIA backs Indian fintech in $300m round','e','ADIA','PhonePe',2640,'Bloomberg'],['24 Oct','KKR trims holding in healthcare chain','x','KKR','Max Healthcare',1848,'Mint'],['23 Oct','Fidelity shifts fund domicile to GIFT City','m','Fidelity','GIFT City',0,'Economic Times'],['22 Oct','CPP Investments adds $520m to infrastructure trust','e','CPP Investments','IndiGrid',4576,'Reuters']];
+const amt=a=>a?'₹'+a.toLocaleString('en-IN')+' cr':'<span class="m">—</span>';
+const V=[-1803,2400,-640,1210,3100,-2210,870,1520,-980,2760,-3050,640,1180,-420,2230,-1760,980,1640,-2410,310,1870,-1150,2950,-870,1390,-2640,720,1980,-1103,1181];
+const D=V.slice(-30);
+function spark(a,c){const w=200,h=28,mn=Math.min(...a),mx=Math.max(...a);const p=a.map((v,i)=>`${i*w/(a.length-1)},${h-2-(v-mn)/(mx-mn)*(h-4)}`).join(' ');return`<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline points="${p}" fill="none" stroke="${c}" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>`}
+function kpi(l,v,d,cls,a,c){return`<div class="panel kpi"><div class="l">${l}</div><div class="v ${cls||''}">${v}</div><div class="d">${d}</div>${a?spark(a,c):''}</div>`}
+$('kpis').innerHTML=kpi('FPI net, 28 Oct','−₹1,103 cr','Equity −₹1,103 · Debt +₹1,181','dn',D,'var(--out)')+kpi('FPI net, Oct so far','−₹4,820 cr','vs +₹9,210 cr in Sep','dn',D.map((_,i)=>D.slice(0,i+1).reduce((a,b)=>a+b,0)),'var(--out)')+kpi('New FPIs, 30 days','96','NSDL register · +12 vs prior 30d','',[60,70,64,80,75,90,96],'var(--in)')+kpi('New GIFT IFSC, 30 days','14','IFSCA directory · +3 vs prior 30d','',[8,9,11,10,12,13,14],'var(--in)');
+function bars(vals,labels,H=250){const W=760,L=52,B=26,T=10,n=vals.length,mx=Math.max(...vals.map(Math.abs)),ym=Math.ceil(mx/1000)*1000,pw=(W-L-8)/n,y=v=>T+(H-T-B)*(1-(v+ym)/(2*ym));let g='';for(let k=-ym;k<=ym;k+=ym/2){g+=`<line x1="${L}" x2="${W}" y1="${y(k)}" y2="${y(k)}" stroke="var(--line)" ${k==0?'stroke-width="1.4" stroke="var(--mut)" opacity=".5"':''}/><text x="${L-8}" y="${y(k)+4}" text-anchor="end" font-size="9" fill="var(--mut)">${k/1000?(k>0?'+':'−')+Math.abs(k/1000)+'k':'0'}</text>`}
+let b='';vals.forEach((v,i)=>{const x=L+i*pw+pw*.18,h=Math.abs(y(v)-y(0));b+=`<rect x="${x}" y="${v>=0?y(v):y(0)}" width="${pw*.64}" height="${Math.max(h,1)}" rx="1.5" fill="${v>=0?'var(--in)':'var(--out)'}"/>`;if(i%5==0)b+=`<text x="${x+pw*.32}" y="${H-8}" text-anchor="middle" font-size="9" fill="var(--mut)">${labels[i]}</text>`});
+return`<svg viewBox="0 0 ${W} ${H}">${g}${b}</svg>`}
+const lab=D.map((_,i)=>(i-1+1)+' Oct').map((s,i)=>(i+0)+'');const dl=D.map((_,i)=>{const d=new Date(2026,9,28-(29-i));return d.getDate()+' '+d.toLocaleString('en',{month:'short'})});
+$("c1").innerHTML=bars(D,dl,318);$('c2').innerHTML=bars(D,dl);
+$('t-deals').innerHTML='<thead><tr><th>Investor</th><th>Target</th><th class="r">Amount</th></tr></thead><tbody>'+[...S].filter(s=>s[5]).sort((a,b)=>b[5]-a[5]).slice(0,5).map(s=>`<tr><td><b style="font-weight:600">${s[3]}</b><br>${tag(s[2])}</td><td>${s[4]}</td><td class="r"><b style="font-weight:600">${amt(s[5])}</b></td></tr>`).join('')+'</tbody>';
+$('t-home').innerHTML='<thead><tr><th>Date</th><th>Headline</th><th class="hm">Type</th><th class="r">Amount</th></tr></thead><tbody>'+S.slice(0,6).map(s=>`<tr><td class="m">${s[0]}</td><td class="hl">${s[1]}</td><td class="hm">${tag(s[2])}</td><td class="r">${amt(s[5])}</td></tr>`).join('')+'</tbody>';
+$('t-reg').innerHTML='<thead><tr><th>Name</th><th>Country</th><th class="r">Date</th></tr></thead><tbody>'+[['Norges Bank Investment Mgmt','Norway','26 Oct'],['Capital Group EM Fund','USA','25 Oct'],['Quant Alpha Capital','GIFT IFSC','24 Oct'],['Abu Dhabi Pension Fund','UAE','23 Oct'],['Nomura India Fund','Japan','22 Oct'],['Pictet Asia Fund','Switzerland','21 Oct']].map(r=>`<tr><td class="hl">${r[0]}</td><td class="m">${r[1]}</td><td class="r m">${r[2]}</td></tr>`).join('')+'</tbody>';
+$('t-feed').innerHTML='<thead><tr><th class="mh">Date ▾</th><th class="mh">Type</th><th>Headline</th><th class="mh">Investor</th><th class="hm">Target</th><th class="r">Amount</th><th class="hm">Source</th></tr></thead><tbody>'+S.map(s=>`<tr><td class="m mh" style="white-space:nowrap">${s[0]}</td><td class="mh">${tag(s[2])}</td><td class="hl">${s[1]}<div class="mo m">${s[0]} · ${s[3]} · ${tag(s[2])}</div></td><td class="mh">${s[3]}</td><td class="hm">${s[4]}</td><td class="r" style="white-space:nowrap">${amt(s[5])}</td><td class="m hm">${s[6]}</td></tr>`).join('')+'</tbody>';
+const I=[['Temasek','Sovereign fund','Singapore',3,3,0,21200,'Greenko'],['GIC','Sovereign fund','Singapore',5,5,0,12980,'Welspun One'],['Blackstone','Private equity','USA',4,1,3,9400,'Mphasis'],['CPP Investments','Pension fund','Canada',2,2,0,6100,'IndiGrid'],['ADIA','Sovereign fund','UAE',3,3,0,5300,'PhonePe'],['KKR','Private equity','USA',4,1,3,4700,'Max Healthcare'],['Fidelity','Asset manager','USA',2,0,0,0,'GIFT City'],['Vanguard','Asset manager','USA',1,0,0,0,'GIFT City']];
+$('t-inv').innerHTML='<thead><tr><th>#</th><th>Investor</th><th class="hm">Type</th><th class="hm">Country</th><th class="r">Deals</th><th class="r hm">In / Out</th><th class="r">Reported value</th><th class="hm">Share</th><th class="hm">Latest</th></tr></thead><tbody>'+I.map((r,i)=>`<tr><td class="m">${i+1}</td><td><b style="font-weight:600">${r[0]}</b></td><td class="hm m">${r[1]}</td><td class="hm m">${r[2]}</td><td class="r">${r[3]}</td><td class="r hm"><span class="up">${r[4]}</span> / <span class="dn">${r[5]}</span></td><td class="r">${amt(r[6])}</td><td class="hm"><span class="bar2"><i style="width:${r[6]/212}%"></i></span></td><td class="hm m">${r[7]}</td></tr>`).join('')+'</tbody>';
+$('fk').innerHTML=kpi('Equity, 28 Oct','−₹1,103 cr','Net of buy and sell','dn')+kpi('Debt, 28 Oct','+₹1,181 cr','General + VRR','up')+kpi('October so far','−₹4,820 cr','20 trading days','dn')+kpi('FDI, FY25','$81.0bn','DPIIT · +14% year on year','');
+$('t-fl').innerHTML='<thead><tr><th>Date</th><th class="r">Equity</th><th class="r">Debt</th><th class="r">Total</th></tr></thead><tbody>'+D.slice(-8).reverse().map((v,i)=>{const e=Math.round(v*.62),d=v-e;const c=n=>`<td class="r ${n<0?'dn':'up'}">${fx(n)}</td>`;return`<tr><td class="m">${dl[29-i]}</td>${c(e)}${c(d)}${c(v)}</tr>`}).join('')+'</tbody>';
+$('dk').innerHTML=kpi('Registered FPIs','12,874','NSDL register','')+kpi('New FPIs, 30 days','96','+12 vs prior 30d','up')+kpi('GIFT IFSC entities','612','IFSCA directory','')+kpi('New GIFT IFSC, 30 days','14','+3 vs prior 30d','up');
+$('t-dir').innerHTML='<thead><tr><th>Name</th><th>Reg. no.</th><th class="hm">Country</th><th class="hm">Category</th><th class="r">Registered</th></tr></thead><tbody>'+[['Norges Bank Investment Mgmt','INFPIN2026118','Norway','Category I','26 Oct 2026'],['Capital Group EM Fund','INUSFP2026117','USA','Category I','25 Oct 2026'],['Abu Dhabi Pension Fund','INAEFP2026116','UAE','Category I','23 Oct 2026'],['Nomura India Fund','INJPFP2026115','Japan','Category II','22 Oct 2026'],['Pictet Asia Fund','INCHFP2026114','Switzerland','Category I','21 Oct 2026'],['Amundi Emerging Fund','INLUFP2026113','Luxembourg','Category I','20 Oct 2026'],['Schroder Asia Trust','INGBFP2026112','UK','Category I','19 Oct 2026'],['Daiwa India Equity','INJPFP2026111','Japan','Category II','18 Oct 2026']].map(r=>`<tr><td class="hl">${r[0]}</td><td class="m" style="font-family:ui-monospace,Menlo,monospace;font-size:12px">${r[1]}</td><td class="hm m">${r[2]}</td><td class="hm"><span class="tag">${r[3]}</span></td><td class="r m">${r[4]}</td></tr>`).join('')+'</tbody>';
+function show(){const h=(location.hash||'#home').slice(1);document.querySelectorAll('.scr').forEach(s=>s.classList.toggle('on',s.id==='s-'+h));document.querySelectorAll('.tabs a').forEach(a=>a.classList.toggle('cur',a.dataset.s===h))}
+addEventListener('hashchange',show);show();
+</script></body></html>
