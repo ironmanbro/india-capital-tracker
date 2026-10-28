@@ -354,6 +354,14 @@ header .eyebrow{color:var(--muted);font-size:12px;font-weight:700;letter-spacing
 .totop.show{opacity:1;pointer-events:auto;transform:none}
 .totop svg{width:20px;height:20px}
 @media (max-width:700px){.totop{right:14px;bottom:92px}}
+.stg{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;color:var(--sc);background:color-mix(in srgb,var(--sc) 14%,transparent);white-space:nowrap}
+.stg.pres{--sc:#c08bf5}
+.dsrc{color:var(--muted);font-size:11.5px;margin:10px 0 0;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.dsrc::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--good)}
+.dsrc.stale::before{background:#e3b341}
+.era{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:6px;margin-left:8px;vertical-align:2px}
+.era.cur{color:var(--good);background:color-mix(in srgb,var(--good) 14%,transparent)}
+.era.hist{color:var(--muted);background:var(--chip)}
 .toast{position:fixed;top:16px;left:50%;transform:translate(-50%,-140%);transition:transform .35s ease;background:#050608;color:#eceef2;border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:7px 8px 7px 10px;display:flex;gap:10px;align-items:center;font-weight:600;font-size:13px;box-shadow:0 10px 30px rgba(0,0,0,.45);z-index:60;max-width:calc(100vw - 32px)}
 .toast.show{transform:translate(-50%,0)}
 .toast .ok2{width:22px;height:22px;border-radius:50%;background:#16a37a;display:grid;place-items:center;flex:none}
@@ -432,6 +440,19 @@ header .eyebrow{color:var(--muted);font-size:12px;font-weight:700;letter-spacing
         <option value="news">News</option>
         <option value="nse">NSE bulk/block deals</option>
       </select>
+      <select id="stage" aria-label="Deal stage">
+        <option value="">Any stage</option>
+        <option value="completed">Completed</option>
+        <option value="agreed">Agreed</option>
+        <option value="talks">In talks</option>
+        <option value="plan">Plans and pledges</option>
+        <option value="firm">Agreed or completed</option>
+      </select>
+      <select id="flow" aria-label="Type of news">
+        <option value="capital" selected>Capital deals</option>
+        <option value="presence">Business presence</option>
+        <option value="">Capital deals and business presence</option>
+      </select>
       <button class="reset" id="reset" type="button">Reset</button>
     </div>
   </section>
@@ -452,9 +473,10 @@ header .eyebrow{color:var(--muted);font-size:12px;font-weight:700;letter-spacing
 
   <section id="tab-overview">
     <div class="ftiles" id="ov-tiles"></div>
+    <p class="dsrc" data-src="review,nsdl_flows,nsdl_fpi_list,ifsca_directory" data-what="Sources: news checked by the review step, NSE, NSDL, IFSCA and DPIIT. Each section shows its own source and update time" style="margin:-4px 0 14px"></p>
     <div class="ovgrid">
       <div class="ovc"><div class="ovh"><div><h3>Latest FPI flow</h3><div class="sub" id="ov-flow-sub">NSDL</div></div><button class="link" data-go="flows">Flows ↗</button></div><div class="flowwrap"><div id="ov-flow"></div><div class="fchart" id="ov-fpibars"></div></div></div>
-      <div class="ovc"><div class="ovh"><div><h3>Biggest deals this week</h3><div class="sub">Largest reported amounts, last 7 days</div></div><button class="link" data-go="feed">Feed ↗</button></div><div id="ov-deals"></div></div>
+      <div class="ovc"><div class="ovh"><div><h3>Biggest deals this week</h3><div class="sub">Largest agreed or completed deals, last 7 days</div></div><button class="link" data-go="feed">Feed ↗</button></div><div id="ov-deals"></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Latest stories</h3><div class="sub">Checked and added every 3 hours</div></div><button class="link" data-go="feed">All stories</button></div><div id="ov-stories"></div></div>
       <div class="ovc"><div class="ovh"><div><h3>New registrations</h3><div class="sub">NSDL FPIs and GIFT IFSC entities</div></div><button class="link" data-go="directory">Directory ↗</button></div><div id="ov-regs"><div class="sub">Loading…</div></div></div>
       <div class="ovc span2"><div class="ovh"><div><h3>The last 30 days</h3><div class="sub">Reported deal value by category, and the most active investors</div></div><button class="link" data-go="investors">Investors ↗</button></div><div id="ov-week"></div></div>
@@ -462,6 +484,7 @@ header .eyebrow{color:var(--muted);font-size:12px;font-weight:700;letter-spacing
   </section>
 
   <section id="tab-feed" hidden>
+    <p class="dsrc" data-src="review,news,nse_bulk" data-what="News via Google News, checked by the review step; NSE bulk/block deals of ₹25 cr or more" style="margin:0 0 10px"></p>
     <div class="fbar"><div class="seg" role="group" aria-label="Feed layout" id="fview"><button data-v="board" aria-pressed="true">Board</button><button data-v="list" aria-pressed="false">List</button></div></div>
     <div class="board" id="board"></div>
     <div class="list" id="feed"></div>
@@ -486,6 +509,7 @@ header .eyebrow{color:var(--muted);font-size:12px;font-weight:700;letter-spacing
       </select>
       <button class="reset" id="ireset" type="button">Reset</button>
     </div>
+    <p class="dsrc" data-src="review" data-what="Built from the reviewed stories" style="margin:0 0 6px"></p>
     <p class="sub" id="isum" style="margin:0 0 10px"></p>
     <div class="inv-grid" id="investors"></div>
     <div style="text-align:center;margin-top:12px"><button class="reset" id="imore" hidden>Show more investors</button></div>
@@ -513,26 +537,29 @@ header .eyebrow{color:var(--muted);font-size:12px;font-weight:700;letter-spacing
     <div class="ftiles" id="ftiles"></div>
 
     <div class="fcard">
-      <div class="fhead"><div><h3>FPI net investment by day</h3><div class="sub" id="fday-sub">₹ crore</div></div>
+      <div class="fhead"><div><h3>FPI net investment by day<span class="era cur">Current period</span></h3><div class="sub" id="fday-sub">₹ crore</div></div>
         <div class="seg" role="group" aria-label="Segment" id="fseg">
           <button data-s="Total" aria-pressed="true">All</button><button data-s="Equity" aria-pressed="false">Equity</button><button data-s="Debt" aria-pressed="false">Debt</button>
         </div></div>
       <div class="flegend"><span><i style="background:var(--in)"></i>Net inflow</span><span><i style="background:var(--out)"></i>Net outflow</span></div>
       <div class="fchart" id="fday"></div>
+      <p class="dsrc" data-src="nsdl_flows" data-what="NSDL FPI daily trends"></p>
     </div>
 
     <div class="fcard">
-      <div class="fhead"><div><h3>FPI net investment by month</h3><div class="sub" id="fmonth-sub">₹ crore · all segments</div></div></div>
+      <div class="fhead"><div><h3>FPI net investment by month<span class="era cur">This calendar year</span></h3><div class="sub" id="fmonth-sub">₹ crore · all segments</div></div></div>
       <div class="flegend"><span><i style="background:var(--in)"></i>Net inflow</span><span><i style="background:var(--out)"></i>Net outflow</span></div>
       <div class="fchart" id="fmonth"></div>
+      <p class="dsrc" data-src="nsdl_flows" data-what="NSDL FPI calendar-year report"></p>
     </div>
 
     <h2 class="fsec">FDI · foreign direct investment</h2>
     <p class="note" id="dpiit-sub">Long-term stakes in Indian companies. From DPIIT's quarterly FDI fact sheet, by financial year.</p>
     <div class="fcard">
-      <div class="fhead"><div><h3>Where FDI comes from</h3><div class="sub" id="dcountry-sub">FDI equity inflow by source country · US$</div></div></div>
+      <div class="fhead"><div><h3>Where FDI comes from<span class="era hist">Financial years</span></h3><div class="sub" id="dcountry-sub">FDI equity inflow by source country · US$</div></div></div>
       <div class="flegend" id="dlegend1"></div>
       <div class="hbars" id="dcountry"></div>
+      <p class="dsrc" data-src="dpiit_fdi" data-what="DPIIT quarterly FDI fact sheet" data-edition="1"></p>
       <p class="note" style="margin-top:10px">The ten largest source countries since 2000, ordered by the latest year. Much of the money routed through Singapore and Mauritius comes from funds based elsewhere.</p>
     </div>
     <div class="fcard">
@@ -542,11 +569,13 @@ header .eyebrow{color:var(--muted);font-size:12px;font-weight:700;letter-spacing
         </div></div>
       <div class="flegend" id="dlegend2"></div>
       <div class="hbars" id="dwhere"></div>
+      <p class="dsrc" data-src="dpiit_fdi" data-what="DPIIT quarterly FDI fact sheet" data-edition="1"></p>
       <p class="note" style="margin-top:10px" id="dwhere-note"></p>
     </div>
     <div class="fcard">
-      <div class="fhead"><div><h3>FDI into India over 26 years</h3><div class="sub" id="dannual-sub">Total FDI inflow by financial year · US$ million</div></div></div>
+      <div class="fhead"><div><h3>FDI into India over 26 years<span class="era hist">Historical · official</span></h3><div class="sub" id="dannual-sub">Total FDI inflow by financial year · US$ million</div></div></div>
       <div class="fchart" id="dannual"></div>
+      <p class="dsrc" data-src="dpiit_fdi" data-what="DPIIT quarterly FDI fact sheet" data-edition="1"></p>
       <p class="note" style="margin-top:8px">Total FDI = equity + re-invested earnings + other capital, on the international definition DPIIT uses. The latest year is provisional and may be revised.</p>
     </div>
     <div class="ftip" id="ftip" hidden></div>
@@ -575,6 +604,7 @@ header .eyebrow{color:var(--muted);font-size:12px;font-weight:700;letter-spacing
     <div class="dsum" id="dir-sum"></div>
     <div class="dlist" id="dir-list"></div>
     <button class="reset" id="dir-more" type="button" hidden style="margin-top:10px">Show more</button>
+    <p class="dsrc" id="dir-src" data-src="nsdl_fpi_list" data-what="NSDL register of SEBI-registered FPIs"></p>
     <p class="note" id="dir-note" style="margin-top:12px"></p>
   </section>
 
@@ -602,6 +632,11 @@ const TYPES = {
   fund_launch: "Fund launch",
   relocation:  "Jurisdiction move",
 };
+// How far a deal had got when it was last reported. Totals count only agreed or completed deals.
+const STAGES = { completed: ["Completed", "#3ccf98"], agreed: ["Agreed", "#6f95ff"], talks: ["In talks", "#e3b341"], plan: ["Plan or pledge", "#9aa4b2"] };
+const FIRM = new Set(["agreed", "completed"]);
+const stageTag = (e) => e.deal_stage ? `<span class="stg" style="--sc:${STAGES[e.deal_stage][1]}" title="Deal stage as last reported">${STAGES[e.deal_stage][0]}</span>` : "";
+const presTag = (e) => e.flow_kind === "presence" ? `<span class="stg pres" title="A company setting up, expanding or closing its own operations, not an investment in an Indian business">Business presence</span>` : "";
 const KPI_GROUPS = [
   { label: "All stories", types: [] },
   { label: "Investments into India", types: ["entry"] },
@@ -661,16 +696,18 @@ const money = (e) => { const a = amountCr(e); return a ? `${fmtCr(a.cr)} (~${fmt
 // All stories are loaded once; every filter is applied in the page so the tiles, chips,
 // feed and investor list always describe the same set.
 async function refresh() {
-  const cols = "id,source,source_name,url,title,summary,published_at,fetched_at,event_type,investor,investor_type,investor_country,origin_jurisdiction,target,amount_usd_m,amount_text,priority,classifier,reports,event_types,parties";
+  const cols = "id,source,source_name,url,title,summary,published_at,fetched_at,event_type,investor,investor_type,investor_country,origin_jurisdiction,target,amount_usd_m,amount_text,priority,classifier,reports,event_types,parties,deal_stage,flow_kind";
   try {
-    const [events, runs, reviewed] = await Promise.all([
+    const [events, runs, latest, reviewed] = await Promise.all([
       api(`stories?select=${cols}&order=published_at.desc.nullslast&limit=10000`),
       api(`runs?select=*&order=started_at.desc&limit=60`),
+      api(`runs_latest?select=source,finished_at`).catch(() => []),
       api(`runs?select=finished_at&source=eq.review&order=finished_at.desc&limit=1`),
     ]);
     // Older stories carry one category; newer ones can carry several.
     state.events = events.map((e) => ({ ...e, event_types: e.event_types?.length ? e.event_types : [e.event_type], parties: e.parties || [] }));
     state.runs = runs;
+    state.latest = Object.fromEntries(latest.map((r) => [r.source, r.finished_at]));
     state.lastReview = reviewed[0]?.finished_at || null;
     await loadFlows();
     render();
@@ -701,7 +738,7 @@ function applyPreset() {
 // Every filter except the category; the tiles and chips use this so they can show each category's count.
 function base() {
   const q = $("q").value.trim().toLowerCase();
-  const src = $("source").value;
+  const src = $("source").value, stage = $("stage").value, flow = $("flow").value;
   const v = $("preset").value;
   const from = v !== "all" && $("from").value ? new Date(`${$("from").value}T00:00:00`) : null;
   const to = v !== "all" && $("to").value ? new Date(`${$("to").value}T23:59:59.999`) : null;
@@ -710,6 +747,7 @@ function base() {
     const t = when(e);
     return (!sinceHours || t >= sinceHours) && (sinceHours || ((!from || t >= from) && (!to || t <= to))) &&
       (!src || (src === "news" ? e.source === "news" : e.source.startsWith("nse"))) &&
+      (!stage || (stage === "firm" ? FIRM.has(e.deal_stage) : e.deal_stage === stage)) && (!flow || (e.flow_kind || "capital") === flow) &&
       (!q || [e.title, e.investor, e.target, e.summary, e.source_name, ...e.parties.map((p) => p.name)].some((x) => x && x.toLowerCase().includes(q)));
   });
 }
@@ -751,7 +789,7 @@ function renderKpis() {
   const shown = filtered().length;
   $("kpi-note").textContent = `${shown === state.events.length ? `${fmt(shown)} stories` : `Showing ${fmt(shown)} of ${fmt(state.events.length)} stories`}. Tap a box to filter. Counts follow the filters above; a deal reported by several outlets counts once. Data from April 2026 to date.`;
   // On phones the filters fold away behind one button that shows how many are in use.
-  const active = [$("preset").value !== "all", !!$("source").value].filter(Boolean).length;
+  const active = [$("preset").value !== "all", !!$("source").value, !!$("stage").value, $("flow").value !== "capital"].filter(Boolean).length;
   $("ftoggle").textContent = active ? `Filters (${active})` : "Filters";
 }
 
@@ -774,7 +812,7 @@ function renderFeed() {
     ].filter(Boolean).join("&nbsp;· ");
     return `<article class="card">
       <div>
-        <div class="meta">${[...e.event_types].sort((a, b) => Object.keys(TYPES).indexOf(a) - Object.keys(TYPES).indexOf(b)).map((t) => `<span class="badge" style="--dotc:${color(t)}">${TYPES[t] || t}</span>`).join("")}</div>
+        <div class="meta">${[...e.event_types].sort((a, b) => Object.keys(TYPES).indexOf(a) - Object.keys(TYPES).indexOf(b)).map((t) => `<span class="badge" style="--dotc:${color(t)}">${TYPES[t] || t}</span>`).join("")}${stageTag(e)}${presTag(e)}</div>
         <div style="margin:4px 0"><a class="title" href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a></div>
         <div class="meta">${bits}</div>
       </div>
@@ -839,7 +877,7 @@ function buildInvestors() {
       // A story's amount is this firm's only if no other firm is on the same side (e.g. one of several IPO anchors).
       const side = (x) => x.role === "seller" ? "sell" : "buy";
       const alone = people.filter((x) => side(x) === side(p)).length === 1;
-      if (alone && amountCr(e) && (!r.biggest || amountCr(e).usd > amountCr(r.biggest).usd)) r.biggest = e;
+      if (alone && amountCr(e) && FIRM.has(e.deal_stage) && (!r.biggest || amountCr(e).usd > amountCr(r.biggest).usd)) r.biggest = e;
       by.set(k, r);
     });
   });
@@ -885,7 +923,7 @@ function renderInvestors() {
         `<span class="cat" style="color:${color(t)}">${TYPES[t]}${r.cats[t] > 1 ? ` × ${r.cats[t]}` : ""}</span>`).join("")}</div>
       <div class="stats">
         <div><b>${r.stories.length}</b><span>Stor${r.stories.length === 1 ? "y" : "ies"}</span></div>
-        <div><b>${r.biggest ? esc(money(r.biggest)) : "–"}</b><span>Largest amount</span></div>
+        <div><b>${r.biggest ? esc(money(r.biggest)) : "–"}</b><span>Largest agreed or completed</span></div>
         <div><b>${dmy(r.last)}</b><span>Last seen</span></div>
       </div>
       <div class="latest"><span class="sub">Latest:</span> <a href="${esc(latest.url)}" target="_blank" rel="noopener">${esc(latest.title)}</a>
@@ -1162,7 +1200,7 @@ addEventListener("resize", () => { if (innerWidth === lastW) return; lastW = inn
 
 function render() {
   ["from", "to"].forEach((id) => { if (document.activeElement !== $(`${id}-txt`)) $(`${id}-txt`).value = toDMY($(id).value); });
-  renderKpis(); renderFeed(); renderBoard(); renderInvestors(); renderRuns(); renderFlows(); renderOverview(); setTitle();
+  renderKpis(); renderFeed(); renderBoard(); renderInvestors(); renderRuns(); renderFlows(); renderOverview(); setTitle(); renderSources();
 }
 
 function setTab(t) {
@@ -1263,6 +1301,18 @@ async function loadOverviewRegs() {
   } catch { ovRegs = { st: {}, f: [], i: [] }; }
   renderOverview();
 }
+// "Source · updated" lines: each names its dataset and when that source last ran successfully.
+function renderSources() {
+  document.querySelectorAll(".dsrc[data-src]").forEach((el) => {
+    const t = el.dataset.src.split(",").map((k) => state.latest?.[k]).filter(Boolean).sort().pop();
+    let txt = el.dataset.what;
+    if (el.dataset.edition && flows.dpiit?.[0]) txt += ` · data up to ${flows.dpiit[0].edition}`;
+    txt += t ? ` · updated ${istTime(t)} IST` : "";
+    el.textContent = txt;
+    el.classList.toggle("stale", !!t && Date.now() - new Date(t) > 3 * 864e5);
+  });
+}
+
 function renderOverview() {
   if (!$("tab-overview") || !state.events.length) return;
   const now = Date.now(), t7 = (e) => now - new Date(e.published_at || e.fetched_at) < 7 * 864e5;
@@ -1298,7 +1348,7 @@ function renderOverview() {
     }
   } else $("ov-flow").innerHTML = `<div class="sub">No FPI figures yet.</div>`;
   // Biggest deals of the week by reported amount.
-  const deals = state.events.filter((e) => t7(e) && amountCr(e)).sort((a, b) => amountCr(b).usd - amountCr(a).usd);
+  const deals = state.events.filter((e) => t7(e) && amountCr(e) && FIRM.has(e.deal_stage) && e.flow_kind !== "presence").sort((a, b) => amountCr(b).usd - amountCr(a).usd);
   $("ov-deals").innerHTML = deals.length ? `<div class="feat"><small>${TYPES[typeOf(deals[0])]} · ${ago(deals[0].published_at || deals[0].fetched_at)}</small>
       <div class="t"><a href="${esc(deals[0].url)}" target="_blank" rel="noopener">${esc(deals[0].title)}</a></div><small>${esc(money(deals[0]))} · ${esc(deals[0].source_name || "")}</small></div>` +
     deals.slice(1, 4).map((e) => `<div class="ovrow"><span class="stripe" style="background:${color(typeOf(e))}"></span><div><div class="t"><a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.investor || e.title)}</a></div><div class="sub">${esc(e.target || e.title).slice(0, 80)}</div></div><span class="amt">${esc(money(e).split(" (")[0])}</span></div>`).join("")
@@ -1313,9 +1363,9 @@ function renderOverview() {
   // The last 30 days: reported amounts by category, and investors with the most stories.
   const m30 = state.events.filter((e) => now - new Date(e.published_at || e.fetched_at) < 30 * 864e5);
   const groups = KPI_GROUPS.filter((g) => g.types.length).map((g) => {
-    const list = m30.filter((e) => e.event_types.some((t) => g.types.includes(t)));
+    const list = m30.filter((e) => e.event_types.some((t) => g.types.includes(t)) && e.flow_kind !== "presence");
     // Headline pledges (e.g. "$100bn over 10 years") would swamp the sums, so amounts over $10bn are left out.
-    const withAmt = list.filter((e) => amountCr(e) && amountCr(e).usd <= 10000);
+    const withAmt = list.filter((e) => amountCr(e) && amountCr(e).usd <= 10000 && FIRM.has(e.deal_stage));
     return { g, n: list.length, k: withAmt.length, cr: withAmt.reduce((a, e) => a + amountCr(e).cr, 0) };
   });
   const top = Math.max(...groups.map((x) => x.cr), 1);
@@ -1323,13 +1373,13 @@ function renderOverview() {
   m30.forEach((e) => (e.parties.length ? e.parties : e.investor ? [{ name: e.investor }] : []).forEach((p) => {
     const k = invKey((p.name || "").trim()); if (!k || GENERIC.test(p.name || "")) return;
     const r = inv.get(k) || { name: p.name, n: 0, cr: 0, types: new Set() };
-    const a = amountCr(e); r.n++; r.cr += a && a.usd <= 10000 ? a.cr : 0; e.event_types.forEach((t) => r.types.add(t)); inv.set(k, r);
+    const a = amountCr(e); r.n++; r.cr += a && a.usd <= 10000 && FIRM.has(e.deal_stage) && e.flow_kind !== "presence" ? a.cr : 0; e.event_types.forEach((t) => r.types.add(t)); inv.set(k, r);
   }));
   const busiest = [...inv.values()].sort((a, b) => b.n - a.n || b.cr - a.cr).slice(0, 6);
   $("ov-week").innerHTML = `<div class="m30"><div>
-      ${groups.map((x) => `<div class="m30row"><div class="m30l"><b>${x.g.label}</b><span class="sub">${x.n} stor${x.n === 1 ? "y" : "ies"}${x.k ? ` · ${x.k} with an amount` : ""}</span></div>
+      ${groups.map((x) => `<div class="m30row"><div class="m30l"><b>${x.g.label}</b><span class="sub">${x.n} capital deal${x.n === 1 ? "" : "s"}${x.k ? ` · ${x.k} agreed or completed with an amount` : ""}</span></div>
         <div class="m30bar"><i style="width:${x.cr / top * 100}%;background:${color(x.g.types[0])}"></i></div><div class="m30v">${x.cr ? fmtCr(x.cr) : "–"}<span class="sub">${x.cr ? `~${fmtUsd(x.cr * 10 / usdInr())}` : ""}</span></div></div>`).join("")}
-      <p class="note" style="margin:8px 0 0">Sum of amounts reported in the news, including announced plans. Many deals disclose no amount; pledges over $10bn are left out.</p></div>
+      <p class="note" style="margin:8px 0 0">Sum of amounts for agreed or completed capital deals only: plans, pledges, talks and business-presence news are left out. Many deals disclose no amount.</p></div>
     <div>${busiest.map((r, i) => `<div class="ovrow"><span class="rank">${i + 1}</span><div style="min-width:0"><div class="t">${esc(r.name)}</div><div class="meta" style="margin-top:4px">${[...r.types].map(tg).join("")}</div></div><span class="side">${r.n} stor${r.n === 1 ? "y" : "ies"}${r.cr ? `<br>${fmtCr(r.cr)}` : ""}</span></div>`).join("") || `<div class="sub">No named investors in the last 30 days.</div>`}</div></div>`;
   newSinceLastVisit();
 }
@@ -1350,7 +1400,7 @@ function renderBoard() {
     const card = (e) => {
       const who = e.parties.length ? e.parties[0].name : e.investor, own = e.event_types.find((x) => g.types.includes(x));
       const kind = g.types.length > 1 ? `<span class="tg"><i style="background:${color(own)}"></i>${TYPES[own]}</span>` : "";
-      return `<div class="bk"><div class="meta">${kind}${who ? `<span class="tg"><i style="background:${color(own)}"></i>${esc(who).slice(0, 26)}</span>` : ""}${amountCr(e) ? `<span class="amtflag">${esc(money(e).split(" (")[0])}</span>` : ""}</div>
+      return `<div class="bk"><div class="meta">${kind}${stageTag(e)}${presTag(e)}${who ? `<span class="tg"><i style="background:${color(own)}"></i>${esc(who).slice(0, 26)}</span>` : ""}${amountCr(e) ? `<span class="amtflag">${esc(money(e).split(" (")[0])}</span>` : ""}</div>
         <a class="t" href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a><div class="m">${ago(e.published_at || e.fetched_at)} · ${esc(e.source_name || e.source)}${e.reports > 1 ? ` · ${e.reports} reports` : ""}</div></div>`;
     };
     return `<div class="bcol"><div class="bcolh"><span class="tg" style="background:none;padding:0"><i style="background:${color(t)}"></i></span>${g.label}<span class="c">${list.length}</span></div>
@@ -1451,6 +1501,8 @@ function renderDirTiles() {
     ? "Source: NSDL's register of SEBI-registered FPIs. Addresses and phone numbers are left out because many FPIs are individuals. Registration dates are worked out from NSDL's validity date (a first registration runs three years); older registrations show the year from the registration number."
     : "Source: IFSCA's Directory of Regulated Entities, including the contact details IFSCA publishes there. Some entries have no contact listed.";
   $("dir-fpi-filters").hidden = !fpi; $("dir-ifsca-filters").hidden = fpi;
+  Object.assign($("dir-src").dataset, fpi ? { src: "nsdl_fpi_list", what: "NSDL register of SEBI-registered FPIs" } : { src: "ifsca_directory", what: "IFSCA Directory of Regulated Entities" });
+  renderSources();
 }
 
 function dirPath() {
@@ -1605,7 +1657,7 @@ async function checkOwner() {
   $("leads-csv").hidden = !dir.ownerKey;
 }
 checkOwner();
-["q", "source"].forEach((id) => $(id).addEventListener("input", render));
+["q", "source", "stage", "flow"].forEach((id) => $(id).addEventListener("input", render));
 $("preset").addEventListener("change", () => { applyPreset(); render(); });
 ["from", "to"].forEach((id) => $(id).addEventListener("change", () => {
   if ($(id).value && !$(id).validity.valid) return;
@@ -1636,7 +1688,7 @@ $("ftoggle").addEventListener("click", () => {
   $("ftoggle").setAttribute("aria-expanded", open);
 });
 $("reset").addEventListener("click", () => {
-  $("q").value = ""; $("iq").value = ""; $("icat").value = ""; $("itype").value = ""; $("isort").value = "active"; $("source").value = "";
+  $("q").value = ""; $("iq").value = ""; $("icat").value = ""; $("itype").value = ""; $("isort").value = "active"; $("source").value = ""; $("stage").value = ""; $("flow").value = "capital";
   $("preset").value = "all"; applyPreset(); state.types.clear(); setTab("feed"); render();
 });
 $("to").max = $("from").max = $("fto").max = $("ffrom").max = dayStr(new Date());
