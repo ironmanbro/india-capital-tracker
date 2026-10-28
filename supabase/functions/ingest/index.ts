@@ -1,4 +1,5 @@
-// Ingest: pulls news + NSE bulk/block deals, classifies, stores in `events`.
+// Ingest: pulls news + NSE bulk/block deals, classifies, stores in `events`; reads new shareholding-pattern
+// filings from NSE's RSS feed into `shareholdings`.
 // Called every 30 minutes by pg_cron. When ANTHROPIC_API_KEY is set, leftover time
 // in each run upgrades older rule-classified items to LLM classification. Manual run:
 //   POST /functions/v1/ingest            (last 1 day of news)
@@ -9,7 +10,8 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import Anthropic from "npm:@anthropic-ai/sdk";
-import { googleNewsUrl, NEWS_QUERIES, NSE_FILES, type NewsQuery } from "./sources.ts";
+import { googleNewsUrl, NEWS_QUERIES, NSE_FILES, SHP_FEED, type NewsQuery } from "./sources.ts";
+import { parseFeed, parseShp } from "./shp.ts";
 import { classifyLLM, classifyRules, PRIORITY, type Classified, type RawItem } from "./classify.ts";
 import { dedupe } from "./dedupe.ts";
 
@@ -311,6 +313,59 @@ async function runNse() {
   return out;
 }
 
+// ---------- shareholding patterns ----------
+
+const NSE_HEADERS = { "user-agent": UA, referer: "https://www.nseindia.com/" };
+
+// New filings from NSE's shareholding-pattern feed, oldest first and a few per run. Only foreign holders
+// with 1% or more are kept, since nobody reviews these rows; a reviewed upload of the same row wins.
+async function runShp(deadline: number) {
+  const started = new Date();
+  try {
+    const res = await fetch(SHP_FEED, { headers: { ...NSE_HEADERS, accept: "application/rss+xml,application/xml,*/*" } });
+    if (!res.ok) throw new Error(`feed HTTP ${res.status}`);
+    const items = parseFeed(await res.text()).filter((i) => i.link);
+    const { data: done } = await db.from("shp_filings").select("link").in("link", items.map((i) => i.link));
+    const seen = new Set(done?.map((d) => d.link));
+    const todo = items.filter((i) => !seen.has(i.link)).reverse().slice(0, 15);
+    const errors: string[] = [];
+    let saved = 0;
+    for (const it of todo) {
+      if (Date.now() > deadline) break;
+      let status = "no_xbrl", n = 0;
+      if (it.xbrl) {
+        try {
+          const r = await fetch(it.xbrl, { headers: { ...NSE_HEADERS, accept: "application/xml,*/*" } });
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          const f = parseShp(await r.text(), FOREIGN, DOMESTIC);
+          const company = (f.company || it.title).slice(0, 200);
+          const rows = f.rows.filter((x) => x.foreign).map((x) => ({
+            company, symbol: f.symbol || null, period_end: f.period_end, holder: x.holder.slice(0, 200),
+            category: x.category || null, shares: x.shares, pct: x.pct, source_file: it.xbrl, source: "nse_rss",
+          }));
+          status = f.period_end ? "ok" : "no_date";
+          if (status === "ok" && rows.length) {
+            const { error } = await db.from("shareholdings").upsert(rows, { onConflict: "company,period_end,holder", ignoreDuplicates: true });
+            if (error) throw new Error(error.message);
+            n = rows.length;
+            saved += n;
+          }
+        } catch (e) {
+          // Left unrecorded so the next run tries this filing again.
+          errors.push(`${it.title}: ${(e as Error).message}`);
+          continue;
+        }
+      }
+      await db.from("shp_filings").upsert({ link: it.link, company: it.title.slice(0, 200), xbrl: it.xbrl, filed_at: it.date, status, rows: n });
+    }
+    await logRun("nse_shp", started, !errors.length, todo.length, saved, errors.join("; ") || undefined);
+    return { feed: items.length, read: todo.length, saved, errors: errors.length };
+  } catch (e) {
+    await logRun("nse_shp", started, false, 0, 0, (e as Error).message);
+    return { error: (e as Error).message };
+  }
+}
+
 // ---------- history ----------
 
 // Collect one past week of news (oldest unfinished first), then merge its duplicates.
@@ -351,9 +406,9 @@ Deno.serve(async (req) => {
   const window = /^\d+[hd]$/.test(url.searchParams.get("window") ?? "") ? url.searchParams.get("window")! : "1d";
   const deadline = Date.now() + TIME_BUDGET_MS;
 
-  const [news, nse] = await Promise.all([runNews(`when:${window}`, deadline), runNse()]);
+  const [news, nse, shp] = await Promise.all([runNews(`when:${window}`, deadline), runNse(), runShp(deadline)]);
   const stories = await dedupe(db, client, MODEL, deadline);
   // Leftover time goes to upgrading older rule-classified items.
   const upgraded = await reclassify(deadline);
-  return Response.json({ window, llm: Boolean(API_KEY), model: API_KEY ? MODEL : null, news, nse, stories, upgraded });
+  return Response.json({ window, llm: Boolean(API_KEY), model: API_KEY ? MODEL : null, news, nse, shp, stories, upgraded });
 });

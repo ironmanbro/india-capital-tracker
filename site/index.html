@@ -1473,7 +1473,7 @@ function renderFirm() {
 state.holdings = [];
 async function loadHoldings() {
   try {
-    state.holdings = await api("shareholdings?select=company,symbol,period_end,holder,category,pct&order=period_end.desc&limit=10000");
+    state.holdings = await api("shareholdings?select=company,symbol,period_end,holder,category,pct,source&order=period_end.desc&limit=10000");
     if (state.tab === "firm") renderFirm();
   } catch {}
 }
@@ -1482,12 +1482,14 @@ function firmStakes(key) {
   const latest = new Map();
   state.holdings.forEach((h) => { if (!latest.has(h.company) || h.period_end > latest.get(h.company)) latest.set(h.company, h.period_end); });
   const cur = state.holdings.filter((h) => h.period_end === latest.get(h.company));
-  return { holds: cur.filter((h) => invKey(h.holder) === key), heldBy: cur.filter((h) => invKey(h.company) === key) };
+  // Filings use the full legal name ("Lenskart Solutions Limited"); the stories use the short one.
+  const co = (x) => invKey(x).replace(/\b(solutions|industries|enterprises|technologies|technology|services|india)\b/g, "").replace(/\s+/g, " ").trim();
+  return { holds: cur.filter((h) => invKey(h.holder) === key), heldBy: cur.filter((h) => co(h.company) === co(key)) };
 }
 function stakesHtml(key) {
   const { holds, heldBy } = firmStakes(key);
   if (!holds.length && !heldBy.length) return "";
-  const row = (name, h) => `<tr><td>${esc(name)}</td><td class="num">${(+h.pct).toFixed(2)}%</td><td>${dmy(h.period_end)}</td></tr>`;
+  const row = (name, h) => `<tr><td>${esc(name)}${h.source === "nse_rss" ? ` <span class="sub" title="Read automatically from the filing; not checked by hand">auto</span>` : ""}</td><td class="num">${(+h.pct).toFixed(2)}%</td><td>${dmy(h.period_end)}</td></tr>`;
   const table = (head, rows) => `<div class="ftable-wrap" style="margin-top:8px"><table class="ftable"><thead><tr><th>${head}</th><th class="num">Stake</th><th>As of</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   return `<div class="fcard" style="margin-top:14px"><div class="fhead"><div><h3>Stakes over 1%</h3><div class="sub">From the company's quarterly shareholding-pattern filing</div></div></div>
     ${holds.length ? table("Company", holds.sort((a, b) => b.pct - a.pct).map((h) => row(h.company, h)).join("")) : ""}
@@ -1523,7 +1525,7 @@ function parseShp(text) {
     if (!holder || !Number.isFinite(pct)) return;
     const shares = parseFloat(pick(g, /^NumberOfFullyPaidUpEquityShares/i, /TotalNumberOfShares|NumberOfShares/i).replace(/,/g, ""));
     const where = `${ref} ${ctx.get(ref)?.dims || ""}`;
-    const category = where.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/[^A-Za-z]+/g, " ").match(/foreign portfolio[a-z ]*|foreign[a-z ]*|insurance[a-z ]*|mutual fund[a-z ]*|bodies corporate|promoter[a-z ]*|individual[a-z ]*/i)?.[0].trim() || "";
+    const category = where.replace(/Member\b/g, "").replace(/([a-z])([A-Z])/g, "$1 $2").replace(/[^A-Za-z]+/g, " ").match(/foreign portfolio[a-z ]*|foreign[a-z ]*|insurance[a-z ]*|mutual fund[a-z ]*|bodies corporate|promoter[a-z ]*|individual[a-z ]*/i)?.[0].trim() || "";
     rows.push({ holder, pct, shares: Number.isFinite(shares) ? shares : null, category, foreign: /foreign|fpi|fii|overseas/i.test(where) });
   });
   // Some filings store 1.23% as 0.0123.

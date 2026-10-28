@@ -72,3 +72,7 @@ export const NSE_FILES = [
   { source: "nse_bulk", url: "https://nsearchives.nseindia.com/content/equities/bulk.csv" },
   { source: "nse_block", url: "https://nsearchives.nseindia.com/content/equities/block.csv" },
 ];
+
+// NSE's RSS feed of shareholding-pattern filings (listed at nseindia.com/rss-feed). The address could not be
+// checked from the build environment; set SHP_FEED_URL to override it without a code change.
+export const SHP_FEED = Deno.env.get("SHP_FEED_URL") ?? "https://nsearchives.nseindia.com/content/RSS/Shareholding_Pattern.xml";

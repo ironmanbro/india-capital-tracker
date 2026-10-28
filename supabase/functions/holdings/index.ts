@@ -1,7 +1,7 @@
 // Owner-only: save the reviewed rows of one shareholding-pattern file.
 //   POST /functions/v1/holdings  { key, company, symbol, period_end, file, rows: [{ holder, category, shares, pct }] }
 // The key is checked against the SHA-256 hash in app_secrets.owner_key_hash, as in the leads function.
-// Re-saving the same company and quarter replaces that holder's row.
+// Re-saving the same company and quarter replaces that holder's row, including one read from the RSS feed.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 
@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
   for (const r of b.rows as Record<string, unknown>[]) {
     const holder = text(r.holder), pct = Number(r.pct), shares = r.shares == null || r.shares === "" ? null : Number(r.shares);
     if (!holder || !Number.isFinite(pct) || pct < 0 || pct > 100 || (shares != null && !Number.isFinite(shares))) return bad(`bad row: ${JSON.stringify(r).slice(0, 120)}`);
-    rows.push({ company, symbol: text(b.symbol, 40), period_end, holder, category: text(r.category), shares, pct, source_file: text(b.file) });
+    rows.push({ company, symbol: text(b.symbol, 40), period_end, holder, category: text(r.category), shares, pct, source_file: text(b.file), source: "upload" });
   }
   const { error } = await db.from("shareholdings").upsert(rows, { onConflict: "company,period_end,holder" });
   if (error) return bad(error.message, 500);
