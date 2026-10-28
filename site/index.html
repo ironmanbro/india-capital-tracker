@@ -425,6 +425,7 @@ abbr.term{text-decoration:underline dotted;text-underline-offset:3px;cursor:help
 .gloss dl{margin:12px 0 0;display:grid;gap:4px}.gloss dt{font-weight:700;margin-top:8px}.gloss dd{margin:0;color:var(--muted);font-size:13.5px}
 .gloss dt.on{color:var(--accent)}
 @media (max-width:700px){.bkcols{grid-template-columns:1fr}}
+.shpf{border:1px solid var(--line);border-radius:12px;padding:8px 12px;margin:8px 0}.shpf summary{cursor:pointer}.shpf.shpdone{opacity:.6}
 /* Network tab */
 .netflt,.netpath{margin-bottom:8px}.netflt select,.netpath select{max-width:100%;min-width:0}
 .pstep{border-top:1px solid var(--line);padding:10px 0}.pstep .slist{margin:6px 0 0}
@@ -728,8 +729,8 @@ abbr.term{text-decoration:underline dotted;text-underline-offset:3px;cursor:help
     <p class="note">"Items read" is how many headlines or rows the source returned; "Added" is how many were new. For the review step, "Items read" is headlines checked and "Added" is stories kept.</p>
     <div class="fcard" style="margin-top:16px">
       <div class="fhead"><div><h3>Add a shareholding pattern</h3>
-        <div class="sub">Download a company's shareholding-pattern XBRL file from NSE or BSE in your browser, then choose it here. It is read on this device; nothing is saved until you press Save.</div></div></div>
-      <input type="file" id="shp-file" accept=".xml,.xbrl,text/xml" style="margin-top:10px">
+        <div class="sub">Download shareholding-pattern XBRL files from NSE or BSE in your browser, then choose them here (one or many). It is read on this device; nothing is saved until you press Save.</div></div></div>
+      <input type="file" id="shp-file" accept=".xml,.xbrl,text/xml" multiple style="margin-top:10px"> <span class="sub">You can choose many files at once.</span>
       <div id="shp-out"></div>
     </div>
   </section>
@@ -1650,39 +1651,56 @@ function parseShp(text) {
   };
 }
 $("shp-file").addEventListener("change", async () => {
-  const f = $("shp-file").files[0], out = $("shp-out");
-  if (!f) return;
-  let p;
-  try { p = parseShp(await f.text()); } catch (e) { out.innerHTML = `<div class="empty">${esc(e.message)}</div>`; return; }
-  if (!p.rows.length) { out.innerHTML = `<div class="empty">No named shareholders with 1% or more were found in this file.</div>`; return; }
-  // Use the name the stories already know ("Lenskart" for "Lenskart Solutions Limited") so the profile finds it.
-  const filed = p.company, ck = invKey(filed);
+  const files = [...$("shp-file").files], out = $("shp-out");
+  if (!files.length) return;
+  out.innerHTML = `<div class="sub" style="margin:10px 0">Reading ${files.length} file${files.length === 1 ? "" : "s"}…</div>`;
   if (state.events.length) ensureNet();
-  const known = [...(net.g?.nodes.values() || [])].filter((n) => ck === n.key || ck.startsWith(n.key + " ")).sort((a, b) => b.key.length - a.key.length)[0];
-  if (known) p.company = known.name;
-  out.innerHTML = `<div class="filters" style="margin:12px 0">
-      <label>Company <input type="text" id="shp-co" value="${esc(p.company)}" style="width:16em"></label>
-      <label>Symbol <input type="text" id="shp-sym" value="${esc(p.symbol)}" style="width:7em"></label>
-      <label>Quarter ending <input type="date" id="shp-date" value="${esc(p.period_end)}"></label></div>
-    ${known && filed !== known.name ? `<p class="sub" style="margin:-4px 0 10px">Filed as "${esc(filed)}"; saved as "${esc(known.name)}" to match the stories. Change it above if that is wrong.</p>` : ""}
-    <div class="ftable-wrap"><table class="ftable"><thead><tr><th>Save</th><th>Shareholder</th><th>Category in the file</th><th class="num">Shares</th><th class="num">Stake</th></tr></thead><tbody>
-      ${p.rows.map((r, i) => `<tr><td><input type="checkbox" data-i="${i}" ${r.foreign ? "checked" : ""} aria-label="Save ${esc(r.holder)}"></td><td>${esc(r.holder)}</td><td>${esc(r.category || "—")}</td><td class="num">${r.shares == null ? "—" : r.shares.toLocaleString("en-IN")}</td><td class="num">${r.pct.toFixed(2)}%</td></tr>`).join("")}
-    </tbody></table></div>
-    <p class="sub" style="margin:8px 0">Foreign holders are ticked. Check the names and stakes against the filing before saving.</p>
-    <button class="reset" id="shp-save" type="button">Save ticked rows</button> <span class="sub" id="shp-msg"></span>`;
-  $("shp-save").onclick = async () => {
-    const rows = [...out.querySelectorAll("input[data-i]:checked")].map((c) => p.rows[+c.dataset.i]).map(({ holder, category, shares, pct }) => ({ holder, category, shares, pct }));
-    const body = { key: dir.ownerKey, company: $("shp-co").value.trim(), symbol: $("shp-sym").value.trim(), period_end: $("shp-date").value, file: f.name, rows };
-    if (!dir.ownerKey) { $("shp-msg").textContent = "Open the site with your owner link first."; return; }
-    if (!body.company || !body.period_end || !rows.length) { $("shp-msg").textContent = "Fill in the company and quarter, and tick at least one row."; return; }
-    $("shp-msg").textContent = "Saving…";
+  const items = [];
+  for (const f of files) {
     try {
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/holdings`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
-      if (!res.ok) throw new Error(await res.text());
-      $("shp-msg").textContent = `Saved ${(await res.json()).saved} rows.`;
-      loadHoldings();
-    } catch (e) { $("shp-msg").textContent = `Not saved: ${e.message}`; }
-  };
+      const p = parseShp(await f.text());
+      // Use the name the stories already know ("Lenskart" for "Lenskart Solutions Limited") so the profile finds it.
+      const filed = p.company, ck = invKey(filed);
+      const known = [...(net.g?.nodes.values() || [])].filter((n) => ck === n.key || ck.startsWith(n.key + " ")).sort((a, b) => b.key.length - a.key.length)[0];
+      if (known) p.company = known.name;
+      items.push({ f, p, filed, known });
+    } catch (e) { items.push({ f, err: e.message }); }
+  }
+  const ok = items.filter((x) => x.p?.rows.length);
+  out.innerHTML = `<p class="sub" style="margin:10px 0">${ok.length} of ${files.length} file${files.length === 1 ? "" : "s"} have named holders of 1% or more. Foreign holders are ticked. Check names and stakes against the filings before saving.</p>` +
+    items.map((x, n) => !x.p?.rows.length
+      ? `<div class="empty" style="margin:6px 0;padding:10px">${esc(x.f.name)}: ${esc(x.err || "no named holders with 1% or more.")}</div>`
+      : `<details class="shpf" data-n="${n}" ${items.length <= 3 ? "open" : ""}><summary><b>${esc(x.p.company || x.f.name)}</b> · quarter ending ${esc(x.p.period_end || "?")} · <span class="shpc">${x.p.rows.filter((r) => r.foreign).length}</span> of ${x.p.rows.length} ticked <span class="sub">(${esc(x.f.name)})</span></summary>
+        <div class="filters" style="margin:10px 0">
+          <label>Company <input type="text" class="shp-co" value="${esc(x.p.company)}" style="width:16em"></label>
+          <label>Symbol <input type="text" class="shp-sym" value="${esc(x.p.symbol)}" style="width:7em"></label>
+          <label>Quarter ending <input type="date" class="shp-date" value="${esc(x.p.period_end)}"></label></div>
+        ${x.known && x.filed !== x.known.name ? `<p class="sub" style="margin:-4px 0 8px">Filed as "${esc(x.filed)}"; saved as "${esc(x.known.name)}" to match the stories. Change it above if that is wrong.</p>` : ""}
+        <div class="ftable-wrap"><table class="ftable"><thead><tr><th>Save</th><th>Shareholder</th><th>Category in the file</th><th class="num">Shares</th><th class="num">Stake</th></tr></thead><tbody>
+          ${x.p.rows.map((r, i) => `<tr><td><input type="checkbox" data-i="${i}" ${r.foreign ? "checked" : ""} aria-label="Save ${esc(r.holder)}"></td><td>${esc(r.holder)}</td><td>${esc(r.category || "—")}</td><td class="num">${r.shares == null ? "—" : r.shares.toLocaleString("en-IN")}</td><td class="num">${r.pct.toFixed(2)}%</td></tr>`).join("")}
+        </tbody></table></div></details>`).join("") +
+    (ok.length ? `<p style="margin:12px 0 0"><button class="reset" id="shp-save" type="button">Save all ticked rows</button> <span class="sub" id="shp-msg"></span></p>` : "");
+  out.querySelectorAll(".shpf").forEach((d) => d.addEventListener("change", () => { d.querySelector(".shpc").textContent = d.querySelectorAll("input[data-i]:checked").length; }));
+  $("shp-save")?.addEventListener("click", async () => {
+    if (!dir.ownerKey) { $("shp-msg").textContent = "Open the site with your owner link first."; return; }
+    const msg = [], skipped = [];
+    let saved = 0, done = 0;
+    for (const d of out.querySelectorAll(".shpf")) {
+      const x = items[+d.dataset.n];
+      const rows = [...d.querySelectorAll("input[data-i]:checked")].map((c) => x.p.rows[+c.dataset.i]).map(({ holder, category, shares, pct }) => ({ holder, category, shares, pct }));
+      const body = { key: dir.ownerKey, company: d.querySelector(".shp-co").value.trim(), symbol: d.querySelector(".shp-sym").value.trim(), period_end: d.querySelector(".shp-date").value, file: x.f.name, rows };
+      if (!rows.length) continue;
+      if (!body.company || !body.period_end) { skipped.push(`${x.f.name} (company or quarter missing)`); continue; }
+      $("shp-msg").textContent = `Saving ${++done}…`;
+      try {
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/holdings`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+        if (!res.ok) throw new Error(await res.text());
+        saved += (await res.json()).saved; d.open = false; d.classList.add("shpdone");
+      } catch (e) { skipped.push(`${x.f.name} (${e.message})`); }
+    }
+    $("shp-msg").textContent = `Saved ${saved} rows from ${done - skipped.length} file${done - skipped.length === 1 ? "" : "s"}.${skipped.length ? ` Not saved: ${skipped.join("; ")}` : ""}`;
+    loadHoldings();
+  });
 });
 
 // ---------- What changed: this month so far against the same point last month ----------
