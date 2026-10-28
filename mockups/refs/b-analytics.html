@@ -1,0 +1,65 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ICT mockup B — analytics board</title>
+<style>
+:root{--page:#eceef2;--side:#fff;--bg:#f5f6f8;--card:#fff;--line:#e8eaee;--ink:#14171f;--mut:#7a8190;--blue:#3b6cf6;--yel:#f6b800;--up:#16a34a;--dn:#dc2626;--pillbg:#e9efff;--track:#eef1f9;--tg:#e9f7ee;--tr:#fdecec;--ty:#fdf6dd;--sh:0 10px 40px rgba(20,23,31,.08)}
+:root[data-theme=dark]{--page:#2a2b36;--side:#1b1c27;--bg:#1b1c27;--card:#242532;--line:#2e303f;--ink:#f1f2f6;--mut:#8f93a5;--blue:#5b86ff;--yel:#f8c21c;--up:#4ade80;--dn:#f87171;--pillbg:#fff;--track:#33354a;--tg:#2c6b3f;--tr:#8a3a3f;--ty:#a8892a;--sh:0 10px 40px rgba(0,0,0,.35)}
+*{box-sizing:border-box;margin:0}body{background:var(--page);color:var(--ink);font:14px/1.45 Inter,-apple-system,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;padding:28px}
+.app{max-width:1340px;margin:0 auto;background:var(--bg);border-radius:20px;box-shadow:var(--sh);display:grid;grid-template-columns:210px 1fr;overflow:hidden}
+.side{background:var(--side);padding:22px 14px;display:flex;flex-direction:column;border-right:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;font-size:19px;font-weight:600;padding:0 10px 26px}.lg{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#f43f5e,#3b6cf6);display:grid;place-items:center;color:#fff;font-size:10px;font-weight:800}
+.nv{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;font-size:14px;margin-bottom:4px;color:var(--ink)}.nv svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.nv.on{background:var(--pillbg);color:#1d3fbf;font-weight:500;box-shadow:0 1px 6px rgba(59,108,246,.12)}:root[data-theme=dark] .nv.on{color:#111}
+hr{border:0;border-top:1px solid var(--line);margin:14px 4px}
+.help{margin-top:auto;background:var(--track);border-radius:14px;padding:14px;font-size:12.5px;color:var(--mut)}.help b{display:block;color:var(--ink);font-size:13.5px;margin-bottom:2px}.help i{display:block;background:var(--blue);color:#fff;font-style:normal;text-align:center;border-radius:8px;padding:6px;margin-top:10px;font-weight:600;font-size:12px}
+.main{padding:22px 28px 28px;min-width:0}
+.hd{display:flex;align-items:center;gap:18px;margin-bottom:20px;flex-wrap:wrap}.hd h1{font-size:30px;font-weight:600;letter-spacing:-.02em}.dr{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:5px 12px;font-size:11.5px;color:var(--mut)}
+.sp{flex:1}.tg{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mut)}.sw{width:34px;height:18px;border-radius:9px;background:var(--blue);position:relative}.sw::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff}:root[data-theme=dark] .sw::after{left:18px}
+.u{display:flex;align-items:center;gap:10px;font-size:12px}.av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#ec4899);display:grid;place-items:center;color:#fff;font-weight:700;font-size:12px}
+.g{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.c{background:var(--card);border-radius:14px;padding:18px;border:1px solid var(--line)}
+.k{display:flex;justify-content:space-between;align-items:flex-start}.k span{font-size:14px}.k svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.6}
+.k+b{display:block;font-size:34px;font-weight:600;letter-spacing:-.02em;margin:10px 0 8px}.dl{font-size:11px;color:var(--mut)}.dl i{font-style:normal;font-weight:600;margin-right:6px}
+.up{color:var(--up)}.dn{color:var(--dn)}
+.kk{display:grid;grid-template-columns:1fr 1fr;gap:16px;grid-column:span 2}
+.don{grid-row:span 1;display:flex;flex-direction:column}.don .t{font-size:14px}.don b{display:block;font-size:32px;font-weight:600;margin-top:2px}.dl2{font-size:11px;color:var(--mut)}
+.dr2{display:flex;align-items:center;gap:12px;margin-top:auto;padding-top:10px}.lgd{font-size:11px;font-weight:500;line-height:1.9}.lgd i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px}
+.big{grid-column:span 2}.ct{display:flex;justify-content:space-between;margin-bottom:8px;font-size:14px}.ct i{font-style:normal;color:var(--mut);font-size:12px}
+.ring{display:flex;flex-direction:column;gap:4px}.ring .t{margin-top:8px;font-size:12.5px;color:var(--mut)}.ring b{font-size:24px;font-weight:600;display:block;margin-top:14px}.ring small{color:var(--mut);font-size:11px}.rh{display:flex;justify-content:space-between;align-items:flex-start}
+.tbl{grid-column:span 2}.tbl h3{font-size:15px;font-weight:600;margin-bottom:10px}
+table{width:100%;border-collapse:separate;border-spacing:0 6px;font-size:12px}th{font-weight:400;color:var(--mut);text-align:left;padding:2px 12px;font-size:11px}
+td{padding:9px 12px;background:var(--tg)}td:first-child{border-radius:999px 0 0 999px}td:last-child{border-radius:0 999px 999px 0;text-align:right;font-weight:600}tr.x td{background:var(--tr)}tr.f td{background:var(--ty)}
+:root[data-theme=dark] td{color:#fff}
+@media(max-width:1100px){.app{grid-template-columns:1fr}.side{display:none}.g{grid-template-columns:1fr 1fr}.kk{grid-column:span 2}.big,.tbl{grid-column:span 2}}@media(max-width:640px){body{padding:8px}.g{grid-template-columns:1fr}.kk,.big,.tbl{grid-column:auto}.kk{grid-template-columns:1fr}}
+</style></head><body><div class="app">
+<aside class="side"><div class="brand"><div class="lg">ICT</div>Tracker</div>
+<div class="nv on"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Overview</div>
+<div class="nv"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Feed</div>
+<div class="nv"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.5-4 3-6 6.5-6s6 2 6.5 6"/></svg>Investors</div>
+<div class="nv"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>Flows</div>
+<div class="nv"><svg viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3z"/></svg>Directory</div><hr>
+<div class="nv"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Settings</div>
+<div class="nv"><svg viewBox="0 0 24 24"><path d="M9 4H5v16h4M16 8l4 4-4 4M20 12H9"/></svg>Sign out</div>
+<div class="help"><b>Need a source?</b>Every story links to the original article.<i>Methodology</i></div></aside>
+<section class="main">
+<div class="hd"><h1>Overview</h1><span class="dr">01.10.2026 – 28.10.2026 ▦</span><div class="sp"></div><div class="tg">☀ <div class="sw"></div> ☾</div><div class="u"><div class="av">KS</div>Kishan S.</div></div>
+<div class="g">
+<div class="kk">
+<div class="c"><div class="k"><span>Stories, 7 days</span><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/></svg></div><b>8</b><div class="dl"><i class="up">↑ 14%</i>since last week</div></div>
+<div class="c"><div class="k"><span>Deals with amount</span><svg viewBox="0 0 24 24"><path d="M5 12l4 4 10-10"/></svg></div><b>6</b><div class="dl"><i class="up">↑ 3.4%</i>since last week</div></div>
+<div class="c"><div class="k"><span>New FPIs, 30 days</span><svg viewBox="0 0 24 24"><path d="M12 3v18M16 7H10a2.5 2.5 0 000 5h4a2.5 2.5 0 010 5H8"/></svg></div><b>96</b><div class="dl"><i class="up">↑ 14.3%</i>vs prior 30 days</div></div>
+<div class="c"><div class="k"><span>New GIFT IFSC</span><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/></svg></div><b>14</b><div class="dl"><i class="up">↑ 27.3%</i>vs prior 30 days</div></div></div>
+<div class="c don"><div class="t">Deal mix</div><b>₹29.6k cr</b><div class="dl2">reported, last 30 days</div><div class="dr2"><svg width="84" height="84" viewBox="0 0 42 42"><circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--yel)" stroke-width="7"/><circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--blue)" stroke-width="7" stroke-dasharray="73 27" transform="rotate(-90 21 21)"/><circle cx="21" cy="21" r="15.9" fill="none" stroke="#f97316" stroke-width="7" stroke-dasharray="26 74" stroke-dashoffset="-73" transform="rotate(-90 21 21)"/></svg><div class="lgd"><i style="background:var(--blue)"></i>73% Entries<br><i style="background:#f97316"></i>26% Exits<br><i style="background:var(--yel)"></i>1% Other</div></div></div>
+<div class="c don"><div class="t">Investor type</div><b>143</b><div class="dl2">active investors</div><div class="dr2"><svg width="84" height="84" viewBox="0 0 42 42"><circle cx="21" cy="21" r="15.9" fill="none" stroke="#c7d2fe" stroke-width="7"/><circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--blue)" stroke-width="7" stroke-dasharray="48 52" transform="rotate(-90 21 21)"/></svg><div class="lgd"><i style="background:var(--blue)"></i>48% Sovereign<br><i style="background:#c7d2fe"></i>52% Funds</div></div></div>
+<div class="c big"><div class="ct">Net FPI flow by day<i>₹ crore · 2026 ⌄</i></div><div id="bc"></div></div>
+<div class="c"><div class="rh"><div class="ring"><svg width="46" height="46" viewBox="0 0 42 42"><circle cx="21" cy="21" r="16" fill="none" stroke="var(--track)" stroke-width="4"/><circle cx="21" cy="21" r="16" fill="none" stroke="var(--dn)" stroke-width="4" stroke-dasharray="38 62" transform="rotate(-90 21 21)"/></svg></div><b class="dn" style="font-size:11px">−15%</b></div><div class="ring"><div class="t">Equity, 28 Oct</div><b>−₹1,103 cr</b><small>Net of buy and sell</small></div></div>
+<div class="c"><div class="rh"><div class="ring"><svg width="46" height="46" viewBox="0 0 42 42"><circle cx="21" cy="21" r="16" fill="none" stroke="var(--track)" stroke-width="4"/><circle cx="21" cy="21" r="16" fill="none" stroke="var(--up)" stroke-width="4" stroke-dasharray="52 48" transform="rotate(-90 21 21)"/></svg></div><b class="up" style="font-size:11px">+59%</b></div><div class="ring"><div class="t">Debt, 28 Oct</div><b>+₹1,181 cr</b><small>General + VRR</small></div></div>
+<div class="c tbl" style="grid-column:span 4"><h3>Latest stories</h3><table><thead><tr><th>Investor</th><th>Headline</th><th>Target</th><th>Date</th><th>Type</th><th style="text-align:right">Amount</th></tr></thead><tbody id="t"></tbody></table></div>
+</div></section></div>
+<script>
+const D=[-1803,2400,-640,1210,3100,-2210,870,1520,-980,2760,-3050,640,1180,-420,2230,-1760,980,1640,-2410,310,1870,-1150,2950,-870,1390,-2640,720,1980,-1103,1181];
+(function(){const W=520,H=190,L=38,B=20,ym=4000,y=v=>8+(H-8-B)*(1-(v+ym)/(2*ym)),pw=(W-L)/D.length;let s='';[-4000,-2000,0,2000,4000].forEach(k=>s+=`<line x1="${L}" x2="${W}" y1="${y(k)}" y2="${y(k)}" stroke="var(--line)"/><text x="${L-6}" y="${y(k)+3}" text-anchor="end" font-size="11" fill="var(--mut)">${k?(k<0?'−':'')+Math.abs(k/1000)+'k':'0'}</text>`);
+D.forEach((v,i)=>{const x=L+i*pw+pw*.3,w=pw*.4;s+=`<rect x="${x}" y="${v>=0?y(v):y(0)}" width="${w}" height="${Math.abs(y(v)-y(0))}" rx="${w/2}" fill="${v>=0?'var(--blue)':'#f97316'}"/>`});
+['29 Sep','9 Oct','19 Oct'].forEach((l,i)=>s+=`<text x="${L+i*10*pw+pw/2}" y="${H-5}" text-anchor="middle" font-size="11" fill="var(--mut)">${l}</text>`);
+document.getElementById('bc').innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%">${s}</svg>`})();
+const R=[['Temasek','Temasek commits $1.2bn to renewables platform','Greenko','28 Oct','Investment','₹10,560 cr',''],['Blackstone','Blackstone sells part of stake in IT services firm','Mphasis','26 Oct','Exit','₹5,984 cr','x'],['Vanguard','Vanguard launches India-focused fund at GIFT City','GIFT City','25 Oct','Fund launch','—','f'],['ADIA','ADIA backs Indian fintech in $300m round','PhonePe','25 Oct','Investment','₹2,640 cr','']];
+document.getElementById('t').innerHTML=R.map(r=>`<tr class="${r[6]}"><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td></tr>`).join('');
+</script></body></html>

@@ -1,0 +1,75 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ICT mockup A — sidebar dark</title>
+<style>
+:root{--page:#2b2b2d;--shell:#0c0c0e;--side:#0c0c0e;--card:#151518;--card2:#1c1c20;--line:#26262b;--ink:#f3f4f6;--mut:#8c8f98;--blue:#2f8bff;--up:#34d399;--dn:#f87171;--out:#f59e42}
+*{box-sizing:border-box;margin:0}body{background:var(--page);color:var(--ink);font:14px/1.45 Inter,-apple-system,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;padding:28px}
+.shell{max-width:1360px;margin:0 auto;background:var(--shell);border-radius:30px;padding:12px;display:grid;grid-template-columns:200px 1fr;gap:12px;border:1px solid #1d1d21}
+.side{padding:8px 6px;display:flex;flex-direction:column}.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;padding:4px 8px 14px}
+.logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#3da0ff,#1f66e0);display:grid;place-items:center;font-size:11px;font-weight:800}
+.grp{font-size:11px;letter-spacing:.06em;color:var(--mut);padding:14px 10px 6px;border-bottom:1px solid var(--line);margin-bottom:6px}
+.nv{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;color:#c5c7ce;font-size:13.5px}.nv svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+.nv.on{background:linear-gradient(180deg,#242428,#1a1a1e);color:#fff;box-shadow:inset 0 0 0 1px #2e2e34,inset -2px 0 0 var(--blue)}.nv b{margin-left:auto;background:#26262b;border-radius:999px;font-size:11px;padding:1px 7px;font-weight:600}
+.upg{margin-top:auto;border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center;background:linear-gradient(180deg,#1b1b1f,#121214)}.upg b{display:block;font-size:15px}.upg span{display:block;color:var(--mut);font-size:12px;margin:4px 0 12px}.upg i{display:block;background:#fff;color:#000;font-style:normal;font-weight:600;border-radius:9px;padding:8px;font-size:13px}
+.main{background:#101013;border-radius:22px;padding:14px 18px 20px;min-width:0}
+.tb{display:flex;align-items:center;gap:10px;margin:-2px 0 14px}.srch{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 14px;width:290px;color:var(--mut);font-size:13px}.srch kbd{margin-left:auto;font:inherit;font-size:11px;background:#26262b;border-radius:5px;padding:1px 6px}
+.sp{flex:1}.ib{width:36px;height:36px;border-radius:10px;background:var(--card);border:1px solid var(--line);display:grid;place-items:center;color:#c5c7ce}.ib svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.7}
+.av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#ec4899);display:grid;place-items:center;font-weight:700;font-size:12px}
+.hd{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:16px}.hd h1{font-size:28px;letter-spacing:-.02em;font-weight:650}.hd p{color:var(--mut);font-size:13px;margin-top:3px}
+.pill{display:inline-flex;gap:8px;align-items:center;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:9px 14px;font-size:13px}.btn{background:#2f8bff;border-radius:10px;padding:9px 16px;font-weight:600;font-size:13px;margin-left:8px;display:inline-block}
+.grid{display:grid;grid-template-columns:1.05fr 1fr 1fr;gap:14px}
+.c{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+.ch{display:flex;align-items:center;gap:12px;margin-bottom:12px}.ci{width:36px;height:36px;border-radius:10px;background:var(--card2);border:1px solid var(--line);display:grid;place-items:center;color:#c5c7ce}.ci svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.7}
+.ch h3{font-size:16px;font-weight:500}.dots{margin-left:auto;background:var(--card2);border-radius:8px;padding:2px 9px;color:var(--mut)}
+.big{font-size:38px;font-weight:650;letter-spacing:-.03em;line-height:1.1}.big.s{font-size:32px}.chg{font-size:12px;color:var(--mut);margin-top:8px}.chg b{font-size:11px;padding:2px 7px;border-radius:6px;margin-right:6px}.chg .u{background:rgba(52,211,153,.14);color:var(--up)}.chg .d{background:rgba(248,113,113,.14);color:var(--dn)}
+.row2{grid-row:span 2}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}.b1,.b2{border-radius:10px;padding:10px;text-align:center;font-weight:600;font-size:13.5px}.b1{background:#2f8bff}.b2{background:#f3f4f6;color:#111}
+.wl{display:flex;justify-content:space-between;align-items:center;font-weight:600;margin:6px 0 10px}.wl i{font-style:normal;font-weight:500;font-size:12px;border:1px solid var(--line);background:var(--card2);padding:5px 11px;border-radius:8px}
+.wg{display:grid;grid-template-columns:1fr 1fr;gap:10px}.w{background:var(--card2);border-radius:14px;padding:12px 14px;border:1px solid #222227}.w small{color:#b6b9c2;font-size:12px;display:flex;justify-content:space-between}.w b{display:block;font-size:19px;margin:4px 0 2px;font-weight:600}.w em{font-style:normal;font-size:11px}
+.span2{grid-column:span 2}
+.leg{display:flex;align-items:center;gap:10px;font-size:12px;color:#c5c7ce;margin-left:auto}.leg i{width:6px;height:14px;border-radius:3px;background:var(--blue);display:inline-block;margin-right:6px;vertical-align:-3px}.sel{border:1px solid var(--line);background:var(--card2);border-radius:8px;padding:5px 10px;font-size:12px}
+.tip{position:absolute;background:#26262c;border:1px solid #34343b;border-radius:10px;padding:8px 12px;font-size:11.5px;box-shadow:0 8px 24px rgba(0,0,0,.5)}.tip b{display:block;font-size:15px;margin-top:2px}
+table{width:100%;border-collapse:collapse;font-size:13px}th{font-size:11.5px;color:var(--mut);font-weight:500;text-align:left;padding:8px 10px;background:#1c1c20}th:first-child{border-radius:8px 0 0 8px}th:last-child{border-radius:0 8px 8px 0}td{padding:12px 10px;border-bottom:1px solid #1d1d21}tr:last-child td{border:0}
+.st{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;padding:3px 10px;border-radius:999px;background:rgba(52,211,153,.13);color:var(--up)}.st::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}.st.x{background:rgba(245,158,66,.14);color:var(--out)}.st.f{background:rgba(167,139,250,.14);color:#a78bfa}
+.sq{width:30px;height:30px;border-radius:8px;background:var(--card2);display:inline-grid;place-items:center;font-weight:700;font-size:12px;margin-right:10px;vertical-align:middle;border:1px solid var(--line)}
+.goal{background:var(--card2);border-radius:14px;padding:14px;margin-top:10px;border:1px solid #222227}.goal .t{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px}.goal .t i{width:30px;height:30px;border-radius:8px;background:#1c2a3f;display:grid;place-items:center;color:#5aa2ff;font-style:normal;font-size:12px}.goal .n{display:flex;justify-content:space-between;color:var(--mut);margin:10px 0 8px;font-size:13px}.goal .n b{color:#fff}.pr{height:6px;background:#2a2a30;border-radius:4px}.pr i{display:block;height:6px;border-radius:4px;background:var(--blue)}
+@media(max-width:1100px){.shell{grid-template-columns:1fr}.side{display:none}.grid{grid-template-columns:1fr 1fr}.row2{grid-row:auto}}@media(max-width:700px){body{padding:10px}.grid{grid-template-columns:1fr}.span2{grid-column:auto}.srch{width:auto;flex:1}}
+</style></head><body><div class="shell">
+<aside class="side"><div class="brand"><div class="logo">ICT</div>Capital Tracker</div>
+<div class="grp">MAIN MENU</div>
+<div class="nv on"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Overview</div>
+<div class="nv"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Feed<b>8</b></div>
+<div class="nv"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.5-4 3-6 6.5-6s6 2 6.5 6M16 4.5a3.5 3.5 0 010 7M18 14c2 .6 3.3 2.5 3.5 6"/></svg>Investors</div>
+<div class="nv"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>Flows</div>
+<div class="nv"><svg viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3z"/><path d="M9 9h6M9 13h6"/></svg>Directory</div>
+<div class="grp">LIBRARY</div>
+<div class="nv"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z"/></svg>Saved stories</div>
+<div class="nv"><svg viewBox="0 0 24 24"><path d="M12 8v5l3 2"/><circle cx="12" cy="12" r="9"/></svg>Update log</div>
+<div class="grp">GENERAL</div>
+<div class="nv"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg>Settings</div>
+<div class="nv"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 114 2c-1 .7-1.5 1-1.5 2M12 17h.01"/></svg>About</div>
+<div class="upg"><b>Sources</b><span>Every story links to the original article. Checked every 3 hours.</span><i>Methodology</i></div></aside>
+<section class="main">
+<div class="tb"><div class="srch">⌕ Search investors, companies…<kbd>⌘ K</kbd></div><div class="sp"></div><div class="ib"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5l3 2"/></svg></div><div class="ib"><svg viewBox="0 0 24 24"><path d="M6 9a6 6 0 0112 0c0 6 2 7 2 7H4s2-1 2-7M10 20a2 2 0 004 0"/></svg></div><div class="av">KS</div></div>
+<div class="hd"><div><h1>Good evening 👋</h1><p>Foreign capital into and out of India. Last updated 6:30 pm IST.</p></div><div><span class="pill">▦ Wed, 28 October 2026</span><span class="btn">⇪ Export</span></div></div>
+<div class="grid">
+<div class="c row2"><div class="ch"><div class="ci"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-8"/></svg></div><h3>FPI net flow today</h3></div>
+<div class="big">−₹1,103 cr</div><div class="chg"><b class="d">−1.9% ↓</b>from yesterday (NSDL)</div>
+<div class="btns"><div class="b1">Open Flows</div><div class="b2">Export CSV</div></div>
+<div class="wl">Segments <i>+ Compare</i></div>
+<div class="wg"><div class="w"><small>Equity <span>⋮</span></small><b>−₹1,103 cr</b><em class="dn" style="color:var(--dn)">Outflow</em></div><div class="w"><small>Debt <span>⋮</span></small><b>+₹1,181 cr</b><em style="color:var(--up)">Inflow</em></div><div class="w"><small>October so far <span>⋮</span></small><b>−₹4,820 cr</b><em style="color:var(--dn)">20 sessions</em></div><div class="w"><small>FDI, FY25 <span>⋮</span></small><b>$81.0bn</b><em style="color:var(--up)">+14% y/y</em></div></div></div>
+<div class="c"><div class="ch"><div class="ci"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.5-4 3-6 6.5-6s6 2 6.5 6"/></svg></div><h3>New FPIs</h3><span class="dots">•••</span></div><div class="big s">96</div><div class="chg"><b class="u">+14.3% ↑</b>last 30 days</div></div>
+<div class="c"><div class="ch"><div class="ci"><svg viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3z"/></svg></div><h3>New GIFT IFSC</h3><span class="dots">•••</span></div><div class="big s">14</div><div class="chg"><b class="u">+27.3% ↑</b>last 30 days</div></div>
+<div class="c span2" style="position:relative"><div class="ch"><div class="ci"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg></div><h3>Monthly FPI net flow</h3><div class="leg"><span><i></i>Net, ₹ cr</span><span class="sel">This year ▾</span></div></div><div id="ch"></div></div>
+<div class="c span2"><div class="ch"><div class="ci"><svg viewBox="0 0 24 24"><path d="M12 3v18M7 8l5-5 5 5"/></svg></div><h3>Latest stories</h3><span class="sel" style="margin-left:auto">Filter ☰</span></div>
+<table><thead><tr><th>Headline</th><th>Date</th><th>Amount</th><th>Type</th></tr></thead><tbody id="tb"></tbody></table></div>
+<div class="c"><div class="ch"><div class="ci"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><h3>Deal mix, 30 days</h3><span class="dots">•••</span></div>
+<div class="goal"><div class="t"><i>IN</i>Investments</div><div class="n"><span>₹21,736 cr</span><b>73%</b></div><div class="pr"><i style="width:73%"></i></div></div>
+<div class="goal"><div class="t"><i style="background:#3a2a14;color:#f59e42">EX</i>Exits</div><div class="n"><span>₹7,832 cr</span><b>26%</b></div><div class="pr"><i style="width:26%;background:var(--out)"></i></div></div></div>
+</div></section></div>
+<script>
+const M=[-6200,3400,8100,-2100,5600,9400,-3800,4200,11800,-4820];const lb=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct'];
+(function(){const W=800,H=230,L=46,B=24,mx=12000,y=v=>H-B-(v+8000)/(mx+8000)*(H-B-8),pw=(W-L)/M.length;let s='';[-8000,0,4000,8000,12000].forEach(k=>s+=`<line x1="${L}" x2="${W}" y1="${y(k)}" y2="${y(k)}" stroke="#222227"/><text x="${L-8}" y="${y(k)+4}" text-anchor="end" font-size="10" fill="#8c8f98">${k?(k<0?'−':'')+Math.abs(k/1000)+'k':'0'}</text>`);
+M.forEach((v,i)=>{const x=L+i*pw+pw*.2,w=pw*.6,hi=i==8;const top=v>=0?y(v):y(0),h=Math.abs(y(v)-y(0));s+=`<rect x="${x}" y="${top}" width="${w}" height="${h}" rx="7" fill="${hi?'url(#g)':'#242428'}"/><text x="${x+w/2}" y="${H-6}" text-anchor="middle" font-size="10.5" fill="${hi?'#fff':'#8c8f98'}">${lb[i]}</text>`});
+document.getElementById('ch').innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%"><defs><linearGradient id="g" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#7aa8ff"/><stop offset="1" stop-color="#2f6fe6"/></linearGradient></defs>${s}</svg><div class="tip" style="left:56%;top:74px">Sep<b>+₹11,800 cr</b></div>`})();
+const R=[['Temasek commits $1.2bn to renewables platform','28 Oct','₹10,560 cr','Investment','',''],['Blackstone sells part of stake in IT services firm','26 Oct','₹5,984 cr','Exit','x','B'],['Vanguard launches India-focused fund at GIFT City','25 Oct','—','Fund launch','f','V'],['ADIA backs Indian fintech in $300m round','25 Oct','₹2,640 cr','Investment','','A']];
+R[0][5]='T';document.getElementById('tb').innerHTML=R.map(r=>`<tr><td><span class="sq">${r[5]}</span>${r[0]}</td><td style="color:#8c8f98">${r[1]}</td><td>${r[2]}</td><td><span class="st ${r[4]}">${r[3]}</span></td></tr>`).join('');
+</script></body></html>

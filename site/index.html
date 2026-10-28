@@ -167,6 +167,7 @@ td.num{font-variant-numeric:tabular-nums;text-align:right}
 .ftable th .arr{opacity:.35;font-size:10px}
 .ftable th[aria-sort="ascending"] .arr,.ftable th[aria-sort="descending"] .arr{opacity:1;color:var(--accent)}
 .ftable td{padding:10px 12px;vertical-align:middle}
+.ftable th.num{text-align:right}
 .ftable tbody tr.r:hover td{background:var(--chip)}
 .ftable tbody tr.r:last-child td{border-bottom:0}
 .fn{font-weight:600;line-height:1.3;overflow-wrap:anywhere}
@@ -405,6 +406,18 @@ section.enter :is(.kpi,.ftile,.card,.inv,.bk,.ovc,.fcard,.drow):nth-child(n+5):n
 .toast .ok2{width:22px;height:22px;border-radius:50%;background:#16a37a;display:grid;place-items:center;flex:none}
 .toast button{background:#1d2026;color:#eceef2;border:0;border-radius:999px;padding:4px 10px;font:inherit;font-size:12px;cursor:pointer;flex:none}
 @media (max-width:900px){.board{grid-template-columns:1fr 1fr}}
+/* Network tab */
+.netbar #nq{flex:1 1 260px;min-width:0}
+.netwrap{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:14px;align-items:start}
+.netsvg,.netpanel{background:var(--glass),var(--panel);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow)}
+.netsvg{overflow:hidden}.netsvg svg{display:block;width:100%;height:auto}
+.netpanel{padding:16px 18px;max-height:680px;overflow:auto}
+.netpanel h3{margin:0 0 2px;font-size:16px;overflow-wrap:anywhere}
+.netpanel ul,.slist{list-style:none;padding:0;margin:12px 0;display:grid;gap:12px}
+.netpanel li a,.slist li a{color:var(--ink);font-weight:600;text-decoration:none;overflow-wrap:anywhere}.netpanel li a:hover,.slist li a:hover{text-decoration:underline}
+.nn,.ne{cursor:pointer}.nn:focus{outline:none}.nn:focus circle,.nn:hover circle{stroke:var(--accent);stroke-width:3}
+.ne:hover line:first-child{stroke:var(--accent)}
+@media (max-width:900px){.netwrap{grid-template-columns:1fr}.netpanel{max-height:none}}
 @media (max-width:700px){
   .wrap{margin:0;padding:18px 16px 96px}
   nav.tabs{left:10px;right:10px;top:auto;bottom:10px;width:auto;height:auto;flex-direction:row;justify-content:space-around;border-radius:20px;padding:6px}
@@ -503,6 +516,7 @@ section.enter :is(.kpi,.ftile,.card,.inv,.bk,.ovc,.fcard,.drow):nth-child(n+5):n
     <button role="tab" aria-selected="true" data-tab="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Home</button>
     <button role="tab" aria-selected="false" data-tab="feed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7 9h10M7 13h10M7 17h6"/></svg>Feed</button>
     <button role="tab" aria-selected="false" data-tab="investors"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20c-.5-2.5-2-4.2-4-5"/></svg>Investors</button>
+    <button role="tab" aria-selected="false" data-tab="network"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="2.5"/><circle cx="5" cy="5" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="18" cy="19" r="2"/><path d="M6.5 6.5l3.7 3.7M17.3 7.3l-3.5 3.3M16.6 17.5l-2.8-3.6"/></svg>Network</button>
     <button role="tab" aria-selected="false" data-tab="flows"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Flows</button>
     <button role="tab" aria-selected="false" data-tab="directory"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M9 7h6"/></svg>Directory</button>
     <div class="grow"></div>
@@ -552,6 +566,24 @@ section.enter :is(.kpi,.ftile,.card,.inv,.bk,.ovc,.fcard,.drow):nth-child(n+5):n
     <div class="inv-grid" id="investors"></div>
     <div style="text-align:center;margin-top:12px"><button class="reset" id="imore" hidden>Show more investors</button></div>
   </section>
+
+  <section id="tab-network" hidden>
+    <div class="filters netbar">
+      <input type="search" id="nq" list="nq-list" placeholder="Search a company or investor…" aria-label="Search a company or investor">
+      <datalist id="nq-list"></datalist>
+      <div class="seg" id="nhops" role="group" aria-label="How far to look">
+        <button type="button" data-h="1" aria-pressed="false">1 hop</button>
+        <button type="button" data-h="2" aria-pressed="false">2 hops</button>
+      </div>
+    </div>
+    <p class="sub" style="margin:0 0 10px">A line means two firms appeared in the same deal story. It is not an ownership record. Click a firm to centre it, or a line to see its stories.</p>
+    <div class="netwrap">
+      <div class="netsvg" id="net-graph"></div>
+      <aside class="netpanel" id="net-panel" aria-live="polite"></aside>
+    </div>
+  </section>
+
+  <section id="tab-firm" hidden><div id="firm-body"></div></section>
 
   <section id="tab-flows" hidden>
     <p class="sub" style="margin:0 0 12px">Money moving into and out of India in aggregate. FPI figures are daily from NSDL (₹ crore); FDI figures are by financial year from DPIIT's quarterly fact sheet (US$).</p>
@@ -649,6 +681,12 @@ section.enter :is(.kpi,.ftile,.card,.inv,.bk,.ovc,.fcard,.drow):nth-child(n+5):n
   <section id="tab-health" hidden>
     <div class="scroll"><table id="runs"></table></div>
     <p class="note">"Items read" is how many headlines or rows the source returned; "Added" is how many were new. For the review step, "Items read" is headlines checked and "Added" is stories kept.</p>
+    <div class="fcard" style="margin-top:16px">
+      <div class="fhead"><div><h3>Add a shareholding pattern</h3>
+        <div class="sub">Download a company's shareholding-pattern XBRL file from NSE or BSE in your browser, then choose it here. It is read on this device; nothing is saved until you press Save.</div></div></div>
+      <input type="file" id="shp-file" accept=".xml,.xbrl,text/xml" style="margin-top:10px">
+      <div id="shp-out"></div>
+    </div>
   </section>
   <p class="note">New stories are checked and added every 3 hours.</p>
 
@@ -867,8 +905,23 @@ const INV_TYPES = {
 // Vague placeholders the news uses instead of a name; they are not contactable leads.
 const GENERIC = /^(global|foreign|overseas|offshore|international|institutional)\s+(investors?|funds?|players?)$/i;
 // "Carlyle Group" and "Carlyle" are one firm: compare names without legal or group suffixes.
-const invKey = (n) => n.toLowerCase().replace(/[.,']/g, "").replace(/\s*&\s*co\b/g, "")
+const baseKey = (n) => n.toLowerCase().replace(/[.,']/g, "").replace(/\s*&\s*co\b/g, "")
   .replace(/\b(group|inc|llc|ltd|limited|plc|lp|pte|sa|ag|nv|bv|co|corp|corporation|holdings?)\b/g, "").replace(/\s+/g, " ").trim();
+// Other spellings of one firm, checked by hand against the stories (keys and values are baseKey output).
+// Kept apart on purpose: a parent and its listed Indian arm (Novartis / Novartis India, ABB / ABB India,
+// Fairfax / Fairfax India), "Fidelity" (Fidelity Investments or Fidelity International) and "Japan".
+const ALIAS = {
+  "bain capital": "bain", "tpg capital": "tpg", "peak xv partners": "peak xv", "accel india": "accel",
+  "leapfrog investments": "leapfrog", "polunin capital partners": "polunin", "polunin fund": "polunin",
+  "westbridge capital": "westbridge", "i squared capital": "i squared", "cvc capital": "cvc",
+  "warburg": "warburg pincus", "chryscap": "chryscapital", "cppib": "cpp investments", "advent": "advent international",
+  "alpha wave": "alpha wave global", "alpha wave ventures": "alpha wave global", "nexus": "nexus venture partners",
+  "bessemer": "bessemer venture partners", "macquarie asset": "macquarie", "panthera": "panthera growth partners",
+  "general atlantic singapore": "general atlantic", "bofa": "bank of america", "citi": "citigroup",
+  "nps korea": "national pension service of korea", "national pension service": "national pension service of korea",
+  "ihc": "international holding company", "ta": "ta associates",
+};
+const invKey = (n) => { const k = baseKey(n); return ALIAS[k] || k; };
 const dmy = (iso) => toDMY(dayStr(new Date(iso)));
 let invShown = 60;
 
@@ -1239,12 +1292,308 @@ addEventListener("resize", () => { if (innerWidth === lastW) return; lastW = inn
 function render() {
   ["from", "to"].forEach((id) => { if (document.activeElement !== $(`${id}-txt`)) $(`${id}-txt`).value = toDMY($(id).value); });
   renderKpis(); renderFeed(); renderBoard(); renderInvestors(); renderRuns(); renderFlows(); renderOverview(); setTitle(); renderSources();
+  if (state.tab === "network") renderNetwork();
+  if (state.tab === "firm") renderFirm();
 }
 
+// ---------- Network: which firms appear on the same deal stories ----------
+// Built from every loaded story, not the Feed filters. Investors link to the company they bought into or sold;
+// a story with no company links its firms to each other (co-investors, or buyer and seller).
+const net = { src: null, g: null, center: null, edge: null, hops: innerWidth < 700 ? 1 : 2 };
+// Descriptions rather than names ("offshore backer", "Malaysian investor", "UAE") would link unrelated deals.
+const VAGUE = /^(global|offshore|foreign|overseas|international|institutional|malaysian|polish|mauritius-based|singapore sovereign)\b.*\b(investors?|funds?|lenders?|backers?|company|wealth fund)$|^(uae|japan|qatar|new zealand|nordic countries|usd .*)$/i;
+function buildNetwork() {
+  const nodes = new Map(), edges = new Map(), adj = new Map();
+  const node = (name, asTarget) => {
+    const nm = (name || "").trim(), k = invKey(nm);
+    if (!k || GENERIC.test(nm) || VAGUE.test(nm)) return null;
+    const n = nodes.get(k) || { key: k, names: new Map(), stories: new Set(), asTarget: 0, asFirm: 0 };
+    n.names.set(nm, (n.names.get(nm) || 0) + 1);
+    if (asTarget) n.asTarget++; else n.asFirm++;
+    nodes.set(k, n);
+    return n;
+  };
+  const link = (a, b, e) => {
+    if (a.key === b.key) return;
+    const id = a.key < b.key ? `${a.key}|${b.key}` : `${b.key}|${a.key}`;
+    const ed = edges.get(id) || { id, a: a.key, b: b.key, stories: new Set() };
+    ed.stories.add(e);
+    edges.set(id, ed);
+    [[a, b], [b, a]].forEach(([x, y]) => { if (!adj.has(x.key)) adj.set(x.key, new Map()); adj.get(x.key).set(y.key, ed); });
+  };
+  state.events.forEach((e) => {
+    const ps = e.parties.length ? e.parties : e.investor ? [{ name: e.investor, role: "investor" }] : [];
+    const tname = e.target || ps.find((p) => p.role === "target")?.name;
+    const t = tname ? node(tname, true) : null;
+    const firms = new Map();
+    ps.filter((p) => p.role !== "target").forEach((p) => { const n = node(p.name, false); if (n && n !== t) firms.set(n.key, n); });
+    const all = [...firms.values()];
+    [...all, t].forEach((n) => n && n.stories.add(e));
+    if (t) all.forEach((f) => link(f, t, e));
+    else all.forEach((a, i) => all.slice(i + 1).forEach((b) => link(a, b, e)));
+  });
+  nodes.forEach((n) => n.name = [...n.names.entries()].sort((a, b) => b[1] - a[1] || a[0].length - b[0].length)[0][0]);
+  return { nodes, edges, adj };
+}
+
+function netStories(list, limit = 15) {
+  const rows = [...list].sort((a, b) => (b.published_at || b.fetched_at) > (a.published_at || a.fetched_at) ? 1 : -1).slice(0, limit);
+  return `<ul class="slist">${rows.map((e) => `<li><a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a>
+    <div class="sub">${dmy(e.published_at || e.fetched_at)} · ${esc(e.source_name || e.source || "")}${money(e) ? ` · ${esc(money(e))}` : ""}</div></li>`).join("")}</ul>`;
+}
+
+function ensureNet() {
+  if (net.src !== state.events) {
+    net.src = state.events; net.g = buildNetwork();
+    const deg = (k) => net.g.adj.get(k)?.size || 0;
+    const ranked = [...net.g.nodes.values()].filter((n) => deg(n.key)).sort((a, b) => deg(b.key) - deg(a.key));
+    $("nq-list").innerHTML = ranked.map((n) => `<option value="${esc(n.name)}">`).join("");
+    if (!net.g.nodes.has(net.center)) net.center = ranked[0]?.key || null;
+  }
+}
+
+function renderNetwork() {
+  if (!state.events?.length) return;
+  document.querySelectorAll("#nhops button").forEach((x) => x.setAttribute("aria-pressed", +x.dataset.h === net.hops));
+  ensureNet();
+  const { nodes, adj } = net.g, c = nodes.get(net.center);
+  if (!c) { $("net-graph").innerHTML = `<div class="empty">No linked firms yet.</div>`; $("net-panel").innerHTML = ""; return; }
+  // First ring: the centre's direct links, strongest first. Second ring: a few of each one's own links.
+  const w = (ed) => ed.stories.size;
+  const nb = adj.get(c.key) || new Map();
+  const hop1 = [...nb.entries()].sort((a, b) => w(b[1]) - w(a[1])).slice(0, 24).map(([k, ed]) => ({ k, ed }));
+  const placed = new Set([c.key, ...hop1.map((h) => h.k)]), hop2 = [];
+  if (net.hops === 2) hop1.forEach((h) => {
+    [...(adj.get(h.k) || new Map()).entries()].filter(([k]) => !placed.has(k)).sort((a, b) => w(b[1]) - w(a[1])).slice(0, 4)
+      .forEach(([k, ed]) => { if (hop2.length < 40 && !placed.has(k)) { placed.add(k); hop2.push({ k, ed, p: h.k }); } });
+  });
+  // Phones get a square canvas and bigger text so labels stay readable.
+  const sm = innerWidth < 700, f = sm ? 1.9 : 1;
+  const W = sm ? 700 : 1000, H = sm ? 700 : 640, cx = W / 2, cy = H / 2, r1 = sm ? (hop2.length ? 130 : 170) : hop2.length ? 175 : 235, r2 = 285, pos = new Map([[c.key, [cx, cy, 0]]]);
+  hop1.forEach((h, i) => { const a = (i / hop1.length) * 2 * Math.PI - Math.PI / 2; pos.set(h.k, [cx + r1 * Math.cos(a), cy + r1 * Math.sin(a), a]); });
+  const slot = (2 * Math.PI) / Math.max(hop1.length, 1);
+  hop1.forEach((h) => {
+    const kids = hop2.filter((x) => x.p === h.k), a0 = pos.get(h.k)[2];
+    // Alternate two radii so neighbouring labels do not sit on one line.
+    kids.forEach((x, j) => {
+      const a = a0 + (kids.length > 1 ? (j / (kids.length - 1) - 0.5) * slot * 0.9 : 0), r = r2 + (j % 2 ? 30 : 0);
+      pos.set(x.k, [cx + r * Math.cos(a), cy + r * Math.sin(a) * 0.9, a]);
+    });
+  });
+  const line = (a, b, ed) => {
+    const [x1, y1] = pos.get(a), [x2, y2] = pos.get(b), on = net.edge === ed.id;
+    return `<g class="ne" data-e="${esc(ed.id)}"><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${on ? "var(--accent)" : "var(--line)"}" stroke-width="${(on ? 2 : 1) + Math.log2(w(ed))}"/>
+      <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="transparent" stroke-width="12"><title>${esc(nodes.get(a).name)} – ${esc(nodes.get(b).name)}: ${w(ed)} stor${w(ed) === 1 ? "y" : "ies"}</title></line></g>`;
+  };
+  const dot = (k, ring) => {
+    const n = nodes.get(k), [x, y, a] = pos.get(k), r = (ring === 0 ? 16 : Math.min(15, 5 + 2 * Math.sqrt(n.stories.size))) * (sm ? 1.4 : 1);
+    const fill = n.asTarget > n.asFirm ? "var(--muted)" : "var(--entry)";
+    const max = sm ? 14 : 24, label = n.name.length > max ? n.name.slice(0, max - 1) + "…" : n.name;
+    const right = ring === 0 || Math.cos(a) >= -0.2, dx = ring === 0 ? 0 : right ? r + 5 : -r - 5;
+    const anchor = ring === 0 ? "middle" : right ? "start" : "end", ty = ring === 0 ? y + r + 16 * f : y + 4 * f;
+    return `<g class="nn" data-k="${esc(k)}" tabindex="0" role="button" aria-label="Centre on ${esc(n.name)}">
+      ${ring === 0 ? `<circle cx="${x}" cy="${y}" r="${r + 9}" fill="${fill}" fill-opacity=".18"/>` : ""}
+      <circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" stroke="var(--panel)" stroke-width="2"/>
+      <text x="${x + dx}" y="${ty}" text-anchor="${anchor}" font-size="${(ring === 2 ? 11 : 12.5) * f}" font-weight="${ring === 2 ? 400 : 600}" fill="${ring === 2 ? "var(--muted)" : "var(--ink)"}">${esc(label)}</text></g>`;
+  };
+  $("net-graph").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Deal links around ${esc(c.name)}">
+    ${hop2.map((x) => line(x.p, x.k, x.ed)).join("")}${hop1.map((h) => line(c.key, h.k, h.ed)).join("")}
+    ${hop2.map((x) => dot(x.k, 2)).join("")}${hop1.map((h) => dot(h.k, 1)).join("")}${dot(c.key, 0)}</svg>
+    <div class="flegend" style="padding:0 16px 12px"><span><i style="background:var(--entry)"></i>Investor or buyer</span><span><i style="background:var(--muted)"></i>Company invested in</span></div>`;
+  const ed = net.edge && net.g.edges.get(net.edge);
+  $("net-panel").innerHTML = ed
+    ? `<h3>${esc(nodes.get(ed.a).name)} ↔ ${esc(nodes.get(ed.b).name)}</h3><div class="sub">${w(ed)} stor${w(ed) === 1 ? "y" : "ies"} name both</div>${netStories(ed.stories)}<button class="link" id="net-back">← All of ${esc(c.name)}'s stories</button>`
+    : `<h3>${esc(c.name)}</h3><div class="sub">${c.stories.size} stor${c.stories.size === 1 ? "y" : "ies"} · linked to ${nb.size} firm${nb.size === 1 ? "" : "s"}${nb.size > hop1.length ? ` (top ${hop1.length} shown)` : ""}</div>
+      <a class="link" href="#firm/${encodeURIComponent(c.key)}" style="display:inline-block;margin-top:8px;text-decoration:none">Open profile →</a>${netStories(c.stories)}`;
+  $("net-back")?.addEventListener("click", () => { net.edge = null; renderNetwork(); });
+}
+
+$("net-graph").addEventListener("click", (ev) => {
+  const n = ev.target.closest(".nn"), e = ev.target.closest(".ne");
+  if (n) { net.center = n.dataset.k; net.edge = null; renderNetwork(); }
+  else if (e) { net.edge = e.dataset.e; renderNetwork(); }
+});
+$("net-graph").addEventListener("keydown", (ev) => {
+  const n = ev.target.closest(".nn");
+  if (n && (ev.key === "Enter" || ev.key === " ")) { ev.preventDefault(); net.center = n.dataset.k; net.edge = null; renderNetwork(); }
+});
+$("nq").addEventListener("change", () => {
+  const v = $("nq").value.trim(), k = invKey(v), q = v.toLowerCase();
+  const hit = net.g?.nodes.get(k) || [...(net.g?.nodes.values() || [])].find((n) => net.g.adj.has(n.key) && n.name.toLowerCase().includes(q));
+  if (v && hit) { net.center = hit.key; net.edge = null; renderNetwork(); }
+});
+// ---------- Firm profile (#firm/<key>), opened from the Network tab ----------
+const CAT_WORDS = { entry: ["investment", "investments"], exit: ["exit", "exits"], fund_launch: ["fund launch", "fund launches"], relocation: ["move", "moves"] };
+function renderFirm() {
+  const box = $("firm-body");
+  if (!state.events?.length) { box.innerHTML = `<div class="empty">Loading…</div>`; return; }
+  ensureNet();
+  const n = net.g.nodes.get(net.firm);
+  if (!n) { box.innerHTML = `<div class="empty">No firm by that name in the stories.</div>`; return; }
+  const list = [...n.stories], cats = {};
+  let buy = 0, sell = 0, target = 0, big = null, first = null, last = null;
+  list.forEach((e) => {
+    const ps = e.parties.length ? e.parties : e.investor ? [{ name: e.investor, role: "investor" }] : [];
+    const tname = e.target || ps.find((p) => p.role === "target")?.name;
+    if (tname && invKey(tname.trim()) === n.key) target++;
+    const me = ps.find((p) => invKey((p.name || "").trim()) === n.key), side = (x) => x.role === "seller" ? "sell" : "buy";
+    if (!(tname && invKey(tname.trim()) === n.key)) { if (me?.role === "seller") sell++; else buy++; }
+    // As on the Investors tab, a deal's amount counts as this firm's only if no other firm is on its side.
+    const alone = !me || ps.filter((x) => x.role !== "target" && side(x) === side(me)).length === 1;
+    e.event_types.forEach((t) => cats[t] = (cats[t] || 0) + 1);
+    const a = amountCr(e);
+    if (alone && a && FIRM.has(e.deal_stage) && (!big || a.usd > amountCr(big).usd)) big = e;
+    const t = e.published_at || e.fetched_at;
+    if (!first || t < first) first = t;
+    if (!last || t > last) last = t;
+  });
+  const links = [...(net.g.adj.get(n.key) || new Map()).entries()].sort((a, b) => b[1].stories.size - a[1].stories.size);
+  const tile = (l, v, s) => `<div class="ftile"><div class="l">${l}</div><div class="n">${v}</div>${s ? `<div class="s">${s}</div>` : ""}</div>`;
+  const others = [...n.names.keys()].filter((x) => x !== n.name);
+  box.innerHTML = `
+    <div class="fhead" style="margin-bottom:14px"><div><h2 style="margin:0;font-size:26px;letter-spacing:-.02em">${esc(n.name)}</h2>
+      <div class="sub">${others.length ? `Also written as ${others.map(esc).join(", ")} · ` : ""}First seen ${dmy(first)} · latest ${dmy(last)}</div></div>
+      <button class="reset" id="firm-graph" type="button">Show in Network</button></div>
+    <div class="ftiles">
+      ${tile("Stories", list.length, Object.entries(cats).map(([k, v]) => `${v} ${(CAT_WORDS[k] || [k, k])[v === 1 ? 0 : 1]}`).join(" · "))}
+      ${buy ? tile("As investor or buyer", buy) : ""}${sell ? tile("As seller", sell) : ""}${target ? tile("As the company invested in", target) : ""}
+      ${big ? tile("Largest disclosed deal", esc(money(big)), esc(big.title)) : ""}
+    </div>
+    <div class="netwrap">
+      <div class="fcard" style="margin:0"><div class="fhead"><h3>Stories</h3></div>${netStories(list, 200)}</div>
+      <aside class="netpanel"><h3>Linked firms</h3><div class="sub">Named on the same deal stories</div>
+        <ul>${links.map(([k, ed]) => `<li><a href="#firm/${encodeURIComponent(k)}">${esc(net.g.nodes.get(k).name)}</a><div class="sub">${ed.stories.size} stor${ed.stories.size === 1 ? "y" : "ies"}</div></li>`).join("") || `<li class="sub">None yet</li>`}</ul></aside>
+    </div>
+    ${stakesHtml(n.key)}
+    <p class="note">Built from news stories, which may contain errors; check the original article. A link is not an ownership record.</p>`;
+  $("firm-graph").onclick = () => { net.center = n.key; net.edge = null; location.hash = ""; setTab("network"); };
+  setTitle();
+}
+// ---------- Stakes over 1% from shareholding-pattern filings (added by hand on the Sources tab) ----------
+state.holdings = [];
+async function loadHoldings() {
+  try {
+    state.holdings = await api("shareholdings?select=company,symbol,period_end,holder,category,pct,source&order=period_end.desc&limit=10000");
+    if (state.tab === "firm") renderFirm();
+  } catch {}
+}
+// The latest filing for each company, as rows where this firm is the holder or the company.
+function firmStakes(key) {
+  const latest = new Map();
+  state.holdings.forEach((h) => { if (!latest.has(h.company) || h.period_end > latest.get(h.company)) latest.set(h.company, h.period_end); });
+  const cur = state.holdings.filter((h) => h.period_end === latest.get(h.company));
+  // Filings use the full legal name ("Lenskart Solutions Limited"); the stories use the short one.
+  const co = (x) => invKey(x).replace(/\b(solutions|industries|enterprises|technologies|technology|services|india)\b/g, "").replace(/\s+/g, " ").trim();
+  return { holds: cur.filter((h) => invKey(h.holder) === key), heldBy: cur.filter((h) => co(h.company) === co(key)) };
+}
+function stakesHtml(key) {
+  const { holds, heldBy } = firmStakes(key);
+  if (!holds.length && !heldBy.length) return "";
+  const row = (name, h) => `<tr><td>${esc(name)}${h.source === "nse_rss" ? ` <span class="sub" title="Read automatically from the filing; not checked by hand">auto</span>` : ""}</td><td class="num">${(+h.pct).toFixed(2)}%</td><td>${dmy(h.period_end)}</td></tr>`;
+  const table = (head, rows) => `<div class="ftable-wrap" style="margin-top:8px"><table class="ftable"><thead><tr><th>${head}</th><th class="num">Stake</th><th>As of</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  return `<div class="fcard" style="margin-top:14px"><div class="fhead"><div><h3>Stakes over 1%</h3><div class="sub">From the company's quarterly shareholding-pattern filing</div></div></div>
+    ${holds.length ? table("Company", holds.sort((a, b) => b.pct - a.pct).map((h) => row(h.company, h)).join("")) : ""}
+    ${heldBy.length ? table("Shareholder", heldBy.sort((a, b) => b.pct - a.pct).map((h) => row(h.holder, h)).join("")) : ""}</div>`;
+}
+
+// Reads a shareholding-pattern XBRL file without relying on exact element names, which differ between
+// taxonomy versions: facts are grouped by context, and a context with a shareholder name, a share count and a
+// percentage is one holder. The owner checks every row before saving.
+function parseShp(text) {
+  const doc = new DOMParser().parseFromString(text, "application/xml");
+  if (doc.getElementsByTagName("parsererror").length) throw new Error("This is not an XML file.");
+  const ctx = new Map();
+  for (const c of doc.getElementsByTagNameNS("*", "context")) {
+    const p = c.getElementsByTagNameNS("*", "instant")[0] || c.getElementsByTagNameNS("*", "endDate")[0];
+    const dims = [...c.getElementsByTagNameNS("*", "explicitMember"), ...c.getElementsByTagNameNS("*", "typedMember")]
+      .map((m) => `${m.getAttribute("dimension") || ""} ${m.textContent.trim()}`).join(" ");
+    ctx.set(c.getAttribute("id"), { period: p?.textContent.trim() || "", dims });
+  }
+  const facts = new Map();
+  for (const el of doc.documentElement.children) {
+    const ref = el.getAttribute("contextRef");
+    if (!ref || !el.textContent.trim()) continue;
+    if (!facts.has(ref)) facts.set(ref, {});
+    facts.get(ref)[el.localName] = el.textContent.trim();
+  }
+  const pick = (g, ...res) => { for (const re of res) for (const k in g) if (re.test(k)) return g[k]; return ""; };
+  const any = (...res) => { for (const re of res) for (const g of facts.values()) for (const k in g) if (re.test(k)) return g[k]; return ""; };
+  const rows = [];
+  facts.forEach((g, ref) => {
+    const holder = pick(g, /^NameOf(The)?Shareholders?$/i, /NameOf(The)?Shareholder|ShareholderName|NameOfTheEntity$/i);
+    const pct = parseFloat(pick(g, /ShareholdingAsAPercentage|AsAPercentageOfTotal/i, /Percent/i));
+    if (!holder || !Number.isFinite(pct)) return;
+    const shares = parseFloat(pick(g, /^NumberOfFullyPaidUpEquityShares/i, /TotalNumberOfShares|NumberOfShares/i).replace(/,/g, ""));
+    const where = `${ref} ${ctx.get(ref)?.dims || ""}`;
+    const category = where.replace(/Member\b/g, "").replace(/([a-z])([A-Z])/g, "$1 $2").replace(/[^A-Za-z]+/g, " ").match(/foreign portfolio[a-z ]*|foreign[a-z ]*|insurance[a-z ]*|mutual fund[a-z ]*|bodies corporate|promoter[a-z ]*|individual[a-z ]*/i)?.[0].trim() || "";
+    rows.push({ holder, pct, shares: Number.isFinite(shares) ? shares : null, category, foreign: /foreign|fpi|fii|overseas/i.test(where) });
+  });
+  // Some filings store 1.23% as 0.0123.
+  if (rows.length && rows.every((r) => r.pct <= 1)) rows.forEach((r) => r.pct = +(r.pct * 100).toFixed(4));
+  const periods = [...ctx.values()].map((c) => c.period).filter(Boolean).sort();
+  const date = any(/DateOfReport|PeriodEnd|QuarterEnd|ShareholdingPatternAsOn/i) || periods[periods.length - 1] || "";
+  return {
+    company: any(/^NameOfTheCompany$|NameOfTheListedEntity|^NameOfCompany$/i, /CompanyName|EntityName/i),
+    symbol: any(/^Symbol$|NSESymbol|ScripSymbol/i, /ScripCode/i),
+    period_end: /^\d{4}-\d{2}-\d{2}/.test(date) ? date.slice(0, 10) : "",
+    rows: rows.filter((r) => r.pct >= 1).sort((a, b) => b.pct - a.pct),
+  };
+}
+$("shp-file").addEventListener("change", async () => {
+  const f = $("shp-file").files[0], out = $("shp-out");
+  if (!f) return;
+  let p;
+  try { p = parseShp(await f.text()); } catch (e) { out.innerHTML = `<div class="empty">${esc(e.message)}</div>`; return; }
+  if (!p.rows.length) { out.innerHTML = `<div class="empty">No named shareholders with 1% or more were found in this file.</div>`; return; }
+  // Use the name the stories already know ("Lenskart" for "Lenskart Solutions Limited") so the profile finds it.
+  const filed = p.company, ck = invKey(filed);
+  if (state.events.length) ensureNet();
+  const known = [...(net.g?.nodes.values() || [])].filter((n) => ck === n.key || ck.startsWith(n.key + " ")).sort((a, b) => b.key.length - a.key.length)[0];
+  if (known) p.company = known.name;
+  out.innerHTML = `<div class="filters" style="margin:12px 0">
+      <label>Company <input type="text" id="shp-co" value="${esc(p.company)}" style="width:16em"></label>
+      <label>Symbol <input type="text" id="shp-sym" value="${esc(p.symbol)}" style="width:7em"></label>
+      <label>Quarter ending <input type="date" id="shp-date" value="${esc(p.period_end)}"></label></div>
+    ${known && filed !== known.name ? `<p class="sub" style="margin:-4px 0 10px">Filed as "${esc(filed)}"; saved as "${esc(known.name)}" to match the stories. Change it above if that is wrong.</p>` : ""}
+    <div class="ftable-wrap"><table class="ftable"><thead><tr><th>Save</th><th>Shareholder</th><th>Category in the file</th><th class="num">Shares</th><th class="num">Stake</th></tr></thead><tbody>
+      ${p.rows.map((r, i) => `<tr><td><input type="checkbox" data-i="${i}" ${r.foreign ? "checked" : ""} aria-label="Save ${esc(r.holder)}"></td><td>${esc(r.holder)}</td><td>${esc(r.category || "—")}</td><td class="num">${r.shares == null ? "—" : r.shares.toLocaleString("en-IN")}</td><td class="num">${r.pct.toFixed(2)}%</td></tr>`).join("")}
+    </tbody></table></div>
+    <p class="sub" style="margin:8px 0">Foreign holders are ticked. Check the names and stakes against the filing before saving.</p>
+    <button class="reset" id="shp-save" type="button">Save ticked rows</button> <span class="sub" id="shp-msg"></span>`;
+  $("shp-save").onclick = async () => {
+    const rows = [...out.querySelectorAll("input[data-i]:checked")].map((c) => p.rows[+c.dataset.i]).map(({ holder, category, shares, pct }) => ({ holder, category, shares, pct }));
+    const body = { key: dir.ownerKey, company: $("shp-co").value.trim(), symbol: $("shp-sym").value.trim(), period_end: $("shp-date").value, file: f.name, rows };
+    if (!dir.ownerKey) { $("shp-msg").textContent = "Open the site with your owner link first."; return; }
+    if (!body.company || !body.period_end || !rows.length) { $("shp-msg").textContent = "Fill in the company and quarter, and tick at least one row."; return; }
+    $("shp-msg").textContent = "Saving…";
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/holdings`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+      if (!res.ok) throw new Error(await res.text());
+      $("shp-msg").textContent = `Saved ${(await res.json()).saved} rows.`;
+      loadHoldings();
+    } catch (e) { $("shp-msg").textContent = `Not saved: ${e.message}`; }
+  };
+});
+
+function route() {
+  const m = location.hash.match(/^#firm\/(.+)$/);
+  if (m) { net.firm = decodeURIComponent(m[1]); setTab("firm"); scrollTo(0, 0); }
+  else if (state.tab === "firm") setTab("network");
+}
+addEventListener("hashchange", route);
+
+document.querySelectorAll("#nhops button").forEach((b) => b.onclick = () => {
+  net.hops = +b.dataset.h;
+  document.querySelectorAll("#nhops button").forEach((x) => x.setAttribute("aria-pressed", x === b));
+  renderNetwork();
+});
+
 function setTab(t) {
+  const was = state.tab;
   state.tab = t;
   document.querySelectorAll("nav.tabs button").forEach((b) => b.setAttribute("aria-selected", b.dataset.tab === t));
-  ["overview", "feed", "investors", "flows", "directory", "health"].forEach((x) => $(`tab-${x}`).hidden = x !== t);
+  ["overview", "feed", "investors", "network", "firm", "flows", "directory", "health"].forEach((x) => $(`tab-${x}`).hidden = x !== t);
+  if (was === "firm" && t !== "firm" && location.hash.startsWith("#firm/")) history.replaceState(null, "", location.pathname + location.search);
   // Fade the section in when it changes.
   const sec = $(`tab-${t}`); sec.classList.remove("enter"); void sec.offsetWidth; sec.classList.add("enter");
   // The news filters and story counts only apply to the story tabs.
@@ -1255,6 +1604,8 @@ function setTab(t) {
   if (typeof syncSearch === "function") syncSearch();
   if (t === "flows") renderFlows();
   if (t === "directory") openDirectory();
+  if (t === "network") renderNetwork();
+  if (t === "firm") renderFirm();
   if (t === "overview" && typeof renderOverview === "function") requestAnimationFrame(renderOverview);
 }
 document.querySelectorAll("nav.tabs button").forEach((b) => b.onclick = () => { setTab(b.dataset.tab); scrollTo({ top: 0, behavior: "smooth" }); });
@@ -1264,6 +1615,8 @@ document.querySelectorAll("[data-go]").forEach((b) => b.onclick = () => { setTab
 const TITLES = {
   feed: ["Feed", "Investments, exits, fund launches and jurisdiction moves"],
   investors: ["Investors", "Every named investor in the stories, with their deals"],
+  network: ["Network", "Which firms appear together on the same deals"],
+  firm: ["Profile", "One firm's deals, links and sources"],
   flows: ["Flows", "FPI money in and out each day, and where FDI comes from"],
   directory: ["Directory", "Every SEBI-registered FPI and every GIFT IFSC entity"],
   health: ["Sources", "When each source last ran"],
@@ -1760,7 +2113,9 @@ function showWelcome() {
 }
 
 setTab("overview");
+route();
 refresh();
+loadHoldings();
 loadOverviewRegs();
 showWelcome();
 countVisit();
