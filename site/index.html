@@ -407,7 +407,8 @@ section.enter :is(.kpi,.ftile,.card,.inv,.bk,.ovc,.fcard,.drow):nth-child(n+5):n
 .toast button{background:#1d2026;color:#eceef2;border:0;border-radius:999px;padding:4px 10px;font:inherit;font-size:12px;cursor:pointer;flex:none}
 @media (max-width:900px){.board{grid-template-columns:1fr 1fr}}
 /* Network tab */
-.netbar #nq{flex:1 1 260px;min-width:0}
+.netbar #nq{flex:1 1 220px;min-width:0}
+.netbar #nsel{flex:0 1 300px;min-width:0}
 .netwrap{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:14px;align-items:start}
 .netsvg,.netpanel{background:var(--glass),var(--panel);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow)}
 .netsvg{overflow:hidden}.netsvg svg{display:block;width:100%;height:auto}
@@ -571,9 +572,10 @@ section.enter :is(.kpi,.ftile,.card,.inv,.bk,.ovc,.fcard,.drow):nth-child(n+5):n
     <div class="filters netbar">
       <input type="search" id="nq" list="nq-list" placeholder="Search a company or investor…" aria-label="Search a company or investor">
       <datalist id="nq-list"></datalist>
+      <select id="nsel" aria-label="Choose a firm"><option value="">Choose a firm…</option></select>
       <div class="seg" id="nview" role="group" aria-label="View">
-        <button type="button" data-v="all" aria-pressed="true">All firms</button>
-        <button type="button" data-v="one" aria-pressed="false">One firm</button>
+        <button type="button" data-v="one" aria-pressed="true">One firm</button>
+        <button type="button" data-v="all" aria-pressed="false">All firms</button>
       </div>
       <div class="seg" id="nhops" role="group" aria-label="How far to look">
         <button type="button" data-h="1" aria-pressed="false">1 hop</button>
@@ -1303,7 +1305,7 @@ function render() {
 // ---------- Network: which firms appear on the same deal stories ----------
 // Built from every loaded story, not the Feed filters. Investors link to the company they bought into or sold;
 // a story with no company links its firms to each other (co-investors, or buyer and seller).
-const net = { src: null, g: null, center: null, edge: null, hops: innerWidth < 700 ? 1 : 2, view: "all" };
+const net = { src: null, g: null, center: null, edge: null, hops: innerWidth < 700 ? 1 : 2, view: "one" };
 // Descriptions rather than names ("offshore backer", "Malaysian investor", "UAE") would link unrelated deals.
 const VAGUE = /^(global|offshore|foreign|overseas|international|institutional|malaysian|polish|mauritius-based|singapore sovereign)\b.*\b(investors?|funds?|lenders?|backers?|company|wealth fund)$|^(uae|japan|qatar|new zealand|nordic countries|usd .*)$/i;
 function buildNetwork() {
@@ -1352,6 +1354,9 @@ function ensureNet() {
     const deg = (k) => net.g.adj.get(k)?.size || 0;
     const ranked = [...net.g.nodes.values()].filter((n) => deg(n.key)).sort((a, b) => deg(b.key) - deg(a.key));
     $("nq-list").innerHTML = ranked.map((n) => `<option value="${esc(n.name)}">`).join("");
+    // Every linked firm, most-linked first, with its count.
+    $("nsel").innerHTML = `<option value="">Choose a firm…</option>` + ranked.map((n) =>
+      `<option value="${esc(n.key)}">${esc(n.name)} · ${deg(n.key)} linked firm${deg(n.key) === 1 ? "" : "s"}</option>`).join("");
     if (!net.g.nodes.has(net.center)) net.center = ranked[0]?.key || null;
   }
 }
@@ -1362,6 +1367,7 @@ function renderNetwork() {
   ensureNet();
   document.querySelectorAll("#nview button").forEach((x) => x.setAttribute("aria-pressed", x.dataset.v === net.view));
   $("nhops").hidden = net.view === "all";
+  $("nsel").value = net.view === "one" && net.center ? net.center : "";
   if (net.view === "all") return renderAllFirms();
   const { nodes, adj } = net.g, c = nodes.get(net.center);
   if (!c) { $("net-graph").innerHTML = `<div class="empty">No linked firms yet.</div>`; $("net-panel").innerHTML = ""; return; }
@@ -1589,6 +1595,9 @@ function route() {
 }
 addEventListener("hashchange", route);
 
+$("nsel").addEventListener("change", () => {
+  if ($("nsel").value) { net.center = $("nsel").value; net.edge = null; net.view = "one"; renderNetwork(); }
+});
 document.querySelectorAll("#nview button").forEach((b) => b.onclick = () => { net.view = b.dataset.v; net.edge = null; renderNetwork(); });
 $("net-panel").addEventListener("click", (ev) => {
   const k = ev.target.closest("[data-k]")?.dataset.k;
