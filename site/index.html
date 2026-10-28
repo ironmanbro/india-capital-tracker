@@ -2743,9 +2743,19 @@ $("dir-list").addEventListener("click", (ev) => {
 
 // Contact details as IFSCA's directory publishes them. The CSV download stays an owner shortcut.
 const LEADS_URL = `${SUPABASE_URL}/functions/v1/leads`;
-$("leads-csv").addEventListener("click", () => {
-  const cat = $("icat2").value;
-  location.href = `${LEADS_URL}?format=csv&key=${encodeURIComponent(dir.ownerKey)}${cat ? `&category=${encodeURIComponent(cat)}` : ""}`;
+$("leads-csv").addEventListener("click", async () => {
+  const btn = $("leads-csv"), label = btn.textContent, cat = $("icat2").value;
+  btn.disabled = true; btn.textContent = "Preparing…";
+  try {
+    // The code goes in the request body, never in a web address.
+    const r = await fetch(LEADS_URL, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ key: dir.ownerKey, format: "csv", category: cat || undefined }) });
+    if (!r.ok) throw new Error(r.status === 401 ? "Not authorised" : "Failed");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(await r.blob()); a.download = `gift-ifsc-leads-${dayStr(new Date())}.csv`;
+    document.body.append(a); a.click(); a.remove(); URL.revokeObjectURL(a.href);
+    btn.textContent = label;
+  } catch (e) { btn.textContent = e.message; setTimeout(() => btn.textContent = label, 2500); }
+  btn.disabled = false;
 });
 
 async function runDirSearch(reset) {
@@ -2777,15 +2787,17 @@ $("icat2").addEventListener("change", () => { fillIfscaTypes(); runDirSearch(tru
 $("dir-more").addEventListener("click", () => runDirSearch(false));
 
 // The Sources tab is for the site owner. Opening the site once with the private link (#owner-…) shows it
-// on that browser from then on; #owner-off hides it again. Only the link's hash is kept here.
-const OWNER_HASH = "7d81788ea0fd03da612522967efc44893e5d1e6cae50ca6415ee9c8b0b66bea6";
+// on that browser from then on; #owner-off hides it again. The code is taken out of the address bar at once
+// and confirmed by the server; no copy or hash of it is kept in this page.
 async function checkOwner() {
   const h = location.hash.slice(1);
   if (h === "owner-off") { store("ict-owner"); history.replaceState(null, "", location.pathname + location.search); }
-  else if (h.startsWith("owner-") && crypto.subtle) {
-    const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(h));
-    if ([...new Uint8Array(d)].map((x) => x.toString(16).padStart(2, "0")).join("") === OWNER_HASH) store("ict-owner", h);
+  else if (h.startsWith("owner-")) {
     history.replaceState(null, "", location.pathname + location.search);
+    try {
+      const r = await fetch(`${SUPABASE_URL}/functions/v1/holdings`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ key: h, check: true }) });
+      if (r.ok) store("ict-owner", h);
+    } catch {}
   }
   const o = load("ict-owner");
   dir.ownerKey = o && o.startsWith("owner-") ? o : null;

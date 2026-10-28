@@ -1,11 +1,12 @@
 // Owner-only: IFSCA directory entries with their contact details, as JSON (for the site) or CSV (download).
-//   GET /functions/v1/leads?key=<owner link code>[&format=csv][&category=Fund Management]
-// The key is checked against the SHA-256 hash in app_secrets.owner_key_hash; the contacts table itself is not public.
+//   POST /functions/v1/leads  { key: <owner link code>, format?: "csv", category?: "Fund Management" }
+// The key travels in the request body, never in the web address, so it stays out of logs and browser history.
+// It is checked against the SHA-256 hash in app_secrets.owner_key_hash.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-const CORS = { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type" };
+const CORS = { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type", "access-control-allow-methods": "POST, OPTIONS" };
 
 async function sha256(s: string) {
   const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
@@ -18,7 +19,10 @@ const csvCell = (v: unknown) => {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
-  const q = new URL(req.url).searchParams;
+  if (req.method !== "POST") return new Response("POST only", { status: 405, headers: CORS });
+  let b: Record<string, unknown> = {};
+  try { b = await req.json(); } catch { return new Response("body must be JSON", { status: 400, headers: CORS }); }
+  const q = { get: (k: string) => (typeof b[k] === "string" ? (b[k] as string) : null) };
   const { data: secret } = await db.from("app_secrets").select("value").eq("name", "owner_key_hash").single();
   if (!secret || (await sha256(q.get("key") || "")) !== secret.value) return new Response("unauthorized", { status: 401, headers: CORS });
 
