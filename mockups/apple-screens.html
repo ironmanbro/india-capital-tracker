@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>India Capital Tracker — Apple-style screens</title>
+<style>
+:root{--bg:#000;--band:#0b0b0d;--tile:#1d1d1f;--ink:#f5f5f7;--mut:#86868b;--blue:#2997ff;--line:rgba(255,255,255,.1);--nav:rgba(22,22,23,.8);--grad:linear-gradient(90deg,#2997ff,#bf5af2 55%,#ff9f0a);--in:#2997ff;--out:#ff9f0a}
+:root[data-theme=light]{--bg:#fff;--band:#f5f5f7;--tile:#fff;--ink:#1d1d1f;--mut:#6e6e73;--blue:#0066cc;--line:rgba(0,0,0,.08);--nav:rgba(251,251,253,.8);--grad:linear-gradient(90deg,#0071e3,#af52de 55%,#ff9500);--in:#0071e3;--out:#e8710a}
+:root[data-theme=light] .big div,:root[data-theme=light] .deal{background:#f5f5f7}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font:17px/1.47 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased;letter-spacing:-.022em}
+nav{position:sticky;top:0;z-index:9;height:48px;display:flex;align-items:center;justify-content:center;gap:clamp(14px,3.4vw,40px);background:var(--nav);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);font-size:12px;letter-spacing:-.01em}
+nav a{color:var(--ink);opacity:.8;text-decoration:none;transition:opacity .2s}nav a:hover{opacity:1}
+nav .mk{font-weight:700;opacity:1;letter-spacing:.02em}
+.hero{text-align:center;padding:clamp(56px,10vw,120px) 22px clamp(40px,7vw,80px)}
+.eyebrow{font-size:clamp(17px,2vw,21px);font-weight:600;color:var(--out)}
+h1{font-size:clamp(44px,8.4vw,96px);line-height:1.05;font-weight:700;letter-spacing:-.04em;margin:6px auto 0;max-width:12em}
+h1 em{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{font-size:clamp(19px,2.6vw,28px);line-height:1.2;color:var(--mut);font-weight:500;max-width:30em;margin:18px auto 0;letter-spacing:-.015em}
+.cta{display:flex;gap:22px;justify-content:center;margin-top:26px;flex-wrap:wrap;font-size:21px}
+.cta a{color:var(--blue);text-decoration:none}.cta a:hover{text-decoration:underline}
+.pill{background:var(--blue);color:#fff!important;padding:9px 22px;border-radius:980px;font-size:17px}
+.big{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;max-width:1100px;margin:34px auto 0;padding:0 22px}
+.big div{background:var(--tile);border-radius:28px;padding:28px 26px;text-align:left}
+.big b{display:block;white-space:nowrap;font-size:clamp(28px,3.1vw,44px);line-height:1;letter-spacing:-.04em;font-weight:700}
+.big span{display:block;color:var(--mut);font-size:15px;margin-top:10px}
+.up{color:#30d158}.dn{color:#ff453a}
+section.band{background:var(--band);padding:clamp(56px,8vw,100px) 22px;text-align:center}
+h2{font-size:clamp(32px,5.4vw,64px);line-height:1.08;letter-spacing:-.035em;font-weight:700;max-width:14em;margin:0 auto}
+.sub{color:var(--mut);font-size:clamp(17px,2.2vw,24px);max-width:32em;margin:14px auto 0;line-height:1.25}
+.chart{max-width:980px;margin:40px auto 0;background:var(--tile);border-radius:32px;padding:30px 28px 20px;text-align:left}
+.chart h3{font-size:21px;font-weight:600}.chart small{color:var(--mut);font-size:14px}
+.bars{display:flex;align-items:flex-end;gap:clamp(4px,1vw,12px);height:200px;margin-top:22px;border-bottom:1px solid var(--line)}
+.bars i{flex:1;border-radius:8px 8px 0 0;background:var(--in);transform-origin:bottom;animation:grow .9s cubic-bezier(.32,.72,0,1) both}
+.bars i.o{background:var(--out)}
+@keyframes grow{from{transform:scaleY(0)}}
+.deals{max-width:980px;margin:30px auto 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px;text-align:left}
+.deal{background:var(--tile);border-radius:28px;padding:26px;transition:transform .5s cubic-bezier(.32,.72,0,1)}
+.deal:hover{transform:scale(1.02)}
+.tag{font-size:12px;font-weight:600;color:var(--in);text-transform:uppercase;letter-spacing:.06em}.tag.o{color:var(--out)}
+.deal h4{font-size:24px;line-height:1.14;font-weight:700;letter-spacing:-.03em;margin:8px 0 14px}
+.deal p{color:var(--mut);font-size:15px}.deal .amt{font-size:32px;font-weight:700;letter-spacing:-.035em;color:var(--ink);margin-top:14px}
+footer{padding:28px 22px 44px;color:var(--mut);font-size:12px;max-width:980px;margin:0 auto;border-top:1px solid var(--line)}
+@media (prefers-reduced-motion:reduce){.bars i{animation:none}.deal:hover{transform:none}}
+
+:root[data-theme=light] :is(.group,.search,.chips span,.inv,.chart){background:#f5f5f7}
+:root[data-theme=light] .chips span.on{background:var(--blue)}
+.inv .st{grid-template-columns:auto 1fr auto;gap:14px}.inv .st b{font-size:20px;white-space:nowrap}
+@media(max-width:600px){.big{grid-template-columns:1fr 1fr!important}.big div{padding:18px}.big b{font-size:26px}}
+.scr{display:none}.scr.on{display:block}
+nav a.cur{opacity:1;font-weight:600}
+.hero.sm{padding:clamp(40px,6vw,72px) 22px 24px}.hero.sm h1{font-size:clamp(40px,6.4vw,72px)}
+.wrap{max-width:980px;margin:0 auto;padding:0 22px 70px}
+.search{display:flex;align-items:center;gap:10px;background:var(--tile);border-radius:980px;padding:13px 20px;color:var(--mut);max-width:560px;margin:22px auto 0;font-size:17px}
+.seg{display:inline-flex;background:var(--band);border-radius:980px;padding:4px;gap:2px;margin:20px 0 0}
+.seg span{padding:7px 18px;border-radius:980px;font-size:14px;color:var(--mut);font-weight:500}
+.seg span.on{background:var(--tile);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.25)}
+:root[data-theme=light] .seg span.on{box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:18px}
+.chips span{font-size:14px;padding:7px 16px;border-radius:980px;background:var(--tile);color:var(--ink)}
+.chips span.on{background:var(--blue);color:#fff}
+.group{background:var(--tile);border-radius:24px;overflow:hidden;margin-top:26px}
+.row{display:flex;gap:16px;align-items:center;padding:18px 24px;border-top:1px solid var(--line)}.row:first-child{border-top:0}
+.row .t{flex:1;min-width:0}.row .t b{display:block;font-size:19px;font-weight:600;letter-spacing:-.025em;line-height:1.25}
+.row .t small{color:var(--mut);font-size:14px}
+.row .a{font-weight:700;font-size:19px;letter-spacing:-.03em;white-space:nowrap}
+.row .a.o{color:var(--out)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--in);flex:none}.dot.o{background:var(--out)}.dot.g{background:#30d158}.dot.p{background:#bf5af2}
+.igrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px;margin-top:28px}
+.inv{background:var(--tile);border-radius:28px;padding:26px}
+.inv h4{font-size:24px;font-weight:700;letter-spacing:-.03em}.inv .m{color:var(--mut);font-size:14px;margin-top:2px}
+.inv .st{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:20px;padding-top:18px;border-top:1px solid var(--line)}
+.inv .st b{display:block;font-size:24px;letter-spacing:-.03em}.inv .st span{color:var(--mut);font-size:12px}
+.inv a{display:block;margin-top:16px;color:var(--blue);font-size:15px;text-decoration:none}
+.ring{width:210px;height:210px;border-radius:50%;margin:0 auto;display:grid;place-items:center;background:conic-gradient(var(--out) 0 62%,var(--tile) 62%);position:relative}
+.ring::after{content:"";position:absolute;inset:22px;border-radius:50%;background:var(--bg)}
+.ring b{position:relative;z-index:1;font-size:34px;letter-spacing:-.04em}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+@media(max-width:760px){.two{grid-template-columns:1fr}.row{padding:16px 18px}.row .t b{font-size:17px}}
+.tbl{width:100%;border-collapse:collapse;font-size:16px}.tbl td,.tbl th{padding:15px 22px;text-align:left;border-top:1px solid var(--line)}
+.tbl th{color:var(--mut);font-weight:500;font-size:13px;border-top:0;letter-spacing:.02em}
+.tbl td:last-child,.tbl th:last-child{text-align:right;color:var(--mut)}
+@media(max-width:600px){.tbl .hide{display:none}}
+</style></head><body>
+<nav><a class="mk" href="apple-style.html">ICT</a><a href="#feed" data-s="feed">Feed</a><a href="#investors" data-s="investors">Investors</a><a href="#flows" data-s="flows">Flows</a><a href="#directory" data-s="directory">Directory</a></nav>
+
+<div class="scr" id="s-feed"><header class="hero sm"><div class="eyebrow">Feed</div><h1>Every deal. <em>Every exit.</em></h1><p class="lead">Stories checked and added every three hours.</p>
+<div class="search">⌕ Search investor, company, headline</div>
+<div class="chips"><span class="on">All</span><span>Investments</span><span>Exits</span><span>Fund launches</span><span>Moves</span></div></header>
+<div class="wrap"><div class="group" id="feedlist"></div></div></div>
+
+<div class="scr" id="s-investors"><header class="hero sm"><div class="eyebrow">Investors</div><h1>Who is putting <em>money in.</em></h1><p class="lead">Funds, sovereigns and companies, ranked by reported deal value.</p>
+<div class="search">⌕ Find an investor, fund or company</div>
+<div class="chips"><span class="on">All types</span><span>Sovereign</span><span>Private equity</span><span>Pension</span><span>Asset manager</span></div></header>
+<div class="wrap"><div class="igrid" id="invgrid"></div></div></div>
+
+<div class="scr" id="s-flows"><header class="hero sm"><div class="eyebrow">Flows</div><h1>The tide, <em>day by day.</em></h1><p class="lead">Net FPI investment from NSDL, with FDI from DPIIT.</p>
+<div class="seg"><span class="on">Daily</span><span>Monthly</span><span>FDI</span></div></header>
+<div class="wrap"><div class="big" style="padding:0;margin:0 0 14px"><div><b class="dn">−₹1,103 cr</b><span>Equity · 28 Oct</span></div><div><b class="up">+₹1,181 cr</b><span>Debt · 28 Oct</span></div><div><b class="dn">−₹4,820 cr</b><span>October so far</span></div></div>
+<div class="chart" style="margin:0"><h3>Net flow, last 30 days</h3><small>Blue is inflow, orange is outflow</small><div class="bars" id="b"></div></div>
+<div class="two"><div class="chart" style="margin:0"><h3>Equity vs debt</h3><small>Share of gross activity</small><div class="ring" style="margin-top:22px"><b>62%</b></div></div>
+<div class="chart" style="margin:0"><h3>Top FDI sectors</h3><small>FY25, US$ billion</small><div id="sect" style="margin-top:18px"></div></div></div></div></div>
+
+<div class="scr" id="s-directory"><header class="hero sm"><div class="eyebrow">Directory</div><h1>Every registered <em>investor.</em></h1><p class="lead">NSDL foreign portfolio investors and GIFT IFSC entities.</p>
+<div class="seg"><span class="on">FPIs</span><span>GIFT IFSC</span></div></header>
+<div class="wrap"><div class="big" style="padding:0;margin:0 0 14px"><div><b>12,874</b><span>Registered FPIs</span></div><div><b>96</b><span>New in 30 days</span></div><div><b>612</b><span>GIFT IFSC entities</span></div><div><b>14</b><span>New in 30 days</span></div></div>
+<div class="group"><table class="tbl"><thead><tr><th>Name</th><th class="hide">Country</th><th class="hide">Category</th><th>Registered</th></tr></thead><tbody id="dir"></tbody></table></div></div></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const F=[['Temasek commits $1.2bn to Indian renewables platform','Investment · Reuters · 12h','₹10,560 cr',0],['GIC picks up stake in Mumbai logistics parks','Investment · Mint · 1d','₹3,960 cr',0],['Blackstone sells part of stake in IT services firm','Exit · ET · 2d','₹5,984 cr',1],['Vanguard launches India-focused fund at GIFT City','Fund launch · Reuters · 3d','',2],['ADIA backs Indian fintech in $300m round','Investment · Bloomberg · 3d','₹2,640 cr',0],['KKR trims holding in healthcare chain','Exit · Mint · 4d','₹1,848 cr',1],['Fidelity shifts fund domicile to GIFT City','Move · ET · 5d','',3]];
+$('feedlist').innerHTML=F.map(f=>`<div class="row"><i class="dot ${['','o','g','p'][f[3]]}"></i><div class="t"><b>${f[0]}</b><small>${f[1]}</small></div><div class="a ${f[3]==1?'o':''}">${f[2]}</div></div>`).join('');
+const I=[['Temasek','Sovereign fund · Singapore',3,'₹21,200 cr','Greenko'],['GIC','Sovereign fund · Singapore',5,'₹12,980 cr','Welspun One'],['Blackstone','Private equity · USA',4,'₹9,400 cr','Mphasis'],['CPP Investments','Pension fund · Canada',2,'₹6,100 cr','IndiGrid'],['ADIA','Sovereign fund · UAE',3,'₹5,300 cr','PhonePe'],['KKR','Private equity · USA',4,'₹4,700 cr','Max Healthcare']];
+$('invgrid').innerHTML=I.map(i=>`<div class="inv"><h4>${i[0]}</h4><div class="m">${i[1]}</div><div class="st"><div><b>${i[2]}</b><span>Deals</span></div><div><b>${i[3]}</b><span>Reported</span></div><div><b>30d</b><span>Last seen</span></div></div><a href="#">Latest: ${i[4]} ›</a></div>`).join('');
+const S=[['Services',7.4],['Computer software',5.9],['Renewable energy',4.6],['Trading',3.8],['Automobile',2.9]];
+$('sect').innerHTML=S.map(s=>`<div style="margin:12px 0"><div style="display:flex;justify-content:space-between;font-size:15px"><span>${s[0]}</span><b>$${s[1]}bn</b></div><div style="height:8px;border-radius:8px;background:var(--band);margin-top:6px"><i style="display:block;height:8px;border-radius:8px;width:${s[1]/7.4*100}%;background:var(--in)"></i></div></div>`).join('');
+const D=[['Norges Bank Investment Mgmt','Norway','Category I','26 Oct'],['Capital Group EM Fund','USA','Category I','25 Oct'],['Quant Alpha Capital','India (GIFT)','Fund Management','24 Oct'],['Abu Dhabi Pension Fund','UAE','Category I','23 Oct'],['Nomura India Fund','Japan','Category II','22 Oct']];
+$('dir').innerHTML=D.map(d=>`<tr><td><b style="font-weight:600">${d[0]}</b></td><td class="hide">${d[1]}</td><td class="hide">${d[2]}</td><td>${d[3]}</td></tr>`).join('');
+const bs=$('b');[5,8,-3,6,9,4,-6,3,7,10,-4,6,8,-2,5,9,7,-5,4,8,6,-3,7,10,5,-4,8,6,9,3].forEach((v,i)=>{const e=document.createElement('i');e.style.height=Math.abs(v)*18+14+'px';e.style.animationDelay=i*18+'ms';if(v<0)e.className='o';bs.appendChild(e)});
+function show(){const h=(location.hash||'#feed').slice(1);document.querySelectorAll('.scr').forEach(s=>s.classList.toggle('on',s.id==='s-'+h));document.querySelectorAll('nav a[data-s]').forEach(a=>a.classList.toggle('cur',a.dataset.s===h));scrollTo(0,0)}
+addEventListener('hashchange',show);show();
+</script></body></html>
