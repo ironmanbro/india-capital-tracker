@@ -1,0 +1,56 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ICT mockup C — glass</title>
+<style>
+*{box-sizing:border-box;margin:0}
+body{min-height:100vh;color:#eef1fb;font:14px/1.45 Inter,-apple-system,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;padding:40px 24px;background:radial-gradient(600px 400px at 12% 20%,rgba(56,100,255,.38),transparent 60%),radial-gradient(600px 420px at 88% 85%,rgba(139,92,246,.30),transparent 60%),radial-gradient(500px 300px at 90% 8%,rgba(20,120,200,.25),transparent 60%),#070a14;display:grid;place-items:center}
+.win{width:min(1240px,100%);border-radius:26px;border:1px solid rgba(255,255,255,.14);background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025));-webkit-backdrop-filter:blur(30px) saturate(150%);backdrop-filter:blur(30px) saturate(150%);box-shadow:0 30px 90px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.1);display:grid;grid-template-columns:190px 1fr;overflow:hidden}
+.side{padding:20px 14px;border-right:1px solid rgba(255,255,255,.09);display:flex;flex-direction:column;gap:4px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.02em;padding:2px 10px 22px}.lg{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#5ea0ff,#3b5bd6);display:grid;place-items:center;font-size:10px;font-weight:800}.brand span{font-weight:300}
+.nv{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;color:#aab2cc;font-size:13.5px}.nv svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}.nv.on{background:rgba(255,255,255,.09);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+.chat{margin-top:auto;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.08);display:grid;place-items:center;margin-left:8px}
+.main{padding:18px 22px 22px;min-width:0}
+.tb{display:flex;align-items:center;gap:12px;margin-bottom:16px}.srch{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:9px 14px;width:290px;color:#9aa3bf;font-size:13px}.sp{flex:1}.me{display:flex;align-items:center;gap:8px;font-size:13px}.av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#f59e42,#ec4899);display:grid;place-items:center;font-size:11px;font-weight:700}.ic{width:30px;height:30px;display:grid;place-items:center;color:#aab2cc}
+.h{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.h h2{font-size:21px;font-weight:600}.gb{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);border-radius:8px;padding:6px 12px;font-size:12.5px;color:#c9d0e6}
+.g{display:grid;grid-template-columns:1.25fr 1fr;gap:18px}.l{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.tot small{color:#9aa3bf;font-size:12.5px}.tot b{display:block;font-size:40px;font-weight:600;letter-spacing:-.03em;margin:2px 0}.up{color:#4ade80}.dn{color:#fb7185}.tot .d{font-size:13px}
+.sc{margin-top:14px}.sc h4{font-size:13px;font-weight:600}.sc small{color:#8a93b0;font-size:11px}.sc .m{font-size:11px;color:#9aa3bf;margin:6px 0}
+.card{border-radius:16px;padding:16px;border:1px solid rgba(255,255,255,.16);background:linear-gradient(145deg,rgba(255,255,255,.17),rgba(255,255,255,.04) 60%),linear-gradient(145deg,rgba(80,120,255,.22),rgba(20,24,50,.4));box-shadow:inset 0 1px 0 rgba(255,255,255,.18);min-height:150px;display:flex;flex-direction:column}
+.card.o{background:linear-gradient(145deg,rgba(255,255,255,.17),rgba(255,255,255,.04) 60%),linear-gradient(145deg,rgba(245,158,66,.28),rgba(40,22,18,.45))}
+.card .tp{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#d7defa}.card .tp b{font-weight:700;letter-spacing:.04em;font-size:13px;color:#fff}.chip{width:30px;height:22px;border-radius:5px;background:linear-gradient(135deg,#e9d38a,#b8934a)}
+.card .n{font-size:23px;font-weight:600;margin-top:auto;letter-spacing:-.02em}.card .s{font-size:12px;color:#c9d0e6;margin-top:2px}.card .bt{display:flex;justify-content:space-between;font-size:11.5px;color:#d7defa;margin-top:12px}
+.qa{grid-column:span 2;margin-top:2px}.qa h4{font-size:13px;font-weight:600;display:flex;justify-content:space-between;margin-bottom:10px}.qa h4 i{font-style:normal;font-weight:400;color:#9aa3bf;font-size:12px}
+.bs{display:flex;gap:10px;flex-wrap:wrap}.bs div{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:11px 20px;font-size:13.5px;font-weight:500}.bs .p{background:linear-gradient(180deg,#5b8cff,#3b6cf6);border-color:#6d97ff}
+.r{border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.04);border-radius:16px;padding:14px}.r h3{display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:10px}.r h3 i{font-style:normal;font-weight:400;font-size:12px;color:#9aa3bf}
+.tx{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:10px 12px;margin-bottom:8px}.tx:last-child{margin:0}
+.sq{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;font-weight:700;font-size:13px;flex:none}.tx .t{flex:1;min-width:0}.tx .t b{display:block;font-size:12.5px;font-weight:500;line-height:1.3}.tx .t small{color:#8a93b0;font-size:11px}.tx .a{font-size:12.5px;font-weight:600;white-space:nowrap}
+@media(max-width:1000px){.win{grid-template-columns:1fr}.side{display:none}.g{grid-template-columns:1fr}}@media(max-width:600px){body{padding:12px}.l{grid-template-columns:1fr}.qa{grid-column:auto}.srch{width:auto;flex:1}}
+</style></head><body><div class="win">
+<aside class="side"><div class="brand"><div class="lg">₹</div>ICT <span>TRACKER</span></div>
+<div class="nv on"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Overview</div>
+<div class="nv"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Feed</div>
+<div class="nv"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.5-4 3-6 6.5-6s6 2 6.5 6"/></svg>Investors</div>
+<div class="nv"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>Flows</div>
+<div class="nv"><svg viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3z"/></svg>Directory</div>
+<div class="nv"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Settings</div>
+<div class="chat">💬</div></aside>
+<section class="main">
+<div class="tb"><div class="srch">⌕ Search investors, companies…</div><div class="sp"></div><div class="ic">⌕</div><div class="ic">🔔</div><div class="me"><div class="av">KS</div>Kishan S. ⌄</div></div>
+<div class="h"><h2>Overview</h2><span class="gb">28 Oct 2026 ▦</span></div>
+<div class="g"><div class="l">
+<div class="tot" style="grid-column:span 2;display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:end"><div><small>Reported deals, last 30 days</small><b>₹29,568 cr</b><div class="d up">+8.4% <span style="color:#9aa3bf">vs prior 30 days</span></div></div><div><small>FPI net, October</small><b class="dn" style="font-size:30px">−₹4,820 cr</b><div class="d" style="color:#9aa3bf">Equity −₹1,103 · Debt +₹1,181 today</div></div></div>
+<div class="sc" style="grid-column:span 2"><h4>Net FPI flow <small>(weekly overview)</small></h4><div class="m"><span class="up">+₹1,181 cr</span> debt today · <span class="dn">−₹1,103 cr</span> equity</div><div id="ar"></div></div>
+<div class="card"><div class="tp"><b>TEMASEK</b><span>Investment</span></div><div class="chip" style="margin-top:12px"></div><div class="n">₹10,560 cr</div><div class="s">Greenko · Renewables</div><div class="bt"><span>Singapore</span><span>28 Oct</span></div></div>
+<div class="card o"><div class="tp"><b>BLACKSTONE</b><span>Exit</span></div><div class="chip" style="margin-top:12px"></div><div class="n">₹5,984 cr</div><div class="s">Mphasis · IT services</div><div class="bt"><span>USA</span><span>26 Oct</span></div></div>
+<div class="qa"><h4>Quick actions <i>View all</i></h4><div class="bs"><div class="p">Open feed</div><div>Investors</div><div>Flows</div><div>Export CSV</div></div></div></div>
+<div class="r"><h3>Recent stories <i>View all</i></h3>
+<div class="tx"><div class="sq" style="background:#1e3a8a">T</div><div class="t"><b>Temasek commits $1.2bn to renewables platform</b><small>Reuters · 28 Oct</small></div><div class="a up">+₹10,560</div></div>
+<div class="tx"><div class="sq" style="background:#7c2d12">B</div><div class="t"><b>Blackstone sells part of stake in IT services firm</b><small>ET · 26 Oct</small></div><div class="a dn">−₹5,984</div></div>
+<div class="tx"><div class="sq" style="background:#14532d">V</div><div class="t"><b>Vanguard launches India-focused fund at GIFT City</b><small>Reuters · 25 Oct</small></div><div class="a" style="color:#c9d0e6">Fund</div></div>
+<div class="tx"><div class="sq" style="background:#1e3a8a">A</div><div class="t"><b>ADIA backs Indian fintech in $300m round</b><small>Bloomberg · 25 Oct</small></div><div class="a up">+₹2,640</div></div>
+<div class="tx"><div class="sq" style="background:#7c2d12">K</div><div class="t"><b>KKR trims holding in healthcare chain</b><small>Mint · 24 Oct</small></div><div class="a dn">−₹1,848</div></div>
+<div class="tx"><div class="sq" style="background:#4c1d95">F</div><div class="t"><b>Fidelity shifts fund domicile to GIFT City</b><small>ET · 23 Oct</small></div><div class="a" style="color:#c9d0e6">Move</div></div>
+<div class="tx"><div class="sq" style="background:#1e3a8a">C</div><div class="t"><b>CPP Investments adds $520m to infrastructure trust</b><small>Reuters · 22 Oct</small></div><div class="a up">+₹4,576</div></div></div>
+</div></section></div>
+<script>
+const v=[-1100,900,2400,600,3100,1500,2800,4200,3600,5200];(function(){const W=520,H=130,mn=-1500,mx=5600,x=i=>i*W/(v.length-1),y=a=>H-10-(a-mn)/(mx-mn)*(H-24);let d='M'+v.map((a,i)=>x(i)+','+y(a)).join(' L');
+document.getElementById('ar').innerHTML=`<svg viewBox="0 0 ${W} ${H+16}" style="width:100%"><defs><linearGradient id="f" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#5b8cff" stop-opacity=".5"/><stop offset="1" stop-color="#5b8cff" stop-opacity="0"/></linearGradient></defs><path d="${d} L${W},${H} L0,${H} Z" fill="url(#f)"/><path d="${d}" fill="none" stroke="#8fb0ff" stroke-width="2"/><circle cx="${x(7)}" cy="${y(v[7])}" r="4" fill="#fff"/>${['Mon','Tue','Wed','Thu','Fri'].map((t,i)=>`<text x="${i*W/4}" y="${H+12}" font-size="10" fill="#8a93b0" text-anchor="${i?i==4?'end':'middle':'start'}">${t}</text>`).join('')}</svg>`})();
+</script></body></html>
