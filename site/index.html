@@ -426,6 +426,8 @@ abbr.term{text-decoration:underline dotted;text-underline-offset:3px;cursor:help
 .gloss dt.on{color:var(--accent)}
 @media (max-width:700px){.bkcols{grid-template-columns:1fr}}
 /* Network tab */
+.netflt,.netpath{margin-bottom:8px}.netflt select,.netpath select{max-width:100%;min-width:0}
+.pstep{border-top:1px solid var(--line);padding:10px 0}.pstep .slist{margin:6px 0 0}
 .flegend i.dashkey{background:none;width:16px;height:0;border-top:2px dashed var(--muted);border-radius:0;vertical-align:3px}
 .netbar #nq{flex:1 1 220px;min-width:0}
 .netbar #nsel{flex:0 1 300px;min-width:0}
@@ -606,6 +608,17 @@ abbr.term{text-decoration:underline dotted;text-underline-offset:3px;cursor:help
         <button type="button" data-h="1" aria-pressed="false">1 hop</button>
         <button type="button" data-h="2" aria-pressed="false">2 hops</button>
       </div>
+    </div>
+    <div class="filters netbar netflt" aria-label="Network filters">
+      <select id="nkind" aria-label="Firms to show"><option value="all">Investors and companies</option><option value="investor">Investors only</option><option value="company">Companies only</option></select>
+      <select id="nlinks" aria-label="Link type"><option value="all">Deals and stakes</option><option value="deals">Deals only</option><option value="stakes">Filed stakes only</option></select>
+      <select id="ntype" aria-label="Deal type"><option value="all">All deal types</option><option value="entry">Investments</option><option value="exit">Exits</option></select>
+      <select id="nperiod" aria-label="Period"><option value="all">All time</option><option value="90">Last 90 days</option><option value="30">Last 30 days</option></select>
+      <button class="reset" id="nreset" type="button">Reset</button>
+    </div>
+    <div class="filters netbar netpath" aria-label="Find the link between two firms">
+      <b>How are</b> <select id="pa" aria-label="First firm"></select> <b>and</b> <select id="pb" aria-label="Second firm"></select> <b>connected?</b>
+      <button class="reset" id="pgo" type="button">Find the link</button>
     </div>
     <p class="sub" style="margin:0 0 10px">A line means two firms appeared in the same deal story; it is not an ownership record. A dashed line is a stake of 1% or more from a company's shareholding filing. Click a firm to see its own links, or a line to see its stories.</p>
     <div class="netwrap">
@@ -1345,13 +1358,22 @@ function render() {
 // ---------- Network: which firms appear on the same deal stories ----------
 // Built from every loaded story, not the Feed filters. Investors link to the company they bought into or sold;
 // a story with no company links its firms to each other (co-investors, or buyer and seller).
-const net = { src: null, g: null, center: null, edge: null, hops: innerWidth < 700 ? 1 : 2, view: "one" };
+const net = { src: null, g: null, center: null, edge: null, hops: innerWidth < 700 ? 1 : 2, view: "one", f: { kind: "all", links: "all", period: "all", type: "all" }, sig: "" };
 // A link's weight counts its stories and any filed stakes; its label says which.
 const edgeW = (ed) => ed.stories.size + ed.stakes.length;
 const edgeLabel = (ed) => [ed.stories.size && `${ed.stories.size} stor${ed.stories.size === 1 ? "y" : "ies"} name both`,
   ...ed.stakes.map((h) => `${titleCase(h.holder)} holds ${(+h.pct).toFixed(2)}% (as of ${dmy(h.period_end)})`)].filter(Boolean).join(" · ");
 // Descriptions rather than names ("offshore backer", "Malaysian investor", "UAE") would link unrelated deals.
 const VAGUE = /^(global|offshore|foreign|overseas|international|institutional|malaysian|polish|mauritius-based|singapore sovereign)\b.*\b(investors?|funds?|lenders?|backers?|company|wealth fund)$|^(uae|japan|qatar|new zealand|nordic countries|usd .*)$/i;
+// The stories the graph is built from, after the period, deal-type and link-type filters.
+function netEvents() {
+  if (net.f.links === "stakes") return [];
+  const since = net.f.period === "all" ? 0 : Date.now() - +net.f.period * 864e5;
+  return state.events.filter((e) => when(e) >= since && (net.f.type === "all" || e.event_types.includes(net.f.type)));
+}
+// A firm counts as a company (rather than an investor) when the stories mostly name it as the one invested in.
+const isCompany = (n) => n.asTarget > n.asFirm;
+const kindOk = (n) => net.f.kind === "all" || (net.f.kind === "company") === isCompany(n);
 function buildNetwork() {
   const nodes = new Map(), edges = new Map(), adj = new Map();
   const node = (name, asTarget) => {
@@ -1372,7 +1394,7 @@ function buildNetwork() {
     edges.set(id, ed);
     [[a, b], [b, a]].forEach(([x, y]) => { if (!adj.has(x.key)) adj.set(x.key, new Map()); adj.get(x.key).set(y.key, ed); });
   };
-  state.events.forEach((e) => {
+  netEvents().forEach((e) => {
     const ps = e.parties.length ? e.parties : e.investor ? [{ name: e.investor, role: "investor" }] : [];
     const tname = e.target || ps.find((p) => p.role === "target")?.name;
     const t = tname ? node(tname, true) : null;
@@ -1390,7 +1412,7 @@ function buildNetwork() {
   const byCo = new Map([...nodes.values()].map((n) => [coKey(n.key), n]));
   const latest = new Map();
   state.holdings.forEach((h) => { if (!latest.has(h.company) || h.period_end > latest.get(h.company)) latest.set(h.company, h.period_end); });
-  state.holdings.filter((h) => h.period_end === latest.get(h.company)).forEach((h) => {
+  (net.f.links === "deals" ? [] : state.holdings).filter((h) => h.period_end === latest.get(h.company)).forEach((h) => {
     const co = byCo.get(coKey(h.company)) || node(titleCase(h.company), true), holder = node(titleCase(h.holder), false);
     if (!co || !holder || co === holder) return;
     byCo.set(coKey(co.key), co);
@@ -1407,14 +1429,17 @@ function netStories(list, limit = 15) {
 }
 
 function ensureNet() {
-  if (net.src !== state.events) {
-    net.src = state.events; net.g = buildNetwork();
+  const sig = `${state.events.length}|${state.holdings.length}|${JSON.stringify(net.f)}`;
+  if (net.src !== state.events || net.sig !== sig) {
+    net.src = state.events; net.sig = sig; net.g = buildNetwork();
     const deg = (k) => net.g.adj.get(k)?.size || 0;
     const ranked = [...net.g.nodes.values()].filter((n) => deg(n.key)).sort((a, b) => deg(b.key) - deg(a.key));
     $("nq-list").innerHTML = ranked.map((n) => `<option value="${esc(n.name)}">`).join("");
     // Every linked firm, most-linked first, with its count.
     $("nsel").innerHTML = `<option value="">Choose a firm…</option>` + ranked.map((n) =>
       `<option value="${esc(n.key)}">${esc(n.name)} · ${deg(n.key)} linked firm${deg(n.key) === 1 ? "" : "s"}</option>`).join("");
+    const opts = (v) => `<option value="">Choose…</option>` + ranked.map((n) => `<option value="${esc(n.key)}"${n.key === v ? " selected" : ""}>${esc(n.name)}</option>`).join("");
+    $("pa").innerHTML = opts(net.pa); $("pb").innerHTML = opts(net.pb);
     if (!net.g.nodes.has(net.center)) net.center = ranked[0]?.key || null;
   }
 }
@@ -1427,15 +1452,16 @@ function renderNetwork() {
   $("nhops").hidden = net.view === "all";
   $("nsel").value = net.view === "one" && net.center ? net.center : "";
   if (net.view === "all") return renderAllFirms();
+  if (net.view === "path") return renderPath();
   const { nodes, adj } = net.g, c = nodes.get(net.center);
   if (!c) { $("net-graph").innerHTML = `<div class="empty">No linked firms yet.</div>`; $("net-panel").innerHTML = ""; return; }
   // First ring: the centre's direct links, strongest first. Second ring: a few of each one's own links.
   const w = edgeW;
-  const nb = adj.get(c.key) || new Map();
+  const nb = new Map([...(adj.get(c.key) || new Map())].filter(([k]) => kindOk(nodes.get(k))));
   const hop1 = [...nb.entries()].sort((a, b) => w(b[1]) - w(a[1])).slice(0, 24).map(([k, ed]) => ({ k, ed }));
   const placed = new Set([c.key, ...hop1.map((h) => h.k)]), hop2 = [];
   if (net.hops === 2) hop1.forEach((h) => {
-    [...(adj.get(h.k) || new Map()).entries()].filter(([k]) => !placed.has(k)).sort((a, b) => w(b[1]) - w(a[1])).slice(0, 4)
+    [...(adj.get(h.k) || new Map()).entries()].filter(([k]) => !placed.has(k) && kindOk(nodes.get(k))).sort((a, b) => w(b[1]) - w(a[1])).slice(0, 4)
       .forEach(([k, ed]) => { if (hop2.length < 40 && !placed.has(k)) { placed.add(k); hop2.push({ k, ed, p: h.k }); } });
   });
   // Phones get a square canvas and bigger text so labels stay readable.
@@ -1454,7 +1480,7 @@ function renderNetwork() {
   const line = (a, b, ed) => {
     const [x1, y1] = pos.get(a), [x2, y2] = pos.get(b), on = net.edge === ed.id;
     return `<g class="ne" data-e="${esc(ed.id)}"><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${on ? "var(--accent)" : "var(--line)"}" stroke-width="${(on ? 2 : 1) + Math.log2(w(ed))}"${ed.stories.size ? "" : ' stroke-dasharray="6 4"'}/>
-      <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="transparent" stroke-width="12"><title>${esc(nodes.get(a).name)} – ${esc(nodes.get(b).name)}: ${esc(edgeLabel(ed))}</title></line></g>`;
+      <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="transparent" stroke-width="12"><title>${esc(nodes.get(a).name)} – ${esc(nodes.get(b).name)}: ${esc(edgeLabel(ed))}</title></line>${w(ed) > 1 ? `<text x="${(x1 + x2) / 2}" y="${(y1 + y2) / 2 + 4}" text-anchor="middle" font-size="${10.5 * f}" font-weight="700" fill="var(--muted)" paint-order="stroke" stroke="var(--panel)" stroke-width="3" pointer-events="none">${w(ed)}</text>` : ""}</g>`;
   };
   const dot = (k, ring) => {
     const n = nodes.get(k), [x, y, a] = pos.get(k), r = (ring === 0 ? 16 : Math.min(15, 5 + 2 * Math.sqrt(n.stories.size))) * (sm ? 1.4 : 1);
@@ -1475,7 +1501,9 @@ function renderNetwork() {
   $("net-panel").innerHTML = ed
     ? `<h3>${esc(nodes.get(ed.a).name)} ↔ ${esc(nodes.get(ed.b).name)}</h3><div class="sub">${esc(edgeLabel(ed))}</div>${ed.stories.size ? netStories(ed.stories) : ""}${ed.stakes.length ? `<p class="sub">The stake is from the company's quarterly shareholding filing.</p>` : ""}<button class="link" id="net-back">← All of ${esc(c.name)}'s stories</button>`
     : `<h3>${esc(c.name)}</h3><div class="sub">${c.stories.size} stor${c.stories.size === 1 ? "y" : "ies"} · linked to ${nb.size} firm${nb.size === 1 ? "" : "s"}${nb.size > hop1.length ? ` (top ${hop1.length} shown)` : ""}</div>
-      <a class="link" href="#firm/${encodeURIComponent(c.key)}" style="display:inline-block;margin-top:8px;text-decoration:none">Open profile →</a>${netStories(c.stories)}`;
+      <a class="link" href="#firm/${encodeURIComponent(c.key)}" style="display:inline-block;margin-top:8px;text-decoration:none">Open profile →</a>
+      ${hop1.length ? `<div class="sub" style="margin-top:10px"><b>Strongest links</b> (number on each line = stories plus stakes)</div><ul class="slist">${hop1.slice(0, 6).map((h) => `<li><button class="link" data-k="${esc(h.k)}" style="font-weight:600;color:var(--ink)">${esc(nodes.get(h.k).name)}</button><div class="sub">${esc(edgeLabel(h.ed))}</div></li>`).join("")}</ul>` : ""}
+      <div class="sub" style="margin-top:6px"><b>Stories</b></div>${netStories(c.stories)}`;
   $("net-back")?.addEventListener("click", () => { net.edge = null; renderNetwork(); });
 }
 
@@ -1867,6 +1895,48 @@ addEventListener("hashchange", route);
 $("nsel").addEventListener("change", () => {
   if ($("nsel").value) { net.center = $("nsel").value; net.edge = null; net.view = "one"; renderNetwork(); }
 });
+// ---------- Filters and the path between two firms ----------
+const FILTER_IDS = { nkind: "kind", nlinks: "links", ntype: "type", nperiod: "period" };
+Object.entries(FILTER_IDS).forEach(([id, k]) => $(id).addEventListener("change", () => { net.f[k] = $(id).value; net.edge = null; renderNetwork(); }));
+$("nreset").onclick = () => { net.f = { kind: "all", links: "all", period: "all", type: "all" }; Object.entries(FILTER_IDS).forEach(([id, k]) => $(id).value = net.f[k]); net.edge = null; renderNetwork(); };
+$("pgo").onclick = () => { net.pa = $("pa").value; net.pb = $("pb").value; net.view = net.pa && net.pb ? "path" : net.view; renderNetwork(); };
+// Shortest chain of links between two firms (fewest steps; where several tie, the first found).
+function findPath(a, b) {
+  const { adj } = net.g, prev = new Map([[a, null]]), q = [a];
+  while (q.length) {
+    const k = q.shift();
+    if (k === b) break;
+    [...(adj.get(k) || new Map()).keys()].forEach((n) => { if (!prev.has(n)) { prev.set(n, k); q.push(n); } });
+  }
+  if (!prev.has(b)) return null;
+  const out = [];
+  for (let k = b; k !== null; k = prev.get(k)) out.unshift(k);
+  return out;
+}
+function renderPath() {
+  const { nodes, adj } = net.g, a = nodes.get(net.pa), b = nodes.get(net.pb);
+  $("nhops").hidden = true; $("nsel").value = "";
+  if (!a || !b) { $("net-graph").innerHTML = `<div class="empty">Choose two firms.</div>`; $("net-panel").innerHTML = ""; return; }
+  const path = a === b ? [a.key] : findPath(a.key, b.key);
+  if (!path) {
+    $("net-graph").innerHTML = `<div class="empty">No link found between ${esc(a.name)} and ${esc(b.name)} in the stories and filings loaded${net.f.kind !== "all" || net.f.links !== "all" || net.f.type !== "all" || net.f.period !== "all" ? " (try Reset on the filters)" : ""}.</div>`;
+    $("net-panel").innerHTML = `<h3>No link</h3><div class="sub">The two firms are not connected through any shared story or stake yet. More stories and filings arrive every day.</div>`;
+    return;
+  }
+  const sm = innerWidth < 700, f = sm ? 1.9 : 1, W = sm ? 700 : 1000, n = path.length, H = sm ? 120 + n * 120 : 360;
+  const pos = path.map((k, i) => sm ? [W / 2 + (i % 2 ? 90 : -90), 70 + i * 120] : [60 + i * ((W - 120) / Math.max(n - 1, 1)), H / 2 + (i % 2 ? 60 : -60)]);
+  const edgeOf = (i) => adj.get(path[i]).get(path[i + 1]);
+  $("net-graph").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Chain of links from ${esc(a.name)} to ${esc(b.name)}">
+    ${path.slice(1).map((_, i) => { const [x1, y1] = pos[i], [x2, y2] = pos[i + 1], ed = edgeOf(i); return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--accent)" stroke-width="${2 + Math.log2(edgeW(ed))}"${ed.stories.size ? "" : ' stroke-dasharray="6 4"'}/>
+      <text x="${(x1 + x2) / 2}" y="${(y1 + y2) / 2 - 8}" text-anchor="middle" font-size="${11 * f}" fill="var(--muted)" paint-order="stroke" stroke="var(--panel)" stroke-width="3">${ed.stories.size ? `${ed.stories.size} stor${ed.stories.size === 1 ? "y" : "ies"}` : ""}${ed.stories.size && ed.stakes.length ? " + " : ""}${ed.stakes.length ? "stake" : ""}</text>`; }).join("")}
+    ${path.map((k, i) => { const nd = nodes.get(k), [x, y] = pos[i], ends = i === 0 || i === n - 1;
+      return `<g class="nn" data-k="${esc(k)}" tabindex="0" role="button" aria-label="Centre on ${esc(nd.name)}"><circle cx="${x}" cy="${y}" r="${(ends ? 15 : 11) * (sm ? 1.3 : 1)}" fill="${isCompany(nd) ? "var(--muted)" : "var(--entry)"}" stroke="var(--panel)" stroke-width="2"/>
+        <text x="${x}" y="${y + (ends ? 34 : 30) * (sm ? 1.2 : 1)}" text-anchor="middle" font-size="${(ends ? 13 : 12) * f}" font-weight="600" fill="var(--ink)">${esc(nd.name.length > 22 ? nd.name.slice(0, 21) + "…" : nd.name)}</text></g>`; }).join("")}</svg>
+    <div class="flegend" style="padding:0 16px 12px"><span>${n - 1} step${n === 2 ? "" : "s"} from ${esc(a.name)} to ${esc(b.name)}</span><span><i class="dashkey"></i>Filed stake</span></div>`;
+  $("net-panel").innerHTML = `<h3>${esc(a.name)} → ${esc(b.name)}</h3><div class="sub">${n - 1 ? `${n - 1} step${n === 2 ? "" : "s"}. Each step is a shared story or a filed stake.` : "Same firm."}</div>` +
+    path.slice(1).map((_, i) => { const ed = edgeOf(i); return `<div class="pstep"><b>${esc(nodes.get(path[i]).name)} ↔ ${esc(nodes.get(path[i + 1]).name)}</b><div class="sub">${esc(edgeLabel(ed))}</div>${ed.stories.size ? netStories(ed.stories, 3) : ""}</div>`; }).join("");
+}
+
 document.querySelectorAll("#nview button").forEach((b) => b.onclick = () => { net.view = b.dataset.v; net.edge = null; renderNetwork(); });
 $("net-panel").addEventListener("click", (ev) => {
   const k = ev.target.closest("[data-k]")?.dataset.k;
@@ -1879,7 +1949,7 @@ $("net-panel").addEventListener("click", (ev) => {
 function renderAllFirms() {
   const { nodes, adj, edges } = net.g, sm = innerWidth < 700, N = sm ? 35 : 70;
   const deg = (k) => adj.get(k)?.size || 0;
-  const linked = [...nodes.values()].filter((n) => deg(n.key));
+  const linked = [...nodes.values()].filter((n) => deg(n.key) && kindOk(n));
   const top = linked.sort((a, b) => deg(b.key) - deg(a.key) || b.stories.size - a.stories.size).slice(0, N);
   const keep = new Set(top.map((n) => n.key));
   const links = [...edges.values()].filter((e) => keep.has(e.a) && keep.has(e.b));
