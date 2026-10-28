@@ -334,7 +334,8 @@ header .eyebrow{color:var(--muted);font-size:12px;font-weight:700;letter-spacing
 .seg button[aria-pressed="true"]{background:var(--panel);box-shadow:0 1px 4px rgba(0,0,0,.25)}
 /* Overview */
 .ovgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.ovc{padding:18px 20px}
+.ovc{padding:18px 20px;min-width:0}
+.ovc svg{max-width:100%;height:auto}
 .ovc.span2{grid-column:1/-1}
 .ovh{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
 .ovh h3{margin:0;font-size:16px}
@@ -361,6 +362,8 @@ header .eyebrow{color:var(--muted);font-size:12px;font-weight:700;letter-spacing
 .flowwrap{display:grid;grid-template-columns:minmax(260px,auto) minmax(0,1fr);gap:16px;align-items:center}
 #ov-fpibars{min-width:0;width:100%}
 @media (max-width:1100px){.flowwrap{grid-template-columns:1fr}}
+/* Very narrow screens (a foldable's cover display): cards give up some padding instead of overflowing. */
+@media (max-width:340px){.ovgrid{grid-template-columns:minmax(0,1fr)}.ovc{padding:14px}.flowwrap{grid-template-columns:minmax(0,1fr)}.rings{flex-wrap:wrap;justify-content:center}}
 .m30{display:grid;grid-template-columns:1.1fr 1fr;gap:28px}
 @media (max-width:900px){.m30{grid-template-columns:1fr}}
 .m30row{display:grid;grid-template-columns:minmax(150px,210px) 1fr auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
@@ -2435,6 +2438,13 @@ function renderSources() {
   });
 }
 
+// Putting identical HTML back replays the cards' fade-in, which shows as flicker. These blocks are re-rendered
+// on every data load and window resize, so a re-render with unchanged HTML is skipped.
+["ov-tiles", "ov-flow", "ov-deals", "ov-stories", "ov-regs", "ov-week", "board"].forEach((id) => {
+  const el = $(id), d = Object.getOwnPropertyDescriptor(Element.prototype, "innerHTML");
+  if (!el) return;
+  Object.defineProperty(el, "innerHTML", { configurable: true, get() { return d.get.call(el); }, set(v) { if (el.__h !== v) { el.__h = v; d.set.call(el, v); } } });
+});
 function renderOverview() {
   if (!$("tab-overview") || !state.events.length) return;
   const now = Date.now(), t7 = (e) => now - new Date(e.published_at || e.fetched_at) < 7 * 864e5;
@@ -2458,7 +2468,8 @@ function renderOverview() {
       <div><span>All segments</span><b>${crore(last.Total)}</b> <span style="display:inline">${usdm(last.usd)}</span></div></div></div>`;
     // Drawn at the card's width, so wait until the layout has given it one.
     const wait = !$("ov-fpibars").clientWidth;
-    if (wait && state.tab === "overview") requestAnimationFrame(renderOverview);
+    if (wait && state.tab === "overview" && (state.ovTry = (state.ovTry || 0) + 1) < 30) requestAnimationFrame(renderOverview);
+    if (!wait) state.ovTry = 0;
     if (!wait) {
     const pts = d.slice(-20).map((x) => ({ ...x, v: x.Total }));
     $("ov-fpibars").dataset.title = "FPI net investment, recent trading days";
@@ -2536,7 +2547,9 @@ $("board").addEventListener("click", (ev) => {
   const m = ev.target.closest("[data-more]");
   if (m) { feedView = "list"; state.types = new Set(KPI_GROUPS[m.dataset.more].types); render(); }
 });
-addEventListener("resize", () => { clearTimeout(state.bt); state.bt = setTimeout(() => { renderBoard(); if (state.tab === "overview") renderOverview(); }, 200); });
+// Phones fire "resize" when the address bar slides in or out; only a change of width needs a redraw.
+let lastResizeW = innerWidth;
+addEventListener("resize", () => { if (innerWidth === lastResizeW) return; lastResizeW = innerWidth; clearTimeout(state.bt); state.bt = setTimeout(() => { renderBoard(); if (state.tab === "overview") renderOverview(); }, 200); });
 
 // ---------- Directory: NSDL's FPI register and IFSCA's directory of GIFT IFSC entities ----------
 // Both lists are too long to load at once, so each search asks the database for one page of matches.
