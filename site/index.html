@@ -406,6 +406,25 @@ section.enter :is(.kpi,.ftile,.card,.inv,.bk,.ovc,.fcard,.drow):nth-child(n+5):n
 .toast .ok2{width:22px;height:22px;border-radius:50%;background:#16a37a;display:grid;place-items:center;flex:none}
 .toast button{background:#1d2026;color:#eceef2;border:0;border-radius:999px;padding:4px 10px;font:inherit;font-size:12px;cursor:pointer;flex:none}
 @media (max-width:900px){.board{grid-template-columns:1fr 1fr}}
+/* What changed, following, breakdown, sharing, glossary */
+.takeaway{background:var(--glass),var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:14px;padding:12px 16px;margin:0 0 14px;font-size:14px;line-height:1.55}
+.takeaway span+span::before{content:" "}
+.newtag{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:999px;background:var(--accent);color:var(--accent-ink);margin-right:6px;vertical-align:1px}
+.bkcols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.bkh{margin:0 0 6px;font-size:12.5px;color:var(--muted);font-weight:600}
+.bkrow{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:minmax(0,1.3fr) 1fr 28px;gap:8px;align-items:center;width:100%;padding:6px 4px;border-radius:8px;font-size:13px}
+.bkrow:hover,.bkrow:focus-visible{background:var(--chip)}
+.bkrow span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bkbar{height:8px;border-radius:4px;background:var(--chip);overflow:hidden}.bkbar i{display:block;height:100%;background:var(--entry);border-radius:4px}
+.bkrow b{text-align:right;font-variant-numeric:tabular-nums}
+.fnote{background:var(--chip);border-radius:10px;padding:9px 12px;margin-bottom:10px;font-size:13px}
+.sharebtn{font-size:12px}
+abbr.term{text-decoration:underline dotted;text-underline-offset:3px;cursor:help}
+.gloss{max-width:560px;width:calc(100% - 32px);max-height:80vh;border:1px solid var(--line);border-radius:18px;background:var(--panel);color:var(--ink);padding:18px 20px}
+.gloss::backdrop{background:rgba(0,0,0,.5)}
+.gloss dl{margin:12px 0 0;display:grid;gap:4px}.gloss dt{font-weight:700;margin-top:8px}.gloss dd{margin:0;color:var(--muted);font-size:13.5px}
+.gloss dt.on{color:var(--accent)}
+@media (max-width:700px){.bkcols{grid-template-columns:1fr}}
 /* Network tab */
 .netbar #nq{flex:1 1 220px;min-width:0}
 .netbar #nsel{flex:0 1 300px;min-width:0}
@@ -506,6 +525,7 @@ section.enter :is(.kpi,.ftile,.card,.inv,.bk,.ovc,.fcard,.drow):nth-child(n+5):n
         <option value="">Capital deals and business presence</option>
       </select>
       <button class="reset" id="reset" type="button">Reset</button>
+      <button class="reset" id="sharev" type="button" title="Copy a link to this view">Copy link</button>
     </div>
   </section>
 
@@ -525,6 +545,7 @@ section.enter :is(.kpi,.ftile,.card,.inv,.bk,.ovc,.fcard,.drow):nth-child(n+5):n
   </nav>
 
   <section id="tab-overview">
+    <p class="takeaway" id="ov-take"></p>
     <div class="ftiles" id="ov-tiles"></div>
     <p class="dsrc" data-src="review,nsdl_flows,nsdl_fpi_list,ifsca_directory" data-what="Sources: news checked by the review step, NSE, NSDL, IFSCA and DPIIT. Each section shows its own source and update time" style="margin:-4px 0 14px"></p>
     <div class="ovgrid">
@@ -532,6 +553,8 @@ section.enter :is(.kpi,.ftile,.card,.inv,.bk,.ovc,.fcard,.drow):nth-child(n+5):n
       <div class="ovc"><div class="ovh"><div><h3>Biggest deals this week</h3><div class="sub">Largest agreed or completed deals, last 7 days</div></div><button class="link" data-go="feed">Feed ↗</button></div><div id="ov-deals"></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Latest stories</h3><div class="sub">Checked and added every 3 hours</div></div><button class="link" data-go="feed">All stories</button></div><div id="ov-stories"></div></div>
       <div class="ovc"><div class="ovh"><div><h3>New registrations</h3><div class="sub">NSDL FPIs and GIFT IFSC entities</div></div><button class="link" data-go="directory">Directory ↗</button></div><div id="ov-regs"><div class="sub">Loading…</div></div></div>
+      <div class="ovc"><div class="ovh"><div><h3>Following</h3><div class="sub">Firms you follow, on this device</div></div></div><div id="ov-follow"></div></div>
+      <div class="ovc"><div class="ovh"><div><h3>Where the money comes from</h3><div class="sub">Capital deals in the last 90 days. Tap a row to see them</div></div></div><div id="ov-break"></div></div>
       <div class="ovc span2"><div class="ovh"><div><h3>The last 30 days</h3><div class="sub">Reported deal value by category, and the most active investors</div></div><button class="link" data-go="investors">Investors ↗</button></div><div id="ov-week"></div></div>
     </div>
   </section>
@@ -539,6 +562,7 @@ section.enter :is(.kpi,.ftile,.card,.inv,.bk,.ovc,.fcard,.drow):nth-child(n+5):n
   <section id="tab-feed" hidden>
     <p class="dsrc" data-src="review,news,nse_bulk" data-what="News via Google News, checked by the review step; NSE bulk/block deals of ₹25 cr or more" style="margin:0 0 10px"></p>
     <div class="fbar"><div class="seg" role="group" aria-label="Feed layout" id="fview"><button data-v="board" aria-pressed="true">Board</button><button data-v="list" aria-pressed="false">List</button></div></div>
+    <div id="fnote-slot"></div>
     <div class="board" id="board"></div>
     <div class="list" id="feed"></div>
   </section>
@@ -592,6 +616,7 @@ section.enter :is(.kpi,.ftile,.card,.inv,.bk,.ovc,.fcard,.drow):nth-child(n+5):n
   <section id="tab-firm" hidden><div id="firm-body"></div></section>
 
   <section id="tab-flows" hidden>
+    <p class="takeaway" id="fl-take" hidden></p>
     <p class="sub" style="margin:0 0 12px">Money moving into and out of India in aggregate. FPI figures are daily from NSDL (₹ crore); FDI figures are by financial year from DPIIT's quarterly fact sheet (US$).</p>
 
     <h2 class="fsec">FPI · foreign portfolio investment</h2>
@@ -696,10 +721,12 @@ section.enter :is(.kpi,.ftile,.card,.inv,.bk,.ovc,.fcard,.drow):nth-child(n+5):n
   </section>
   <p class="note">New stories are checked and added every 3 hours.</p>
 
+  <dialog class="gloss" id="gloss" aria-labelledby="gloss-h"><div class="fhead"><h3 id="gloss-h" style="margin:0">Jargon explained</h3><button class="reset" id="gloss-x" type="button">Close</button></div><dl id="gloss-list"></dl></dialog>
   <footer class="byline">
     <div><strong>Built by Kishan Singhania</strong> ·
       <a href="https://www.linkedin.com/in/kishansinghania/" target="_blank" rel="noopener">LinkedIn</a> ·
-      <a href="mailto:Kishansinghania18@gmail.com">Kishansinghania18@gmail.com</a></div>
+      <a href="mailto:Kishansinghania18@gmail.com">Kishansinghania18@gmail.com</a> ·
+      <button class="link" type="button" data-gloss-open>Jargon explained</button></div>
     <div class="sub">A personal project tracking foreign capital flowing into and out of India. Sources: Google News and NSE; stories may contain errors, so check the original article. Not affiliated with any employer. Not investment advice.</div>
   </footer>
 </div>
@@ -819,6 +846,7 @@ function applyPreset() {
 
 // Every filter except the category; the tiles and chips use this so they can show each category's count.
 function base() {
+  if (state.story) return state.events.filter((e) => String(e.id) === state.story);
   const q = $("q").value.trim().toLowerCase();
   const src = $("source").value, stage = $("stage").value, flow = $("flow").value;
   const v = $("preset").value;
@@ -830,6 +858,7 @@ function base() {
     return (!sinceHours || t >= sinceHours) && (sinceHours || ((!from || t >= from) && (!to || t <= to))) &&
       (!src || (src === "news" ? e.source === "news" : e.source.startsWith("nse"))) &&
       (!stage || (stage === "firm" ? FIRM.has(e.deal_stage) : e.deal_stage === stage)) && (!flow || (e.flow_kind || "capital") === flow) &&
+      (!state.country || countryOf(e) === state.country) && (!state.sector || sectorOf(e) === state.sector) &&
       (!q || [e.title, e.investor, e.target, e.summary, e.source_name, ...e.parties.map((p) => p.name)].some((x) => x && x.toLowerCase().includes(q)));
   });
 }
@@ -877,6 +906,7 @@ function renderKpis() {
 
 function renderFeed() {
   const rows = filtered();
+  $("fnote-slot").innerHTML = feedNotice();
   if (!rows.length) { $("feed").innerHTML = `<div class="empty">Nothing matches these filters. Try other dates or press Reset.</div>`; return; }
   $("feed").innerHTML = rows.slice(0, 400).map((e) => {
     const who = e.parties.length
@@ -894,9 +924,9 @@ function renderFeed() {
     ].filter(Boolean).join("&nbsp;· ");
     return `<article class="card">
       <div>
-        <div class="meta">${[...e.event_types].sort((a, b) => Object.keys(TYPES).indexOf(a) - Object.keys(TYPES).indexOf(b)).map((t) => `<span class="badge" style="--dotc:${color(t)}">${TYPES[t] || t}</span>`).join("")}${stageTag(e)}${presTag(e)}</div>
+        <div class="meta">${isNew(e) ? `<span class="newtag">New</span>` : ""}${[...e.event_types].sort((a, b) => Object.keys(TYPES).indexOf(a) - Object.keys(TYPES).indexOf(b)).map((t) => `<span class="badge" style="--dotc:${color(t)}">${TYPES[t] || t}</span>`).join("")}${stageTag(e)}${presTag(e)}</div>
         <div style="margin:4px 0"><a class="title" href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a></div>
-        <div class="meta">${bits}</div>
+        <div class="meta">${bits}&nbsp;· <button class="link sharebtn" type="button" data-share="${esc(e.id)}">Copy link</button></div>
       </div>
       ${e.summary && e.classifier !== "rules" ? `<div class="summary">${esc(e.summary)}</div>` : ""}
     </article>`;
@@ -1279,6 +1309,8 @@ function renderFlows() {
   ["ffrom", "fto"].forEach((id) => { if (document.activeElement !== $(`${id}-txt`)) $(`${id}-txt`).value = toDMY($(id).value); });
   $("fcover").textContent = `Data available: FPI daily from ${flows.daily.length ? toDMY(flows.daily[0].day) : "—"}, FPI monthly from ${flows.monthly.length ? monLabel(flows.monthly[0].month) : "—"}. Earlier dates show nothing yet; history grows every trading day.`;
   renderFlowTiles(); renderFlowCharts(); renderDpiit();
+  const ft = fpiLine();
+  $("fl-take").hidden = !ft; $("fl-take").innerHTML = ft;
 }
 document.querySelectorAll("#fseg button").forEach((b) => b.onclick = () => {
   flows.seg = b.dataset.s;
@@ -1300,6 +1332,7 @@ function render() {
   renderKpis(); renderFeed(); renderBoard(); renderInvestors(); renderRuns(); renderFlows(); renderOverview(); setTitle(); renderSources();
   if (state.tab === "network") renderNetwork();
   if (state.tab === "firm") renderFirm();
+  syncUrl(); glossifyPage();
 }
 
 // ---------- Network: which firms appear on the same deal stories ----------
@@ -1466,7 +1499,8 @@ function renderFirm() {
   box.innerHTML = `
     <div class="fhead" style="margin-bottom:14px"><div><h2 style="margin:0;font-size:26px;letter-spacing:-.02em">${esc(n.name)}</h2>
       <div class="sub">${others.length ? `Also written as ${others.map(esc).join(", ")} · ` : ""}First seen ${dmy(first)} · latest ${dmy(last)}</div></div>
-      <button class="reset" id="firm-graph" type="button">Show in Network</button></div>
+      <div style="display:flex;gap:8px"><button class="reset" id="firm-follow" type="button" aria-pressed="${follows().includes(n.key)}">${follows().includes(n.key) ? "★ Following" : "☆ Follow"}</button>
+      <button class="reset" id="firm-graph" type="button">Show in Network</button></div></div>
     <div class="ftiles">
       ${tile("Stories", list.length, Object.entries(cats).map(([k, v]) => `${v} ${(CAT_WORDS[k] || [k, k])[v === 1 ? 0 : 1]}`).join(" · "))}
       ${buy ? tile("As investor or buyer", buy) : ""}${sell ? tile("As seller", sell) : ""}${target ? tile("As the company invested in", target) : ""}
@@ -1479,6 +1513,11 @@ function renderFirm() {
     </div>
     ${stakesHtml(n.key)}
     <p class="note">Built from news stories, which may contain errors; check the original article. A link is not an ownership record.</p>`;
+  $("firm-follow").onclick = () => {
+    const f = follows(), on = f.includes(n.key);
+    setFollows(on ? f.filter((k) => k !== n.key) : [...f, n.key]);
+    renderFirm();
+  };
   $("firm-graph").onclick = () => { net.center = n.key; net.edge = null; net.view = "one"; location.hash = ""; setTab("network"); };
   setTitle();
 }
@@ -1526,8 +1565,11 @@ function parseShp(text) {
   for (const el of doc.documentElement.children) {
     const ref = el.getAttribute("contextRef");
     if (!ref || !el.textContent.trim()) continue;
-    if (!facts.has(ref)) facts.set(ref, {});
-    facts.get(ref)[el.localName] = el.textContent.trim();
+    // NSE files keep a holder's name under "D_<Category>_Context15" and its shares and percentage under
+    // "<Category>_Context15": pair them by the shared part.
+    const key = ref.replace(/^D_/, "");
+    if (!facts.has(key)) facts.set(key, {});
+    facts.get(key)[el.localName] = el.textContent.trim();
   }
   const pick = (g, ...res) => { for (const re of res) for (const k in g) if (re.test(k)) return g[k]; return ""; };
   const any = (...res) => { for (const re of res) for (const g of facts.values()) for (const k in g) if (re.test(k)) return g[k]; return ""; };
@@ -1536,8 +1578,8 @@ function parseShp(text) {
     const holder = pick(g, /^NameOf(The)?Shareholders?$/i, /NameOf(The)?Shareholder|ShareholderName|NameOfTheEntity$/i);
     const pct = parseFloat(pick(g, /ShareholdingAsAPercentage|AsAPercentageOfTotal/i, /Percent/i));
     if (!holder || !Number.isFinite(pct)) return;
-    const shares = parseFloat(pick(g, /^NumberOfFullyPaidUpEquityShares/i, /TotalNumberOfShares|NumberOfShares/i).replace(/,/g, ""));
-    const where = `${ref} ${ctx.get(ref)?.dims || ""}`;
+    const shares = parseFloat(pick(g, /^NumberOfFullyPaidUpEquityShares/i, /^NumberOfShares$/i).replace(/,/g, ""));
+    const where = `${ref.replace(/_Context\d*I?$/, "")} ${(ctx.get(ref) || ctx.get("D_" + ref))?.dims || ""}`;
     const category = where.replace(/Member\b/g, "").replace(/([a-z])([A-Z])/g, "$1 $2").replace(/[^A-Za-z]+/g, " ").match(/foreign portfolio[a-z ]*|foreign[a-z ]*|insurance[a-z ]*|mutual fund[a-z ]*|bodies corporate|promoter[a-z ]*|individual[a-z ]*/i)?.[0].trim() || "";
     rows.push({ holder, pct, shares: Number.isFinite(shares) ? shares : null, category, foreign: /foreign|fpi|fii|overseas/i.test(where) });
   });
@@ -1587,6 +1629,206 @@ $("shp-file").addEventListener("change", async () => {
     } catch (e) { $("shp-msg").textContent = `Not saved: ${e.message}`; }
   };
 });
+
+// ---------- What changed: this month so far against the same point last month ----------
+const monthName = (y, m) => new Date(y, m, 1).toLocaleString("en-GB", { month: "long" });
+function dealsLine() {
+  const now = new Date(), y = now.getFullYear(), m = now.getMonth(), day = now.getDate();
+  const cap = state.events.filter((e) => (e.flow_kind || "capital") === "capital");
+  const span = (a, b) => cap.filter((e) => { const t = when(e); return t >= a && t <= b; });
+  const cnt = (rows, t) => rows.filter((e) => e.event_types.includes(t)).length;
+  // Same rule as "The last 30 days": agreed or completed investments with an amount, leaving out outsized pledges.
+  const val = (rows) => rows.filter((e) => e.event_types.includes("entry") && FIRM.has(e.deal_stage))
+    .reduce((a, e) => { const x = amountCr(e); return a + (x && x.usd <= 10000 ? x.cr : 0); }, 0);
+  const cur = span(new Date(y, m, 1), now);
+  const prev = span(new Date(y, m - 1, 1), new Date(y, m - 1, Math.min(day, new Date(y, m, 0).getDate()), 23, 59, 59));
+  const ci = cnt(cur, "entry"), ce = cnt(cur, "exit"), pi = cnt(prev, "entry"), pe = cnt(prev, "exit"), v = val(cur);
+  const vs = ci > pi ? "up from" : ci < pi ? "down from" : "level with";
+  return `So far in ${monthName(y, m)}: <b>${ci} investment${ci === 1 ? "" : "s"}</b> into India${v ? ` (${fmtCr(v)} agreed or completed)` : ""} and <b>${ce} exit${ce === 1 ? "" : "s"}</b>, ${vs} ${pi} investment${pi === 1 ? "" : "s"} and ${pe} exit${pe === 1 ? "" : "s"} by this date in ${monthName(y, m - 1)}.`;
+}
+function fpiLine() {
+  const d = flows.daily;
+  if (!d.length) return "";
+  const last = d[d.length - 1], ym = last.day.slice(0, 7), dd = last.day.slice(8);
+  const p = new Date(`${ym}-01T00:00:00`); p.setMonth(p.getMonth() - 1);
+  const pym = dayStr(p).slice(0, 7), mn = (s) => monthName(+s.slice(0, 4), +s.slice(5, 7) - 1);
+  const cur = d.filter((x) => x.day.startsWith(ym)).reduce((a, x) => a + x.Total, 0);
+  const before = d.filter((x) => x.day.startsWith(pym) && x.day.slice(8) <= dd);
+  const amt = (n) => `₹${nfmt(Math.round(Math.abs(n)))} cr`;
+  let t = `FPIs <b>${cur < 0 ? "have taken out" : "have put in"} ${amt(cur)}</b> so far in ${mn(ym)} (to ${toDMY(last.day)})`;
+  if (before.length) { const b = before.reduce((a, x) => a + x.Total, 0); t += `, against ${b < 0 ? "an outflow" : "an inflow"} of ${amt(b)} by the same date in ${mn(pym)}`; }
+  return `${t}.`;
+}
+function renderTakeaways() {
+  const fresh = state.prevVisit ? state.events.filter((e) => (e.fetched_at || e.published_at) > state.prevVisit).length : 0;
+  $("ov-take").innerHTML = [dealsLine(), fpiLine()].filter(Boolean).map((s) => `<span>${s}</span>`).join(" ") +
+    (fresh ? ` <button class="link" id="newsince">${fresh} new since your last visit →</button>` : "");
+  $("newsince")?.addEventListener("click", () => {
+    $("preset").value = "custom"; $("from").value = dayStr(new Date(state.prevVisit)); $("to").value = dayStr(new Date());
+    state.types.clear(); setTab("feed"); render(); scrollTo(0, 0);
+  });
+  glossify($("ov-take"));
+}
+
+// ---------- Following: firms this browser follows, kept on this device only ----------
+const follows = () => { try { return JSON.parse(load("ict-follow") || "[]"); } catch { return []; } };
+const setFollows = (a) => store("ict-follow", JSON.stringify(a));
+const isNew = (e) => state.prevVisit && (e.fetched_at || e.published_at) > state.prevVisit;
+const newest = (a, b) => (b.published_at || b.fetched_at) > (a.published_at || a.fetched_at) ? 1 : -1;
+function renderFollowing() {
+  const keys = follows();
+  if (!keys.length) {
+    $("ov-follow").innerHTML = `<div class="sub">Follow a firm from its profile and its new deals appear here. Open any firm in the <button class="link" data-go="network">Network</button> to start.</div>`;
+  } else {
+    ensureNet();
+    $("ov-follow").innerHTML = keys.map((k) => {
+      const n = net.g.nodes.get(k);
+      if (!n) return "";
+      const list = [...n.stories].sort(newest), fresh = list.filter(isNew).length, top = list[0];
+      return `<div class="ovrow"><div style="min-width:0"><div class="t"><a href="#firm/${encodeURIComponent(k)}">${esc(n.name)}</a>${fresh ? ` <span class="newtag">${fresh} new</span>` : ""}</div>
+        ${top ? `<div class="sub">Latest: ${esc(top.title)} · ${dmy(top.published_at || top.fetched_at)}</div>` : ""}</div><span class="side">${list.length} stor${list.length === 1 ? "y" : "ies"}</span></div>`;
+    }).join("");
+  }
+  $("ov-follow").querySelectorAll("[data-go]").forEach((b) => b.onclick = () => { setTab(b.dataset.go); scrollTo(0, 0); });
+}
+
+// ---------- Where the money comes from and goes: investor country and sector ----------
+const COUNTRY = { usa: "United States", us: "United States", "u.s.": "United States", "united states of america": "United States", uk: "United Kingdom", "u.k.": "United Kingdom", "united arab emirates": "UAE", "the netherlands": "Netherlands", korea: "South Korea", "republic of korea": "South Korea" };
+const countryOf = (e) => { const c = (e.investor_country || "").trim(); return c ? COUNTRY[c.toLowerCase()] || c : null; };
+// The stories carry no sector, so it is read from the company and headline; checked in this order.
+const SECTORS = [
+  ["Healthcare", /hospital|health|pharma|diagnostic|clinic|medic|ivf|life ?science|biotech/i],
+  ["Financial services", /bank|financ|fintech|insur|nbfc|payment|wealth|\bamc\b|asset manag|funds? manag|broking|lend|credit|stock exchange|mutual fund|paytm|securities/i],
+  ["Energy and renewables", /renewable|solar|wind|power|energy|green|battery|\bev\b|electric|hydrogen|smart meter/i],
+  ["Infrastructure and real estate", /infra|invit|highway|road|port\b|airport|logistic|warehous|real estate|realty|propert|data cent|mall|hotel|tower/i],
+  ["Technology and internet", /tech|software|\bai\b|saas|digital|platform|internet|semiconductor|cloud|telecom|\bjio\b/i],
+  ["Consumer and retail", /retail|consumer|food|beverage|fashion|jewel|beauty|restaurant|coffee|brand|e-?commerce|grocer|dairy|milk|eyewear|lenskart|apparel|houseware/i],
+  ["Industrial and manufacturing", /manufactur|engineering|\bauto|chemical|steel|cement|precision|industrial|alumin|glass|explosive|defen[cs]e|drone|aerospace/i],
+];
+const sectorOf = (e) => (SECTORS.find(([, re]) => re.test(`${e.target || ""} ${e.title} ${e.summary || ""}`)) || ["Other"])[0];
+function renderBreakdown() {
+  const since = Date.now() - 90 * 864e5;
+  const rows = state.events.filter((e) => (e.flow_kind || "capital") === "capital" && when(e) >= since);
+  const tally = (f) => {
+    const m = new Map();
+    rows.forEach((e) => { const k = f(e); if (k) m.set(k, (m.get(k) || 0) + 1); });
+    return [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8);
+  };
+  const col = (title, list, kind) => {
+    const mx = list[0]?.[1] || 1;
+    return `<div><h4 class="bkh">${title}</h4>${list.map(([k, n]) => `<button class="bkrow" type="button" data-${kind}="${esc(k)}"><span>${esc(k)}</span><span class="bkbar"><i style="width:${n / mx * 100}%"></i></span><b>${n}</b></button>`).join("") || `<div class="sub">No deals yet.</div>`}</div>`;
+  };
+  $("ov-break").innerHTML = `<div class="bkcols">${col("Investor's home country", tally(countryOf), "country")}${col("Sector, read from the headline", tally(sectorOf), "sector")}</div>`;
+}
+$("ov-break").addEventListener("click", (ev) => {
+  const b = ev.target.closest(".bkrow");
+  if (!b) return;
+  state.country = b.dataset.country || null; state.sector = b.dataset.sector || null; state.story = null;
+  state.types.clear(); setTab("feed"); render(); scrollTo(0, 0);
+});
+
+// ---------- Shareable links: the address keeps the tab and filters ----------
+const URL_FIELDS = ["q", "preset", "from", "to", "source", "stage", "flow"], URL_DEFAULT = { preset: "all", flow: "capital" };
+function syncUrl() {
+  if (!state.urlReady) return;
+  const p = new URLSearchParams();
+  if (!["overview", "firm", "health"].includes(state.tab)) p.set("tab", state.tab);
+  URL_FIELDS.forEach((id) => {
+    const v = $(id).value;
+    if (!v || v === (URL_DEFAULT[id] || "") || ((id === "from" || id === "to") && $("preset").value !== "custom")) return;
+    p.set(id, v);
+  });
+  if (state.types.size) p.set("type", [...state.types].join(","));
+  ["country", "sector", "story"].forEach((k) => state[k] && p.set(k, state[k]));
+  const s = p.toString(), url = location.pathname + (s ? `?${s}` : "") + location.hash;
+  if (url !== location.pathname + location.search + location.hash) history.replaceState(null, "", url);
+}
+function applyUrl() {
+  const p = new URLSearchParams(location.search);
+  URL_FIELDS.forEach((id) => { if (p.has(id)) $(id).value = p.get(id); });
+  if (p.has("preset") && p.get("preset") !== "custom") applyPreset();
+  if (p.get("type")) state.types = new Set(p.get("type").split(",").filter((t) => TYPES[t]));
+  ["country", "sector", "story"].forEach((k) => state[k] = p.get(k) || null);
+  const tab = p.get("tab") || (state.story || state.country || state.sector ? "feed" : null);
+  if (tab && tab !== "health" && tab !== "firm" && $(`tab-${tab}`)) setTab(tab);
+  state.urlReady = true;
+  syncUrl();
+}
+async function copyLink(url, btn) {
+  const was = btn.textContent;
+  try { await navigator.clipboard.writeText(url); btn.textContent = "Link copied"; } catch { prompt("Copy this link", url); }
+  setTimeout(() => btn.textContent = was, 2000);
+}
+$("sharev").addEventListener("click", () => { syncUrl(); copyLink(location.href, $("sharev")); });
+["feed", "board", "fnote-slot"].forEach((id) => $(id).addEventListener("click", (ev) => {
+  const s = ev.target.closest("[data-share]"), c = ev.target.closest("[data-clear]");
+  if (s) copyLink(`${location.origin}${location.pathname}?story=${encodeURIComponent(s.dataset.share)}`, s);
+  else if (c) { c.dataset.clear.split(",").forEach((k) => state[k] = null); render(); }
+}));
+// The narrowing that comes from a shared link or the Home breakdown, shown above the feed so it can be cleared.
+function feedNotice() {
+  if (state.story) return `<div class="fnote">Showing one shared story. <button class="link" data-clear="story">Show all stories</button></div>`;
+  const on = [state.country && `investor from <b>${esc(state.country)}</b>`, state.sector && `sector <b>${esc(state.sector)}</b>`].filter(Boolean);
+  return on.length ? `<div class="fnote">Only deals with ${on.join(" and ")}. <button class="link" data-clear="country,sector">Clear</button></div>` : "";
+}
+
+// ---------- Jargon explained ----------
+const GLOSSARY = {
+  "FPI": "Foreign portfolio investor: a foreign fund or institution registered with SEBI to buy Indian shares and bonds as an investment, not to run the business.",
+  "FDI": "Foreign direct investment: a foreign company or investor taking a lasting stake (generally 10% or more of a listed company) or setting up a business in India.",
+  "GIFT City": "Gujarat International Finance Tec-City, India's international financial centre near Gandhinagar. Funds set up there are treated as offshore.",
+  "IFSC": "International Financial Services Centre: the zone inside GIFT City where funds and banks work under offshore-style rules.",
+  "IFSCA": "International Financial Services Centres Authority: the regulator of GIFT City's IFSC, which licenses fund managers there.",
+  "NSDL": "National Securities Depository Ltd: it publishes the daily figures for FPI buying and selling, and the register of FPIs.",
+  "DPIIT": "Department for Promotion of Industry and Internal Trade: the government department that publishes India's FDI statistics.",
+  "SEBI": "Securities and Exchange Board of India, the market regulator.",
+  "Block deal": "A single large trade in a listed company's shares, done in a separate window of the exchange.",
+  "Bulk deal": "A trade in which one buyer or seller deals in more than 0.5% of a listed company's shares in a day.",
+  "VRR": "Voluntary Retention Route: an RBI route that lets FPIs invest in Indian debt with fewer limits if they keep the money in for a set period.",
+  "InvIT": "Infrastructure investment trust: a trust that owns roads, power lines or similar assets and pays out their income to unit holders.",
+  "OFS": "Offer for sale: existing shareholders selling their shares, often through the exchange or as part of an IPO.",
+  "QIP": "Qualified institutional placement: a listed company selling new shares directly to large institutions.",
+  "AIF": "Alternative investment fund: a private fund registered in India, such as a private equity or venture capital fund.",
+};
+const GLOSS_RE = new RegExp(`\\b(${Object.keys(GLOSSARY).map((k) => k.replace(/ /g, "\\s")).join("|")})s?\\b`, "g");
+// Underlines the first mention of each term in an element's text, leaving links and buttons alone.
+function glossify(root) {
+  if (!root) return;
+  const seen = new Set([...root.querySelectorAll("abbr.term")].map((x) => x.dataset.term)), walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode: (n) => n.parentElement.closest("abbr,a,button,select,option,input,svg,script,style") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT,
+  });
+  const nodes = [];
+  while (walk.nextNode()) nodes.push(walk.currentNode);
+  nodes.forEach((t) => {
+    GLOSS_RE.lastIndex = 0;
+    let m, last = 0, out = null;
+    while ((m = GLOSS_RE.exec(t.data))) {
+      const key = Object.keys(GLOSSARY).find((k) => k.toLowerCase() === m[1].replace(/\s+/g, " ").toLowerCase());
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      out = out || document.createDocumentFragment();
+      out.append(t.data.slice(last, m.index));
+      const a = document.createElement("abbr");
+      a.className = "term"; a.tabIndex = 0; a.title = GLOSSARY[key]; a.dataset.term = key; a.textContent = m[0];
+      out.append(a);
+      last = m.index + m[0].length;
+    }
+    if (out) { out.append(t.data.slice(last)); t.replaceWith(out); }
+  });
+}
+function openGloss(term) {
+  $("gloss-list").innerHTML = Object.entries(GLOSSARY).map(([k, v]) => `<dt id="g-${esc(k.replace(/\s/g, "-"))}"${k === term ? ' class="on"' : ""}>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("");
+  $("gloss").showModal();
+  if (term) document.getElementById(`g-${term.replace(/\s/g, "-")}`)?.scrollIntoView({ block: "center" });
+}
+document.addEventListener("click", (ev) => {
+  const a = ev.target.closest("abbr.term"), g = ev.target.closest("[data-gloss-open]");
+  if (a || g) { ev.preventDefault(); openGloss(a?.dataset.term); }
+});
+document.addEventListener("keydown", (ev) => { const a = ev.target.closest?.("abbr.term"); if (a && ev.key === "Enter") openGloss(a.dataset.term); });
+$("gloss-x").onclick = () => $("gloss").close();
+const GLOSS_AREAS = ["#tab-overview .ovh .sub", "#ov-tiles .l", "#tab-flows > p", "#tab-flows .note", "#tab-flows h2", "#tab-directory .sub", "#fl-take", "#psub"];
+function glossifyPage() { document.querySelectorAll(GLOSS_AREAS.join(",")).forEach(glossify); }
 
 function route() {
   const m = location.hash.match(/^#firm\/(.+)$/);
@@ -1677,6 +1919,7 @@ function setTab(t) {
   if (t === "directory") openDirectory();
   if (t === "network") renderNetwork();
   if (t === "firm") renderFirm();
+  if (typeof syncUrl === "function") syncUrl();
   if (t === "overview" && typeof renderOverview === "function") requestAnimationFrame(renderOverview);
 }
 document.querySelectorAll("nav.tabs button").forEach((b) => b.onclick = () => { setTab(b.dataset.tab); scrollTo({ top: 0, behavior: "smooth" }); });
@@ -1846,6 +2089,7 @@ function renderOverview() {
       <p class="note" style="margin:8px 0 0">Sum of amounts for agreed or completed capital deals only: plans, pledges, talks and business-presence news are left out. Many deals disclose no amount.</p></div>
     <div>${busiest.map((r, i) => `<div class="ovrow"><span class="rank">${i + 1}</span><div style="min-width:0"><div class="t">${esc(r.name)}</div><div class="meta" style="margin-top:4px">${[...r.types].map(tg).join("")}</div></div><span class="side">${r.n} stor${r.n === 1 ? "y" : "ies"}${r.cr ? `<br>${fmtCr(r.cr)}` : ""}</span></div>`).join("") || `<div class="sub">No named investors in the last 30 days.</div>`}</div></div>`;
   newSinceLastVisit();
+  renderTakeaways(); renderFollowing(); renderBreakdown();
 }
 
 // ---------- Feed board: one column per category (desktop); the list stays on phones ----------
@@ -1864,8 +2108,8 @@ function renderBoard() {
     const card = (e) => {
       const who = e.parties.length ? e.parties[0].name : e.investor, own = e.event_types.find((x) => g.types.includes(x));
       const kind = g.types.length > 1 ? `<span class="tg"><i style="background:${color(own)}"></i>${TYPES[own]}</span>` : "";
-      return `<div class="bk"><div class="meta">${kind}${stageTag(e)}${presTag(e)}${who ? `<span class="tg"><i style="background:${color(own)}"></i>${esc(who).slice(0, 26)}</span>` : ""}${amountCr(e) ? `<span class="amtflag">${esc(money(e).split(" (")[0])}</span>` : ""}</div>
-        <a class="t" href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a><div class="m">${ago(e.published_at || e.fetched_at)} · ${esc(e.source_name || e.source)}${e.reports > 1 ? ` · ${e.reports} reports` : ""}</div></div>`;
+      return `<div class="bk"><div class="meta">${isNew(e) ? `<span class="newtag">New</span>` : ""}${kind}${stageTag(e)}${presTag(e)}${who ? `<span class="tg"><i style="background:${color(own)}"></i>${esc(who).slice(0, 26)}</span>` : ""}${amountCr(e) ? `<span class="amtflag">${esc(money(e).split(" (")[0])}</span>` : ""}</div>
+        <a class="t" href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a><div class="m">${ago(e.published_at || e.fetched_at)} · ${esc(e.source_name || e.source)}${e.reports > 1 ? ` · ${e.reports} reports` : ""} · <button class="link sharebtn" type="button" data-share="${esc(e.id)}">Copy link</button></div></div>`;
     };
     return `<div class="bcol"><div class="bcolh"><span class="tg" style="background:none;padding:0"><i style="background:${color(t)}"></i></span>${g.label}<span class="c">${list.length}</span></div>
       ${list.slice(0, 12).map(card).join("") || `<div class="sub" style="padding:8px">Nothing in this period.</div>`}
@@ -2153,7 +2397,7 @@ $("ftoggle").addEventListener("click", () => {
 });
 $("reset").addEventListener("click", () => {
   $("q").value = ""; $("iq").value = ""; $("icat").value = ""; $("itype").value = ""; $("isort").value = "active"; $("source").value = ""; $("stage").value = ""; $("flow").value = "capital";
-  $("preset").value = "all"; applyPreset(); state.types.clear(); setTab("feed"); render();
+  $("preset").value = "all"; applyPreset(); state.types.clear(); state.country = state.sector = state.story = null; setTab("feed"); render();
 });
 $("to").max = $("from").max = $("fto").max = $("ffrom").max = dayStr(new Date());
 ["iq", "icat", "itype", "isort"].forEach((id) => $(id).addEventListener("input", () => { invShown = 60; renderInvestors(); }));
@@ -2183,7 +2427,9 @@ function showWelcome() {
   $("welcome-enter").onclick = () => { store("ict-welcome", today); w.hidden = true; document.body.classList.remove("locked"); };
 }
 
+state.prevVisit = load("ict-last-visit");
 setTab("overview");
+applyUrl();
 route();
 refresh();
 loadHoldings();

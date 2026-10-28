@@ -36,8 +36,11 @@ export function parseShp(xml: string, foreignNames: RegExp, domesticNames: RegEx
   for (const [, name, ref, val] of xml.matchAll(/<(?:[\w-]+:)?(\w+)\b[^>]*\bcontextRef="([^"]+)"[^>]*>([\s\S]*?)<\/(?:[\w-]+:)?\1>/g)) {
     const v = decode(val);
     if (!v) continue;
-    if (!facts.has(ref)) facts.set(ref, {});
-    facts.get(ref)![name] = v;
+    // NSE files keep a holder's name under "D_<Category>_Context15" and its shares and percentage under
+    // "<Category>_Context15": pair them by the shared part.
+    const key = ref.replace(/^D_/, "");
+    if (!facts.has(key)) facts.set(key, {});
+    facts.get(key)![name] = v;
   }
   const pick = (g: Record<string, string>, ...res: RegExp[]) => { for (const re of res) for (const k in g) if (re.test(k)) return g[k]; return ""; };
   const any = (...res: RegExp[]) => { for (const re of res) for (const g of facts.values()) for (const k in g) if (re.test(k)) return g[k]; return ""; };
@@ -46,8 +49,8 @@ export function parseShp(xml: string, foreignNames: RegExp, domesticNames: RegEx
     const holder = pick(g, /^NameOf(The)?Shareholders?$/i, /NameOf(The)?Shareholder|ShareholderName/i);
     const pct = parseFloat(pick(g, /ShareholdingAsAPercentage|AsAPercentageOfTotal/i, /Percent/i));
     if (!holder || !Number.isFinite(pct)) return;
-    const shares = parseFloat(pick(g, /^NumberOfFullyPaidUpEquityShares/i, /TotalNumberOfShares|NumberOfShares/i).replace(/,/g, ""));
-    const where = `${ref} ${ctx.get(ref)?.dims ?? ""}`.replace(/Member\b/g, "").replace(/([a-z])([A-Z])/g, "$1 $2");
+    const shares = parseFloat(pick(g, /^NumberOfFullyPaidUpEquityShares/i, /^NumberOfShares$/i).replace(/,/g, ""));
+    const where = `${ref.replace(/_Context\d*I?$/, "")} ${(ctx.get(ref) ?? ctx.get("D_" + ref))?.dims ?? ""}`.replace(/Member\b/g, "").replace(/([a-z])([A-Z])/g, "$1 $2");
     const category = where.replace(/[^A-Za-z]+/g, " ").match(/foreign portfolio[a-z ]*|foreign[a-z ]*|insurance[a-z ]*|mutual fund[a-z ]*|bodies corporate|promoter[a-z ]*|individual[a-z ]*/i)?.[0].trim() ?? "";
     // The context says where the holder is listed; a foreign-looking name is a fallback for files whose
     // contexts carry no category.
