@@ -572,6 +572,10 @@ abbr.term{text-decoration:underline dotted;text-underline-offset:3px;cursor:help
   </section>
 
   <section id="tab-investors" hidden>
+    <div class="seg" id="iview" role="group" aria-label="Investors from" style="margin-bottom:10px">
+      <button type="button" data-v="news" aria-pressed="true">In the news</button>
+      <button type="button" data-v="holders" aria-pressed="false">Foreign holders (filings)</button>
+    </div>
     <div class="filters">
       <input type="search" id="iq" placeholder="Find an investor, fund or company…" aria-label="Find an investor">
       <select id="icat" aria-label="Category">
@@ -615,7 +619,7 @@ abbr.term{text-decoration:underline dotted;text-underline-offset:3px;cursor:help
       <select id="nlinks" aria-label="Link type"><option value="all">Deals and stakes</option><option value="deals">Deals only</option><option value="stakes">Filed stakes only</option></select>
       <select id="ntype" aria-label="Deal type"><option value="all">All deal types</option><option value="entry">Investments</option><option value="exit">Exits</option></select>
       <select id="nperiod" aria-label="Period"><option value="all">All time</option><option value="90">Last 90 days</option><option value="30">Last 30 days</option></select>
-      <button class="reset" id="nreset" type="button">Reset</button>
+      <button class="reset" id="nreset" type="button" title="Clear every filter and show all firms">Reset · show all</button>
     </div>
     <div class="filters netbar netpath" aria-label="Find the link between two firms">
       <b>How are</b> <select id="pa" aria-label="First firm"></select> <b>and</b> <select id="pb" aria-label="Second firm"></select> <b>connected?</b>
@@ -1038,7 +1042,38 @@ function buildInvestors() {
   }));
 }
 
+// Foreign holders named in shareholding filings: one row per holder, each opening that holder's profile.
+state.iv = "news";
+function buildHolders() {
+  const latest = new Map(), by = new Map();
+  state.holdings.forEach((h) => { if (!latest.has(h.company) || h.period_end > latest.get(h.company)) latest.set(h.company, h.period_end); });
+  state.holdings.filter((h) => h.period_end === latest.get(h.company)).forEach((h) => {
+    const k = invKey(h.holder), r = by.get(k) || { key: k, names: new Map(), cos: [], top: null };
+    r.names.set(titleCase(h.holder), (r.names.get(titleCase(h.holder)) || 0) + 1);
+    r.cos.push(h);
+    if (!r.top || h.pct > r.top.pct) r.top = h;
+    by.set(k, r);
+  });
+  by.forEach((r) => r.name = [...r.names.entries()].sort((a, b) => b[1] - a[1])[0][0]);
+  return [...by.values()].sort((a, b) => b.cos.length - a.cos.length || b.top.pct - a.top.pct);
+}
+function renderHolders() {
+  $("imore").hidden = true;
+  const q = $("iq").value.trim().toLowerCase(), all = buildHolders(), rows = all.filter((r) => !q || [...r.names.keys()].some((n) => n.toLowerCase().includes(q)));
+  $("isum").textContent = `${rows.length.toLocaleString("en-IN")} foreign holder${rows.length === 1 ? "" : "s"} with 1% or more of a listed company, from the latest shareholding filings. Open one for its stakes and stories.`;
+  if (!rows.length) { $("investors").innerHTML = `<div class="empty" style="grid-column:1/-1">${state.holdings.length ? "No holders match." : "Loading…"}</div>`; return; }
+  $("investors").innerHTML = `<div class="ftable-wrap" style="grid-column:1/-1"><table class="ftable"><thead><tr><th>Holder</th><th class="num">Companies</th><th>Largest stake</th><th class="num">%</th></tr></thead><tbody>${rows.slice(0, invShown * 5).map((r) =>
+    `<tr><td><a href="#firm/${encodeURIComponent(r.key)}">${esc(r.name)}</a></td><td class="num">${r.cos.length}</td><td>${esc(titleCase(r.top.company))}</td><td class="num">${(+r.top.pct).toFixed(2)}</td></tr>`).join("")}</tbody></table></div>`;
+  $("imore").hidden = rows.length <= invShown * 5;
+}
+document.querySelectorAll("#iview button").forEach((b) => b.onclick = () => {
+  state.iv = b.dataset.v;
+  document.querySelectorAll("#iview button").forEach((x) => x.setAttribute("aria-pressed", x === b));
+  document.querySelectorAll("#icat,#itype,#isort").forEach((x) => x.hidden = state.iv === "holders");
+  renderInvestors();
+});
 function renderInvestors() {
+  if (state.iv === "holders") return renderHolders();
   const all = buildInvestors();
   // The type list offers only the types present in the current results.
   const present = new Set(all.map((r) => r.type).filter(Boolean));
@@ -1550,12 +1585,17 @@ function renderFirm() {
   const links = [...(net.g.adj.get(n.key) || new Map()).entries()].sort((a, b) => b[1].stories.size - a[1].stories.size);
   const tile = (l, v, s) => `<div class="ftile"><div class="l">${l}</div><div class="n">${v}</div>${s ? `<div class="s">${s}</div>` : ""}</div>`;
   const others = [...n.names.keys()].filter((x) => x !== n.name);
+  const held = firmStakes(n.key).holds, topHeld = held.reduce((m, h) => !m || h.pct > m.pct ? h : m, null);
+  // Stories about the companies this firm holds, even where the firm itself is not named.
+  const heldNews = new Set();
+  (net.g.adj.get(n.key) || new Map()).forEach((e, k) => { if (e.stakes.length) net.g.nodes.get(k).stories.forEach((x) => { if (!n.stories.has(x)) heldNews.add(x); }); });
   box.innerHTML = `
     <div class="fhead" style="margin-bottom:14px"><div><h2 style="margin:0;font-size:26px;letter-spacing:-.02em">${esc(n.name)}</h2>
       <div class="sub">${others.length ? `Also written as ${others.map(esc).join(", ")} · ` : ""}First seen ${dmy(first)} · latest ${dmy(last)}</div></div>
       <div style="display:flex;gap:8px"><button class="reset" id="firm-follow" type="button" aria-pressed="${follows().includes(n.key)}">${follows().includes(n.key) ? "★ Following" : "☆ Follow"}</button>
       <button class="reset" id="firm-graph" type="button">Show in Network</button></div></div>
     <div class="ftiles">
+      ${held.length ? tile("Listed companies held (1%+)", held.length, `Filings as of ${dmy(held.reduce((m, h) => h.period_end > m ? h.period_end : m, ""))}`) + tile("Largest stake", `${(+topHeld.pct).toFixed(2)}%`, esc(titleCase(topHeld.company))) : ""}
       ${tile("Stories", list.length, Object.entries(cats).map(([k, v]) => `${v} ${(CAT_WORDS[k] || [k, k])[v === 1 ? 0 : 1]}`).join(" · "))}
       ${buy ? tile("As investor or buyer", buy) : ""}${sell ? tile("As seller", sell) : ""}${target ? tile("As the company invested in", target) : ""}
       ${big ? tile("Largest disclosed deal", esc(money(big)), esc(big.title)) : ""}
@@ -1566,6 +1606,7 @@ function renderFirm() {
         <ul>${links.map(([k, ed]) => `<li><a href="#firm/${encodeURIComponent(k)}">${esc(net.g.nodes.get(k).name)}</a><div class="sub">${esc(edgeLabel(ed))}</div></li>`).join("") || `<li class="sub">None yet</li>`}</ul></aside>
     </div>
     ${stakesHtml(n.key)}
+    ${heldNews.size ? `<div class="fcard" style="margin-top:14px"><div class="fhead"><div><h3>News on companies it holds</h3><div class="sub">Stories about the companies above, where this firm is not named</div></div></div>${netStories(heldNews, 15)}</div>` : ""}
     <p class="note">Built from news stories, which may contain errors; check the original article. A link is not an ownership record.</p>`;
   $("firm-follow").onclick = () => {
     const f = follows(), on = f.includes(n.key);
@@ -1579,10 +1620,17 @@ function renderFirm() {
 state.holdings = [];
 async function loadHoldings() {
   try {
-    state.holdings = await api("shareholdings?select=company,symbol,period_end,holder,category,pct,source&order=period_end.desc&limit=10000");
+    const all = [];
+    for (let off = 0; ; off += 1000) {
+      const part = await api(`shareholdings?select=company,symbol,period_end,holder,category,pct,source&order=period_end.desc,company,holder&limit=1000&offset=${off}`);
+      all.push(...part);
+      if (part.length < 1000) break;
+    }
+    state.holdings = all;
     net.src = null; // rebuild the graph with the stakes
     if (state.tab === "firm") renderFirm();
     if (state.tab === "network") renderNetwork();
+    if (state.tab === "investors" && state.iv === "holders") renderInvestors();
   } catch {}
 }
 // The latest filing for each company, as rows where this firm is the holder or the company.
@@ -1597,7 +1645,9 @@ function firmStakes(key) {
 function stakesHtml(key) {
   const { holds, heldBy } = firmStakes(key);
   if (!holds.length && !heldBy.length) return "";
-  const row = (name, h) => `<tr><td>${esc(name)}${h.source === "nse_rss" ? ` <span class="sub" title="Read automatically from the filing; not checked by hand">auto</span>` : ""}</td><td class="num">${(+h.pct).toFixed(2)}%</td><td>${dmy(h.period_end)}</td></tr>`;
+  const kOf = new Map();
+  net.g?.adj.get(key)?.forEach((e, k) => e.stakes.forEach((x) => kOf.set(x, k)));
+  const row = (name, h) => `<tr><td>${(kOf.get(h) || (name === h.holder && invKey(h.holder))) ? `<a href="#firm/${encodeURIComponent(kOf.get(h) || invKey(h.holder))}">${esc(name)}</a>` : esc(name)}${h.source === "nse_rss" ? ` <span class="sub" title="Read automatically from the filing; not checked by hand">auto</span>` : ""}</td><td class="num">${(+h.pct).toFixed(2)}%</td><td>${dmy(h.period_end)}</td></tr>`;
   const table = (head, rows) => `<div class="ftable-wrap" style="margin-top:8px"><table class="ftable"><thead><tr><th>${head}</th><th class="num">Stake</th><th>As of</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   return `<div class="fcard" style="margin-top:14px"><div class="fhead"><div><h3>Stakes over 1%</h3><div class="sub">From the company's quarterly shareholding-pattern filing</div></div></div>
     ${holds.length ? table("Company", holds.sort((a, b) => b.pct - a.pct).map((h) => row(h.company, h)).join("")) : ""}
@@ -1916,7 +1966,7 @@ $("nsel").addEventListener("change", () => {
 // ---------- Filters and the path between two firms ----------
 const FILTER_IDS = { nkind: "kind", nlinks: "links", ntype: "type", nperiod: "period" };
 Object.entries(FILTER_IDS).forEach(([id, k]) => $(id).addEventListener("change", () => { net.f[k] = $(id).value; net.edge = null; renderNetwork(); }));
-$("nreset").onclick = () => { net.f = { kind: "all", links: "all", period: "all", type: "all" }; Object.entries(FILTER_IDS).forEach(([id, k]) => $(id).value = net.f[k]); net.edge = null; renderNetwork(); };
+$("nreset").onclick = () => { net.f = { kind: "all", links: "all", period: "all", type: "all" }; Object.entries(FILTER_IDS).forEach(([id, k]) => $(id).value = net.f[k]); net.edge = null; net.pa = net.pb = null; $("nq").value = ""; net.view = "all"; renderNetwork(); };
 $("pgo").onclick = () => { net.pa = $("pa").value; net.pb = $("pb").value; net.view = net.pa && net.pb ? "path" : net.view; renderNetwork(); };
 // Shortest chain of links between two firms (fewest steps; where several tie, the first found).
 function findPath(a, b) {
@@ -1965,49 +2015,83 @@ $("net-panel").addEventListener("click", (ev) => {
 // them (linked firms pull together, every pair pushes apart), starting from a circle so it lays out the
 // same way each time. It reruns only when the stories change or the screen crosses the phone width.
 function renderAllFirms() {
-  const { nodes, adj, edges } = net.g, sm = innerWidth < 700, N = sm ? 35 : 70;
+  const { nodes, adj, edges } = net.g, sm = innerWidth < 700;
   const deg = (k) => adj.get(k)?.size || 0;
-  const linked = [...nodes.values()].filter((n) => deg(n.key) && kindOk(n));
-  const top = linked.sort((a, b) => deg(b.key) - deg(a.key) || b.stories.size - a.stories.size).slice(0, N);
-  const keep = new Set(top.map((n) => n.key));
-  const links = [...edges.values()].filter((e) => keep.has(e.a) && keep.has(e.b));
-  const W = sm ? 700 : 1000, H = sm ? 820 : 640, f = sm ? 1.7 : 1, id = `${net.src.length}|${edges.size}|${N}`;
+  const linked = [...nodes.values()].filter((n) => deg(n.key) && kindOk(n)).sort((a, b) => deg(b.key) - deg(a.key) || b.stories.size - a.stories.size);
+  const id = `${nodes.size}|${edges.size}|${net.f.kind}|${sm}`;
   if (net.allId !== id) {
-    const P = top.map((n, i) => ({ k: n.key, x: W / 2 + (W / 3) * Math.cos(i * 2.4), y: H / 2 + (H / 3) * Math.sin(i * 2.4), vx: 0, vy: 0 }));
-    const at = new Map(P.map((p) => [p.k, p]));
-    for (let it = 0; it < 400; it++) {
-      const t = 1 - it / 400;
+    // The best-connected firms are laid out by a small force simulation; every other firm is placed in a
+    // ring around the best-connected firm it links to, and firms with no such link sit in small clusters
+    // on the outside. Same input, same picture.
+    const nCore = sm ? 120 : 200, core = linked.slice(0, nCore), cs = new Set(core.map((n) => n.key));
+    const sat = new Map(core.map((n) => [n.key, []])), rest = [], lines = [], pos = new Map();
+    linked.slice(nCore).forEach((n) => {
+      let best = null;
+      adj.get(n.key).forEach((_, k) => { if (cs.has(k) && (!best || deg(k) > deg(best))) best = k; });
+      best ? sat.get(best).push(n.key) : rest.push(n.key);
+    });
+    const r0 = (n) => Math.min(22, 4 + 2.2 * Math.sqrt(deg(n.key))) * 1.8 + 5, R = new Map(core.map((n) => [n.key, r0(n) + 4.2 * Math.sqrt(sat.get(n.key).length)]));
+    const P = core.map((n, i) => ({ k: n.key, x: 40 + 420 * Math.sqrt(i / nCore) * Math.cos(i * 2.4), y: 40 + 420 * Math.sqrt(i / nCore) * Math.sin(i * 2.4), vx: 0, vy: 0 }));
+    const at = new Map(P.map((p) => [p.k, p])), cl = [...edges.values()].filter((e) => cs.has(e.a) && cs.has(e.b));
+    for (let it = 0; it < 300; it++) {
+      const t = 1 - it / 300;
       for (let i = 0; i < P.length; i++) for (let j = i + 1; j < P.length; j++) {
-        const a = P[i], b = P[j], dx = a.x - b.x, dy = a.y - b.y, d2 = dx * dx + dy * dy + 0.01, F = (sm ? 9000 : 4200) / d2;
-        a.vx += dx * F / Math.sqrt(d2); a.vy += dy * F / Math.sqrt(d2); b.vx -= dx * F / Math.sqrt(d2); b.vy -= dy * F / Math.sqrt(d2);
+        const a = P[i], b = P[j], dx = a.x - b.x, dy = a.y - b.y, d2 = dx * dx + dy * dy + 0.01, d = Math.sqrt(d2), F = 25 * (R.get(a.k) + R.get(b.k)) ** 2 / d2;
+        a.vx += dx / d * F; a.vy += dy / d * F; b.vx -= dx / d * F; b.vy -= dy / d * F;
       }
-      links.forEach((e) => {
-        const a = at.get(e.a), b = at.get(e.b), dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1, F = (d - (sm ? 120 : 85)) * 0.02;
+      cl.forEach((e) => {
+        const a = at.get(e.a), b = at.get(e.b), dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1, F = (d - (R.get(e.a) + R.get(e.b) + 20)) * 0.02;
         a.vx += dx / d * F; a.vy += dy / d * F; b.vx -= dx / d * F; b.vy -= dy / d * F;
       });
       P.forEach((p) => {
-        p.vx += (W / 2 - p.x) * 0.004; p.vy += (H / 2 - p.y) * 0.004;
-        p.x = Math.max(40, Math.min(W - 40, p.x + p.vx * t)); p.y = Math.max(30, Math.min(H - 30, p.y + p.vy * t));
-        p.vx *= 0.5; p.vy *= 0.5;
+        p.vx += -p.x * 0.002; p.vy += -p.y * 0.002;
+        const v = Math.hypot(p.vx, p.vy) || 1, c = Math.min(v, 40) / v;
+        p.x += p.vx * c * t; p.y += p.vy * c * t; p.vx *= 0.5; p.vy *= 0.5;
       });
     }
-    net.allPos = at; net.allId = id;
+    let ext = 0;
+    P.forEach((p) => { pos.set(p.k, [p.x, p.y, 1]); ext = Math.max(ext, Math.hypot(p.x, p.y) + R.get(p.k)); });
+    cl.forEach((e) => lines.push([e.a, e.b, e]));
+    core.forEach((n) => {
+      const [cx, cy] = pos.get(n.key);
+      sat.get(n.key).sort((a, b) => deg(b) - deg(a)).forEach((k, i) => {
+        const a = i * 2.39996, r = r0(n) + 4.2 * Math.sqrt(i + 1);
+        pos.set(k, [cx + r * Math.cos(a), cy + r * Math.sin(a), 0]);
+        lines.push([n.key, k, adj.get(k).get(n.key)]);
+      });
+    });
+    let slot = 0;
+    rest.forEach((k) => {
+      if (pos.has(k)) return;
+      const group = [k, ...[...adj.get(k).keys()].filter((x) => !pos.has(x) && rest.includes(x))].slice(0, 6);
+      const a = slot * 2.39996, r = ext + 30 + 7 * Math.sqrt(slot++), cx = r * Math.cos(a), cy = r * Math.sin(a);
+      group.forEach((x, i) => {
+        pos.set(x, [cx + (i ? 8 * Math.cos(i * 1.7) : 0), cy + (i ? 8 * Math.sin(i * 1.7) : 0), 0]);
+        if (i) lines.push([k, x, adj.get(k).get(x)]);
+      });
+    });
+    net.all = { pos, lines, core: cs };
+    net.allId = id;
   }
-  const pos = net.allPos, named = new Set(top.slice(0, sm ? 10 : 26).map((n) => n.key));
-  const r = (k) => (4 + 2.2 * Math.sqrt(deg(k))) * (sm ? 1.3 : 1);
-  $("net-graph").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="The ${top.length} most-connected firms and their deal links">
-    ${links.map((e) => { const a = pos.get(e.a), b = pos.get(e.b); return `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="var(--line)" stroke-width="${1 + Math.log2(edgeW(e))}"${e.stories.size ? "" : ' stroke-dasharray="6 4"'}/>`; }).join("")}
-    ${top.map((n) => {
-      const p = pos.get(n.key), fill = n.asTarget > n.asFirm ? "var(--muted)" : "var(--entry)";
-      const label = n.name.length > 20 ? n.name.slice(0, 19) + "…" : n.name;
-      return `<g class="nn" data-k="${esc(n.key)}" tabindex="0" role="button" aria-label="${esc(n.name)}: ${deg(n.key)} links">
-        <circle cx="${p.x}" cy="${p.y}" r="${r(n.key)}" fill="${fill}" stroke="var(--panel)" stroke-width="1.5"><title>${esc(n.name)} · ${deg(n.key)} linked firms</title></circle>
-        ${named.has(n.key) ? `<text x="${p.x}" y="${p.y - r(n.key) - 4}" text-anchor="middle" font-size="${11 * f}" font-weight="600" fill="var(--ink)" paint-order="stroke" stroke="var(--panel)" stroke-width="3">${esc(label)}</text>` : ""}</g>`;
-    }).join("")}</svg>
-    <div class="flegend" style="padding:0 16px 12px"><span><i style="background:var(--entry)"></i>Investor or buyer</span><span><i style="background:var(--muted)"></i>Company invested in</span><span>Bigger dot = more links</span></div>`;
+  const { pos, lines, core } = net.all;
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  pos.forEach(([x, y]) => { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); });
+  const pad = 30, vw = x1 - x0 + 2 * pad, vh = y1 - y0 + 2 * pad, s = Math.max(vw / (sm ? 700 : 1000), vh / (sm ? 820 : 640), 0.5), f = sm ? 1.7 : 1;
+  const named = new Set(linked.slice(0, sm ? 10 : 26).map((n) => n.key));
+  const fillOf = (n) => n.asTarget > n.asFirm ? "var(--muted)" : "var(--entry)";
+  const dots = linked.filter((n) => pos.has(n.key));
+  const rOf = (n) => core.has(n.key) ? Math.min(22, 4 + 2.2 * Math.sqrt(deg(n.key))) * s * (sm ? 1.2 : 1) : 1.9 * s;
+  $("net-graph").innerHTML = `<svg viewBox="${x0 - pad} ${y0 - pad} ${vw} ${vh}" role="img" aria-label="All ${dots.length} linked firms as a constellation">
+    <g stroke="var(--line)" stroke-width="${0.7 * s}" stroke-opacity=".7">${lines.map(([a, b, e]) => { const p = pos.get(a), q = pos.get(b); return `<line x1="${p[0]}" y1="${p[1]}" x2="${q[0]}" y2="${q[1]}"${e && !e.stories.size ? ` stroke-dasharray="${3 * s} ${2 * s}"` : ""}/>`; }).join("")}</g>
+    ${dots.map((n) => { const p = pos.get(n.key), r = rOf(n);
+      return `<g class="nn" data-k="${esc(n.key)}" tabindex="${core.has(n.key) ? 0 : -1}" role="button" aria-label="${esc(n.name)}: ${deg(n.key)} links">
+        <circle cx="${p[0]}" cy="${p[1]}" r="${r}" fill="${fillOf(n)}" stroke="var(--panel)" stroke-width="${0.8 * s}"><title>${esc(n.name)} · ${deg(n.key)} linked firm${deg(n.key) === 1 ? "" : "s"}</title></circle>
+        ${named.has(n.key) ? `<text x="${p[0]}" y="${p[1] - r - 4 * s}" text-anchor="middle" font-size="${11 * f * s}" font-weight="600" fill="var(--ink)" paint-order="stroke" stroke="var(--panel)" stroke-width="${3 * s}">${esc(n.name.length > 20 ? n.name.slice(0, 19) + "…" : n.name)}</text>` : ""}</g>`; }).join("")}</svg>
+    <div class="flegend" style="padding:0 16px 12px"><span><i style="background:var(--entry)"></i>Investor or buyer</span><span><i style="background:var(--muted)"></i>Company invested in</span><span>Big dots are the best-connected firms; small dots ring the firm they link to</span></div>`;
+  const inv = dots.filter((n) => !isCompany(n)).length;
   $("net-panel").innerHTML = `<h3>Whole network</h3>
-    <div class="sub">The ${top.length} most-connected of ${linked.length} linked firms · ${links.length} links shown</div>
-    <ul>${top.slice(0, 12).map((n) => `<li><button class="link" data-k="${esc(n.key)}" style="font-weight:600;color:var(--ink)">${esc(n.name)}</button><div class="sub">${deg(n.key)} linked firms · ${n.stories.size} stor${n.stories.size === 1 ? "y" : "ies"}</div></li>`).join("")}</ul>`;
+    <div class="sub">${dots.length.toLocaleString("en-IN")} linked firms (${inv.toLocaleString("en-IN")} investors, ${(dots.length - inv).toLocaleString("en-IN")} companies) · ${edges.size.toLocaleString("en-IN")} links. Click any dot to open its links.</div>
+    <ul>${linked.slice(0, 12).map((n) => `<li><button class="link" data-k="${esc(n.key)}" style="font-weight:600;color:var(--ink)">${esc(n.name)}</button><div class="sub">${deg(n.key)} linked firms · ${n.stories.size} stor${n.stories.size === 1 ? "y" : "ies"}</div></li>`).join("")}</ul>`;
 }
 
 document.querySelectorAll("#nhops button").forEach((b) => b.onclick = () => {
