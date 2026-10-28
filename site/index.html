@@ -571,12 +571,16 @@ section.enter :is(.kpi,.ftile,.card,.inv,.bk,.ovc,.fcard,.drow):nth-child(n+5):n
     <div class="filters netbar">
       <input type="search" id="nq" list="nq-list" placeholder="Search a company or investor…" aria-label="Search a company or investor">
       <datalist id="nq-list"></datalist>
+      <div class="seg" id="nview" role="group" aria-label="View">
+        <button type="button" data-v="all" aria-pressed="true">All firms</button>
+        <button type="button" data-v="one" aria-pressed="false">One firm</button>
+      </div>
       <div class="seg" id="nhops" role="group" aria-label="How far to look">
         <button type="button" data-h="1" aria-pressed="false">1 hop</button>
         <button type="button" data-h="2" aria-pressed="false">2 hops</button>
       </div>
     </div>
-    <p class="sub" style="margin:0 0 10px">A line means two firms appeared in the same deal story. It is not an ownership record. Click a firm to centre it, or a line to see its stories.</p>
+    <p class="sub" style="margin:0 0 10px">A line means two firms appeared in the same deal story. It is not an ownership record. Click a firm to see its own links, or a line to see its stories.</p>
     <div class="netwrap">
       <div class="netsvg" id="net-graph"></div>
       <aside class="netpanel" id="net-panel" aria-live="polite"></aside>
@@ -1299,7 +1303,7 @@ function render() {
 // ---------- Network: which firms appear on the same deal stories ----------
 // Built from every loaded story, not the Feed filters. Investors link to the company they bought into or sold;
 // a story with no company links its firms to each other (co-investors, or buyer and seller).
-const net = { src: null, g: null, center: null, edge: null, hops: innerWidth < 700 ? 1 : 2 };
+const net = { src: null, g: null, center: null, edge: null, hops: innerWidth < 700 ? 1 : 2, view: "all" };
 // Descriptions rather than names ("offshore backer", "Malaysian investor", "UAE") would link unrelated deals.
 const VAGUE = /^(global|offshore|foreign|overseas|international|institutional|malaysian|polish|mauritius-based|singapore sovereign)\b.*\b(investors?|funds?|lenders?|backers?|company|wealth fund)$|^(uae|japan|qatar|new zealand|nordic countries|usd .*)$/i;
 function buildNetwork() {
@@ -1356,6 +1360,9 @@ function renderNetwork() {
   if (!state.events?.length) return;
   document.querySelectorAll("#nhops button").forEach((x) => x.setAttribute("aria-pressed", +x.dataset.h === net.hops));
   ensureNet();
+  document.querySelectorAll("#nview button").forEach((x) => x.setAttribute("aria-pressed", x.dataset.v === net.view));
+  $("nhops").hidden = net.view === "all";
+  if (net.view === "all") return renderAllFirms();
   const { nodes, adj } = net.g, c = nodes.get(net.center);
   if (!c) { $("net-graph").innerHTML = `<div class="empty">No linked firms yet.</div>`; $("net-panel").innerHTML = ""; return; }
   // First ring: the centre's direct links, strongest first. Second ring: a few of each one's own links.
@@ -1410,17 +1417,17 @@ function renderNetwork() {
 
 $("net-graph").addEventListener("click", (ev) => {
   const n = ev.target.closest(".nn"), e = ev.target.closest(".ne");
-  if (n) { net.center = n.dataset.k; net.edge = null; renderNetwork(); }
+  if (n) { net.center = n.dataset.k; net.edge = null; net.view = "one"; renderNetwork(); }
   else if (e) { net.edge = e.dataset.e; renderNetwork(); }
 });
 $("net-graph").addEventListener("keydown", (ev) => {
   const n = ev.target.closest(".nn");
-  if (n && (ev.key === "Enter" || ev.key === " ")) { ev.preventDefault(); net.center = n.dataset.k; net.edge = null; renderNetwork(); }
+  if (n && (ev.key === "Enter" || ev.key === " ")) { ev.preventDefault(); net.center = n.dataset.k; net.edge = null; net.view = "one"; renderNetwork(); }
 });
 $("nq").addEventListener("change", () => {
   const v = $("nq").value.trim(), k = invKey(v), q = v.toLowerCase();
   const hit = net.g?.nodes.get(k) || [...(net.g?.nodes.values() || [])].find((n) => net.g.adj.has(n.key) && n.name.toLowerCase().includes(q));
-  if (v && hit) { net.center = hit.key; net.edge = null; renderNetwork(); }
+  if (v && hit) { net.center = hit.key; net.edge = null; net.view = "one"; renderNetwork(); }
 });
 // ---------- Firm profile (#firm/<key>), opened from the Network tab ----------
 const CAT_WORDS = { entry: ["investment", "investments"], exit: ["exit", "exits"], fund_launch: ["fund launch", "fund launches"], relocation: ["move", "moves"] };
@@ -1466,7 +1473,7 @@ function renderFirm() {
     </div>
     ${stakesHtml(n.key)}
     <p class="note">Built from news stories, which may contain errors; check the original article. A link is not an ownership record.</p>`;
-  $("firm-graph").onclick = () => { net.center = n.key; net.edge = null; location.hash = ""; setTab("network"); };
+  $("firm-graph").onclick = () => { net.center = n.key; net.edge = null; net.view = "one"; location.hash = ""; setTab("network"); };
   setTitle();
 }
 // ---------- Stakes over 1% from shareholding-pattern filings (added by hand on the Sources tab) ----------
@@ -1581,6 +1588,61 @@ function route() {
   else if (state.tab === "firm") setTab("network");
 }
 addEventListener("hashchange", route);
+
+document.querySelectorAll("#nview button").forEach((b) => b.onclick = () => { net.view = b.dataset.v; net.edge = null; renderNetwork(); });
+$("net-panel").addEventListener("click", (ev) => {
+  const k = ev.target.closest("[data-k]")?.dataset.k;
+  if (k) { net.center = k; net.edge = null; net.view = "one"; renderNetwork(); }
+});
+
+// The whole picture: the most-connected firms and the links among them. A small force simulation places
+// them (linked firms pull together, every pair pushes apart), starting from a circle so it lays out the
+// same way each time. It reruns only when the stories change or the screen crosses the phone width.
+function renderAllFirms() {
+  const { nodes, adj, edges } = net.g, sm = innerWidth < 700, N = sm ? 35 : 70;
+  const deg = (k) => adj.get(k)?.size || 0;
+  const linked = [...nodes.values()].filter((n) => deg(n.key));
+  const top = linked.sort((a, b) => deg(b.key) - deg(a.key) || b.stories.size - a.stories.size).slice(0, N);
+  const keep = new Set(top.map((n) => n.key));
+  const links = [...edges.values()].filter((e) => keep.has(e.a) && keep.has(e.b));
+  const W = sm ? 700 : 1000, H = sm ? 820 : 640, f = sm ? 1.7 : 1, id = `${net.src.length}|${N}`;
+  if (net.allId !== id) {
+    const P = top.map((n, i) => ({ k: n.key, x: W / 2 + (W / 3) * Math.cos(i * 2.4), y: H / 2 + (H / 3) * Math.sin(i * 2.4), vx: 0, vy: 0 }));
+    const at = new Map(P.map((p) => [p.k, p]));
+    for (let it = 0; it < 400; it++) {
+      const t = 1 - it / 400;
+      for (let i = 0; i < P.length; i++) for (let j = i + 1; j < P.length; j++) {
+        const a = P[i], b = P[j], dx = a.x - b.x, dy = a.y - b.y, d2 = dx * dx + dy * dy + 0.01, F = (sm ? 9000 : 4200) / d2;
+        a.vx += dx * F / Math.sqrt(d2); a.vy += dy * F / Math.sqrt(d2); b.vx -= dx * F / Math.sqrt(d2); b.vy -= dy * F / Math.sqrt(d2);
+      }
+      links.forEach((e) => {
+        const a = at.get(e.a), b = at.get(e.b), dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1, F = (d - (sm ? 120 : 85)) * 0.02;
+        a.vx += dx / d * F; a.vy += dy / d * F; b.vx -= dx / d * F; b.vy -= dy / d * F;
+      });
+      P.forEach((p) => {
+        p.vx += (W / 2 - p.x) * 0.004; p.vy += (H / 2 - p.y) * 0.004;
+        p.x = Math.max(40, Math.min(W - 40, p.x + p.vx * t)); p.y = Math.max(30, Math.min(H - 30, p.y + p.vy * t));
+        p.vx *= 0.5; p.vy *= 0.5;
+      });
+    }
+    net.allPos = at; net.allId = id;
+  }
+  const pos = net.allPos, named = new Set(top.slice(0, sm ? 10 : 26).map((n) => n.key));
+  const r = (k) => (4 + 2.2 * Math.sqrt(deg(k))) * (sm ? 1.3 : 1);
+  $("net-graph").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="The ${top.length} most-connected firms and their deal links">
+    ${links.map((e) => { const a = pos.get(e.a), b = pos.get(e.b); return `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="var(--line)" stroke-width="${1 + Math.log2(e.stories.size)}"/>`; }).join("")}
+    ${top.map((n) => {
+      const p = pos.get(n.key), fill = n.asTarget > n.asFirm ? "var(--muted)" : "var(--entry)";
+      const label = n.name.length > 20 ? n.name.slice(0, 19) + "…" : n.name;
+      return `<g class="nn" data-k="${esc(n.key)}" tabindex="0" role="button" aria-label="${esc(n.name)}: ${deg(n.key)} links">
+        <circle cx="${p.x}" cy="${p.y}" r="${r(n.key)}" fill="${fill}" stroke="var(--panel)" stroke-width="1.5"><title>${esc(n.name)} · ${deg(n.key)} linked firms</title></circle>
+        ${named.has(n.key) ? `<text x="${p.x}" y="${p.y - r(n.key) - 4}" text-anchor="middle" font-size="${11 * f}" font-weight="600" fill="var(--ink)" paint-order="stroke" stroke="var(--panel)" stroke-width="3">${esc(label)}</text>` : ""}</g>`;
+    }).join("")}</svg>
+    <div class="flegend" style="padding:0 16px 12px"><span><i style="background:var(--entry)"></i>Investor or buyer</span><span><i style="background:var(--muted)"></i>Company invested in</span><span>Bigger dot = more links</span></div>`;
+  $("net-panel").innerHTML = `<h3>Whole network</h3>
+    <div class="sub">The ${top.length} most-connected of ${linked.length} linked firms · ${links.length} links shown</div>
+    <ul>${top.slice(0, 12).map((n) => `<li><button class="link" data-k="${esc(n.key)}" style="font-weight:600;color:var(--ink)">${esc(n.name)}</button><div class="sub">${deg(n.key)} linked firms · ${n.stories.size} stor${n.stories.size === 1 ? "y" : "ies"}</div></li>`).join("")}</ul>`;
+}
 
 document.querySelectorAll("#nhops button").forEach((b) => b.onclick = () => {
   net.hops = +b.dataset.h;
