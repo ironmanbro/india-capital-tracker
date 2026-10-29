@@ -865,6 +865,9 @@ html.lenis,html.lenis body{height:auto}
       <p class="note" style="margin-top:8px">Total FDI = equity + re-invested earnings + other capital, on the international definition DPIIT uses. The latest year is provisional and may be revised.</p>
     </div>
     <div class="ftip" id="ftip" hidden></div>
+    <h2 class="fsec">Ownership changes · named holders over 1%</h2>
+    <p class="note">Company-level, from NSE shareholding-pattern filings. Change is in percentage points between two consecutive reported quarters, not a relative increase. "Foreign" is a name and category heuristic. A holder appearing or disappearing may only have crossed the 1% naming threshold, so those rows show no change.</p>
+    <div id="own-wrap"></div>
   </section>
 
   <section id="tab-directory" hidden>
@@ -1519,6 +1522,24 @@ document.querySelectorAll("#dseg button").forEach((b) => b.onclick = () => {
   renderDpiit();
 });
 
+// ---------- Ownership changes from NSE shareholding filings (nse_ownership_changes) ----------
+const own = { loaded: false };
+async function renderOwnership() {
+  const w = $("own-wrap");
+  if (!own.loaded) {
+    own.loaded = true;
+    try { own.rows = await api("nse_ownership_changes?select=*&status=eq.comparable&order=latest_period.desc&limit=500"); }
+    catch { own.rows = null; }
+  }
+  if (!own.rows) { w.innerHTML = '<p class="note">Could not load ownership changes.</p>'; own.loaded = false; return; }
+  if (!own.rows.length) { w.innerHTML = '<p class="note">No ownership changes loaded yet.</p>'; return; }
+  const rows = [...own.rows].sort((a, b) => Math.abs(b.pct_point_change) - Math.abs(a.pct_point_change)).slice(0, 50);
+  const f = (n) => n == null ? "—" : Number(n).toLocaleString("en-IN", { maximumFractionDigits: 2 });
+  w.innerHTML = `<div class="ftable-wrap"><table class="ftable"><thead><tr><th>Company</th><th>Holder</th><th>Category</th><th>Quarters</th><th>Previous %</th><th>Latest %</th><th>Change (pp)</th><th>Shares change</th><th>Filings</th></tr></thead><tbody>${rows.map((r) => {
+    const c = Number(r.pct_point_change);
+    return `<tr><td>${esc(r.symbol)}</td><td>${esc(r.holder)}${r.foreign_flag ? " <small>(foreign)</small>" : ""}</td><td>${esc(r.category || "—")}</td><td>${esc(r.previous_period)} → ${esc(r.latest_period)}</td><td>${f(r.previous_pct)}</td><td>${f(r.latest_pct)}</td><td style="color:var(--${c >= 0 ? "in" : "out"})">${c > 0 ? "+" : ""}${f(c)}</td><td>${f(r.shares_change)}</td><td>${[["previous_source_url", "Prev"], ["latest_source_url", "Latest"]].map(([k, l]) => r[k] ? `<a href="${safeUrl(r[k])}" target="_blank" rel="noopener noreferrer">${l}</a>` : "").filter(Boolean).join(" · ") || "—"}</td></tr>`;
+  }).join("")}</tbody></table></div>`;
+}
 function renderFlows() {
   if (!flows.loaded || state.tab !== "flows") return;
   const r = flowRange();
@@ -2483,7 +2504,7 @@ function setTab(t) {
   ["kpis", "kpi-note"].forEach((id) => $(id).hidden = t !== "feed");
   setTitle();
   if (typeof syncSearch === "function") syncSearch();
-  if (t === "flows") renderFlows();
+  if (t === "flows") { renderFlows(); renderOwnership(); }
   if (t === "directory") openDirectory();
   if (t === "investors" && state.events?.length) renderInvestors();
   if (t === "network") renderNetwork();
