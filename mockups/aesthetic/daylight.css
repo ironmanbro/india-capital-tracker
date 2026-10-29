@@ -1,39 +1,66 @@
-/* Direction B, "Daylight": a light, airy version in the style of apple.com: white and soft grey, one blue,
-   big quiet type, rounded cards with shadows instead of borders. */
-:root,:root[data-theme="light"]{--bg:#f5f5f7;--panel:#fff;--ink:#1d1d1f;--muted:#6e6e73;--line:rgba(0,0,0,.07);--chip:rgba(0,0,0,.05);
+/* Direction B, "Daylight" (v2): the light theme in the style of apple.com. White cards with soft shadows,
+   frosted glass on the floating layers, one blue, big quiet type. The constellation stays a dark card, as Apple
+   Maps keeps its dark map in a light app, so its dots stay readable. */
+:root{--bg:#f5f5f7;--panel:#fff;--ink:#1d1d1f;--muted:#6e6e73;--line:rgba(0,0,0,.08);--chip:rgba(0,0,0,.05);
   --accent:#0071e3;--accent-ink:#fff;--entry:#0071e3;--in:#0071e3;--out:#e8590c;--good:#1d9a4b;--bad:#d70015;
-  --glass:linear-gradient(180deg,#fff,#fff);--shadow:0 2px 6px rgba(0,0,0,.04),0 18px 44px rgba(0,0,0,.07);
+  --glass:linear-gradient(180deg,#fff,#fff);--shadow:0 2px 6px rgba(0,0,0,.04),0 16px 40px rgba(0,0,0,.07);
   --page:linear-gradient(180deg,#fbfbfd 0,#f5f5f7 420px),#f5f5f7;color-scheme:light}
 body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased;letter-spacing:-.011em;color:var(--ink)}
 body::before{opacity:0!important}
 h1,h2{letter-spacing:-.036em;font-weight:700}
-h1{font-size:clamp(34px,4.2vw,52px)!important;line-height:1.04!important}
+h1{font-size:clamp(2.1rem,4.2vw,3.25rem)!important;line-height:1.04!important}
 h3{letter-spacing:-.02em;font-weight:600}
-.kpi,.ftile,.ovc,.fcard,.irow,.card,.filterbar,.empty,.ftable-wrap{border:0!important;border-radius:26px!important;background:#fff!important;box-shadow:var(--shadow)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
-.ftile,.kpi{padding:20px 22px!important}
-.ftile .n,.kpi .n{font-size:38px!important;font-weight:600!important;letter-spacing:-.035em!important;line-height:1.05}
-.ftile .l,.kpi .l{text-transform:none!important;letter-spacing:-.005em!important;font-size:13px!important;color:var(--muted)!important;font-weight:500}
-.ovc{padding:26px 28px!important}
-.ovc h3,.fcard h3{font-size:19px}
-nav.tabs{background:rgba(255,255,255,.72)!important;-webkit-backdrop-filter:saturate(180%) blur(30px)!important;backdrop-filter:saturate(180%) blur(30px)!important;border:1px solid rgba(0,0,0,.06)!important;box-shadow:0 12px 40px rgba(0,0,0,.10)!important}
-nav.tabs button{border-radius:16px!important;color:#6e6e73!important}
+.kpi,.ftile,.ovc,.fcard,.irow,.card,.empty,.ftable-wrap{border:0!important;border-radius:26px!important;background:#fff!important;box-shadow:var(--shadow)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+.ftile,.kpi{padding:1.25rem 1.375rem!important}
+.ftile .n,.kpi .n{font-size:2.35rem!important;font-weight:600!important;letter-spacing:-.035em!important;line-height:1.05}
+#firm-body .ftile .n{font-size:1.75rem!important}
+.ftile .l,.kpi .l{text-transform:none!important;letter-spacing:-.005em!important;font-size:.8125rem!important;color:var(--muted)!important;font-weight:500}
+.ftile .s,.kpi .s{font-size:.78rem!important}
+.ovc{padding:1.6rem 1.75rem!important}
+.ovc h3,.fcard h3{font-size:1.2rem}
+/* Floating layers keep the glass. */
+nav.tabs,.filterbar,#netmore,.htools{background:rgba(255,255,255,.74)!important;-webkit-backdrop-filter:saturate(180%) blur(30px)!important;backdrop-filter:saturate(180%) blur(30px)!important;border:1px solid rgba(0,0,0,.06)!important;box-shadow:0 12px 40px rgba(0,0,0,.10)!important}
+.filterbar{border-radius:999px!important}
+nav.tabs button{border-radius:16px!important;color:#6e6e73!important;transition:background .25s,color .25s}
 nav.tabs button[aria-selected="true"]{background:rgba(0,113,227,.10)!important;color:#0071e3!important}
-.reset,.seg,.seg button,select,input[type=search],input[type=text],input[type=date]{border-radius:999px!important;border:1px solid rgba(0,0,0,.08)!important;background:#fff!important;color:var(--ink)!important}
+.eyebrow{letter-spacing:.14em;opacity:.8}
+.maker,.hstatus .sub{font-size:.72rem!important;opacity:.7}
+.maker{margin-top:.5rem}
+#gq{background:transparent!important;border:0!important;box-shadow:none!important}
+.reset,.seg,.seg button,select,input[type=search],input[type=text],input[type=date]{border-radius:999px!important;border:1px solid rgba(0,0,0,.09)!important;background:#fff!important;color:var(--ink)!important}
 .seg{background:rgba(0,0,0,.05)!important;border:0!important}
 .seg button{background:transparent!important;border:0!important}
 .seg button[aria-pressed="true"]{background:#fff!important;color:var(--ink)!important;box-shadow:0 1px 4px rgba(0,0,0,.12)}
-.reset{font-weight:600}
+.reset{font-weight:600;transition:transform .12s ease-out,background .2s}
+.reset:active,.irow:active,.seg button:active{transform:scale(.97)}
 .link,.irow .go{color:var(--accent)!important}
 .new{background:var(--accent)!important;color:#fff!important}
-.irow{padding:18px 22px!important;transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .25s}
+#netmore{border-radius:22px!important;padding:.4rem 1rem 1rem;margin-bottom:.9rem}
+#netmore>summary{padding:.6rem 0;min-height:0}
+.netflt{margin-bottom:.4rem!important}
+.netpath{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;border-top:1px solid var(--line);padding-top:.8rem;margin-top:.2rem}
+.netpath b{font-weight:500;color:var(--muted);font-size:.8125rem}
+.netpath select{flex:1 1 11rem;max-width:17rem}
+.irow{padding:1.1rem 1.4rem!important;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
 .irow:hover{transform:translateY(-2px)}
-.irow .in b{font-size:16px;letter-spacing:-.015em}
-.irow .ic b{font-size:18px;font-weight:600;letter-spacing:-.025em}
+.irow .in b{font-size:1rem;letter-spacing:-.015em}
+.irow .ic b{font-size:1.1rem;font-weight:600;letter-spacing:-.025em}
 .cat{border-width:0!important;background:rgba(0,0,0,.05);padding:3px 10px!important}
-.netsvg,.netpanel{background:#fff!important;border:0!important;border-radius:28px!important;box-shadow:var(--shadow)!important}
-#c3{border-radius:28px}
+/* The constellation stays dark so its dots and names read clearly. */
+.netsvg{--panel:#0c0c0e;--ink:#f5f5f7;--line:rgba(255,255,255,.14);--muted:#98989d;--entry:#2997ff;--chip:rgba(255,255,255,.08);--accent:#2997ff;background:#0c0c0e!important;color:#f5f5f7;border:0!important;border-radius:26px!important;box-shadow:var(--shadow)!important}
+.netsvg .reset,.netsvg select{background:rgba(255,255,255,.08)!important;border-color:rgba(255,255,255,.14)!important;color:#f5f5f7!important}
+.netpanel{background:#fff!important;border:0!important;border-radius:26px!important;box-shadow:var(--shadow)!important}
+#c3{border-radius:26px}
 .sub,.note,p{color:var(--muted)}
 .tag,.tg{background:rgba(0,0,0,.05)!important}
 table th{font-weight:600;letter-spacing:0;text-transform:none}
-#gq{background:transparent!important;border:0!important;box-shadow:none!important}
-#firm-body .ftile .n{font-size:28px!important}
+@media (max-width:700px){
+  h1{font-size:2rem!important}
+  .ftile .n,.kpi .n{font-size:2rem!important}
+  .ovc{padding:1.25rem 1.2rem!important}
+  body{padding-bottom:calc(6.5rem + env(safe-area-inset-bottom))}
+  .maker{display:none}
+}
+@media (prefers-reduced-transparency:reduce){nav.tabs,.filterbar,#netmore,.htools{background:#fff!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}}
+@media (prefers-contrast:more){:root{--line:rgba(0,0,0,.4);--muted:#3a3a3c}.kpi,.ftile,.ovc,.fcard,.irow,.card{border:1px solid rgba(0,0,0,.5)!important}}
+@media (prefers-reduced-motion:reduce){.irow,.reset{transition:none}.irow:hover{transform:none}}
