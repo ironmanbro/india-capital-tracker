@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
       .order("reg_date", { ascending: false, nullsFirst: false }).order("name").range(from, from + 999);
     if (q.get("category")) sel = sel.eq("category", q.get("category")!);
     const { data, error } = await sel;
-    if (error) return new Response(error.message, { status: 500, headers: CORS });
+    if (error) { const ref = crypto.randomUUID().slice(0, 8); console.error("leads", ref, error.message); return new Response(`server error, ref ${ref}`, { status: 500, headers: CORS }); }
     for (const r of data ?? []) {
       const c = (Array.isArray(r.ifsca_contacts) ? r.ifsca_contacts[0] : r.ifsca_contacts) ?? {};
       const { ifsca_contacts: _, ...rest } = r as Record<string, unknown>;
