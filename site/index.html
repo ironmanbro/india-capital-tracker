@@ -363,6 +363,8 @@ header .eyebrow{color:var(--muted);font-size:12px;font-weight:700;letter-spacing
 #ov-fpibars{min-width:0;width:100%}
 @media (max-width:1100px){.flowwrap{grid-template-columns:1fr}}
 /* Very narrow screens (a foldable's cover display): cards give up some padding instead of overflowing. */
+/* Phones: the ring sits beside its figures instead of leaving a blank gap with the figures wrapped underneath. */
+@media (max-width:700px){.rings{flex-wrap:nowrap;gap:16px}.rings svg{width:112px;height:112px;flex:none}.rstats{min-width:0;flex:1}.rstats b{font-size:1.05rem}.rstats div{margin:6px 0}.ovh .link{white-space:nowrap}}
 @media (max-width:340px){.ovgrid{grid-template-columns:minmax(0,1fr)}.ovc{padding:14px}.flowwrap{grid-template-columns:minmax(0,1fr)}.rings{flex-wrap:wrap;justify-content:center}}
 .m30{display:grid;grid-template-columns:1.1fr 1fr;gap:28px}
 @media (max-width:900px){.m30{grid-template-columns:1fr}}
