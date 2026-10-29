@@ -2275,12 +2275,15 @@ function render3D(linked, deg) {
   const open = (d) => { net.center = d.n.key; net.edge = null; net.view = "one"; renderNetwork(); };
   const labelAt = (x, y) => labels.find((l) => x >= l.x && x <= l.x + l.w && y >= l.y && y <= l.y + l.h);
   let drag = null;
-  cv.onpointerdown = (ev) => { cv.setPointerCapture(ev.pointerId); touch = ev.pointerType !== "mouse"; drag = { x: ev.clientX, y: ev.clientY, moved: 0 }; };
+  cv.onpointerdown = (ev) => { cv.setPointerCapture(ev.pointerId); touch = ev.pointerType !== "mouse"; v.vx = v.vy = 0; drag = { x: ev.clientX, y: ev.clientY, moved: 0, t: ev.timeStamp, vx: 0, vy: 0 }; };
   cv.onpointermove = (ev) => {
     if (drag) {
       const dx = ev.clientX - drag.x, dy = ev.clientY - drag.y;
       drag.moved += Math.abs(dx) + Math.abs(dy); drag.x = ev.clientX; drag.y = ev.clientY;
       v.ry += dx * 0.008; v.rx = Math.max(-1.4, Math.min(1.4, v.rx - dy * 0.008));
+      // Release speed (radians per millisecond), lightly smoothed, so the cloud keeps turning when let go.
+      const dt = Math.max(1, ev.timeStamp - drag.t); drag.t = ev.timeStamp;
+      drag.vy = 0.6 * drag.vy + 0.4 * (dx * 0.008) / dt; drag.vx = 0.6 * drag.vx + 0.4 * (-dy * 0.008) / dt;
       if (drag.moved > 5) { v.spin = false; cur = null; $("c3spin").textContent = "Spin"; }
     } else if (ev.pointerType === "mouse") { const [x, y] = xy(ev); cur = { x, y }; cv.style.cursor = labelAt(x, y) ? "pointer" : "grab"; }
     dirty = true;
@@ -2288,6 +2291,8 @@ function render3D(linked, deg) {
   cv.onpointerleave = () => { if (!touch) { cur = null; dirty = true; } };
   cv.onpointerup = (ev) => {
     const was = drag; drag = null;
+    // Momentum: continue at the release speed and slow down smoothly (a flick throws it, a held finger does not).
+    if (was && was.moved >= 5 && ev.timeStamp - was.t < 80 && !matchMedia("(prefers-reduced-motion: reduce)").matches) { v.vy = was.vy; v.vx = was.vx; dirty = true; }
     if (!was || was.moved >= 5) return;
     const [x, y] = xy(ev), hit = labelAt(x, y);
     if (hit) return open(hit.d);
@@ -2300,8 +2305,14 @@ function render3D(linked, deg) {
   };
   cv.onwheel = (ev) => { ev.preventDefault(); setZoom(v.zoom * Math.exp(-ev.deltaY * 0.0012)); };
   net.c3 = { zoom: (f) => setZoom(v.zoom * f), spin: () => { v.spin = !v.spin; $("c3spin").textContent = v.spin ? "Pause" : "Spin"; } };
-  const tick = () => {
+  let prevT = 0;
+  const tick = (ts = 0) => {
     if (!cv.isConnected || state.tab !== "network" || net.view !== "all" || net.flat) return;
+    const dt = Math.min(34, prevT ? ts - prevT : 16); prevT = ts;
+    if (!drag && (Math.abs(v.vy || 0) > 1e-5 || Math.abs(v.vx || 0) > 1e-5)) {
+      v.ry += v.vy * dt; v.rx = Math.max(-1.4, Math.min(1.4, v.rx + v.vx * dt));
+      const k = Math.pow(0.996, dt); v.vy *= k; v.vx *= k; dirty = true;
+    }
     if (v.spin && !cur) { v.ry += 0.003; dirty = true; }
     if (dirty) { dirty = false; draw(); }
     requestAnimationFrame(tick);
