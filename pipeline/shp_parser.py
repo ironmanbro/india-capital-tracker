@@ -108,7 +108,8 @@ def compute_changes(filings):
                 row = {"symbol": sym, "holder": (b or a)["holder"], "category": (b or a)["category"], "foreign": (b or a)["foreign"],
                        "previous_period": prev_p, "latest_period": last_p,
                        "previous_pct": a and a["pct"], "latest_pct": b and b["pct"],
-                       "previous_shares": a and a["shares"], "latest_shares": b and b["shares"]}
+                       "previous_shares": a and a["shares"], "latest_shares": b and b["shares"],
+                       "previous_source_url": per[prev_p].get("source_url"), "latest_source_url": per[last_p].get("source_url")}
                 if a and b:
                     row["status"] = "comparable"
                     row["pct_point_change"] = round(b["pct"] - a["pct"], 4)

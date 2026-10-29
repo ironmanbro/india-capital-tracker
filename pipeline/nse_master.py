@@ -205,6 +205,7 @@ def parse_and_export(manifest_path, out_dir):
         # symbol/company from the master wins when present; the filing is the fallback (never invented)
         p["symbol"] = m.get("symbol") or p["symbol"]
         p["company"] = m.get("company_name") or p["company"]
+        p["source_url"] = url
         filings.append(p)
         for r in p["rows"]:
             holdings.append({"exchange": "NSE", "symbol": p["symbol"], "company_name": p["company"], "reporting_period": p["period_end"],

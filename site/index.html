@@ -1535,9 +1535,9 @@ async function renderOwnership() {
   if (!own.rows.length) { w.innerHTML = '<p class="note">No ownership changes loaded yet.</p>'; return; }
   const rows = [...own.rows].sort((a, b) => Math.abs(b.pct_point_change) - Math.abs(a.pct_point_change)).slice(0, 50);
   const f = (n) => n == null ? "—" : Number(n).toLocaleString("en-IN", { maximumFractionDigits: 2 });
-  w.innerHTML = `<div class="ftable-wrap"><table class="ftable"><thead><tr><th>Company</th><th>Holder</th><th>Category</th><th>Quarters</th><th>Previous %</th><th>Latest %</th><th>Change (pp)</th><th>Shares change</th></tr></thead><tbody>${rows.map((r) => {
+  w.innerHTML = `<div class="ftable-wrap"><table class="ftable"><thead><tr><th>Company</th><th>Holder</th><th>Category</th><th>Quarters</th><th>Previous %</th><th>Latest %</th><th>Change (pp)</th><th>Shares change</th><th>Filings</th></tr></thead><tbody>${rows.map((r) => {
     const c = Number(r.pct_point_change);
-    return `<tr><td>${esc(r.symbol)}</td><td>${esc(r.holder)}${r.foreign_flag ? " <small>(foreign)</small>" : ""}</td><td>${esc(r.category || "—")}</td><td>${esc(r.previous_period)} → ${esc(r.latest_period)}</td><td>${f(r.previous_pct)}</td><td>${f(r.latest_pct)}</td><td style="color:var(--${c >= 0 ? "in" : "out"})">${c > 0 ? "+" : ""}${f(c)}</td><td>${f(r.shares_change)}</td></tr>`;
+    return `<tr><td>${esc(r.symbol)}</td><td>${esc(r.holder)}${r.foreign_flag ? " <small>(foreign)</small>" : ""}</td><td>${esc(r.category || "—")}</td><td>${esc(r.previous_period)} → ${esc(r.latest_period)}</td><td>${f(r.previous_pct)}</td><td>${f(r.latest_pct)}</td><td style="color:var(--${c >= 0 ? "in" : "out"})">${c > 0 ? "+" : ""}${f(c)}</td><td>${f(r.shares_change)}</td><td>${[["previous_source_url", "Prev"], ["latest_source_url", "Latest"]].map(([k, l]) => r[k] ? `<a href="${safeUrl(r[k])}" target="_blank" rel="noopener noreferrer">${l}</a>` : "").filter(Boolean).join(" · ") || "—"}</td></tr>`;
   }).join("")}</tbody></table></div>`;
 }
 function renderFlows() {

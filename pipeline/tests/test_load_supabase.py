@@ -31,6 +31,7 @@ class T(unittest.TestCase):
             self.assertEqual((rows[0]["percentage_held"], rows[0]["foreign_flag"], rows[0]["filing_date"]), (3.0, True, None))
             ch = next(c for c in rec.calls if "changes" in c[0])[1][0]
             self.assertAlmostEqual(ch["pct_point_change"], 1.2); self.assertEqual(ch["shares_change"], 1200.0)
+            self.assertEqual((ch["previous_source_url"], ch["latest_source_url"]), ("https://nsearchives.nseindia.com/a.xml", "https://nsearchives.nseindia.com/b.xml"))
 
     def test_dry_run_makes_no_calls(self):
         with tempfile.TemporaryDirectory() as d:

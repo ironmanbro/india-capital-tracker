@@ -18,7 +18,7 @@ TABLES = {
     "nse_ownership_changes": ("nse_ownership_changes.csv", "symbol,holder,previous_period,latest_period", {"foreign": "foreign_flag"}, set(),
                               {"previous_pct", "latest_pct", "previous_shares", "latest_shares", "pct_point_change", "shares_change"}, {"foreign_flag"},
                               ["symbol", "holder", "category", "foreign_flag", "previous_period", "latest_period", "previous_pct", "latest_pct",
-                               "previous_shares", "latest_shares", "pct_point_change", "shares_change", "status"]),
+                               "previous_shares", "latest_shares", "pct_point_change", "shares_change", "status", "previous_source_url", "latest_source_url"]),
 }
 
 
