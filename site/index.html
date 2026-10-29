@@ -491,6 +491,62 @@ abbr.term{text-decoration:underline dotted;text-underline-offset:3px;cursor:help
   .filterbar{border-radius:18px}
   .fbar{display:none}
 }
+/* Midnight look (dark theme only): solid content cards, frosted glass on the floating layers, quieter header, rem type, fallbacks for reduced transparency and more contrast. */
+:root:not([data-theme="light"]){--bg:#000;--panel:#0c0c0e;--ink:#f5f5f7;--muted:#8e8e93;--line:rgba(255,255,255,.08);--chip:rgba(255,255,255,.07);
+  --accent:#2997ff;--accent-ink:#000;--entry:#2997ff;--in:#2997ff;--out:#ff9f0a;--good:#30d158;--bad:#ff453a;
+  --glass:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));--shadow:0 16px 40px rgba(0,0,0,.45);
+  --page:radial-gradient(1000px 520px at 82% -12%,rgba(41,151,255,.14) 0,transparent 62%),radial-gradient(800px 500px at 0% 110%,rgba(94,92,230,.09) 0,transparent 60%),#000}
+:root:not([data-theme="light"]) body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased;letter-spacing:-.011em}
+:root:not([data-theme="light"]) h1,:root:not([data-theme="light"]) h2{letter-spacing:-.034em;font-weight:700}
+:root:not([data-theme="light"]) h1{font-size:clamp(2.1rem,4.2vw,3.25rem)!important;line-height:1.04!important}
+:root:not([data-theme="light"]) h3{letter-spacing:-.02em;font-weight:600}
+:root:not([data-theme="light"]) .kpi,:root:not([data-theme="light"]) .ftile,:root:not([data-theme="light"]) .ovc,:root:not([data-theme="light"]) .fcard,:root:not([data-theme="light"]) .irow,:root:not([data-theme="light"]) .card,:root:not([data-theme="light"]) .empty,:root:not([data-theme="light"]) .ftable-wrap,:root:not([data-theme="light"]) .netsvg,:root:not([data-theme="light"]) .netpanel{border:1px solid var(--line)!important;border-radius:26px!important;background:#0c0c0e!important;box-shadow:0 1px 0 rgba(255,255,255,.045) inset,0 12px 32px rgba(0,0,0,.4)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+:root:not([data-theme="light"]) .ftile,:root:not([data-theme="light"]) .kpi{padding:1.25rem 1.375rem!important}
+:root:not([data-theme="light"]) .ftile .n,:root:not([data-theme="light"]) .kpi .n{font-size:2.35rem!important;font-weight:600!important;letter-spacing:-.035em!important;line-height:1.05}
+:root:not([data-theme="light"]) #firm-body .ftile .n{font-size:1.75rem!important}
+:root:not([data-theme="light"]) .ftile .l,:root:not([data-theme="light"]) .kpi .l{text-transform:none!important;letter-spacing:-.005em!important;font-size:.8125rem!important;color:var(--muted)!important;font-weight:500}
+:root:not([data-theme="light"]) .ftile .s,:root:not([data-theme="light"]) .kpi .s{font-size:.78rem!important}
+:root:not([data-theme="light"]) .ovc{padding:1.6rem 1.75rem!important}
+:root:not([data-theme="light"]) .ovc h3,:root:not([data-theme="light"]) .fcard h3{font-size:1.2rem}
+:root:not([data-theme="light"]) nav.tabs,:root:not([data-theme="light"]) .filterbar,:root:not([data-theme="light"]) #netmore{background:rgba(30,30,32,.6)!important;-webkit-backdrop-filter:saturate(180%) blur(30px)!important;backdrop-filter:saturate(180%) blur(30px)!important;border:1px solid rgba(255,255,255,.09)!important;box-shadow:0 16px 44px rgba(0,0,0,.5)!important}
+:root:not([data-theme="light"]) .filterbar{border-radius:999px!important}
+:root:not([data-theme="light"]) nav.tabs button{border-radius:16px!important;transition:background .25s,color .25s}
+:root:not([data-theme="light"]) nav.tabs button[aria-selected="true"]{background:rgba(255,255,255,.12)!important;color:#fff!important}
+:root:not([data-theme="light"]) .eyebrow{letter-spacing:.14em;opacity:.7}
+:root:not([data-theme="light"]) .maker,:root:not([data-theme="light"]) .hstatus .sub{font-size:.72rem!important;opacity:.55}
+:root:not([data-theme="light"]) .maker{margin-top:.5rem}
+:root:not([data-theme="light"]) .htools{background:rgba(30,30,32,.6)!important;-webkit-backdrop-filter:blur(26px);backdrop-filter:blur(26px)}
+:root:not([data-theme="light"]) #gq{background:transparent!important;border:0!important;box-shadow:none!important}
+:root:not([data-theme="light"]) .reset,:root:not([data-theme="light"]) .seg,:root:not([data-theme="light"]) .seg button,:root:not([data-theme="light"]) select,:root:not([data-theme="light"]) input[type=search],:root:not([data-theme="light"]) input[type=text],:root:not([data-theme="light"]) input[type=date]{border-radius:999px!important;border-color:var(--line)!important;background:rgba(255,255,255,.06)!important}
+:root:not([data-theme="light"]) .reset{font-weight:600;transition:transform .12s ease-out,background .2s}
+:root:not([data-theme="light"]) .reset:active,:root:not([data-theme="light"]) .irow:active,:root:not([data-theme="light"]) .seg button:active{transform:scale(.97)}
+:root:not([data-theme="light"]) .seg button[aria-pressed="true"]{background:rgba(255,255,255,.16)!important;color:#fff!important}
+:root:not([data-theme="light"]) .link,:root:not([data-theme="light"]) .irow .go{color:var(--accent)!important}
+:root:not([data-theme="light"]) .new{background:var(--accent)!important;color:#000!important}
+:root:not([data-theme="light"]) #netmore{border-radius:22px!important;padding:.4rem 1rem 1rem;margin-bottom:.9rem}
+:root:not([data-theme="light"]) #netmore>summary{padding:.6rem 0;min-height:0}
+:root:not([data-theme="light"]) .netflt{margin-bottom:.4rem!important}
+:root:not([data-theme="light"]) .netpath{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;border-top:1px solid var(--line);padding-top:.8rem;margin-top:.2rem}
+:root:not([data-theme="light"]) .netpath b{font-weight:500;color:var(--muted);font-size:.8125rem}
+:root:not([data-theme="light"]) .netpath select{flex:1 1 11rem;max-width:17rem}
+:root:not([data-theme="light"]) .irow{padding:1.1rem 1.4rem!important;transition:transform .35s cubic-bezier(.2,.8,.2,1),border-color .25s}
+:root:not([data-theme="light"]) .irow:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.16)!important}
+:root:not([data-theme="light"]) .irow .in b{font-size:1rem;letter-spacing:-.015em}
+:root:not([data-theme="light"]) .irow .ic b{font-size:1.1rem;font-weight:600;letter-spacing:-.025em}
+:root:not([data-theme="light"]) .cat{border-width:0!important;background:rgba(255,255,255,.07);padding:3px 10px!important}
+:root:not([data-theme="light"]) #c3{border-radius:26px}
+:root:not([data-theme="light"]) .sub,:root:not([data-theme="light"]) .note,:root:not([data-theme="light"]) p{color:var(--muted)}
+:root:not([data-theme="light"]) table th{font-weight:600;letter-spacing:0;text-transform:none}
+@media (max-width:700px){:root:not([data-theme="light"]) h1{font-size:2rem!important}
+:root:not([data-theme="light"]) .ftile .n,:root:not([data-theme="light"]) .kpi .n{font-size:2rem!important}
+:root:not([data-theme="light"]) .ovc{padding:1.25rem 1.2rem!important}
+:root:not([data-theme="light"]) body{padding-bottom:calc(6.5rem + env(safe-area-inset-bottom))}
+:root:not([data-theme="light"]) .maker{display:none}}
+@media (prefers-reduced-transparency:reduce){:root:not([data-theme="light"]) nav.tabs,:root:not([data-theme="light"]) .filterbar,:root:not([data-theme="light"]) #netmore,:root:not([data-theme="light"]) .htools{background:#1c1c1e!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}}
+@media (prefers-contrast:more){:root:not([data-theme="light"]){--line:rgba(255,255,255,.3);--muted:#c7c7cc}
+:root:not([data-theme="light"]) .kpi,:root:not([data-theme="light"]) .ftile,:root:not([data-theme="light"]) .ovc,:root:not([data-theme="light"]) .fcard,:root:not([data-theme="light"]) .irow,:root:not([data-theme="light"]) .card{border-color:rgba(255,255,255,.4)!important}}
+@media (prefers-reduced-motion:reduce){:root:not([data-theme="light"]) .irow,:root:not([data-theme="light"]) .reset{transition:none}
+:root:not([data-theme="light"]) .irow:hover{transform:none}}
 </style>
 </head>
 <body>
@@ -2275,12 +2331,15 @@ function render3D(linked, deg) {
   const open = (d) => { net.center = d.n.key; net.edge = null; net.view = "one"; renderNetwork(); };
   const labelAt = (x, y) => labels.find((l) => x >= l.x && x <= l.x + l.w && y >= l.y && y <= l.y + l.h);
   let drag = null;
-  cv.onpointerdown = (ev) => { cv.setPointerCapture(ev.pointerId); touch = ev.pointerType !== "mouse"; drag = { x: ev.clientX, y: ev.clientY, moved: 0 }; };
+  cv.onpointerdown = (ev) => { cv.setPointerCapture(ev.pointerId); touch = ev.pointerType !== "mouse"; v.vx = v.vy = 0; drag = { x: ev.clientX, y: ev.clientY, moved: 0, t: ev.timeStamp, vx: 0, vy: 0 }; };
   cv.onpointermove = (ev) => {
     if (drag) {
       const dx = ev.clientX - drag.x, dy = ev.clientY - drag.y;
       drag.moved += Math.abs(dx) + Math.abs(dy); drag.x = ev.clientX; drag.y = ev.clientY;
       v.ry += dx * 0.008; v.rx = Math.max(-1.4, Math.min(1.4, v.rx - dy * 0.008));
+      // Release speed (radians per millisecond), lightly smoothed, so the cloud keeps turning when let go.
+      const dt = Math.max(1, ev.timeStamp - drag.t); drag.t = ev.timeStamp;
+      drag.vy = 0.6 * drag.vy + 0.4 * (dx * 0.008) / dt; drag.vx = 0.6 * drag.vx + 0.4 * (-dy * 0.008) / dt;
       if (drag.moved > 5) { v.spin = false; cur = null; $("c3spin").textContent = "Spin"; }
     } else if (ev.pointerType === "mouse") { const [x, y] = xy(ev); cur = { x, y }; cv.style.cursor = labelAt(x, y) ? "pointer" : "grab"; }
     dirty = true;
@@ -2288,6 +2347,8 @@ function render3D(linked, deg) {
   cv.onpointerleave = () => { if (!touch) { cur = null; dirty = true; } };
   cv.onpointerup = (ev) => {
     const was = drag; drag = null;
+    // Momentum: continue at the release speed and slow down smoothly (a flick throws it, a held finger does not).
+    if (was && was.moved >= 5 && ev.timeStamp - was.t < 80 && !matchMedia("(prefers-reduced-motion: reduce)").matches) { v.vy = was.vy; v.vx = was.vx; dirty = true; }
     if (!was || was.moved >= 5) return;
     const [x, y] = xy(ev), hit = labelAt(x, y);
     if (hit) return open(hit.d);
@@ -2300,8 +2361,14 @@ function render3D(linked, deg) {
   };
   cv.onwheel = (ev) => { ev.preventDefault(); setZoom(v.zoom * Math.exp(-ev.deltaY * 0.0012)); };
   net.c3 = { zoom: (f) => setZoom(v.zoom * f), spin: () => { v.spin = !v.spin; $("c3spin").textContent = v.spin ? "Pause" : "Spin"; } };
-  const tick = () => {
+  let prevT = 0;
+  const tick = (ts = 0) => {
     if (!cv.isConnected || state.tab !== "network" || net.view !== "all" || net.flat) return;
+    const dt = Math.min(34, prevT ? ts - prevT : 16); prevT = ts;
+    if (!drag && (Math.abs(v.vy || 0) > 1e-5 || Math.abs(v.vx || 0) > 1e-5)) {
+      v.ry += v.vy * dt; v.rx = Math.max(-1.4, Math.min(1.4, v.rx + v.vx * dt));
+      const k = Math.pow(0.996, dt); v.vy *= k; v.vx *= k; dirty = true;
+    }
     if (v.spin && !cur) { v.ry += 0.003; dirty = true; }
     if (dirty) { dirty = false; draw(); }
     requestAnimationFrame(tick);
