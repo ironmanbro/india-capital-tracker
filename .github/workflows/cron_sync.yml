@@ -1,1 +1,30 @@
+name: Daily Capital Tracker Sync
 
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Every day at 2:00 AM UTC
+  workflow_dispatch:
+
+jobs:
+  sync-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run NSE Scraper
+        run: python nse_full.py
+
+      # If you use Cloudflare Wrangler CLI in the action to deploy directly:
+      - name: Publish to Cloudflare Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
