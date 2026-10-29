@@ -1,0 +1,37 @@
+/* Direction A, "Midnight": the current dark site, refined the way Apple's own apps are: true black, one calm
+   blue, SF-style type with tight tracking, large soft cards, frosted glass, and fewer lines. */
+:root{--bg:#000;--panel:#0b0b0d;--ink:#f5f5f7;--muted:#8e8e93;--line:rgba(255,255,255,.07);--chip:rgba(255,255,255,.07);
+  --accent:#2997ff;--accent-ink:#000;--entry:#2997ff;--in:#2997ff;--out:#ff9f0a;--good:#30d158;--bad:#ff453a;
+  --glass:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));--shadow:0 24px 60px rgba(0,0,0,.5);
+  --page:radial-gradient(1000px 520px at 82% -12%,rgba(41,151,255,.16) 0,transparent 62%),radial-gradient(800px 500px at 0% 110%,rgba(94,92,230,.10) 0,transparent 60%),#000}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased;letter-spacing:-.011em}
+h1,h2{letter-spacing:-.034em;font-weight:700}
+h1{font-size:clamp(34px,4.2vw,52px)!important;line-height:1.04!important}
+h3{letter-spacing:-.02em;font-weight:600}
+.kpi,.ftile,.ovc,.fcard,.irow,.card,.filterbar,.empty,.ftable-wrap{border:1px solid var(--line)!important;border-radius:26px!important;background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.022))!important;box-shadow:0 1px 0 rgba(255,255,255,.05) inset,var(--shadow)!important;-webkit-backdrop-filter:saturate(180%) blur(26px);backdrop-filter:saturate(180%) blur(26px)}
+.ftile,.kpi{padding:20px 22px!important}
+.ftile .n,.kpi .n{font-size:38px!important;font-weight:600!important;letter-spacing:-.035em!important;line-height:1.05}
+.ftile .l,.kpi .l{text-transform:none!important;letter-spacing:-.005em!important;font-size:13px!important;color:var(--muted)!important;font-weight:500}
+.ftile .s,.kpi .s{font-size:12.5px!important}
+.ovc{padding:26px 28px!important}
+.ovc h3,.fcard h3{font-size:19px}
+nav.tabs{background:rgba(30,30,32,.6)!important;-webkit-backdrop-filter:saturate(180%) blur(34px)!important;backdrop-filter:saturate(180%) blur(34px)!important;border:1px solid rgba(255,255,255,.09)!important;box-shadow:0 20px 50px rgba(0,0,0,.5)!important}
+nav.tabs button{border-radius:16px!important;transition:background .25s,color .25s}
+nav.tabs button[aria-selected="true"]{background:rgba(255,255,255,.12)!important;color:#fff!important}
+.reset,.seg,.seg button,select,input[type=search],input[type=text],input[type=date]{border-radius:999px!important;border-color:var(--line)!important;background:rgba(255,255,255,.06)!important}
+select,input[type=search]{padding-left:16px!important}
+.reset{font-weight:600}
+.seg button[aria-pressed="true"]{background:rgba(255,255,255,.16)!important;color:#fff!important}
+.link,.irow .go{color:var(--accent)!important}
+.new{background:var(--accent)!important;color:#000!important}
+.irow{padding:18px 22px!important;transition:transform .35s cubic-bezier(.2,.8,.2,1),background .25s}
+.irow:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.14)!important}
+.irow .in b{font-size:16px;letter-spacing:-.015em}
+.irow .ic b{font-size:18px;font-weight:600;letter-spacing:-.025em}
+.cat{border-width:0!important;background:rgba(255,255,255,.07);padding:3px 10px!important}
+.netsvg,.netpanel{border-radius:28px!important}
+#c3{border-radius:28px}
+.sub,.note,p{color:var(--muted)}
+table th{font-weight:600;letter-spacing:0;text-transform:none}
+#gq{background:transparent!important;border:0!important;box-shadow:none!important}
+#firm-body .ftile .n{font-size:28px!important}
