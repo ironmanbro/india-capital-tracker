@@ -592,8 +592,6 @@ abbr.term{text-decoration:underline dotted;text-underline-offset:3px;cursor:help
 :root[data-theme="light"] .irow .in b{font-size:1rem;letter-spacing:-.015em}
 :root[data-theme="light"] .irow .ic b{font-size:1.1rem;font-weight:600;letter-spacing:-.025em}
 :root[data-theme="light"] .cat{border-width:0!important;background:rgba(0,0,0,.05);padding:3px 10px!important}
-:root[data-theme="light"] .netsvg{--panel:#0c0c0e;--ink:#f5f5f7;--line:rgba(255,255,255,.14);--muted:#98989d;--entry:#2997ff;--chip:rgba(255,255,255,.08);--accent:#2997ff;background:#0c0c0e!important;color:#f5f5f7;border:0!important;border-radius:26px!important;box-shadow:var(--shadow)!important}
-:root[data-theme="light"] .netsvg .reset,:root[data-theme="light"] .netsvg select{background:rgba(255,255,255,.08)!important;border-color:rgba(255,255,255,.14)!important;color:#f5f5f7!important}
 :root[data-theme="light"] .netpanel{background:#fff!important;border:0!important;border-radius:26px!important;box-shadow:var(--shadow)!important}
 :root[data-theme="light"] #c3{border-radius:26px}
 :root[data-theme="light"] .sub,:root[data-theme="light"] .note,:root[data-theme="light"] p{color:var(--muted)}
@@ -609,6 +607,7 @@ abbr.term{text-decoration:underline dotted;text-underline-offset:3px;cursor:help
 :root[data-theme="light"] .kpi,:root[data-theme="light"] .ftile,:root[data-theme="light"] .ovc,:root[data-theme="light"] .fcard,:root[data-theme="light"] .irow,:root[data-theme="light"] .card{border:1px solid rgba(0,0,0,.5)!important}}
 @media (prefers-reduced-motion:reduce){:root[data-theme="light"] .irow,:root[data-theme="light"] .reset{transition:none}
 :root[data-theme="light"] .irow:hover{transform:none}}
+:root[data-theme="light"] .netsvg{--entry:#0a66e0;--accent:#0a66e0;--node-co:#f08c00;--line:rgba(0,0,0,.11);--muted:#5f5f66;background:#fff!important;border:0!important;border-radius:26px!important;box-shadow:var(--shadow)!important}
 </style>
 </head>
 <body>
@@ -1681,7 +1680,7 @@ function renderNetwork() {
   };
   const dot = (k, ring) => {
     const n = nodes.get(k), [x, y, a] = pos.get(k), r = (ring === 0 ? 16 : Math.min(15, 5 + 2 * Math.sqrt(n.stories.size))) * (sm ? 1.4 : 1);
-    const fill = n.asTarget > n.asFirm ? "var(--muted)" : "var(--entry)";
+    const fill = n.asTarget > n.asFirm ? "var(--node-co,var(--muted))" : "var(--entry)";
     const max = sm ? 14 : 24, label = n.name.length > max ? n.name.slice(0, max - 1) + "…" : n.name;
     const right = ring === 0 || Math.cos(a) >= -0.2, dx = ring === 0 ? 0 : right ? r + 5 : -r - 5;
     const anchor = ring === 0 ? "middle" : right ? "start" : "end", ty = ring === 0 ? y + r + 16 * f : y + 4 * f;
@@ -1693,7 +1692,7 @@ function renderNetwork() {
   $("net-graph").innerHTML = `${backToAll}<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Deal links around ${esc(c.name)}">
     ${hop2.map((x) => line(x.p, x.k, x.ed)).join("")}${hop1.map((h) => line(c.key, h.k, h.ed)).join("")}
     ${hop2.map((x) => dot(x.k, 2)).join("")}${hop1.map((h) => dot(h.k, 1)).join("")}${dot(c.key, 0)}</svg>
-    <div class="flegend" style="padding:0 16px 12px"><span><i style="background:var(--entry)"></i>Investor or buyer</span><span><i style="background:var(--muted)"></i>Company invested in</span><span><i class="dashkey"></i>Holds 1% or more (filing)</span></div>`;
+    <div class="flegend" style="padding:0 16px 12px"><span><i style="background:var(--entry)"></i>Investor or buyer</span><span><i style="background:var(--node-co,var(--muted))"></i>Company invested in</span><span><i class="dashkey"></i>Holds 1% or more (filing)</span></div>`;
   const ed = net.edge && net.g.edges.get(net.edge);
   $("net-panel").innerHTML = ed
     ? `<h3>${esc(nodes.get(ed.a).name)} ↔ ${esc(nodes.get(ed.b).name)}</h3><div class="sub">${esc(edgeLabel(ed))}</div>${ed.stories.size ? netStories(ed.stories) : ""}${ed.stakes.length ? `<p class="sub">The stake is from the company's quarterly shareholding filing.</p>` : ""}<button class="link" id="net-back">← All of ${esc(c.name)}'s stories</button>`
@@ -2211,7 +2210,7 @@ function renderPath() {
     ${path.slice(1).map((_, i) => { const [x1, y1] = pos[i], [x2, y2] = pos[i + 1], ed = edgeOf(i); return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--accent)" stroke-width="${2 + Math.log2(edgeW(ed))}"${ed.stories.size ? "" : ' stroke-dasharray="6 4"'}/>
       <text x="${(x1 + x2) / 2}" y="${(y1 + y2) / 2 - 8}" text-anchor="middle" font-size="${11 * f}" fill="var(--muted)" paint-order="stroke" stroke="var(--panel)" stroke-width="3">${ed.stories.size ? `${ed.stories.size} stor${ed.stories.size === 1 ? "y" : "ies"}` : ""}${ed.stories.size && ed.stakes.length ? " + " : ""}${ed.stakes.length ? "stake" : ""}</text>`; }).join("")}
     ${path.map((k, i) => { const nd = nodes.get(k), [x, y] = pos[i], ends = i === 0 || i === n - 1;
-      return `<g class="nn" data-k="${esc(k)}" tabindex="0" role="button" aria-label="Centre on ${esc(nd.name)}"><circle cx="${x}" cy="${y}" r="${(ends ? 15 : 11) * (sm ? 1.3 : 1)}" fill="${isCompany(nd) ? "var(--muted)" : "var(--entry)"}" stroke="var(--panel)" stroke-width="2"/>
+      return `<g class="nn" data-k="${esc(k)}" tabindex="0" role="button" aria-label="Centre on ${esc(nd.name)}"><circle cx="${x}" cy="${y}" r="${(ends ? 15 : 11) * (sm ? 1.3 : 1)}" fill="${isCompany(nd) ? "var(--node-co,var(--muted))" : "var(--entry)"}" stroke="var(--panel)" stroke-width="2"/>
         <text x="${x}" y="${y + (ends ? 34 : 30) * (sm ? 1.2 : 1)}" text-anchor="middle" font-size="${(ends ? 13 : 12) * f}" font-weight="600" fill="var(--ink)">${esc(nd.name.length > 22 ? nd.name.slice(0, 21) + "…" : nd.name)}</text></g>`; }).join("")}</svg>
     <div class="flegend" style="padding:0 16px 12px"><span>${n - 1} step${n === 2 ? "" : "s"} from ${esc(a.name)} to ${esc(b.name)}</span><span><i class="dashkey"></i>Filed stake</span></div>`;
   $("net-panel").innerHTML = `<h3>${esc(a.name)} → ${esc(b.name)}</h3><div class="sub">${n - 1 ? `${n - 1} step${n === 2 ? "" : "s"}. Each step is a shared story or a filed stake.` : "Same firm."}</div>` +
@@ -2314,7 +2313,7 @@ function renderAllFirms() {
   pos.forEach(([x, y]) => { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); });
   const pad = 30, vw = x1 - x0 + 2 * pad, vh = y1 - y0 + 2 * pad, s = Math.max(vw / (sm ? 700 : 1000), vh / (sm ? 820 : 640), 0.5), f = sm ? 1.7 : 1;
   const named = new Set(linked.slice(0, sm ? 10 : 26).map((n) => n.key));
-  const fillOf = (n) => n.asTarget > n.asFirm ? "var(--muted)" : "var(--entry)";
+  const fillOf = (n) => n.asTarget > n.asFirm ? "var(--node-co,var(--muted))" : "var(--entry)";
   const dots = linked.filter((n) => pos.has(n.key));
   const rOf = (n) => core.has(n.key) ? Math.min(22, 4 + 2.2 * Math.sqrt(deg(n.key))) * s * (sm ? 1.2 : 1) : 1.9 * s;
   $("net-graph").innerHTML = `<svg viewBox="${x0 - pad} ${y0 - pad} ${vw} ${vh}" role="img" aria-label="All ${dots.length} linked firms as a constellation">
@@ -2323,7 +2322,7 @@ function renderAllFirms() {
       return `<g class="nn" data-k="${esc(n.key)}" tabindex="${core.has(n.key) ? 0 : -1}" role="button" aria-label="${esc(n.name)}: ${deg(n.key)} links">
         <circle cx="${p[0]}" cy="${p[1]}" r="${r}" fill="${fillOf(n)}" stroke="var(--panel)" stroke-width="${0.8 * s}"><title>${esc(n.name)} · ${deg(n.key)} linked firm${deg(n.key) === 1 ? "" : "s"}</title></circle>
         ${named.has(n.key) ? `<text x="${p[0]}" y="${p[1] - r - 4 * s}" text-anchor="middle" font-size="${11 * f * s}" font-weight="600" fill="var(--ink)" paint-order="stroke" stroke="var(--panel)" stroke-width="${3 * s}">${esc(n.name.length > 20 ? n.name.slice(0, 19) + "…" : n.name)}</text>` : ""}</g>`; }).join("")}</svg>
-    <div class="flegend" style="padding:0 16px 12px"><span><i style="background:var(--entry)"></i>Investor or buyer</span><span><i style="background:var(--muted)"></i>Company invested in</span><span>Big dots are the best-connected firms; small dots ring the firm they link to</span><button class="reset" id="c3on" type="button">3D view</button></div>`;
+    <div class="flegend" style="padding:0 16px 12px"><span><i style="background:var(--entry)"></i>Investor or buyer</span><span><i style="background:var(--node-co,var(--muted))"></i>Company invested in</span><span>Big dots are the best-connected firms; small dots ring the firm they link to</span><button class="reset" id="c3on" type="button">3D view</button></div>`;
   allPanel(dots.length, linked, deg);
 }
 // The constellation in 3D on a canvas: drag to rotate, wheel or +/- to zoom, click a dot to open its links.
@@ -2331,13 +2330,13 @@ function render3D(linked, deg) {
   const { pos3, lines, core } = net.all, sm = innerWidth < 700;
   $("net-graph").innerHTML = `<div class="c3"><canvas id="c3" role="img" aria-label="All ${linked.length} linked firms as a rotatable 3D constellation"></canvas>
     <div class="c3bar"><button class="reset" id="c3spin" type="button">Pause</button><button class="reset" id="c3out" type="button" aria-label="Zoom out">−</button><input type="range" id="c3z" min="0.5" max="5" step="0.01" value="1" aria-label="Zoom" style="width:140px;accent-color:var(--accent)"><button class="reset" id="c3in" type="button" aria-label="Zoom in">+</button><button class="reset" id="c3flat" type="button">Flat view</button><span class="sub">Drag to rotate · scroll to zoom · click a dot</span></div></div>
-    <div class="flegend" style="padding:0 16px 12px"><span><i style="background:var(--entry)"></i>Investor or buyer</span><span><i style="background:var(--muted)"></i>Company invested in</span><span>Big dots are the best-connected firms</span></div>`;
+    <div class="flegend" style="padding:0 16px 12px"><span><i style="background:var(--entry)"></i>Investor or buyer</span><span><i style="background:var(--node-co,var(--muted))"></i>Company invested in</span><span>Big dots are the best-connected firms</span></div>`;
   allPanel(linked.length, linked, deg);
   const cv = $("c3"), ctx = cv.getContext("2d"), dpr = devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
   cv.width = W * dpr; cv.height = H * dpr; ctx.scale(dpr, dpr);
   const cs = getComputedStyle(cv), col = (n, d) => cs.getPropertyValue(n).trim() || d;
-  const C = { entry: col("--entry", "#6d8dff"), muted: col("--muted", "#98a0ad"), ink: col("--ink", "#fff"), line: col("--line", "#444"), panel: col("--panel", "#111") };
-  const dots = linked.filter((n) => pos3.has(n.key)).map((n) => ({ n, p: pos3.get(n.key), core: core.has(n.key), fill: n.asTarget > n.asFirm ? C.muted : C.entry }));
+  const C = { entry: col("--entry", "#6d8dff"), muted: col("--muted", "#98a0ad"), co: col("--node-co", col("--muted", "#98a0ad")), ink: col("--ink", "#fff"), line: col("--line", "#444"), panel: col("--panel", "#111") };
+  const dots = linked.filter((n) => pos3.has(n.key)).map((n) => ({ n, p: pos3.get(n.key), core: core.has(n.key), fill: n.asTarget > n.asFirm ? C.co : C.entry }));
   let R = 1; dots.forEach((d) => { R = Math.max(R, Math.hypot(...d.p)); });
   const v = net.v3 || (net.v3 = { ry: 0.6, rx: -0.35, zoom: 1, spin: !matchMedia("(prefers-reduced-motion: reduce)").matches });
   const named = new Set(linked.slice(0, sm ? 6 : 14).map((n) => n.key)), pr = new Map();
@@ -2362,6 +2361,7 @@ function render3D(linked, deg) {
       const [x, y, z, k] = pr.get(d.n.key), r = (d.core ? Math.min(13, 3 + 1.2 * Math.sqrt(deg(d.n.key))) : 1.9) * k;
       ctx.globalAlpha = Math.max(0.3, Math.min(1, 0.85 - z / (3 * R)));
       ctx.fillStyle = d.fill; ctx.beginPath(); ctx.arc(x, y, Math.max(r, 0.8), 0, 6.2832); ctx.fill();
+      if (d.core && r > 3) { ctx.strokeStyle = C.panel; ctx.lineWidth = 1; ctx.stroke(); }
     });
     ctx.globalAlpha = 1; ctx.font = "600 11px system-ui,sans-serif"; ctx.textAlign = "center"; ctx.lineWidth = 3; ctx.strokeStyle = C.panel; ctx.fillStyle = C.ink;
     const label = (d) => { const [x, y, , k] = pr.get(d.n.key), t = d.n.name.length > 22 ? d.n.name.slice(0, 21) + "…" : d.n.name, yy = y - (Math.min(13, 3 + 1.2 * Math.sqrt(deg(d.n.key))) * k) - 5; ctx.strokeText(t, x, yy); ctx.fillText(t, x, yy); };

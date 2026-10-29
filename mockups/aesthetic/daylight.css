@@ -1,6 +1,5 @@
 /* Direction B, "Daylight" (v2): the light theme in the style of apple.com. White cards with soft shadows,
-   frosted glass on the floating layers, one blue, big quiet type. The constellation stays a dark card, as Apple
-   Maps keeps its dark map in a light app, so its dots stay readable. */
+   frosted glass on the floating layers, one blue, big quiet type. */
 :root{--bg:#f5f5f7;--panel:#fff;--ink:#1d1d1f;--muted:#6e6e73;--line:rgba(0,0,0,.08);--chip:rgba(0,0,0,.05);
   --accent:#0071e3;--accent-ink:#fff;--entry:#0071e3;--in:#0071e3;--out:#e8590c;--good:#1d9a4b;--bad:#d70015;
   --glass:linear-gradient(180deg,#fff,#fff);--shadow:0 2px 6px rgba(0,0,0,.04),0 16px 40px rgba(0,0,0,.07);
@@ -46,9 +45,8 @@ nav.tabs button[aria-selected="true"]{background:rgba(0,113,227,.10)!important;c
 .irow .in b{font-size:1rem;letter-spacing:-.015em}
 .irow .ic b{font-size:1.1rem;font-weight:600;letter-spacing:-.025em}
 .cat{border-width:0!important;background:rgba(0,0,0,.05);padding:3px 10px!important}
-/* The constellation stays dark so its dots and names read clearly. */
-.netsvg{--panel:#0c0c0e;--ink:#f5f5f7;--line:rgba(255,255,255,.14);--muted:#98989d;--entry:#2997ff;--chip:rgba(255,255,255,.08);--accent:#2997ff;background:#0c0c0e!important;color:#f5f5f7;border:0!important;border-radius:26px!important;box-shadow:var(--shadow)!important}
-.netsvg .reset,.netsvg select{background:rgba(255,255,255,.08)!important;border-color:rgba(255,255,255,.14)!important;color:#f5f5f7!important}
+/* The constellation sits on the white card: blue investors, amber companies, clearer lines. */
+.netsvg{--entry:#0a66e0;--accent:#0a66e0;--node-co:#f08c00;--line:rgba(0,0,0,.11);--muted:#5f5f66;background:#fff!important;border:0!important;border-radius:26px!important;box-shadow:var(--shadow)!important}
 .netpanel{background:#fff!important;border:0!important;border-radius:26px!important;box-shadow:var(--shadow)!important}
 #c3{border-radius:26px}
 .sub,.note,p{color:var(--muted)}
