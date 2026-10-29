@@ -547,6 +547,68 @@ abbr.term{text-decoration:underline dotted;text-underline-offset:3px;cursor:help
 :root:not([data-theme="light"]) .kpi,:root:not([data-theme="light"]) .ftile,:root:not([data-theme="light"]) .ovc,:root:not([data-theme="light"]) .fcard,:root:not([data-theme="light"]) .irow,:root:not([data-theme="light"]) .card{border-color:rgba(255,255,255,.4)!important}}
 @media (prefers-reduced-motion:reduce){:root:not([data-theme="light"]) .irow,:root:not([data-theme="light"]) .reset{transition:none}
 :root:not([data-theme="light"]) .irow:hover{transform:none}}
+/* Daylight look (light theme only): white cards with soft shadows, frosted glass on the floating layers, the constellation kept dark. */
+:root[data-theme="light"]{--bg:#f5f5f7;--panel:#fff;--ink:#1d1d1f;--muted:#6e6e73;--line:rgba(0,0,0,.08);--chip:rgba(0,0,0,.05);
+  --accent:#0071e3;--accent-ink:#fff;--entry:#0071e3;--in:#0071e3;--out:#e8590c;--good:#1d9a4b;--bad:#d70015;
+  --glass:linear-gradient(180deg,#fff,#fff);--shadow:0 2px 6px rgba(0,0,0,.04),0 16px 40px rgba(0,0,0,.07);
+  --page:linear-gradient(180deg,#fbfbfd 0,#f5f5f7 420px),#f5f5f7;color-scheme:light}
+:root[data-theme="light"] body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased;letter-spacing:-.011em;color:var(--ink)}
+:root[data-theme="light"] body::before{opacity:0!important}
+:root[data-theme="light"] h1,:root[data-theme="light"] h2{letter-spacing:-.036em;font-weight:700}
+:root[data-theme="light"] h1{font-size:clamp(2.1rem,4.2vw,3.25rem)!important;line-height:1.04!important}
+:root[data-theme="light"] h3{letter-spacing:-.02em;font-weight:600}
+:root[data-theme="light"] .kpi,:root[data-theme="light"] .ftile,:root[data-theme="light"] .ovc,:root[data-theme="light"] .fcard,:root[data-theme="light"] .irow,:root[data-theme="light"] .card,:root[data-theme="light"] .empty,:root[data-theme="light"] .ftable-wrap{border:0!important;border-radius:26px!important;background:#fff!important;box-shadow:var(--shadow)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+:root[data-theme="light"] .ftile,:root[data-theme="light"] .kpi{padding:1.25rem 1.375rem!important}
+:root[data-theme="light"] .ftile .n,:root[data-theme="light"] .kpi .n{font-size:2.35rem!important;font-weight:600!important;letter-spacing:-.035em!important;line-height:1.05}
+:root[data-theme="light"] #firm-body .ftile .n{font-size:1.75rem!important}
+:root[data-theme="light"] .ftile .l,:root[data-theme="light"] .kpi .l{text-transform:none!important;letter-spacing:-.005em!important;font-size:.8125rem!important;color:var(--muted)!important;font-weight:500}
+:root[data-theme="light"] .ftile .s,:root[data-theme="light"] .kpi .s{font-size:.78rem!important}
+:root[data-theme="light"] .ovc{padding:1.6rem 1.75rem!important}
+:root[data-theme="light"] .ovc h3,:root[data-theme="light"] .fcard h3{font-size:1.2rem}
+:root[data-theme="light"] nav.tabs,:root[data-theme="light"] .filterbar,:root[data-theme="light"] #netmore,:root[data-theme="light"] .htools{background:rgba(255,255,255,.74)!important;-webkit-backdrop-filter:saturate(180%) blur(30px)!important;backdrop-filter:saturate(180%) blur(30px)!important;border:1px solid rgba(0,0,0,.06)!important;box-shadow:0 12px 40px rgba(0,0,0,.10)!important}
+:root[data-theme="light"] .filterbar{border-radius:999px!important}
+:root[data-theme="light"] nav.tabs button{border-radius:16px!important;color:#6e6e73!important;transition:background .25s,color .25s}
+:root[data-theme="light"] nav.tabs button[aria-selected="true"]{background:rgba(0,113,227,.10)!important;color:#0071e3!important}
+:root[data-theme="light"] .eyebrow{letter-spacing:.14em;opacity:.8}
+:root[data-theme="light"] .maker,:root[data-theme="light"] .hstatus .sub{font-size:.72rem!important;opacity:.7}
+:root[data-theme="light"] .maker{margin-top:.5rem}
+:root[data-theme="light"] #gq{background:transparent!important;border:0!important;box-shadow:none!important}
+:root[data-theme="light"] .reset,:root[data-theme="light"] .seg,:root[data-theme="light"] .seg button,:root[data-theme="light"] select,:root[data-theme="light"] input[type=search],:root[data-theme="light"] input[type=text],:root[data-theme="light"] input[type=date]{border-radius:999px!important;border:1px solid rgba(0,0,0,.09)!important;background:#fff!important;color:var(--ink)!important}
+:root[data-theme="light"] .seg{background:rgba(0,0,0,.05)!important;border:0!important}
+:root[data-theme="light"] .seg button{background:transparent!important;border:0!important}
+:root[data-theme="light"] .seg button[aria-pressed="true"]{background:#fff!important;color:var(--ink)!important;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+:root[data-theme="light"] .reset{font-weight:600;transition:transform .12s ease-out,background .2s}
+:root[data-theme="light"] .reset:active,:root[data-theme="light"] .irow:active,:root[data-theme="light"] .seg button:active{transform:scale(.97)}
+:root[data-theme="light"] .link,:root[data-theme="light"] .irow .go{color:var(--accent)!important}
+:root[data-theme="light"] .new{background:var(--accent)!important;color:#fff!important}
+:root[data-theme="light"] #netmore{border-radius:22px!important;padding:.4rem 1rem 1rem;margin-bottom:.9rem}
+:root[data-theme="light"] #netmore>summary{padding:.6rem 0;min-height:0}
+:root[data-theme="light"] .netflt{margin-bottom:.4rem!important}
+:root[data-theme="light"] .netpath{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;border-top:1px solid var(--line);padding-top:.8rem;margin-top:.2rem}
+:root[data-theme="light"] .netpath b{font-weight:500;color:var(--muted);font-size:.8125rem}
+:root[data-theme="light"] .netpath select{flex:1 1 11rem;max-width:17rem}
+:root[data-theme="light"] .irow{padding:1.1rem 1.4rem!important;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+:root[data-theme="light"] .irow:hover{transform:translateY(-2px)}
+:root[data-theme="light"] .irow .in b{font-size:1rem;letter-spacing:-.015em}
+:root[data-theme="light"] .irow .ic b{font-size:1.1rem;font-weight:600;letter-spacing:-.025em}
+:root[data-theme="light"] .cat{border-width:0!important;background:rgba(0,0,0,.05);padding:3px 10px!important}
+:root[data-theme="light"] .netsvg{--panel:#0c0c0e;--ink:#f5f5f7;--line:rgba(255,255,255,.14);--muted:#98989d;--entry:#2997ff;--chip:rgba(255,255,255,.08);--accent:#2997ff;background:#0c0c0e!important;color:#f5f5f7;border:0!important;border-radius:26px!important;box-shadow:var(--shadow)!important}
+:root[data-theme="light"] .netsvg .reset,:root[data-theme="light"] .netsvg select{background:rgba(255,255,255,.08)!important;border-color:rgba(255,255,255,.14)!important;color:#f5f5f7!important}
+:root[data-theme="light"] .netpanel{background:#fff!important;border:0!important;border-radius:26px!important;box-shadow:var(--shadow)!important}
+:root[data-theme="light"] #c3{border-radius:26px}
+:root[data-theme="light"] .sub,:root[data-theme="light"] .note,:root[data-theme="light"] p{color:var(--muted)}
+:root[data-theme="light"] .tag,:root[data-theme="light"] .tg{background:rgba(0,0,0,.05)!important}
+:root[data-theme="light"] table th{font-weight:600;letter-spacing:0;text-transform:none}
+@media (max-width:700px){:root[data-theme="light"] h1{font-size:2rem!important}
+:root[data-theme="light"] .ftile .n,:root[data-theme="light"] .kpi .n{font-size:2rem!important}
+:root[data-theme="light"] .ovc{padding:1.25rem 1.2rem!important}
+:root[data-theme="light"] body{padding-bottom:calc(6.5rem + env(safe-area-inset-bottom))}
+:root[data-theme="light"] .maker{display:none}}
+@media (prefers-reduced-transparency:reduce){:root[data-theme="light"] nav.tabs,:root[data-theme="light"] .filterbar,:root[data-theme="light"] #netmore,:root[data-theme="light"] .htools{background:#fff!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}}
+@media (prefers-contrast:more){:root[data-theme="light"]{--line:rgba(0,0,0,.4);--muted:#3a3a3c}
+:root[data-theme="light"] .kpi,:root[data-theme="light"] .ftile,:root[data-theme="light"] .ovc,:root[data-theme="light"] .fcard,:root[data-theme="light"] .irow,:root[data-theme="light"] .card{border:1px solid rgba(0,0,0,.5)!important}}
+@media (prefers-reduced-motion:reduce){:root[data-theme="light"] .irow,:root[data-theme="light"] .reset{transition:none}
+:root[data-theme="light"] .irow:hover{transform:none}}
 </style>
 </head>
 <body>
@@ -2273,7 +2335,7 @@ function render3D(linked, deg) {
   allPanel(linked.length, linked, deg);
   const cv = $("c3"), ctx = cv.getContext("2d"), dpr = devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
   cv.width = W * dpr; cv.height = H * dpr; ctx.scale(dpr, dpr);
-  const cs = getComputedStyle(document.documentElement), col = (n, d) => cs.getPropertyValue(n).trim() || d;
+  const cs = getComputedStyle(cv), col = (n, d) => cs.getPropertyValue(n).trim() || d;
   const C = { entry: col("--entry", "#6d8dff"), muted: col("--muted", "#98a0ad"), ink: col("--ink", "#fff"), line: col("--line", "#444"), panel: col("--panel", "#111") };
   const dots = linked.filter((n) => pos3.has(n.key)).map((n) => ({ n, p: pos3.get(n.key), core: core.has(n.key), fill: n.asTarget > n.asFirm ? C.muted : C.entry }));
   let R = 1; dots.forEach((d) => { R = Math.max(R, Math.hypot(...d.p)); });
