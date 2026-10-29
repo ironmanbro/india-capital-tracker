@@ -67,12 +67,10 @@ class Client:
         return 0, "", None
 
 
-def fetch_master(client, index, raw_dir):
-    """Fetch one master, validate JSON list, save a timestamped raw snapshot. Returns (records, meta)."""
-    url = MASTER.format(index=index)
-    client.get(BASE)  # cookie priming, as in the reference implementation
+def fetch_json(client, url, name, raw_dir):
+    """GET a JSON list, validate it, save a timestamped raw snapshot. Returns (records, meta)."""
     status, ctype, body = client.get(url)
-    meta = {"index": index, "url": url, "http_status": status, "content_type": ctype, "retrieved_at": now(), "records": 0, "error": None}
+    meta = {"index": name, "url": url, "http_status": status, "content_type": ctype, "retrieved_at": now(), "records": 0, "error": None}
     if status != 200 or body is None:
         meta["error"] = f"http {status}" if body is None else None
         return [], meta
@@ -86,11 +84,16 @@ def fetch_master(client, index, raw_dir):
         meta["error"] = f"invalid json: {e}"
         return [], meta
     os.makedirs(raw_dir, exist_ok=True)
-    path = os.path.join(raw_dir, f"{index}_{meta['retrieved_at'].replace(':', '')}.json")
+    path = os.path.join(raw_dir, f"{name}_{meta['retrieved_at'].replace(':', '')}.json")
     with open(path, "wb") as f:
         f.write(body)
     meta.update(records=len(data), snapshot=path, sha256=hashlib.sha256(body).hexdigest())
     return data, meta
+
+
+def fetch_master(client, index, raw_dir):
+    client.get(BASE)  # cookie priming, as in the reference implementation
+    return fetch_json(client, MASTER.format(index=index), index, raw_dir)
 
 
 def normalise(records, exchange_index):
@@ -148,7 +151,7 @@ def save_manifest(path, manifest):
     os.replace(tmp, path)  # atomic: a crash never leaves a half-written manifest
 
 
-def download_all(client, rows, manifest_path, files_dir, limit=None):
+def download_all(client, rows, manifest_path, files_dir, limit=None, allowed_hosts=("nseindia.com",)):
     """Resumable: URLs already 'ok' in the manifest are skipped. Checkpoints after every file."""
     manifest = load_manifest(manifest_path)
     done = 0
@@ -159,8 +162,8 @@ def download_all(client, rows, manifest_path, files_dir, limit=None):
         if limit is not None and done >= limit:
             break
         done += 1
-        if not url.startswith("https://") or "nseindia.com" not in url.split("/")[2]:
-            entry = {"download_status": "rejected_host", "error": "non-NSE or non-https url"}
+        if not url.startswith("https://") or not any(url.split("/")[2] == h or url.split("/")[2].endswith("." + h) for h in allowed_hosts):
+            entry = {"download_status": "rejected_host", "error": "host not allowed or not https"}
             status = 0
         else:
             status, ctype, body = client.get(url)
