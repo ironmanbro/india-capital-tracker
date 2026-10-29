@@ -610,10 +610,16 @@ abbr.term{text-decoration:underline dotted;text-underline-offset:3px;cursor:help
 @media (prefers-reduced-motion:reduce){:root[data-theme="light"] .irow,:root[data-theme="light"] .reset{transition:none}
 :root[data-theme="light"] .irow:hover{transform:none}}
 :root[data-theme="light"] .netsvg{--entry:#0a66e0;--accent:#0a66e0;--node-co:#f08c00;--line:rgba(0,0,0,.11);--muted:#5f5f66;background:#fff!important;border:0!important;border-radius:26px!important;box-shadow:var(--shadow)!important}
+/* Lenis smooth scrolling (MIT, vendor/lenis.min.js): the library's own required rules. */
+html.lenis,html.lenis body{height:auto}
+.lenis:not(.lenis-autoToggle).lenis-stopped{overflow:clip}
+.lenis [data-lenis-prevent],.lenis [data-lenis-prevent-wheel],.lenis [data-lenis-prevent-touch]{overscroll-behavior:contain}
+.lenis.lenis-smooth iframe{pointer-events:none}
 </style>
+<script src="vendor/lenis.min.js" defer></script>
 </head>
 <body>
-<div class="welcome" id="welcome" role="dialog" aria-modal="true" aria-labelledby="welcome-title" hidden>
+<div class="welcome" id="welcome" data-lenis-prevent role="dialog" aria-modal="true" aria-labelledby="welcome-title" hidden>
   <div class="box">
     <div class="eyebrow">Welcome</div>
     <h2 id="welcome-title">India Capital Tracker</h2>
@@ -900,7 +906,7 @@ abbr.term{text-decoration:underline dotted;text-underline-offset:3px;cursor:help
   </section>
   <p class="note">New stories are checked and added every 3 hours.</p>
 
-  <dialog class="gloss" id="gloss" aria-labelledby="gloss-h"><div class="fhead"><h3 id="gloss-h" style="margin:0">Jargon explained</h3><button class="reset" id="gloss-x" type="button">Close</button></div><dl id="gloss-list"></dl></dialog>
+  <dialog class="gloss" id="gloss" data-lenis-prevent aria-labelledby="gloss-h"><div class="fhead"><h3 id="gloss-h" style="margin:0">Jargon explained</h3><button class="reset" id="gloss-x" type="button">Close</button></div><dl id="gloss-list"></dl></dialog>
   <footer class="byline">
     <div><strong>Built by Kishan Singhania</strong> ·
       <a href="https://www.linkedin.com/in/kishansinghania/" target="_blank" rel="noopener">LinkedIn</a> ·
@@ -1616,6 +1622,15 @@ function buildNetwork() {
 // With paged set, the first 5 show and "View more" / "View all" reveal the rest (see the [data-pg] handler).
 // On the one-firm and path views: a button on the picture itself that returns to the 3D constellation.
 const backToAll = `<button class="reset nback" id="net-all" type="button">⟲ Show full constellation</button>`;
+// Smooth scrolling (Lenis) is off for people who ask for reduced motion; scrolling to the top goes through it when on.
+let lenis = null;
+function toTop(instant) {
+  if (lenis) lenis.scrollTo(0, { immediate: !!instant, duration: 0.8 });
+  else scrollTo({ top: 0, behavior: instant ? "auto" : "smooth" });
+}
+addEventListener("DOMContentLoaded", () => {
+  if (window.Lenis && !matchMedia("(prefers-reduced-motion: reduce)").matches) lenis = new Lenis({ autoRaf: true, duration: 1.1, allowNestedScroll: true });
+});
 const PAGE = 5;
 const pgBar = (n) => n > PAGE ? `<div class="pgbar"><span class="sub">Showing ${PAGE} of ${n}</span><button class="link" type="button" data-pg="10">View ${Math.min(10, n - PAGE)} more</button><button class="link" type="button" data-pg="all">View all ${n}</button></div>` : "";
 const pgHide = (i, paged) => paged && i >= PAGE ? " hidden data-pi" : "";
@@ -1790,7 +1805,7 @@ function renderFirm() {
     setFollows(on ? f.filter((k) => k !== n.key) : [...f, n.key]);
     renderFirm();
   };
-  $("firm-back").onclick = () => { location.hash = ""; setTab(net.back && net.back !== "firm" ? net.back : "investors"); scrollTo(0, 0); };
+  $("firm-back").onclick = () => { location.hash = ""; setTab(net.back && net.back !== "firm" ? net.back : "investors"); toTop(true); };
   $("firm-feed").onclick = () => { $("q").value = n.name; state.types.clear(); location.hash = ""; setTab("feed"); render(); };
   $("firm-graph").onclick = () => { net.center = n.key; net.edge = null; net.view = "one"; location.hash = ""; setTab("network"); };
   setTitle();
@@ -1996,7 +2011,7 @@ function renderTakeaways() {
     (fresh ? ` <button class="link" id="newsince">${fresh} new since your last visit →</button>` : "");
   $("newsince")?.addEventListener("click", () => {
     $("preset").value = "custom"; $("from").value = dayStr(new Date(state.prevVisit)); $("to").value = dayStr(new Date());
-    state.types.clear(); setTab("feed"); render(); scrollTo(0, 0);
+    state.types.clear(); setTab("feed"); render(); toTop(true);
   });
   glossify($("ov-take"));
 }
@@ -2020,7 +2035,7 @@ function renderFollowing() {
         ${top ? `<div class="sub">Latest: ${esc(top.title)} · ${dmy(top.published_at || top.fetched_at)}</div>` : ""}</div><span class="side">${list.length} stor${list.length === 1 ? "y" : "ies"}</span></div>`;
     }).join("");
   }
-  $("ov-follow").querySelectorAll("[data-go]").forEach((b) => b.onclick = () => { setTab(b.dataset.go); scrollTo(0, 0); });
+  $("ov-follow").querySelectorAll("[data-go]").forEach((b) => b.onclick = () => { setTab(b.dataset.go); toTop(true); });
 }
 
 // ---------- Where the money comes from and goes: investor country and sector ----------
@@ -2055,7 +2070,7 @@ $("ov-break").addEventListener("click", (ev) => {
   const b = ev.target.closest(".bkrow");
   if (!b) return;
   state.country = b.dataset.country || null; state.sector = b.dataset.sector || null; state.story = null;
-  state.types.clear(); setTab("feed"); render(); scrollTo(0, 0);
+  state.types.clear(); setTab("feed"); render(); toTop(true);
 });
 
 // ---------- Shareable links: the address keeps the tab and filters ----------
@@ -2167,7 +2182,7 @@ function glossifyPage() { document.querySelectorAll(GLOSS_AREAS.join(",")).forEa
 
 function route() {
   const m = location.hash.match(/^#firm\/(.+)$/);
-  if (m) { if (state.tab !== "firm") net.back = state.tab; net.firm = decodeURIComponent(m[1]); setTab("firm"); scrollTo(0, 0); }
+  if (m) { if (state.tab !== "firm") net.back = state.tab; net.firm = decodeURIComponent(m[1]); setTab("firm"); toTop(true); }
   else if (state.tab === "firm") setTab("network");
 }
 addEventListener("hashchange", route);
@@ -2330,7 +2345,7 @@ function renderAllFirms() {
 // The constellation in 3D on a canvas: drag to rotate, wheel or +/- to zoom, click a dot to open its links.
 function render3D(linked, deg) {
   const { pos3, lines, core } = net.all, sm = innerWidth < 700;
-  $("net-graph").innerHTML = `<div class="c3"><canvas id="c3" role="img" aria-label="All ${linked.length} linked firms as a rotatable 3D constellation"></canvas>
+  $("net-graph").innerHTML = `<div class="c3" data-lenis-prevent><canvas id="c3" role="img" aria-label="All ${linked.length} linked firms as a rotatable 3D constellation"></canvas>
     <div class="c3bar"><button class="reset" id="c3spin" type="button">Pause</button><button class="reset" id="c3out" type="button" aria-label="Zoom out">−</button><input type="range" id="c3z" min="0.5" max="5" step="0.01" value="1" aria-label="Zoom" style="width:140px;accent-color:var(--accent)"><button class="reset" id="c3in" type="button" aria-label="Zoom in">+</button><button class="reset" id="c3flat" type="button">Flat view</button><span class="sub">Drag to rotate · scroll to zoom · click a dot</span></div></div>
     <div class="flegend" style="padding:0 16px 12px"><span><i style="background:var(--entry)"></i>Investor or buyer</span><span><i style="background:var(--node-co,var(--muted))"></i>Company invested in</span><span>Big dots are the best-connected firms</span></div>`;
   allPanel(linked.length, linked, deg);
@@ -2476,8 +2491,8 @@ function setTab(t) {
   if (typeof syncUrl === "function") syncUrl();
   if (t === "overview" && typeof renderOverview === "function") requestAnimationFrame(renderOverview);
 }
-document.querySelectorAll("nav.tabs button").forEach((b) => b.onclick = () => { setTab(b.dataset.tab); scrollTo({ top: 0, behavior: "smooth" }); });
-document.querySelectorAll("[data-go]").forEach((b) => b.onclick = () => { setTab(b.dataset.go); scrollTo({ top: 0, behavior: "smooth" }); });
+document.querySelectorAll("nav.tabs button").forEach((b) => b.onclick = () => { setTab(b.dataset.tab); toTop(); });
+document.querySelectorAll("[data-go]").forEach((b) => b.onclick = () => { setTab(b.dataset.go); toTop(); });
 
 // ---------- Page titles ----------
 const TITLES = {
@@ -2527,7 +2542,7 @@ $("gq").addEventListener("input", () => {
 
 // Back to top: a button once the page is scrolled, and every menu tap starts at the top.
 addEventListener("scroll", () => $("totop").classList.toggle("show", scrollY > 600), { passive: true });
-$("totop").onclick = () => scrollTo({ top: 0, behavior: "smooth" });
+$("totop").onclick = () => toTop();
 
 // ---------- Floating notice: what is new since this browser's last visit ----------
 function showToast(text, tab) {
