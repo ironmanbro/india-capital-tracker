@@ -39,6 +39,7 @@ Deno.serve(async (req) => {
     rows.push({ company, symbol: text(b.symbol, 40), period_end, holder, category: text(r.category), shares, pct, source_file: text(b.file), source: "upload" });
   }
   const { error } = await db.from("shareholdings").upsert(rows, { onConflict: "company,period_end,holder" });
-  if (error) return bad(error.message, 500);
+  // Database error text can name tables and columns, so it stays in the logs and the owner gets a reference.
+  if (error) { const ref = crypto.randomUUID().slice(0, 8); console.error("holdings", ref, error.message); return bad(`server error, ref ${ref}`, 500); }
   return Response.json({ saved: rows.length }, { headers: CORS });
 });
