@@ -75,4 +75,19 @@ class T(unittest.TestCase):
     def test_safe_name(self): self.assertNotIn("/", n.safe_name("../../etc/passwd"))
 
 
+    def test_parse_and_export(self):
+        sys.path.insert(0, os.path.dirname(__file__))
+        from test_shp_parser import doc
+        rows = n.normalise([{"symbol": "AAA", "date": "2025-06-30", "xbrl": "https://nsearchives.nseindia.com/a.xml"},
+                            {"symbol": "AAA", "date": "2025-09-30", "xbrl": "https://nsearchives.nseindia.com/b.xml"},
+                            {"symbol": "AAA", "date": "2025-12-31", "xbrl": "https://nsearchives.nseindia.com/c.xml"}], "equities")
+        with tempfile.TemporaryDirectory() as d:
+            mp = os.path.join(d, "m.csv")
+            n.download_all(client([FakeResp(doc("2025-06-30", 3.0, 3000)), FakeResp(doc("2025-09-30", 4.2, 4200)), FakeResp(b"<broken")]), rows, mp, d)
+            s = n.parse_and_export(mp, os.path.join(d, "out"))
+            self.assertEqual((s["parsed_ok"], s["parse_failed"], s["comparable_changes"]), (2, 1, 1))
+            self.assertTrue(os.path.exists(os.path.join(d, "out", "nse_fpi_holdings.csv")))
+            self.assertEqual(n.load_manifest(mp)["https://nsearchives.nseindia.com/c.xml"]["parser_status"], "failed")
+
+
 unittest.main() if __name__ == "__main__" else None

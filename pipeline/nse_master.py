@@ -6,6 +6,7 @@ against the live API (NSE was unreachable from the build sandbox), so `normalise
 names and keeps the full original record in `raw`; nothing is invented when a key is missing.
 """
 import csv, hashlib, http.cookiejar, json, os, random, re, time, urllib.error, urllib.request
+import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 
 BASE = "https://www.nseindia.com"
@@ -134,7 +135,7 @@ def load_manifest(path):
 
 
 MANIFEST_FIELDS = ["url", "exchange", "segment", "symbol", "isin", "company_name", "reporting_period", "filing_date",
-                   "doc_id", "retrieved_at", "http_status", "download_status", "file_type", "size", "sha256", "path", "error"]
+                   "doc_id", "retrieved_at", "http_status", "download_status", "file_type", "size", "sha256", "path", "error", "parser_status", "parsed_records", "parser_version"]
 
 
 def save_manifest(path, manifest):
@@ -183,6 +184,51 @@ def download_all(client, rows, manifest_path, files_dir, limit=None):
     return manifest
 
 
+def parse_and_export(manifest_path, out_dir):
+    """Parse every downloaded XML filing (re-runnable, so parser improvements reprocess stored files) and write
+    processed CSVs: filings, named holdings (foreign flagged) and period-over-period changes."""
+    import shp_parser
+    manifest = load_manifest(manifest_path)
+    filings, holdings = [], []
+    for url, m in manifest.items():
+        if m.get("download_status") != "ok" or m.get("file_type") != "xml":
+            continue
+        try:
+            with open(m["path"], "rb") as f:
+                p = shp_parser.parse_shp(f.read())
+            if not p["period_end"]:
+                raise ValueError("no reporting period found")
+            m.update(parser_status="ok", parsed_records=len(p["rows"]), parser_version=p["parser_version"])
+        except (ValueError, OSError, ET.ParseError) as e:
+            m.update(parser_status="failed", parsed_records=0, error=str(e)[:200])
+            continue
+        # symbol/company from the master wins when present; the filing is the fallback (never invented)
+        p["symbol"] = m.get("symbol") or p["symbol"]
+        p["company"] = m.get("company_name") or p["company"]
+        filings.append(p)
+        for r in p["rows"]:
+            holdings.append({"exchange": "NSE", "symbol": p["symbol"], "company_name": p["company"], "reporting_period": p["period_end"],
+                             "filing_date": m.get("filing_date") or None, "investor_category": r["category"] or None, "investor_name": r["holder"],
+                             "shares_held": r["shares"], "percentage_held": r["pct"], "foreign": r["foreign"], "source_url": url,
+                             "source_document_hash": m["sha256"], "parser_version": p["parser_version"]})
+    changes = shp_parser.compute_changes(filings)
+    save_manifest(manifest_path, manifest)
+    os.makedirs(out_dir, exist_ok=True)
+
+    def dump(name, rows, fields):
+        with open(os.path.join(out_dir, name), "w", newline="") as f:
+            w = csv.DictWriter(f, fields, extrasaction="ignore")
+            w.writeheader()
+            w.writerows(rows)
+    dump("nse_shareholding_filings.csv", [{k: v for k, v in m.items()} for m in manifest.values()], MANIFEST_FIELDS)
+    dump("nse_holdings.csv", holdings, list(holdings[0]) if holdings else ["symbol"])
+    dump("nse_fpi_holdings.csv", [h for h in holdings if h["foreign"]], list(holdings[0]) if holdings else ["symbol"])
+    dump("nse_ownership_changes.csv", changes, list(changes[0]) if changes else ["symbol"])
+    return {"parsed_ok": len(filings), "parse_failed": sum(1 for m in manifest.values() if m.get("parser_status") == "failed"),
+            "holdings": len(holdings), "foreign_holdings": sum(h["foreign"] for h in holdings), "changes": len(changes),
+            "comparable_changes": sum(c["status"] == "comparable" for c in changes)}
+
+
 def run(data_dir="data", interval=2.0, download_limit=50):
     client = Client(interval=interval)
     rows, metas = [], []
@@ -193,7 +239,8 @@ def run(data_dir="data", interval=2.0, download_limit=50):
     rows, overlap = dedupe(rows)
     manifest = download_all(client, rows, os.path.join(data_dir, "manifests/nse_download_manifest.csv"),
                             os.path.join(data_dir, "raw/nse/shareholding_filings"), download_limit)
-    cov = {"masters": metas, "filing_refs": sum(1 for r in rows if r["url"]), "records": len(rows),
+    stats = parse_and_export(os.path.join(data_dir, "manifests/nse_download_manifest.csv"), os.path.join(data_dir, "processed"))
+    cov = {"parse": stats, "masters": metas, "filing_refs": sum(1 for r in rows if r["url"]), "records": len(rows),
            "equities_sme_overlap_symbols": overlap, "downloaded_ok": sum(1 for m in manifest.values() if m["download_status"] == "ok"),
            "note": "Coverage measured from master only; historical depth is not assumed."}
     os.makedirs(os.path.join(data_dir, "manifests"), exist_ok=True)
