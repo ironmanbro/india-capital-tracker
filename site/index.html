@@ -1716,14 +1716,19 @@ function aboutHtml(key) {
   const place = [w?.headquarters, w?.country].filter(Boolean).filter((x, i, a) => a.indexOf(x) === i).join(", ") || (r?.country ? titleCase(r.country) : "");
   add("Type", esc(w?.description || r?.sub_category || ""));
   add("Based in", esc(place));
-  add("Founded", w?.inception ? esc(w.inception.slice(0, 4)) : "");
+  add("Founded", esc(w?.inception ? w.inception.slice(0, 4) : w?.site_founded || ""));
+  add("Office", w?.site_address && !place.includes(w.site_address) ? esc(w.site_address) : "");
   add("Owner or parent", esc(w?.owner || w?.parent || ""));
   add("Registered in India as an FPI since", r?.reg_year ? `${r.reg_year}${r.category ? ` (Category ${esc(r.category)})` : ""}` : "");
   add("SEBI registration", r ? `${esc(r.reg_no)}${r.valid_upto ? ` · valid until ${dmy(r.valid_upto)}` : ""}${r.status && r.status !== "Registered" ? ` · ${esc(r.status)}` : ""}` : "");
   add("Website", w?.website && /^https?:\/\//.test(w.website) ? `<a href="${esc(w.website)}" target="_blank" rel="noopener">${esc(w.website.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, ""))}</a>` : "");
-  const src = [r && "SEBI/NSDL FPI register", w && `<a href="https://www.wikidata.org/wiki/${esc(w.wikidata_id)}" target="_blank" rel="noopener">Wikidata</a>`, w?.wikipedia_url && `<a href="${esc(w.wikipedia_url)}" target="_blank" rel="noopener">Wikipedia</a>`].filter(Boolean).join(" · ");
+  const site = w?.website && /^https?:\/\//.test(w.website) ? w.website : "";
+  const social = (w?.site_links || []).filter((u) => /^https:\/\//.test(u)).map((u) => `<a href="${safeUrl(u)}" target="_blank" rel="noopener">${esc((u.match(/\/\/(?:www\.)?([^./]+)/) || [])[1] || "link")}</a>`).join(" · ");
+  add("Elsewhere", social);
+  const src = [r && "SEBI/NSDL FPI register", site && `<a href="${safeUrl(site)}" target="_blank" rel="noopener">Its website</a>`, w && `<a href="https://www.wikidata.org/wiki/${esc(w.wikidata_id)}" target="_blank" rel="noopener">Wikidata</a>`, w?.wikipedia_url && `<a href="${esc(w.wikipedia_url)}" target="_blank" rel="noopener">Wikipedia</a>`].filter(Boolean).join(" · ");
   return `<div class="fcard about" style="margin-top:14px"><div class="fhead"><h3>About this investor</h3></div>
     <dl>${rows.join("")}</dl>${w?.summary ? `<p class="sub" style="margin:10px 0 0">${esc(w.summary)}</p>` : ""}
+    ${w?.site_description && w.site_description.length >= 40 && w.site_description !== w.summary ? `<p class="sub" style="margin:8px 0 0"><b>In its own words</b>${site ? ` (${esc(site.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, ""))})` : ""}: “${esc(w.site_description)}”</p>` : ""}
     <p class="sub" style="margin:8px 0 0">Sources: ${src}${w ? `. Checked ${dmy(w.checked_at)}` : ""}. Only facts found in these sources are shown.</p></div>`;
 }
 function stakesHtml(key) {
