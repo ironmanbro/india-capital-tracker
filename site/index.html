@@ -2346,22 +2346,30 @@ $("net-panel").addEventListener("click", (ev) => {
   if (k) { net.center = k; net.edge = null; net.view = "one"; renderNetwork(); }
 });
 
-// The default view: a flat, labelled graph of the most-linked firms and the links among them. Click a dot to
-// highlight its neighbours; the side panel then opens its full links. Same input, same picture.
+// The default view: a flat, labelled graph of the biggest hubs and each hub's strongest links, so the picture
+// stays connected. Click a dot to highlight its neighbours; the side panel then opens its full links.
 function renderAllFirms() {
   const { nodes, adj, edges } = net.g, sm = innerWidth < 700;
   const deg = (k) => adj.get(k)?.size || 0;
   const linked = [...nodes.values()].filter((n) => deg(n.key) && kindOk(n)).sort((a, b) => deg(b.key) - deg(a.key) || b.stories.size - a.stories.size);
-  const N = sm ? 20 : 30, top = linked.slice(0, N), keys = new Set(top.map((n) => n.key));
-  const W = sm ? 420 : 900, H = sm ? 560 : 520;
+  const hubs = linked.slice(0, sm ? 5 : 8), perHub = sm ? 3 : 4;
+  const W = sm ? 420 : 1100, H = sm ? 600 : 620;
   const id = `${nodes.size}|${edges.size}|${net.f.kind}|${sm}`;
   if (net.allId !== id) {
-    // Fruchterman-Reingold layout: dots push apart, linked dots pull together, and the movement cools over time.
-    const P = top.map((n, i) => { const r = Math.sqrt((i + 1) / N); return { k: n.key, x: W / 2 + Math.cos(i * 2.4) * W * 0.3 * r, y: H / 2 + Math.sin(i * 2.4) * H * 0.3 * r, dx: 0, dy: 0 }; });
+    const sel = new Map(hubs.map((h) => [h.key, h])), home = new Map();
+    hubs.forEach((h) => {
+      [...adj.get(h.key).entries()].map(([k, e]) => ({ n: nodes.get(k), w: e.stories.size + e.stakes.length })).filter((x) => x.n && kindOk(x.n))
+        .sort((a, b) => b.w - a.w || deg(b.n.key) - deg(a.n.key)).slice(0, perHub).forEach((x) => { if (!sel.has(x.n.key)) { sel.set(x.n.key, x.n); home.set(x.n.key, h.key); } });
+    });
+    const top = [...sel.values()], keys = new Set(sel.keys());
+    // Hubs start on a ring and their neighbours beside them; then a force layout (nodes push apart, linked nodes pull
+    // together, movement cools over time) settles the picture. Same input, same picture.
+    const hubAt = new Map(hubs.map((h, i) => [h.key, { x: W / 2 + Math.cos(i * 6.283 / hubs.length) * W * 0.3, y: H / 2 + Math.sin(i * 6.283 / hubs.length) * H * 0.3 }]));
+    const P = top.map((n, i) => { const h = hubAt.get(n.key) || hubAt.get(home.get(n.key)), a = i * 2.4; return { k: n.key, x: h.x + (hubAt.has(n.key) ? 0 : Math.cos(a) * 60), y: h.y + (hubAt.has(n.key) ? 0 : Math.sin(a) * 60), dx: 0, dy: 0 }; });
     const at = new Map(P.map((p) => [p.k, p])), lines = [...edges.values()].filter((e) => keys.has(e.a) && keys.has(e.b));
-    const kk = 0.62 * Math.sqrt(W * H / (P.length || 1));
-    for (let it = 0; it < 300; it++) {
-      const t = W * 0.1 * (1 - it / 300) + 1;
+    const kk = 0.6 * Math.sqrt(W * H / (P.length || 1));
+    for (let it = 0; it < 320; it++) {
+      const t = W * 0.08 * (1 - it / 320) + 1;
       P.forEach((p) => { p.dx = 0; p.dy = 0; });
       for (let i = 0; i < P.length; i++) for (let j = i + 1; j < P.length; j++) {
         const a = P[i], b = P[j]; let dx = a.x - b.x, dy = a.y - b.y; const d = Math.hypot(dx, dy) || 0.01, F = kk * kk / d;
@@ -2372,29 +2380,32 @@ function renderAllFirms() {
         dx /= d; dy /= d; a.dx -= dx * F; a.dy -= dy * F; b.dx += dx * F; b.dy += dy * F;
       });
       P.forEach((p) => {
-        p.dx += (W / 2 - p.x) * 0.05; p.dy += (H / 2 - p.y) * 0.05;
+        p.dx += (W / 2 - p.x) * 0.04; p.dy += (H / 2 - p.y) * 0.04;
         const len = Math.hypot(p.dx, p.dy) || 0.01, m = Math.min(len, t);
-        p.x = Math.min(W - 70, Math.max(70, p.x + p.dx / len * m)); p.y = Math.min(H - 26, Math.max(34, p.y + p.dy / len * m));
+        p.x = Math.min(W - 60, Math.max(60, p.x + p.dx / len * m)); p.y = Math.min(H - 36, Math.max(40, p.y + p.dy / len * m));
       });
     }
-    net.all = { at, lines, keys, top }; net.allId = id;
+    net.all = { at, lines, keys, top, hubs: new Set(hubs.map((h) => h.key)) }; net.allId = id;
   }
-  const { at, lines } = net.all, f = net.focus && keys.has(net.focus) ? net.focus : null;
+  const { at, lines, keys, top, hubs: hubSet } = net.all, f = net.focus && keys.has(net.focus) ? net.focus : null;
   const nb = new Set(f ? [f] : []);
   if (f) lines.forEach((e) => { if (e.a === f) nb.add(e.b); if (e.b === f) nb.add(e.a); });
-  const wt = (e) => e.stories.size + e.stakes.length, mxe = Math.max(1, ...lines.map(wt)), d0 = Math.max(1, deg(top[0]?.key));
-  const rOf = (n) => (sm ? 5 : 6) + Math.sqrt(deg(n.key) / d0) * (sm ? 10 : 13);
+  const wt = (e) => e.stories.size + e.stakes.length, mxe = Math.max(1, ...lines.map(wt)), d0 = Math.max(1, deg(hubs[0]?.key));
+  const rOf = (n) => (sm ? 5 : 6) + Math.sqrt(deg(n.key) / d0) * (sm ? 9 : 14);
   const fillOf = (n) => isCompany(n) ? "var(--node-co,var(--muted))" : "var(--entry)";
-  $("net-graph").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="The ${top.length} most linked firms and the links among them">
+  // Hubs always carry a name; so does everything next to the clicked dot. Other dots show their name on hover.
+  const named = (n) => f ? nb.has(n.key) : hubSet.has(n.key);
+  $("net-graph").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="The ${hubSet.size} most linked firms and their strongest links">
     <g stroke="var(--muted)" stroke-linecap="round">${lines.map((e) => { const p = at.get(e.a), q = at.get(e.b), on = !f || e.a === f || e.b === f;
       return `<line x1="${p.x.toFixed(1)}" y1="${p.y.toFixed(1)}" x2="${q.x.toFixed(1)}" y2="${q.y.toFixed(1)}" stroke-opacity="${on ? 0.5 : 0.07}" stroke-width="${(0.8 + wt(e) / mxe * 3.5).toFixed(1)}"${e.stories.size ? "" : ' stroke-dasharray="4 3"'}/>`; }).join("")}</g>
-    ${top.map((n) => { const p = at.get(n.key), r = rOf(n), on = !f || nb.has(n.key), label = n.name.length > 22 ? n.name.slice(0, 21) + "…" : n.name;
-      return `<g class="gn" data-k="${esc(n.key)}" tabindex="0" role="button" aria-label="${esc(n.name)}: ${deg(n.key)} linked firms" opacity="${on ? 1 : 0.22}" style="cursor:pointer">
+    ${top.map((n) => { const p = at.get(n.key), r = rOf(n), on = !f || nb.has(n.key), label = n.name.length > 20 ? n.name.slice(0, 19) + "…" : n.name;
+      const anchor = p.x < 110 ? "start" : p.x > W - 110 ? "end" : "middle", lx = anchor === "start" ? p.x - r : anchor === "end" ? p.x + r : p.x;
+      return `<g class="gn" data-k="${esc(n.key)}" tabindex="0" role="button" aria-label="${esc(n.name)}: ${deg(n.key)} linked firms" opacity="${on ? 1 : 0.2}" style="cursor:pointer">
         <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${r.toFixed(1)}" fill="${fillOf(n)}" stroke="${f === n.key ? "var(--ink)" : "var(--panel)"}" stroke-width="${f === n.key ? 3 : 2}"><title>${esc(n.name)} · ${deg(n.key)} linked firm${deg(n.key) === 1 ? "" : "s"}</title></circle>
-        <text x="${p.x.toFixed(1)}" y="${(p.y - r - 4).toFixed(1)}" text-anchor="middle" font-size="${sm ? 11 : 12}" font-weight="600" fill="var(--ink)" paint-order="stroke" stroke="var(--panel)" stroke-width="3">${esc(label)}</text></g>`; }).join("")}
+        ${named(n) ? `<text x="${lx.toFixed(1)}" y="${(p.y - r - 5).toFixed(1)}" text-anchor="${anchor}" font-size="${sm ? 11 : 12}" font-weight="600" fill="var(--ink)" paint-order="stroke" stroke="var(--panel)" stroke-width="3">${esc(label)}</text>` : ""}</g>`; }).join("")}
   </svg>
-  <div class="flegend" style="padding:0 16px 12px"><span><i style="background:var(--entry)"></i>Investor or buyer</span><span><i style="background:var(--node-co,var(--muted))"></i>Company invested in</span><span>Bigger dot = more links · thicker line = more stories · dashed line = stake only</span></div>`;
-  allPanel(top, linked, deg, f);
+  <div class="flegend" style="padding:0 16px 12px"><span><i style="background:var(--entry)"></i>Investor or buyer</span><span><i style="background:var(--node-co,var(--muted))"></i>Company invested in</span><span>Bigger dot = more links · thicker line = more stories · dashed line = stake only · hover a dot for its name</span></div>`;
+  allPanel(linked.slice(0, hubSet.size), linked, deg, f);
 }
 function allPanel(top, linked, deg, f) {
   const { nodes, adj } = net.g;
@@ -2407,10 +2418,9 @@ function allPanel(top, linked, deg, f) {
       <ul>${nbs.map((m) => `<li><button class="link" data-f="${esc(m.key)}" style="font-weight:600;color:var(--ink)">${esc(m.name)}</button><div class="sub">${deg(m.key)} linked firms</div></li>`).join("")}</ul>`;
     return;
   }
-  const inv = top.filter((n) => !isCompany(n)).length;
   $("net-panel").innerHTML = `<h3>Most-linked firms</h3>
-    <div class="sub">The ${top.length} most linked of ${linked.length.toLocaleString("en-IN")} firms (${inv} investors, ${top.length - inv} companies). Click a dot to highlight its neighbours.</div>
-    <ul>${top.slice(0, 12).map((n) => `<li><button class="link" data-f="${esc(n.key)}" style="font-weight:600;color:var(--ink)">${esc(n.name)}</button><div class="sub">${deg(n.key)} linked firms · ${n.stories.size} stor${n.stories.size === 1 ? "y" : "ies"}</div></li>`).join("")}</ul>`;
+    <div class="sub">The ${top.length} biggest hubs of ${linked.length.toLocaleString("en-IN")} linked firms, with each one's strongest links. Click a dot to highlight its neighbours.</div>
+    <ul>${top.map((n) => `<li><button class="link" data-f="${esc(n.key)}" style="font-weight:600;color:var(--ink)">${esc(n.name)}</button><div class="sub">${deg(n.key)} linked firms · ${n.stories.size} stor${n.stories.size === 1 ? "y" : "ies"}</div></li>`).join("")}</ul>`;
 }
 
 document.querySelectorAll("#nhops button").forEach((b) => b.onclick = () => {
