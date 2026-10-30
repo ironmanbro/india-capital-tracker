@@ -707,6 +707,7 @@ html.lenis,html.lenis body{height:auto}
     <button role="tab" aria-selected="false" data-tab="flows"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Flows</button>
     <button role="tab" aria-selected="false" data-tab="markets"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l5-5 4 4 8-9"/><path d="M15 7h5v5"/></svg>Markets</button>
     <button role="tab" aria-selected="false" data-tab="directory"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M9 7h6"/></svg>Directory</button>
+    <button role="tab" aria-selected="false" data-tab="gift"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V9l8-5 8 5v12"/><path d="M9 21v-6h6v6M4 21h16"/></svg>GIFT City</button>
     <div class="grow"></div>
     <button role="tab" aria-selected="false" data-tab="health" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v3M12 18v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M3 12h3M18 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/><circle cx="12" cy="12" r="3.5"/></svg>Sources</button>
   </nav>
@@ -876,7 +877,7 @@ html.lenis,html.lenis body{height:auto}
   <section id="tab-directory" hidden>
     <div class="fhead" style="margin-bottom:10px">
       <p class="sub" style="margin:0;max-width:640px" id="dir-intro"></p>
-      <div class="seg" role="group" aria-label="Directory" id="dirseg">
+      <div class="seg" role="group" aria-label="Directory" id="dirseg" hidden>
         <button data-v="fpi" aria-pressed="true">FPIs (NSDL)</button><button data-v="ifsca" aria-pressed="false">GIFT IFSC</button>
       </div>
     </div>
@@ -2102,7 +2103,7 @@ function applyUrl() {
   if (p.get("type")) state.types = new Set(p.get("type").split(",").filter((t) => TYPES[t]));
   ["country", "sector", "story"].forEach((k) => state[k] = p.get(k) || null);
   const tab = p.get("tab") || (state.story || state.country || state.sector ? "feed" : null);
-  if (tab && tab !== "health" && tab !== "firm" && $(`tab-${tab}`)) setTab(tab);
+  if (tab && tab !== "health" && tab !== "firm" && $(`tab-${tab === "gift" ? "directory" : tab}`)) setTab(tab);
   state.urlReady = true;
   syncUrl();
 }
@@ -2478,20 +2479,22 @@ function setTab(t) {
   const was = state.tab;
   state.tab = t;
   document.querySelectorAll("nav.tabs button").forEach((b) => b.setAttribute("aria-selected", b.dataset.tab === t));
-  ["overview", "feed", "investors", "network", "firm", "flows", "markets", "directory", "health"].forEach((x) => $(`tab-${x}`).hidden = x !== t);
+  const secId = t === "gift" ? "directory" : t;
+  ["overview", "feed", "investors", "network", "firm", "flows", "markets", "directory", "health"].forEach((x) => $(`tab-${x}`).hidden = x !== secId);
   if (was === "firm" && t !== "firm" && location.hash.startsWith("#firm/")) history.replaceState(null, "", location.pathname + location.search);
   // Fade the section in when it changes.
-  const sec = $(`tab-${t}`); sec.classList.remove("enter"); void sec.offsetWidth; sec.classList.add("enter");
+  const sec = $(`tab-${secId}`); sec.classList.remove("enter"); void sec.offsetWidth; sec.classList.add("enter");
   // The news filters and story counts only apply to the story tabs.
   const stories = t === "feed" || t === "investors";
   document.querySelector(".filterbar").hidden = !stories;
   document.querySelector(".filterbar").classList.toggle("noq", t === "investors");
   ["kpis", "kpi-note"].forEach((id) => $(id).hidden = t !== "feed");
+  if (t === "directory" || t === "gift") dir.view = t === "gift" ? "ifsca" : "fpi";
   setTitle();
   if (typeof syncSearch === "function") syncSearch();
   if (t === "flows") renderFlows();
   if (t === "markets") openMarkets();
-  if (t === "directory") openDirectory();
+  if (t === "directory" || t === "gift") { dir.view = t === "gift" ? "ifsca" : "fpi"; openDirectory(); }
   if (t === "investors" && state.events?.length) renderInvestors();
   if (t === "network") renderNetwork();
   if (t === "firm") renderFirm();
@@ -2508,7 +2511,8 @@ const TITLES = {
   network: ["Network", "Which firms appear together on the same deals"],
   firm: ["Profile", "One firm's deals, links and sources"],
   flows: ["Flows", "FPI money in and out each day, and where FDI comes from"],
-  directory: ["Directory", "Every SEBI-registered FPI and every GIFT IFSC entity"],
+  directory: ["Directory", "Every SEBI-registered foreign portfolio investor"],
+  gift: ["GIFT City", "Every entity IFSCA regulates at GIFT IFSC: fund managers, schemes, banks and more"],
   health: ["Sources", "When each source last ran"],
 };
 function setTitle() {
@@ -2531,16 +2535,17 @@ $("theme").onclick = () => { const v = document.documentElement.dataset.theme ==
 
 // ---------- One search box: the directory when it is open, the stories otherwise ----------
 // The tab's own (hidden) box that the header search fills in.
-const searchBox = () => state.tab === "directory" ? (dir.view === "fpi" ? "dq" : "iq2") : state.tab === "investors" ? "iq" : "q";
+const isDir = () => state.tab === "directory" || state.tab === "gift";
+const searchBox = () => isDir() ? (dir.view === "fpi" ? "dq" : "iq2") : state.tab === "investors" ? "iq" : "q";
 const SEARCH_HINT = { investors: "Search investors, funds or companies…", directory: "Search FPI names or registration numbers…", directory_ifsca: "Search GIFT IFSC entities or funds…" };
 function syncSearch() {
-  const k = state.tab === "directory" && dir.view !== "fpi" ? "directory_ifsca" : state.tab;
+  const k = state.tab === "gift" ? "directory_ifsca" : state.tab;
   $("gq").placeholder = SEARCH_HINT[k] || "Search investors, companies or headlines…";
   $("gq").value = $(searchBox()).value;
 }
 $("gq").addEventListener("input", () => {
   const v = $("gq").value;
-  if (state.tab === "directory") { $(searchBox()).value = v; clearTimeout(dirTimer); dirTimer = setTimeout(() => runDirSearch(true), 300); return; }
+  if (isDir()) { $(searchBox()).value = v; clearTimeout(dirTimer); dirTimer = setTimeout(() => runDirSearch(true), 300); return; }
   if (state.tab === "investors") { $("iq").value = v; invShown = 60; renderInvestors(); return; }
   $("q").value = v;
   if (state.tab !== "feed") setTab("feed");
