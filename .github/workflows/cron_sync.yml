@@ -23,6 +23,8 @@ jobs:
       - run: pip install -r pipeline/collectors/requirements.txt openpyxl
       - name: Collect
         working-directory: pipeline/collectors
+        env:
+          SEC_USER_AGENT: "IndianCapitalTracker kishansinghania18@gmail.com"
         run: python run_all.py || echo "some scripts failed (see above)"
       - name: Load into Supabase
         env:
