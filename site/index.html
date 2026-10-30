@@ -1114,6 +1114,7 @@ function ago(iso) {
 // Every amount is shown as "₹X cr (~$Y)". Rupee amounts keep the reported figure; others convert from US$.
 const CR_UNIT = { "lakh crore": 1e5, "lakh cr": 1e5, "crore": 1, "crores": 1, "cr": 1, "billion": 100, "bn": 100, "million": 0.1, "mn": 0.1, "lakh": 0.01 };
 function usdInr() {
+  if (window.__fx > 60 && window.__fx < 140) return window.__fx; // ECB reference rate (Frankfurter), once loaded
   let d = null;
   try { d = flows.daily.slice().reverse().find((x) => x.usd && Math.abs(x.Total) > 100); } catch {}
   const r = d ? d.Total * 10 / d.usd : 0;
@@ -3706,6 +3707,12 @@ function xtMarkets(X) {
   sebi("takeovers", "SEBI takeover filings", "Open offers and acquisition filings under the takeover code, newest first." + hint, 25);
   sebi("public_issues", "SEBI public issue filings", "Draft and final offer documents for IPOs and other issues, newest first." + hint, 25);
   sebi("enforcement_orders", "SEBI enforcement orders", "Orders passed by SEBI, newest first. An order is not proof of wrongdoing by every name in the title.", 15);
+  const ann = (X.nse_announcements?.data || []).slice(0, 40);
+  if (ann.length) out.push(mkSec("Exchange announcements", "Open offers, preferential issues, QIPs, warrants and foreign-investor filings that listed companies posted on NSE in the last 30 days. Picked by keyword, so open the filing to read it.",
+    mkTable(["Date", "Company", "Subject", "Filing"], ann.map((r) => [String(r.date || "").slice(0, 10), xFirm(r.company || r.symbol), r.subject || "–", xtA(r.file, "Open")]), 3) + xtSrc("NSE corporate announcements", "https://www.nseindia.com/companies-listing/corporate-filings-announcements", X.nse_announcements)));
+  const pib = (X.pib_releases?.data || []).slice(0, 15);
+  if (pib.length) out.push(mkSec("Government releases", "Press Information Bureau releases that mention foreign investment, FDI policy or GIFT City.",
+    mkTable(["Release", "Date"], pib.map((r) => [xtA(r.link, r.title), r.published || "–"]), 1) + xtSrc("PIB", "https://pib.gov.in/", X.pib_releases)));
   const news = xtNews(X).slice(0, 30);
   if (news.length) out.push(mkSec("Funding and deal news", "Headlines from Indian startup media and global news coverage, newest first. These are reports, not verified facts, so open the source.",
     mkTable(["Headline", "Source", "Date"], news.map((r) => [xtA(r.url, r.title), r.src, xtD(r.t)]), 1) + xtSrc("Entrackr, Inc42, YourStory, ET Startups, PR Newswire and GDELT", "https://www.gdeltproject.org/", X.startup_funding_news)));
@@ -3736,6 +3743,8 @@ function xtProfile(X, name, kind) {
   if (news.length) out.push(eSec("In the news", "Funding and deal headlines that mention this name, newest first. Reports, not verified facts.", mkTable(["Headline", "Source", "Date"], news.map((r) => [xtA(r.url, r.title), r.src, xtD(r.t)]), 1)));
   const sb = ["takeovers", "public_issues", "enforcement_orders"].flatMap((k) => xtSebi(X, k).filter((r) => has(r.title)).map((r) => ({ ...r, k: k.replace("_", " ") }))).sort((a, b) => b.t - a.t).slice(0, 8);
   if (sb.length) out.push(eSec("SEBI filings", "Filings and orders with this name in the title.", mkTable(["Date", "Filing", "Type"], sb.map((r) => [xtD(r.t), xtA(r.url, r.title), r.k]), 2)));
+  const an = (X.nse_announcements?.data || []).filter((r) => has(`${r.company} ${r.symbol}`)).slice(0, 8);
+  if (an.length) out.push(eSec("Exchange announcements", "Recent NSE filings by this company that mention offers, placements or foreign investors.", mkTable(["Date", "Subject", "Filing"], an.map((r) => [String(r.date || "").slice(0, 10), r.subject || "–", xtA(r.file, "Open")]), 2)));
   const p = kind === "company" ? (X["exchange/nse_pledged_shares"]?.data || []).find((r) => gNorm(r.comName) === n) : null;
   if (p) out.push(eSec("Promoter pledge", `Latest disclosure, as of ${p.shp}.`, eFacts([["Promoter holding", `${mkFmt(p.percPromoterHolding, 1)}%`], ["Shares pledged", mkFmt(p.numSharesPledged)],
     ["Pledged, share of promoter holding", mkNum(p.totPromoterHolding) > 0 ? `${mkFmt(mkNum(p.numSharesPledged) / mkNum(p.totPromoterHolding) * 100, 1)}%` : ""]])));
@@ -3749,12 +3758,14 @@ function xtSources(X) {
   const S = [["SEBI takeover filings", "sebi/takeovers", "https://www.sebi.gov.in/"], ["SEBI public issue filings", "sebi/public_issues", "https://www.sebi.gov.in/"], ["SEBI enforcement orders", "sebi/enforcement_orders", "https://www.sebi.gov.in/"],
     ["Startup funding news (RSS)", "startup_funding_news", "https://entrackr.com/"], ["GDELT news", "gdelt_india_investments", "https://www.gdeltproject.org/"], ["DPIIT FDI publications", "dpiit_fdi_publications", "https://www.dpiit.gov.in/documents"],
     ["NSE participant open interest", "exchange/nse_participant_oi", "https://www.nseindia.com/all-reports-derivatives"], ["NSE participant volume", "exchange/nse_participant_volume", "https://www.nseindia.com/all-reports-derivatives"],
+    ["NSE announcements", "nse_announcements", "https://www.nseindia.com/companies-listing/corporate-filings-announcements"], ["PIB releases", "pib_releases", "https://pib.gov.in/"], ["USD/INR rates (ECB)", "fx_usd_inr", "https://frankfurter.dev/"],
     ["NSE promoter pledges", "exchange/nse_pledged_shares", "https://www.nseindia.com/companies-listing/corporate-filings-pledged-data"]];
   el.innerHTML = `<h2 class="fsec">Collected sources</h2>` + mkTable(["Source", "Records", "Last collected (IST)"], S.map(([t, k, u]) => [xtA(u, t), X[k] ? mkFmt(X[k].data.length) : "–", X[k] ? istTime(X[k].loaded_at) : "Not yet collected"]), 1);
 }
 
 async function xtInit() {
-  const X = await loadExtra();
+  const X = await loadExtra(), fx = X.fx_usd_inr?.data?.slice(-1)[0]?.usd_inr;
+  if (fx > 60 && fx < 140 && window.__fx !== fx) { window.__fx = fx; try { render(); renderOverview(); } catch {} }
   xtHome(X); xtFlows(X); xtSources(X);
 }
 
