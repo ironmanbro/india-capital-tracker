@@ -625,6 +625,24 @@ html.lenis,html.lenis body{height:auto}
 #gdrop .gi small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
 #gdrop .gn{padding:10px;color:var(--muted);font-size:13px}
 .ekv{width:100%;border-collapse:collapse}.ekv th{text-align:left;color:var(--muted);font-weight:500;padding:6px 12px 6px 0;white-space:nowrap;vertical-align:top;width:1%}.ekv td{padding:6px 0;word-break:break-word}
+.inr{font-size:.72em;font-weight:400;color:var(--muted);margin-left:.2em;white-space:nowrap}
+.gnav,#gscrim,#gsheet{display:none}
+@media (max-width:700px){
+  nav.tabs{display:none!important}
+  .gnav{display:grid;grid-template-columns:repeat(4,1fr);position:fixed;left:10px;right:10px;bottom:10px;z-index:40;border-radius:20px;padding:6px;background:var(--panel);border:1px solid var(--line);box-shadow:0 8px 30px rgba(0,0,0,.35)}
+  .gnav button{background:none;border:0;border-radius:14px;color:var(--muted);font:inherit;font-size:11px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 2px 5px;min-height:48px;cursor:pointer}
+  .gnav button svg{width:21px;height:21px}
+  .gnav button.on{background:var(--chip);color:var(--ink)}
+  .gnav button .gd{width:4px;height:4px;border-radius:50%;background:currentColor;opacity:.6;margin-top:-1px}
+  #gscrim{display:block;position:fixed;inset:0;z-index:38;background:rgba(0,0,0,.5);opacity:0;visibility:hidden;transition:opacity .18s,visibility .18s}
+  #gsheet{display:block;position:fixed;left:10px;right:10px;bottom:84px;z-index:41;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:8px 10px 10px;transform:translateY(16px);opacity:0;visibility:hidden;pointer-events:none;transition:transform .2s,opacity .18s,visibility .18s}
+  .gopen #gscrim{opacity:1;visibility:visible}
+  .gopen #gsheet{transform:none;opacity:1;visibility:visible;pointer-events:auto}
+  #gsheet h4{margin:6px 6px;font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+  #gsheet button{display:block;width:100%;text-align:left;background:none;border:0;color:var(--ink);font:inherit;padding:10px;border-radius:10px;min-height:44px;cursor:pointer}
+  #gsheet button small{display:block;color:var(--muted);font-size:11px;margin-top:1px}
+  #gsheet button.on{background:var(--chip);box-shadow:inset 3px 0 0 var(--accent)}
+}
 </style>
 <script src="vendor/lenis.min.js" defer></script>
 </head>
@@ -816,10 +834,10 @@ html.lenis,html.lenis body{height:auto}
 
   <section id="tab-flows" hidden>
     <p class="takeaway" id="fl-take" hidden></p>
-    <p class="sub" style="margin:0 0 12px">Money moving into and out of India in aggregate. FPI figures are daily from NSDL (₹ crore); FDI figures are by financial year from DPIIT's quarterly fact sheet (US$).</p>
+    <p class="sub" style="margin:0 0 12px">Money moving into and out of India in aggregate. FPI figures are daily from NSDL (US$, with ₹ crore in brackets); FDI figures are by financial year from DPIIT's quarterly fact sheet (US$).</p>
 
     <h2 class="fsec">FPI · foreign portfolio investment</h2>
-    <p class="note">Shares and bonds bought and sold by foreign funds. Daily from NSDL, ₹ crore.</p>
+    <p class="note">Shares and bonds bought and sold by foreign funds. Daily from NSDL, in US$ with ₹ crore in brackets.</p>
     <div class="filters fperiod" aria-label="FPI period">
       <select id="fpreset" aria-label="Period">
         <option value="30">Last 30 days</option>
@@ -837,7 +855,7 @@ html.lenis,html.lenis body{height:auto}
     <div class="ftiles" id="ftiles"></div>
 
     <div class="fcard">
-      <div class="fhead"><div><h3>FPI net investment by day<span class="era cur">Current period</span></h3><div class="sub" id="fday-sub">₹ crore</div></div>
+      <div class="fhead"><div><h3>FPI net investment by day<span class="era cur">Current period</span></h3><div class="sub" id="fday-sub">US$</div></div>
         <div class="seg" role="group" aria-label="Segment" id="fseg">
           <button data-s="Total" aria-pressed="true">All</button><button data-s="Equity" aria-pressed="false">Equity</button><button data-s="Debt" aria-pressed="false">Debt</button>
         </div></div>
@@ -847,7 +865,7 @@ html.lenis,html.lenis body{height:auto}
     </div>
 
     <div class="fcard">
-      <div class="fhead"><div><h3>FPI net investment by month<span class="era cur">This calendar year</span></h3><div class="sub" id="fmonth-sub">₹ crore · all segments</div></div></div>
+      <div class="fhead"><div><h3>FPI net investment by month<span class="era cur">This calendar year</span></h3><div class="sub" id="fmonth-sub">US$ · all segments</div></div></div>
       <div class="flegend"><span><i style="background:var(--in)"></i>Net inflow</span><span><i style="background:var(--out)"></i>Net outflow</span></div>
       <div class="fchart" id="fmonth"></div>
       <p class="dsrc" data-src="nsdl_flows" data-what="NSDL FPI calendar-year report"></p>
@@ -1009,7 +1027,14 @@ function amountCr(e) {
 }
 const fmtCr = (cr) => cr >= 1e5 ? `₹${+(cr / 1e5).toFixed(1)} lakh cr` : `₹${cr.toLocaleString("en-IN", { maximumFractionDigits: cr >= 100 ? 0 : cr >= 1 ? 1 : 2 })} cr`;
 const fmtUsd = (u) => u >= 1000 ? `$${+(u / 1000).toFixed(1)}bn` : `$${u >= 10 ? Math.round(u) : +u.toFixed(1)}m`;
-const money = (e) => { const a = amountCr(e); return a ? `${fmtCr(a.cr)} (~${fmtUsd(a.usd)})` : e.amount_text || ""; };
+const money = (e) => { const a = amountCr(e); return a ? `${fmtUsd(a.usd)} (${fmtCr(a.cr)})` : e.amount_text || ""; };
+// Amounts are US$ first, with the rupee figure (₹ crore or lakh crore) in small brackets. `cr` is ₹ crore.
+const usdMOf = (cr) => cr * 10 / usdInr();
+const mkUsd = (cr) => cr == null || isNaN(cr) ? "–" : { h: `${cr < 0 ? "−" : ""}${bothH(Math.abs(cr))}` };
+const bothT = (cr) => `${fmtUsd(usdMOf(cr))} (${fmtCr(cr)})`;
+const usdBr = (m) => `${fmtUsd(m)} <small class="inr">(${fmtCr(m * usdInr() / 10)})</small>`;
+const bothH = (cr) => `${fmtUsd(usdMOf(cr))} <small class="inr">(${fmtCr(cr)})</small>`;
+const usdAxis = (v) => v === 0 ? "0" : `${v < 0 ? "−" : ""}${fmtUsd(Math.abs(v))}`;
 
 // All stories are loaded once; every filter is applied in the page so the tiles, chips,
 // feed and investor list always describe the same set.
@@ -1342,7 +1367,7 @@ function renderRuns() {
 }
 
 // ---------- Flows ----------
-const crore = (n) => `${n < 0 ? "−" : n > 0 ? "+" : ""}₹${Math.abs(Math.round(n)).toLocaleString("en-IN")} cr`;
+const crore = (n) => `${n < 0 ? "−" : n > 0 ? "+" : ""}${bothH(Math.abs(n))}`;
 const usdm = (n) => n == null || isNaN(n) ? "–" : `${n < 0 ? "−" : ""}$${Math.abs(Math.round(n)).toLocaleString("en-IN")}m`;
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const monLabel = (iso) => `${MON[+iso.slice(5, 7) - 1]} ${iso.slice(0, 4)}`;
@@ -1420,7 +1445,7 @@ function renderFlowTiles() {
 }
 
 // Diverging bars on one zero line: blue above for net inflow, orange below for net outflow.
-function barChart(el, points, { height = 220, label, tip }) {
+function barChart(el, points, { height = 220, label, tip, axis }) {
   const W = Math.max(320, el.clientWidth || 800), H = height, L = 56, R = 8, T = 10, B = 26;
   if (!points.length) { el.innerHTML = `<div class="empty">No data in this period.</div>`; return; }
   const vals = points.flatMap((p) => p.v2 == null ? [p.v] : [p.v, p.v2]);
@@ -1433,7 +1458,7 @@ function barChart(el, points, { height = 220, label, tip }) {
   const ticks = []; for (let v = min; v <= max + tstep / 2; v += tstep) ticks.push(Math.round(v));
   const fmt = (v) => v === 0 ? "0" : Math.abs(v) >= 1000 ? `${v < 0 ? "−" : ""}${(Math.abs(v) / 1000).toLocaleString("en-IN", { maximumFractionDigits: 1 })}k` : `${v < 0 ? "−" : ""}${Math.abs(v)}`;
   const every = Math.ceil(points.length / Math.max(1, Math.floor((W - L) / 64)));
-  let g = ticks.map((v) => `<line class="${v === 0 ? "zero" : "grid"}" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text class="axis" x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${fmt(v)}</text>`).join("");
+  let g = ticks.map((v) => `<line class="${v === 0 ? "zero" : "grid"}" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text class="axis" x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${(axis || fmt)(v)}</text>`).join("");
   points.forEach((p, i) => {
     const x = L + i * step + (step - bw) / 2, z = y(0);
     // Rounded only at the data end; flat against the zero line.
@@ -1479,17 +1504,19 @@ function renderFlowCharts() {
   hideTip();
   const seg = flows.seg, r = flowRange(), d = flows.daily.filter((x) => inDays(x.day, r)), mon = flows.monthly.filter((m) => inMonths(m.month, r));
   $("fday").dataset.title = "FPI net investment by day";
-  barChart($("fday"), d.map((x) => ({ ...x, v: x[seg] })), {
+  barChart($("fday"), d.map((x) => ({ ...x, v: usdMOf(x[seg]) })), {
+    axis: usdAxis,
     label: (p) => `${p.day.slice(8, 10)} ${MON[+p.day.slice(5, 7) - 1]}`,
     tip: (p) => `<b>${toDMY(p.day)}</b><div class="row"><span>All segments</span><span>${crore(p.Total)}</span></div><div class="row"><span>Equity</span><span>${crore(p.Equity)}</span></div><div class="row"><span>Debt</span><span>${crore(p.Debt)}</span></div><div class="row"><span>In US$</span><span>${usdm(p.usd)}</span></div>`,
   });
-  $("fday-sub").textContent = `₹ crore · ${seg === "Total" ? "all segments" : seg.toLowerCase()} · ${d.length} trading day${d.length === 1 ? "" : "s"}${d.length ? ` from ${toDMY(d[0].day)} to ${toDMY(d[d.length - 1].day)}` : " in this period"}`;
+  $("fday-sub").textContent = `US$ (₹ crore in brackets) · ${seg === "Total" ? "all segments" : seg.toLowerCase()} · ${d.length} trading day${d.length === 1 ? "" : "s"}${d.length ? ` from ${toDMY(d[0].day)} to ${toDMY(d[d.length - 1].day)}` : " in this period"}`;
   $("fmonth").dataset.title = "FPI net investment by month";
-  barChart($("fmonth"), mon.map((m) => ({ ...m, v: m.net })), {
+  barChart($("fmonth"), mon.map((m) => ({ ...m, v: usdMOf(m.net) })), {
+    axis: usdAxis,
     label: (p) => mon.some((m) => m.month.slice(0, 4) !== p.month.slice(0, 4)) ? monLabel(p.month) : MON[+p.month.slice(5, 7) - 1],
     tip: (p) => `<b>${monLabel(p.month)}${p.partial ? " (so far)" : ""}</b><div class="row"><span>Net, all segments</span><span>${crore(p.net)}</span></div>`,
   });
-  $("fmonth-sub").textContent = `₹ crore · all segments${mon.some((m) => m.partial) ? " · lighter bar = month in progress" : ""}`;
+  $("fmonth-sub").textContent = `US$ (₹ crore in brackets) · all segments${mon.some((m) => m.partial) ? " · lighter bar = month in progress" : ""}`;
 }
 
 // ---------- DPIIT fact sheet: by country, sector and state, and the long-run total ----------
@@ -1508,7 +1535,7 @@ function hbars(el, legendEl, kind) {
     const ch = a != null && b ? Math.round((a / b - 1) * 100) : null;
     return `<div class="hrow"><div class="hname" title="${esc(n)}">${esc(n)}</div>
       <div class="htrack"><i class="cur" style="width:${(a ?? 0) / max * 100}%"></i>${prev ? `<i class="prev" style="width:${(b ?? 0) / max * 100}%"></i>` : ""}</div>
-      <div class="hval">${a == null ? "–" : fmtUsd(a)}<span>${b == null ? "" : `${fmtUsd(b)}${ch == null ? "" : ` · ${ch >= 0 ? "+" : "−"}${Math.abs(ch)}%`}`}</span></div></div>`;
+      <div class="hval">${a == null ? "–" : usdBr(a)}<span>${b == null ? "" : `${usdBr(b)}${ch == null ? "" : ` · ${ch >= 0 ? "+" : "−"}${Math.abs(ch)}%`}`}</span></div></div>`;
   }).join("");
   return { cur, prev };
 }
@@ -1531,7 +1558,7 @@ function renderDpiit() {
   barChart($("dannual"), pts, {
     height: 220,
     label: (p) => `FY${p.fy.slice(5)}`,
-    tip: (p) => `<b>FY ${p.fy}${p.partial ? " (provisional)" : ""}</b><div class="row"><span>Total FDI</span><span>${fmtUsd(p.v)}</span></div><div class="row"><span>of which equity</span><span>${fmtUsd(p.eq)}</span></div>${p.prev ? `<div class="row"><span>Change on year</span><span>${p.v >= p.prev ? "+" : "−"}${Math.abs(Math.round((p.v / p.prev - 1) * 100))}%</span></div>` : ""}`,
+    tip: (p) => `<b>FY ${p.fy}${p.partial ? " (provisional)" : ""}</b><div class="row"><span>Total FDI</span><span>${usdBr(p.v)}</span></div><div class="row"><span>of which equity</span><span>${usdBr(p.eq)}</span></div>${p.prev ? `<div class="row"><span>Change on year</span><span>${p.v >= p.prev ? "+" : "−"}${Math.abs(Math.round((p.v / p.prev - 1) * 100))}%</span></div>` : ""}`,
   });
   $("dannual-sub").textContent = `Total FDI inflow by financial year · US$ million · FY ${yrs[0]} to FY ${yrs[yrs.length - 1]} · lighter bar = provisional`;
 }
@@ -2012,7 +2039,7 @@ function dealsLine() {
   const prev = span(new Date(y, m - 1, 1), new Date(y, m - 1, Math.min(day, new Date(y, m, 0).getDate()), 23, 59, 59));
   const ci = cnt(cur, "entry"), ce = cnt(cur, "exit"), pi = cnt(prev, "entry"), pe = cnt(prev, "exit"), v = val(cur);
   const vs = ci > pi ? "up from" : ci < pi ? "down from" : "level with";
-  return `So far in ${monthName(y, m)}: <b>${ci} investment${ci === 1 ? "" : "s"}</b> into India${v ? ` (${fmtCr(v)} agreed or completed)` : ""} and <b>${ce} exit${ce === 1 ? "" : "s"}</b>, ${vs} ${pi} investment${pi === 1 ? "" : "s"} and ${pe} exit${pe === 1 ? "" : "s"} by this date in ${monthName(y, m - 1)}.`;
+  return `So far in ${monthName(y, m)}: <b>${ci} investment${ci === 1 ? "" : "s"}</b> into India${v ? ` (${bothT(v)} agreed or completed)` : ""} and <b>${ce} exit${ce === 1 ? "" : "s"}</b>, ${vs} ${pi} investment${pi === 1 ? "" : "s"} and ${pe} exit${pe === 1 ? "" : "s"} by this date in ${monthName(y, m - 1)}.`;
 }
 function fpiLine() {
   const d = flows.daily;
@@ -2022,7 +2049,7 @@ function fpiLine() {
   const pym = dayStr(p).slice(0, 7), mn = (s) => monthName(+s.slice(0, 4), +s.slice(5, 7) - 1);
   const cur = d.filter((x) => x.day.startsWith(ym)).reduce((a, x) => a + x.Total, 0);
   const before = d.filter((x) => x.day.startsWith(pym) && x.day.slice(8) <= dd);
-  const amt = (n) => `₹${nfmt(Math.round(Math.abs(n)))} cr`;
+  const amt = (n) => bothT(Math.abs(n));
   let t = `FPIs <b>${cur < 0 ? "have taken out" : "have put in"} ${amt(cur)}</b> so far in ${mn(ym)} (to ${toDMY(last.day)})`;
   if (before.length) { const b = before.reduce((a, x) => a + x.Total, 0); t += `, against ${b < 0 ? "an outflow" : "an inflow"} of ${amt(b)} by the same date in ${mn(pym)}`; }
   return `${t}.`;
@@ -2513,6 +2540,7 @@ function setTab(t) {
   if (t === "investors" && state.events?.length) renderInvestors();
   if (t === "network") renderNetwork();
   if (t === "firm") renderFirm();
+  try { gnav.open = null; drawGnav(); } catch {}
   if (typeof syncUrl === "function") syncUrl();
   if (t === "overview" && typeof renderOverview === "function") requestAnimationFrame(renderOverview);
 }
@@ -2641,7 +2669,7 @@ async function loadOverviewCross() {
       .filter((r) => mkForeign(r.clientName) && /^b/i.test(r.buySell || "") && !isNaN(val(r)));
     const day = buys.map((r) => r.date).sort((a, b) => new Date(b) - new Date(a))[0];
     const top = buys.filter((r) => r.date === day).sort((a, b) => val(b) - val(a))[0];
-    if (top) out.push(tile(`Largest foreign buy, ${esc(top.date)}`, esc(fmtCr(val(top))), `${esc(top.clientName)} · ${esc(top.name || top.symbol)}`, 1));
+    if (top) out.push(tile(`Largest foreign buy, ${esc(top.date)}`, bothH(val(top)), `${esc(top.clientName)} · ${esc(top.name || top.symbol)}`, 1));
     const t = (ctry[0]?.data || []).find((x) => x.rows?.length);
     if (t) {
       const all = t.rows.find((r) => /^total$/i.test(r.Country)), c1 = t.rows.filter((r) => r !== all && r.Country).sort((a, b) => (b["AUC (INR Cr.)_Total"] || 0) - (a["AUC (INR Cr.)_Total"] || 0))[0];
@@ -2672,16 +2700,16 @@ function renderOverview() {
     $("ov-flow").innerHTML = `<div class="rings"><svg width="150" height="150" viewBox="0 0 150 150" role="img" aria-label="Equity and debt flows">${ring(60, last.Equity, 0, C1)}${ring(40, last.Debt, 0, C2)}</svg>
       <div class="rstats"><div style="border-color:${last.Equity < 0 ? "var(--out)" : "var(--in)"}"><span>Equity</span><b>${crore(last.Equity)}</b></div>
       <div style="border-color:${last.Debt < 0 ? "var(--out)" : "var(--in)"}"><span>Debt</span><b>${crore(last.Debt)}</b></div>
-      <div><span>All segments</span><b>${crore(last.Total)}</b> <span style="display:inline">${usdm(last.usd)}</span></div></div></div>`;
+      <div><span>All segments</span><b>${crore(last.Total)}</b></div></div></div>`;
     // Drawn at the card's width, so wait until the layout has given it one.
     const wait = !$("ov-fpibars").clientWidth;
     if (wait && state.tab === "overview" && (state.ovTry = (state.ovTry || 0) + 1) < 30) requestAnimationFrame(renderOverview);
     if (!wait) state.ovTry = 0;
     if (!wait) {
-    const pts = d.slice(-20).map((x) => ({ ...x, v: x.Total }));
+    const pts = d.slice(-20).map((x) => ({ ...x, v: usdMOf(x.Total) }));
     $("ov-fpibars").dataset.title = "FPI net investment, recent trading days";
     barChart($("ov-fpibars"), pts, {
-      height: 190,
+      height: 190, axis: usdAxis,
       label: (p) => `${p.day.slice(8, 10)} ${MON[+p.day.slice(5, 7) - 1]}`,
       tip: (p) => `<b>${toDMY(p.day)}</b><div class="row"><span>All segments</span><span>${crore(p.Total)}</span></div><div class="row"><span>Equity</span><span>${crore(p.Equity)}</span></div><div class="row"><span>Debt</span><span>${crore(p.Debt)}</span></div>`,
     });
@@ -2717,7 +2745,7 @@ function renderOverview() {
   const busiest = [...inv.values()].sort((a, b) => b.n - a.n || b.cr - a.cr).slice(0, 6);
   $("ov-week").innerHTML = `<div class="m30"><div>
       ${groups.map((x) => `<div class="m30row"><div class="m30l"><b>${x.g.label}</b><span class="sub">${x.n} capital deal${x.n === 1 ? "" : "s"}${x.k ? ` · ${x.k} agreed or completed with an amount` : ""}</span></div>
-        <div class="m30bar"><i style="width:${x.cr / top * 100}%;background:${color(x.g.types[0])}"></i></div><div class="m30v">${x.cr ? fmtCr(x.cr) : "–"}<span class="sub">${x.cr ? `~${fmtUsd(x.cr * 10 / usdInr())}` : ""}</span></div></div>`).join("")}
+        <div class="m30bar"><i style="width:${x.cr / top * 100}%;background:${color(x.g.types[0])}"></i></div><div class="m30v">${x.cr ? bothH(x.cr) : "–"}</div></div>`).join("")}
       <p class="note" style="margin:8px 0 0">Sum of amounts for agreed or completed capital deals only: plans, pledges, talks and business-presence news are left out. Many deals disclose no amount.</p></div>
     <div>${busiest.map((r, i) => `<div class="ovrow"><span class="rank">${i + 1}</span><div style="min-width:0"><div class="t">${esc(r.name)}</div><div class="meta" style="margin-top:4px">${[...r.types].map(tg).join("")}</div></div><span class="side">${r.n} stor${r.n === 1 ? "y" : "ies"}${r.cr ? `<br>${fmtCr(r.cr)}` : ""}</span></div>`).join("") || `<div class="sub">No named investors in the last 30 days.</div>`}</div></div>`;
   newSinceLastVisit();
@@ -2812,9 +2840,9 @@ async function countryAum() {
   const rows = t.rows.map((r) => ({ c: r.Country, total: n(r["AUC (INR Cr.)_Total"]), eq: n(r["AUC (INR Cr.)_Equity"]), debt: get(r, /^AUC \(INR Cr\.\)_Debt_/) }));
   const all = rows.find((r) => /^total$/i.test(r.c)), list = rows.filter((r) => r !== all && r.c);
   const max = Math.max(...list.map((r) => r.total), 1);
-  return `<h2 class="fsec">Assets held by country</h2><p class="note">FPI assets under custody for the ten largest countries, ₹ crore (NSDL). ${all ? `All countries: ${nfmt(all.total)}.` : ""}</p>
+  return `<h2 class="fsec">Assets held by country</h2><p class="note">FPI assets under custody for the ten largest countries, in US$ with ₹ crore in brackets (NSDL). ${all ? `All countries: ${bothT(all.total)}.` : ""}</p>
     <div class="ftable-wrap"><div class="scroll"><table class="ftable"><thead><tr><th>Country</th><th class="num">Equity</th><th class="num">Debt</th><th class="num">Total</th><th class="num">Share</th><th class="num">FPIs registered</th><th></th></tr></thead><tbody>${list.map((r) =>
-      `<tr><td>${esc(titleCase(r.c))}</td><td class="num">${nfmt(r.eq)}</td><td class="num">${nfmt(r.debt)}</td><td class="num">${nfmt(r.total)}</td><td class="num">${all ? (r.total / all.total * 100).toFixed(1) + "%" : "–"}</td><td class="num">${dir.countryN?.has(String(r.c).toUpperCase()) ? nfmt(dir.countryN.get(String(r.c).toUpperCase())) : "–"}</td><td style="width:22%"><div style="height:6px;border-radius:3px;background:var(--accent);width:${(r.total / max * 100).toFixed(1)}%"></div></td></tr>`).join("")}</tbody></table></div></div>`;
+      `<tr><td>${esc(titleCase(r.c))}</td><td class="num">${bothH(r.eq)}</td><td class="num">${bothH(r.debt)}</td><td class="num">${bothH(r.total)}</td><td class="num">${all ? (r.total / all.total * 100).toFixed(1) + "%" : "–"}</td><td class="num">${dir.countryN?.has(String(r.c).toUpperCase()) ? nfmt(dir.countryN.get(String(r.c).toUpperCase())) : "–"}</td><td style="width:22%"><div style="height:6px;border-radius:3px;background:var(--accent);width:${(r.total / max * 100).toFixed(1)}%"></div></td></tr>`).join("")}</tbody></table></div></div>`;
 }
 
 $("dir-aum").addEventListener("click", (ev) => {
@@ -2843,9 +2871,9 @@ async function renderAum() {
   const grp = (n) => (SECTORS.find(([, re]) => re.test(n)) || [null])[0];
   const list = rows.filter((r) => r !== grand && r.Sectors).map((r) => { const g = grp(r.Sectors); return { n: r.Sectors, eq: val(r, "Equity"), t: val(r, "Total"), g, k: g ? (state.events || []).filter((e) => sectorOf(e) === g).length : 0 }; }).sort((a, b) => b.t - a.t);
   const max = list[0]?.t || 1;
-  w.innerHTML = country + `<h2 class="fsec">Assets held by sector</h2><p class="note">FPI assets under custody as on ${esc(last)}, ₹ crore (NSDL). ${total ? `All sectors: ${nfmt(total)}.` : ""}</p>
+  w.innerHTML = country + `<h2 class="fsec">Assets held by sector</h2><p class="note">FPI assets under custody as on ${esc(last)}, in US$ with ₹ crore in brackets (NSDL). ${total ? `All sectors: ${bothT(total)}.` : ""}</p>
     <div class="ftable-wrap"><div class="scroll"><table class="ftable"><thead><tr><th>Sector</th><th class="num">Equity</th><th class="num">Total</th><th class="num">Share</th><th class="num" title="News stories in the same sector group, from the Feed">Stories</th><th></th></tr></thead><tbody>${list.map((r) =>
-      `<tr><td>${esc(r.n)}</td><td class="num">${nfmt(r.eq)}</td><td class="num">${nfmt(r.t)}</td><td class="num">${total ? (r.t / total * 100).toFixed(1) + "%" : "–"}</td><td class="num">${r.g ? `<button class="link" data-sector="${esc(r.g)}" title="Open ${esc(r.g)} stories in the Feed">${nfmt(r.k)}</button>` : "–"}</td><td style="width:22%"><div style="height:6px;border-radius:3px;background:var(--accent);width:${(r.t / max * 100).toFixed(1)}%"></div></td></tr>`).join("")}</tbody></table></div></div>`;
+      `<tr><td>${esc(r.n)}</td><td class="num">${bothH(r.eq)}</td><td class="num">${bothH(r.t)}</td><td class="num">${total ? (r.t / total * 100).toFixed(1) + "%" : "–"}</td><td class="num">${r.g ? `<button class="link" data-sector="${esc(r.g)}" title="Open ${esc(r.g)} stories in the Feed">${nfmt(r.k)}</button>` : "–"}</td><td style="width:22%"><div style="height:6px;border-radius:3px;background:var(--accent);width:${(r.t / max * 100).toFixed(1)}%"></div></td></tr>`).join("")}</tbody></table></div></div>`;
 }
 
 async function openDirectory() {
@@ -3188,32 +3216,32 @@ async function renderMarkets() {
   const dt = (x) => new Date(x || 0).getTime() || 0;
   const out = [];
   const fii = d("fii_dii").filter((r) => !/^dii$/i.test(r.category)).sort((a, b) => dt(b.date) - dt(a.date)).slice(0, 20);
-  out.push(mkSec("FII / FPI activity", "Daily foreign investor buying and selling in the cash market, ₹ crore (NSE).",
-    mkTable(["Date · category", "Buy", "Sell", "Net"], fii.map((r) => [`${r.date} · ${r.category}`, mkFmt(r.buyValue, 2), mkFmt(r.sellValue, 2), mkFmt(r.netValue, 2)]))));
+  out.push(mkSec("FII / FPI activity", "Daily foreign investor buying and selling in the cash market, in US$ with ₹ crore in brackets (NSE).",
+    mkTable(["Date · category", "Buy", "Sell", "Net"], fii.map((r) => [`${r.date} · ${r.category}`, mkUsd(mkNum(r.buyValue)), mkUsd(mkNum(r.sellValue)), mkUsd(mkNum(r.netValue))]))));
   const deals = (mk.data.nse_deals || []).filter((r) => r.key.startsWith("BULK") || r.key.startsWith("BLOCK"))
     .map((r) => r.data).filter((r) => mkForeign(r.clientName)).sort((a, b) => dt(b.date) - dt(a.date) || (mkNum(b.qty) * mkNum(b.watp)) - (mkNum(a.qty) * mkNum(a.watp))).slice(0, 100);
   const reg = await xRegistry(deals.map((r) => r.clientName));
   out.push(mkSec("Bulk and block deals", "Latest 100 on NSE with a foreign-looking client. Foreign is judged from the client name, so some foreign investors may be missing. Country and category come from the NSDL FPI register, and GIFT City shows clients IFSCA lists; both match on the exact name, so some show a dash. Names with a profile are links.",
-    mkTable(["Date", "Foreign investor", "Company invested in", "Country", "FPI category", "GIFT City", "Side", "Quantity", "Avg price", "Value (₹ cr)"], deals.map((r) => {
+    mkTable(["Date", "Foreign investor", "Company invested in", "Country", "FPI category", "GIFT City", "Side", "Quantity", "Avg price", "Value"], deals.map((r) => {
       const f = reg.get(r.clientName);
       return [r.date, xFirm(r.clientName), r.name || r.symbol || "–", f.country ? SHORT_COUNTRY[f.country] || titleCase(f.country) : "–", f.cat ? `Cat ${f.cat}` : "–", f.gift ? "Yes" : "–",
-        r.buySell || "–", mkFmt(r.qty), mkFmt(r.watp, 2), mkFmt(mkNum(r.qty) * mkNum(r.watp) / 1e7, 1)];
+        r.buySell || "–", mkFmt(r.qty), mkFmt(r.watp, 2), mkUsd(mkNum(r.qty) * mkNum(r.watp) / 1e7)];
     }), 7)));
   const who = (state.events || []).filter((e) => e.event_type === "entry" && e.investor && e.target && mkForeign(e.investor)).slice(0, 40);
   out.push(mkSec("Who invested in whom", "Latest investments from the news and exchange deals, newest first. Foreign investors only, judged from the name.",
     mkTable(["Foreign investor", "Company invested in", "Amount", "Date"], who.map((e) =>
       [xFirm(e.investor), e.target, e.amount_text || "–", (e.published_at || e.fetched_at || "").slice(0, 10)]), 2)));
   const debt = d("fpi_debt_summary");
-  out.push(mkSec("FPI debt limits", "Limit use by instrument, ₹ crore (NSDL).",
-    mkTable(["Instrument", "Limit", "Invested", "Used (%)"], debt.map((r) => [r["Instrument Type"], mkFmt(r["Upper Limit (Refer to Note 1 &2)_(INR Cr)_(A)"]),
-      mkFmt(r["Total Investment_(INR Cr)_(D)=(B)+(C)"]), mkFmt(r["% of Limits Utilised_(E)"], 1)]))));
+  out.push(mkSec("FPI debt limits", "Limit use by instrument, in US$ with ₹ crore in brackets (NSDL).",
+    mkTable(["Instrument", "Limit", "Invested", "Used (%)"], debt.map((r) => [r["Instrument Type"], mkUsd(mkNum(r["Upper Limit (Refer to Note 1 &2)_(INR Cr)_(A)"])),
+      mkUsd(mkNum(r["Total Investment_(INR Cr)_(D)=(B)+(C)"])), mkFmt(r["% of Limits Utilised_(E)"], 1)]))));
   const gs = [...d("fpi_far_gsec"), ...d("fpi_general_gsec")].sort((a, b) => b["Indicative Value Of Aggregate Holding Of FPIS (INR CR#)"] - a["Indicative Value Of Aggregate Holding Of FPIS (INR CR#)"]).slice(0, 20);
-  out.push(mkSec("Largest FPI government-bond holdings", "Top 20 by value, ₹ crore (NSDL).",
-    mkTable(["Security", "FPI holding", "Outstanding", "FPI share (%)"], gs.map((r) => [r["Security Description"], mkFmt(r["Indicative Value Of Aggregate Holding Of FPIS (INR CR#)"]),
-      mkFmt(r["Outstanding Position Of Govt# Securities (INR CR#)"]), mkFmt(r["Sec Holdings (%)"], 1)]))));
+  out.push(mkSec("Largest FPI government-bond holdings", "Top 20 by value, in US$ with ₹ crore in brackets (NSDL).",
+    mkTable(["Security", "FPI holding", "Outstanding", "FPI share (%)"], gs.map((r) => [r["Security Description"], mkUsd(mkNum(r["Indicative Value Of Aggregate Holding Of FPIS (INR CR#)"])),
+      mkUsd(mkNum(r["Outstanding Position Of Govt# Securities (INR CR#)"])), mkFmt(r["Sec Holdings (%)"], 1)]))));
   const sec = d("fpi_sector").map((r) => { const k = Object.keys(r).find((x) => /Equity$/.test(x)); return [r.Sectors, mkNum(r[k]) || 0, k]; })
     .sort((a, b) => b[1] - a[1]).slice(0, 25);
-  out.push(mkSec("FPI equity by sector", sec[0] ? sec[0][2].replace(/_/g, " · ") : "Assets under custody.", mkTable(["Sector", "₹ crore"], sec.map((r) => [r[0], mkFmt(r[1])]))));
+  out.push(mkSec("FPI equity by sector", "FPI equity assets under custody by sector, in US$ with ₹ crore in brackets (NSDL).", mkTable(["Sector", "Assets (US$)"], sec.map((r) => [r[0], mkUsd(r[1])]))));
   $("mk-body").innerHTML = out.join("");
 }
 
@@ -3321,8 +3349,8 @@ function eStories(name) {
   return eSec("Stories", "From the Feed, newest first.", `<div class="ftable-wrap"><table class="ftable"><tbody>${list.map((e) =>
     `<tr><td><a href="${safeUrl(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a></td><td class="num">${esc(TYPES[typeOf(e)] || "")}</td><td class="num">${esc((e.published_at || e.fetched_at || "").slice(0, 10))}</td></tr>`).join("")}</tbody></table></div>`);
 }
-const eDeals = (rows) => rows.length ? eSec("Bulk and block deals", "From NSE, latest day files.", mkTable(["Date", "Investor", "Company", "Side", "Quantity", "Avg price", "Value (₹ cr)"],
-  rows.slice(0, 20).map((r) => [r.date, r.clientName || "–", r.name || r.symbol || "–", r.buySell || "–", mkFmt(r.qty), mkFmt(r.watp, 2), mkFmt(mkNum(r.qty) * mkNum(r.watp) / 1e7, 1)]), 3)) : "";
+const eDeals = (rows) => rows.length ? eSec("Bulk and block deals", "From NSE, latest day files.", mkTable(["Date", "Investor", "Company", "Side", "Quantity", "Avg price", "Value"],
+  rows.slice(0, 20).map((r) => [r.date, r.clientName || "–", r.name || r.symbol || "–", r.buySell || "–", mkFmt(r.qty), mkFmt(r.watp, 2), mkUsd(mkNum(r.qty) * mkNum(r.watp) / 1e7)]), 3)) : "";
 const eHeld = (rows, who) => rows.length ? eSec(who === "holder" ? "Holdings in listed companies" : "Holders", "From shareholding-pattern filings.", mkTable(who === "holder" ? ["Company", "Category", "Stake (%)", "As of"] : ["Holder", "Category", "Stake (%)", "As of"],
   rows.slice(0, 30).map((h) => [who === "holder" ? `${h.company}${h.symbol ? ` (${h.symbol})` : ""}` : h.holder, h.category || "–", mkFmt(h.pct, 2), h.period_end || "–"]), 2)) : "";
 
@@ -3363,6 +3391,47 @@ async function openEntity(kind, ref) {
     $("ptitle").textContent = name;
   } catch (e) { box.innerHTML = `<div class="empty">Could not load this profile: ${esc(e.message)}</div>`; }
 }
+
+// ---------- Phone navigation: four buttons; the merged ones open a sheet of views ----------
+// Wide screens keep the full tab row (the CSS hides it only below 700px).
+var gnav = { open: null };
+const GNAV = [
+  { id: "home", label: "Home", icon: "overview", views: [["overview", "Home", "Latest numbers and stories"]] },
+  { id: "deals", label: "Deals", icon: "feed", views: [["feed", "Stories", "Investments, exits, fund launches and moves"], ["investors", "Investors", "Foreign investors, one profile each"], ["network", "Network", "Which firms appear together on deals"]] },
+  { id: "markets", label: "Markets", icon: "flows", views: [["flows", "Flows", "FPI and FDI money flows"], ["markets", "Exchange data", "FII/FPI activity, deals, debt and sectors"]] },
+  { id: "registers", label: "Registers", icon: "directory", views: [["directory", "FPIs", "Every registered FPI, assets held by country and sector"], ["gift", "GIFT City", "Every entity IFSCA regulates at GIFT IFSC"]] },
+];
+function gnavViews(g) {
+  const v = g.views.slice();
+  // The Sources tab shows for the owner only.
+  const src = document.querySelector('nav.tabs button[data-tab="health"]');
+  if (g.id === "home" && src && !src.hidden) v.push(["health", "Sources", "When each source last ran"]);
+  return v;
+}
+function drawGnav() {
+  let bar = $("gnav");
+  if (!bar) {
+    document.body.insertAdjacentHTML("beforeend", '<div id="gscrim"></div><div id="gsheet" role="menu"></div><div class="gnav" id="gnav" role="tablist" aria-label="Sections"></div>');
+    $("gscrim").onclick = () => { gnav.open = null; drawGnav(); };
+    bar = $("gnav");
+  }
+  const cur = (GNAV.find((g) => gnavViews(g).some((v) => v[0] === state.tab)) || (state.tab === "firm" ? GNAV[1] : null))?.id;
+  bar.innerHTML = GNAV.map((g) => {
+    const svg = document.querySelector(`nav.tabs button[data-tab="${g.icon}"] svg`)?.outerHTML || "";
+    const multi = gnavViews(g).length > 1;
+    return `<button type="button" role="tab" data-g="${g.id}" aria-selected="${g.id === cur}" class="${g.id === cur ? "on" : ""}"${multi ? ' aria-haspopup="menu"' : ""}>${svg}${g.label}${multi ? '<span class="gd"></span>' : ""}</button>`;
+  }).join("");
+  bar.querySelectorAll("button").forEach((b) => b.onclick = () => {
+    const g = GNAV.find((x) => x.id === b.dataset.g), v = gnavViews(g);
+    if (v.length === 1) { gnav.open = null; setTab(v[0][0]); toTop(); return; }
+    gnav.open = gnav.open === g.id ? null : g.id; drawGnav();
+  });
+  const og = GNAV.find((g) => g.id === gnav.open);
+  $("gsheet").innerHTML = og ? `<h4>${og.label}</h4>` + gnavViews(og).map((v) => `<button type="button" role="menuitem" data-t="${v[0]}" class="${state.tab === v[0] ? "on" : ""}">${v[1]}<small>${v[2]}</small></button>`).join("") : "";
+  $("gsheet").querySelectorAll("button").forEach((b) => b.onclick = () => { gnav.open = null; setTab(b.dataset.t); toTop(); });
+  document.body.classList.toggle("gopen", !!og);
+}
+drawGnav();
 </script>
 </body>
 </html>
