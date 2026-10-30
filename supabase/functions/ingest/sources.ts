@@ -71,7 +71,11 @@ export function googleNewsUrl(q: NewsQuery, time: string) {
 export const NSE_FILES = [
   { source: "nse_bulk", url: "https://nsearchives.nseindia.com/content/equities/bulk.csv" },
   { source: "nse_block", url: "https://nsearchives.nseindia.com/content/equities/block.csv" },
+  // BSE deal CSV addresses were not verified from the build environment; set the env vars to enable them.
+  ...[["bse_bulk", "BSE_BULK_URL"], ["bse_block", "BSE_BLOCK_URL"]]
+    .map(([source, env]) => ({ source, url: Deno.env.get(env) ?? "" })).filter((f) => f.url),
 ];
+
 
 // NSE's RSS feed of shareholding-pattern filings (listed at nseindia.com/rss-feed). The address could not be
 // checked from the build environment; set SHP_FEED_URL to override it without a code change.

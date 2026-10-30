@@ -267,21 +267,21 @@ async function runNse() {
       const head = rows[0].map((h) => h.toLowerCase());
       const col = (re: RegExp) => head.findIndex((h) => re.test(h));
       const [cDate, cSym, cName, cClient, cSide, cQty, cPrice] =
-        [/^date/, /symbol/, /security/, /client/, /buy|sell/, /quantity/, /price/].map(col);
+        [/date/, /symbol|security code/, /security name|company/, /client/, /buy|sell|deal type/, /quantity/, /price/].map(col);
       if (cClient < 0) throw new Error(`unexpected header: ${rows[0].join(",")}`);
 
       const events = rows.slice(1).filter((r) => r[cClient] && FOREIGN.test(r[cClient]) && !DOMESTIC.test(r[cClient]))
         .map((r) => {
-          const buy = /buy/i.test(r[cSide]);
+          const buy = /^b/i.test(r[cSide]);
           const qty = parseFloat((r[cQty] || "0").replace(/,/g, ""));
           const px = parseFloat((r[cPrice] || "0").replace(/,/g, ""));
           const crore = (qty * px) / 1e7;
           const date = new Date(r[cDate]);
-          const kind = f.source === "nse_bulk" ? "bulk" : "block";
+          const kind = f.source.endsWith("bulk") ? "bulk" : "block";
           return {
             dedup_key: `${f.source}:${r[cDate]}:${r[cSym]}:${r[cClient]}:${r[cSide]}:${qty}`,
             source: f.source,
-            source_name: "NSE",
+            source_name: f.source.startsWith("bse") ? "BSE" : "NSE",
             url: "https://www.nseindia.com/report-detail/display-bulk-and-block-deals",
             title: `${r[cClient]} ${buy ? "bought" : "sold"} ${r[cName] || r[cSym]} shares worth ₹${crore.toFixed(1)} cr (${kind} deal)`,
             published_at: isNaN(+date) ? null : date.toISOString(),
