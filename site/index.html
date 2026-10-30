@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>India Capital Tracker</title>
+<title>CapitalColumbus: foreign capital into and out of India</title>
 <meta name="description" content="Track foreign capital moving into and out of India: investments, exits, FPI and FDI flows, and offshore and GIFT City fund launches, in one place.">
 <meta name="author" content="Kishan Singhania">
 <meta name="theme-color" content="#0f1115">
@@ -13,16 +13,16 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <!-- Link previews on LinkedIn, WhatsApp, X and Slack -->
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="India Capital Tracker">
-<meta property="og:title" content="India Capital Tracker: foreign capital into and out of India">
+<meta property="og:site_name" content="CapitalColumbus">
+<meta property="og:title" content="CapitalColumbus: foreign capital into and out of India">
 <meta property="og:description" content="Track foreign capital moving into and out of India: investments, exits, FPI and FDI flows, and offshore and GIFT City fund launches, in one place.">
 <meta property="og:url" content="https://india-capital-tracker.ironmanbro.workers.dev/">
 <meta property="og:image" content="https://india-capital-tracker.ironmanbro.workers.dev/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="India Capital Tracker: foreign capital moving into and out of India. Built by Kishan Singhania.">
+<meta property="og:image:alt" content="CapitalColumbus: foreign capital moving into and out of India. Built by Kishan Singhania.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="India Capital Tracker: foreign capital into and out of India">
+<meta name="twitter:title" content="CapitalColumbus: foreign capital into and out of India">
 <meta name="twitter:description" content="Track foreign capital moving into and out of India: investments, exits, FPI and FDI flows, and offshore and GIFT City fund launches, in one place.">
 <meta name="twitter:image" content="https://india-capital-tracker.ironmanbro.workers.dev/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -648,6 +648,70 @@ html.lenis,html.lenis body{height:auto}
   #ftoggle,summary,.bkrow{min-height:44px}
   .ftable td a,.ovrow .t a{display:inline-block;padding:9px 0}
 }
+
+/* Sign-in: only Home is open to everyone; the other tabs ask you to sign in. */
+.auth{position:fixed;inset:0;z-index:300;display:grid;grid-template-columns:1.05fr 1fr;background:var(--bg);color:var(--ink);overflow:auto}
+.auth[hidden]{display:none}
+.a-brand{position:relative;padding:44px 40px;display:flex;flex-direction:column;justify-content:space-between;background:radial-gradient(900px 500px at 0% 0%,rgba(77,141,255,.26),transparent 60%),radial-gradient(700px 420px at 100% 100%,rgba(111,149,255,.14),transparent 60%),var(--panel);border-right:1px solid var(--line)}
+.a-logo{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.02em}
+.a-logo i{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#5a82f0,#3b5bd6);display:grid;place-items:center;font-style:normal;font-size:12px;color:#fff}
+.a-brand h2{font-size:34px;line-height:1.1;letter-spacing:-.02em;margin:0 0 12px;max-width:390px}
+.a-brand p{color:var(--muted);margin:0;max-width:390px}
+.a-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.a-stat{background:var(--chip);border:1px solid var(--line);border-radius:12px;padding:12px}
+.a-stat b{display:block;font-size:19px}.a-stat small{color:var(--muted);font-size:11px}
+.a-form{display:flex;align-items:center;justify-content:center;padding:44px 40px}
+.a-card{width:100%;max-width:380px}
+#a-card h1{font-size:26px!important;line-height:1.15!important;letter-spacing:-.02em!important;margin:0 0 6px!important}
+.a-sub{color:var(--muted);margin:0 0 20px}
+.a-card label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:14px 0 6px}
+.a-card input[type=text],.a-card input[type=email],.a-card input[type=password]{width:100%;background:var(--chip);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:13px 14px;font:inherit;font-size:16px;outline:none;min-height:48px;transition:border-color .15s,box-shadow .15s}
+.a-card input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(77,141,255,.25)}
+.a-card input.bad{border-color:#ff453a;box-shadow:0 0 0 3px rgba(255,69,58,.18)}
+.a-err{color:#ff6a5f;font-size:12.5px;margin-top:6px}
+.a-field{position:relative}
+.a-eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);min-width:44px;height:40px;border:0;background:none;color:var(--muted);cursor:pointer;border-radius:10px;font:inherit;font-size:13px;font-weight:600}
+.a-row{display:flex;justify-content:flex-end;margin:10px 0 0;font-size:13px}
+.a-lnk{color:var(--accent);background:none;border:0;font:inherit;cursor:pointer;padding:0;font-weight:600}
+.a-btn{width:100%;min-height:48px;border:0;border-radius:12px;background:var(--accent);color:#fff;font:inherit;font-size:16px;font-weight:700;cursor:pointer;margin-top:18px;display:flex;align-items:center;justify-content:center;gap:10px}
+.a-btn:active{transform:scale(.98)}.a-btn[disabled]{opacity:.7;cursor:progress}
+.a-btn.ghost{background:var(--chip);border:1px solid var(--line);color:var(--ink);margin-top:10px;font-weight:600}
+.a-spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:aspin .7s linear infinite}
+@keyframes aspin{to{transform:rotate(360deg)}}
+.a-or{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:12px;margin:18px 0 4px}.a-or::before,.a-or::after{content:"";flex:1;height:1px;background:var(--line)}
+.a-foot{margin-top:20px;text-align:center;color:var(--muted);font-size:13px}
+.a-meter{display:flex;gap:4px;margin-top:8px}.a-meter i{flex:1;height:4px;border-radius:2px;background:var(--chip)}
+.a-note{background:rgba(77,141,255,.1);border:1px solid rgba(77,141,255,.3);border-radius:12px;padding:10px 12px;font-size:13px;margin-bottom:6px}
+.a-ok{width:64px;height:64px;border-radius:50%;background:rgba(48,209,88,.15);border:1px solid rgba(48,209,88,.5);display:grid;place-items:center;font-size:30px;color:#30d158;margin:0 0 18px}
+.a-x{position:fixed;top:12px;right:14px;z-index:2;min-height:44px;padding:0 14px;border-radius:22px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.a-mlogo{display:none;margin-bottom:24px}
+@media(max-width:860px){.auth{grid-template-columns:1fr}.a-brand{display:none}.a-form{align-items:flex-start;padding:64px 22px 40px}.a-mlogo{display:flex}}
+/* Lock marks on the tabs that need a sign-in */
+body.anon nav.tabs button:not([data-tab="overview"]):not([data-tab="health"]){position:relative}
+body.anon nav.tabs button:not([data-tab="overview"]):not([data-tab="health"])::after{content:"🔒";position:absolute;top:1px;right:5px;font-size:9px;opacity:.8}
+body.anon .gnav button:not([data-g="home"]){position:relative}
+body.anon .gnav button:not([data-g="home"])::after{content:"🔒";position:absolute;top:2px;right:14px;font-size:10px}
+.a-brand{overflow:auto;gap:22px}
+#a-pitch{display:flex;flex-direction:column;gap:20px}
+.a-kick{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:8px}
+.a-brand h2{font-size:32px!important;line-height:1.12!important;letter-spacing:-.02em!important;margin:0 0 10px!important}
+.a-perks{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:12px 18px}
+.a-perks li{display:flex;gap:11px;align-items:flex-start}
+.a-ic{flex:none;width:34px;height:34px;border-radius:10px;background:var(--chip);border:1px solid var(--line);display:grid;place-items:center;color:var(--accent)}
+.a-ic svg{width:18px;height:18px}
+.a-perks b{display:block;font-size:14px;line-height:1.25}
+.a-perks small{display:block;color:var(--muted);font-size:12px;line-height:1.35;margin-top:2px}
+.a-prev{background:var(--chip);border:1px solid var(--line);border-radius:14px;padding:14px 14px 10px}
+.a-ph{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:6px}
+.a-ph b{font-size:13px}.a-ph small{color:var(--muted);font-size:11px}
+.a-prev svg{display:block;width:100%;height:64px}
+.a-prev>small{display:block;color:var(--muted);font-size:11.5px;margin-top:6px}
+.a-free{font-size:12.5px;color:var(--muted)}.a-free b{color:var(--ink)}
+.a-mperks{display:none;margin-top:22px;border-top:1px solid var(--line);padding-top:14px}
+.a-mperks summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--accent);min-height:44px;display:flex;align-items:center}
+.a-mperks .a-perks{grid-template-columns:1fr;margin-top:8px}
+@media(max-width:860px){.a-mperks{display:block}}
+@media(max-height:760px){.a-brand h2{font-size:26px!important}.a-perks{gap:9px 16px}.a-perks small{display:none}}
 </style>
 <script src="vendor/lenis.min.js" defer></script>
 </head>
@@ -655,7 +719,7 @@ html.lenis,html.lenis body{height:auto}
 <div class="welcome" id="welcome" data-lenis-prevent role="dialog" aria-modal="true" aria-labelledby="welcome-title" hidden>
   <div class="box">
     <div class="eyebrow">Welcome</div>
-    <h2 id="welcome-title">India Capital Tracker</h2>
+    <h2 id="welcome-title">CapitalColumbus</h2>
     <p class="lead">A live feed of foreign money moving into and out of India: investments, exits, offshore fund launches, and funds changing jurisdiction.</p>
     <div class="who">
       <div class="avatar" aria-hidden="true">KS</div>
@@ -675,7 +739,7 @@ html.lenis,html.lenis body{height:auto}
 <div class="wrap">
   <header>
     <div>
-      <div class="eyebrow">India Capital Tracker</div>
+      <div class="eyebrow" style="text-transform:none;letter-spacing:.04em;font-size:13px">CapitalColumbus</div>
       <h1 id="ptitle">Overview</h1>
       <div class="sub" id="psub">Foreign investments into India, exits from India, offshore fund launches, and jurisdiction moves</div>
       <div class="maker">Built by <a href="https://www.linkedin.com/in/kishansinghania/" target="_blank" rel="noopener"><strong>Kishan Singhania</strong></a> · <a href="https://www.linkedin.com/in/kishansinghania/" target="_blank" rel="noopener">Connect on LinkedIn →</a></div>
@@ -686,7 +750,7 @@ html.lenis,html.lenis body{height:auto}
         <div id="gdrop" role="listbox" hidden></div>
         <button class="ib" id="theme" type="button" aria-label="Switch light or dark" title="Light or dark">&#9788;</button>
       </div>
-      <div class="hstatus"><div class="sub" id="updated">Loading…</div><div class="sub" id="visits"></div></div>
+      <div class="hstatus"><div class="sub" id="updated">Loading…</div><div class="sub" id="visits"></div><div class="sub" id="acct"></div></div>
     </div>
   </header>
   <button class="totop" id="totop" type="button" aria-label="Back to top" title="Back to top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
@@ -733,7 +797,7 @@ html.lenis,html.lenis body{height:auto}
   <p class="note" style="margin:-8px 0 16px" id="kpi-note"></p>
 
   <nav class="tabs" role="tablist" aria-label="Sections">
-    <div class="logo" aria-hidden="true">ICT</div>
+    <div class="logo" aria-hidden="true">CC</div>
     <button role="tab" aria-selected="true" data-tab="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Home</button>
     <button role="tab" aria-selected="false" data-tab="feed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7 9h10M7 13h10M7 17h6"/></svg>Feed</button>
     <button role="tab" aria-selected="false" data-tab="investors"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20c-.5-2.5-2-4.2-4-5"/></svg>Investors</button>
@@ -2451,6 +2515,7 @@ document.querySelectorAll("#nhops button").forEach((b) => b.onclick = () => {
 });
 
 function setTab(t) {
+  if (!authAllowed(t)) { auth.next = t; t = "overview"; setTimeout(() => openAuth("signin"), 0); }
   const was = state.tab;
   state.tab = t;
   document.querySelectorAll("nav.tabs button").forEach((b) => b.setAttribute("aria-selected", b.dataset.tab === t));
@@ -3084,7 +3149,231 @@ function showWelcome() {
   $("welcome-enter").onclick = () => { store("ict-welcome", today); w.hidden = true; document.body.classList.remove("locked"); };
 }
 
+// ---------- Sign-in (Supabase Auth). Only Home is open to everyone; every other tab asks you to sign in. ----------
+var auth = { session: null, next: null, timer: null, notice: "", recovery: false };
+const OPEN_TABS = ["overview", "health"];
+function authAllowed(t) { return OPEN_TABS.includes(t) || !!auth.session; }
+const AUTH_KEY = "ict-auth";
+function authMsg(j) {
+  const c = j.error_code || j.code || "", m = j.msg || j.message || j.error_description || j.error || "";
+  return ({ invalid_credentials: "Wrong email or password.", email_not_confirmed: "Confirm your email first: check your inbox for the link.", user_already_exists: "An account with this email already exists. Try signing in.",
+    over_email_send_rate_limit: "Too many emails sent. Wait a few minutes and try again.", over_request_rate_limit: "Too many attempts. Wait a moment and try again.", weak_password: "That password is too weak. Use a longer, less common one.",
+    signup_disabled: "Sign-ups are turned off right now.", same_password: "Choose a password you haven't used before." })[c] || (/invalid login/i.test(m) ? "Wrong email or password." : m) || "Something went wrong. Try again.";
+}
+async function authCall(path, { method = "POST", body, token, query = "" } = {}) {
+  let res;
+  try { res = await fetch(`${SUPABASE_URL}/auth/v1${path}${query}`, { method, headers: { apikey: KEY, "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: body ? JSON.stringify(body) : undefined }); }
+  catch { throw new Error("Can't reach the sign-in service. Check your connection."); }
+  const j = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(authMsg(j));
+  return j;
+}
+const authBack = () => encodeURIComponent(location.origin + location.pathname);
+function authStore(r) {
+  const exp = r.expires_at || Math.floor(Date.now() / 1000) + (r.expires_in || 3600);
+  auth.session = { access_token: r.access_token, refresh_token: r.refresh_token, expires_at: exp, user: r.user || (auth.session && auth.session.user) || null };
+  store(AUTH_KEY, JSON.stringify(auth.session));
+  clearTimeout(auth.timer);
+  auth.timer = setTimeout(authRefresh, Math.max(5000, (exp - 60) * 1000 - Date.now()));
+}
+function authClear() { auth.session = null; store(AUTH_KEY, undefined); clearTimeout(auth.timer); }
+async function authRefresh() {
+  if (!auth.session) return false;
+  try { authStore(await authCall("/token", { query: "?grant_type=refresh_token", body: { refresh_token: auth.session.refresh_token } })); return true; }
+  catch { authClear(); authUi(); if (!authAllowed(state.tab)) setTab("overview"); return false; }
+}
+// Runs once at start: restore a saved session, or take the one an email link brings in the address (#access_token=…).
+function authBoot() {
+  const h = new URLSearchParams(location.hash.replace(/^#/, ""));
+  if (h.get("access_token")) {
+    authStore({ access_token: h.get("access_token"), refresh_token: h.get("refresh_token"), expires_in: +h.get("expires_in") || 3600 });
+    if (h.get("type") === "recovery") auth.recovery = true;
+    history.replaceState(null, "", location.pathname + location.search);
+    authCall("/user", { method: "GET", token: auth.session.access_token }).then((u) => { auth.session.user = u; store(AUTH_KEY, JSON.stringify(auth.session)); authUi(); }).catch(() => {});
+  } else if (h.get("error_description")) {
+    auth.notice = (h.get("error_description") || "").replace(/\+/g, " ") + " Request a new link below.";
+    history.replaceState(null, "", location.pathname + location.search);
+  } else {
+    try { const saved = JSON.parse(load(AUTH_KEY) || "null"); if (saved && saved.access_token) { auth.session = saved; if (saved.expires_at * 1000 < Date.now() + 10000) authRefresh(); else authStore(saved); } } catch {}
+  }
+  authUi();
+  if (auth.recovery) setTimeout(() => openAuth("reset"), 0);
+  else if (auth.notice) setTimeout(() => openAuth("signin"), 0);
+}
+// The account line under the header, the lock marks on the tabs, and the phone bar.
+function authUi() {
+  const u = auth.session && auth.session.user, who = u && ((u.user_metadata && u.user_metadata.name) || u.email);
+  document.body.classList.toggle("anon", !auth.session);
+  const a = $("acct");
+  if (a) {
+    a.innerHTML = auth.session ? `Signed in${who ? ` as <b>${esc(who)}</b>` : ""} · <button class="link" id="acct-out" type="button">Sign out</button>` : `<button class="link" id="acct-in" type="button">Sign in to open every tab</button>`;
+    const out = $("acct-out"), inn = $("acct-in");
+    if (out) out.onclick = authOut;
+    if (inn) inn.onclick = () => { auth.next = null; openAuth("signin"); };
+  }
+  try { drawGnav(); } catch {}
+}
+async function authOut() {
+  const t = auth.session && auth.session.access_token;
+  authClear(); authUi();
+  if (t) authCall("/logout", { token: t }).catch(() => {});
+  if (!authAllowed(state.tab)) setTab("overview");
+}
+
+const A_EYE = `<button type="button" class="a-eye" data-eye aria-label="Show password">Show</button>`;
+const A_EMAIL = `<label for="a-em">Email</label><input id="a-em" type="email" placeholder="you@company.com" autocomplete="email" inputmode="email"><div class="a-err" data-e="a-em" role="alert"></div>`;
+const A_SCREENS = {
+  signin: () => `<h1 id="auth-title">Welcome back</h1><p class="a-sub">Sign in to open Feed, Investors, Network, Flows, Markets, FPIs and GIFT City.</p>
+    ${auth.notice ? `<div class="a-note" role="alert">${esc(auth.notice)}</div>` : ""}
+    <form novalidate data-do="signin">${A_EMAIL}
+      <label for="a-pw">Password</label><div class="a-field"><input id="a-pw" type="password" placeholder="Your password" autocomplete="current-password">${A_EYE}</div><div class="a-err" data-e="a-pw" role="alert"></div>
+      <div class="a-row"><button type="button" class="a-lnk" data-as="forgot">Forgot password?</button></div>
+      <button class="a-btn" type="submit">Sign in</button></form>
+    <div class="a-or">or</div>
+    <button class="a-btn ghost" type="button" data-as="magic">✉︎ Email me a sign-in link</button>
+    <div class="a-foot">New here? <button class="a-lnk" data-as="signup">Create an account</button></div>${aPerksMobile()}`,
+  signup: () => `<h1 id="auth-title">Create your account</h1><p class="a-sub">Free. Takes under a minute.</p>
+    <form novalidate data-do="signup">
+      <label for="a-nm">Full name</label><input id="a-nm" type="text" placeholder="Priya Sharma" autocomplete="name"><div class="a-err" data-e="a-nm" role="alert"></div>
+      ${A_EMAIL}
+      <label for="a-pw">Password</label><div class="a-field"><input id="a-pw" type="password" placeholder="At least 8 characters" autocomplete="new-password">${A_EYE}</div>
+      <div class="a-meter" id="a-meter" aria-hidden="true"><i></i><i></i><i></i><i></i></div><div class="a-sub" id="a-mtxt" style="margin:6px 0 0;font-size:12px">Use 8+ characters; mix letters and numbers.</div><div class="a-err" data-e="a-pw" role="alert"></div>
+      <button class="a-btn" type="submit">Create account</button></form>
+    <div class="a-foot">Already have an account? <button class="a-lnk" data-as="signin">Sign in</button></div>${aPerksMobile()}`,
+  magic: () => `<h1 id="auth-title">Sign in with a link</h1><p class="a-sub">We'll email you a link. Open it on this device and you're in. No password needed.</p>
+    <form novalidate data-do="magic">${A_EMAIL}<button class="a-btn" type="submit">Email me the link</button></form>
+    <div class="a-foot"><button class="a-lnk" data-as="signin">← Back to sign in</button></div>`,
+  forgot: () => `<h1 id="auth-title">Reset your password</h1><p class="a-sub">Enter your email and we'll send a link to choose a new one.</p>
+    <form novalidate data-do="forgot">${A_EMAIL}<button class="a-btn" type="submit">Send reset link</button></form>
+    <div class="a-foot"><button class="a-lnk" data-as="signin">← Back to sign in</button></div>`,
+  reset: () => `<h1 id="auth-title">Choose a new password</h1><p class="a-sub">You're signed in from the email link. Pick a new password to finish.</p>
+    <form novalidate data-do="reset">
+      <label for="a-pw">New password</label><div class="a-field"><input id="a-pw" type="password" placeholder="At least 8 characters" autocomplete="new-password">${A_EYE}</div><div class="a-err" data-e="a-pw" role="alert"></div>
+      <label for="a-pw2">Repeat it</label><input id="a-pw2" type="password" placeholder="Same password again" autocomplete="new-password"><div class="a-err" data-e="a-pw2" role="alert"></div>
+      <button class="a-btn" type="submit">Save password and continue</button></form>`,
+  sent: (d) => `<div class="a-ok" aria-hidden="true">✉︎</div><h1 id="auth-title">Check your email</h1>
+    <p class="a-sub">${({ confirm: "We sent a link to confirm your account to", magic: "We sent a sign-in link to", recover: "If an account exists for", })[d.kind] || "We emailed"} <b style="color:var(--ink)">${esc(d.email)}</b>${d.kind === "recover" ? ", a reset link is on its way" : ""}. Open it on this device. It works once and expires soon.</p>
+    <div class="a-note" style="margin-top:14px">Can't see it? Check your <b>spam</b> or <b>promotions</b> folder, and mark it "not spam" so the next one arrives in your inbox.</div>
+    <button class="a-btn ghost" id="a-resend" type="button" disabled>Resend email</button><div class="a-foot" id="a-cd"></div>
+    <div class="a-foot"><button class="a-lnk" data-as="signin">← Back to sign in</button></div>`,
+};
+const A_PERKS = [
+  ["feed", "Live deal feed", "Every foreign investment, exit and fund launch, checked every 3 hours."],
+  ["investors", "Investor profiles", "One page per firm: its deals, holdings and sources."],
+  ["network", "Network map", "See which firms invest together and how any two are linked."],
+  ["flows", "FPI and FDI flows", "Daily, monthly and yearly since 1992-93, in US$ with ₹ in brackets."],
+  ["markets", "Exchange data", "FII/FPI activity, bulk and block deals, debt holdings and sector assets."],
+  ["directory", "FPI register", "Every SEBI-registered FPI, with assets held by country and sector."],
+  ["gift", "GIFT City directory", "Every entity IFSCA regulates there, with contact details."],
+];
+const aIcon = (t) => (document.querySelector(`nav.tabs button[data-tab="${t}"] svg`) || { outerHTML: "" }).outerHTML;
+const aPerkList = () => A_PERKS.map(([t, h, x]) => `<li><span class="a-ic">${aIcon(t)}</span><div><b>${h}</b><small>${x}</small></div></li>`).join("");
+// A taste of Flows: the last trading days of FPI net flow, drawn from the data the page already holds.
+function aPreview() {
+  const d = ((typeof flows !== "undefined" && flows.daily) || []).filter((x) => typeof x.Total === "number").slice(-24);
+  if (d.length < 6) return "";
+  const mx = Math.max(1, ...d.map((x) => Math.abs(x.Total))), w = 240 / d.length, bars = d.map((x, i) => {
+    const h = Math.max(1.5, Math.abs(x.Total) / mx * 26);
+    return `<rect x="${(i * w + 1).toFixed(1)}" y="${x.Total >= 0 ? 28 - h : 28}" width="${(w - 2).toFixed(1)}" height="${h.toFixed(1)}" rx="1.5" fill="var(--${x.Total >= 0 ? "in" : "out"})"/>`;
+  }).join("");
+  return `<div class="a-prev"><div class="a-ph"><b>FPI net flow, last ${d.length} trading days</b><small>a taste of Flows</small></div>
+    <svg viewBox="0 0 240 56" preserveAspectRatio="none" aria-hidden="true"><line x1="0" x2="240" y1="28" y2="28" stroke="var(--line)"/>${bars}</svg>
+    <small>Inside: full charts, running totals and yearly history, plus the deals behind the moves.</small></div>`;
+}
+function authPitch() {
+  const n = (state.events || []).length;
+  return `<div><h2>See where foreign money is moving in India.</h2>
+    <p>Investments, exits, FPI flows and fund launches in one place${n ? `, with ${n.toLocaleString("en-IN")} stories tracked` : ""}. Sign in free to open everything.</p></div>
+    <ul class="a-perks">${aPerkList()}</ul>${aPreview()}
+    <div class="a-free"><b>Home stays free</b> for everyone: today's FPI flow, the biggest deals this week and the latest stories.</div>`;
+}
+const aPerksMobile = () => `<details class="a-mperks"><summary>What you get when you sign in</summary><ul class="a-perks">${aPerkList()}</ul></details>`;
+function openAuth(screen = "signin", data = {}) {
+  let box = $("auth");
+  if (!box) {
+    document.body.insertAdjacentHTML("beforeend", `<div class="auth" id="auth" role="dialog" aria-modal="true" aria-labelledby="auth-title" hidden>
+      <button type="button" class="a-x" id="a-close">Continue to Home</button>
+      <div class="a-brand"><div class="a-logo"><i>CC</i> CapitalColumbus</div><div id="a-pitch"></div></div>
+      <div class="a-form"><div class="a-card" id="a-card"></div></div></div>`);
+    box = $("auth");
+    $("a-close").onclick = closeAuth;
+    box.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") { closeAuth(); return; }
+      if (e.key !== "Tab") return;
+      const f = [...box.querySelectorAll("button,input,a[href]")].filter((x) => !x.disabled && x.offsetParent !== null);
+      if (!f.length) return;
+      if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus(); }
+      else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
+    });
+  }
+  $("a-pitch").innerHTML = authPitch();
+  auth.opener = auth.opener || document.activeElement;
+  box.hidden = false; document.body.classList.add("locked");
+  authScreen(screen, data);
+}
+function closeAuth() {
+  const box = $("auth");
+  if (box) box.hidden = true;
+  document.body.classList.remove("locked"); auth.notice = ""; auth.recovery = false;
+  if (auth.opener && auth.opener.focus) auth.opener.focus(); auth.opener = null;
+}
+function authScreen(name, data = {}) {
+  const card = $("a-card");
+  card.innerHTML = `<div class="a-logo a-mlogo"><i>CC</i> CapitalColumbus</div>` + A_SCREENS[name](data);
+  card.querySelectorAll("[data-as]").forEach((b) => b.onclick = () => { auth.notice = ""; authScreen(b.dataset.as, data); });
+  card.querySelectorAll("[data-eye]").forEach((b) => b.onclick = () => { const i = b.parentElement.querySelector("input"), show = i.type === "password"; i.type = show ? "text" : "password"; b.textContent = show ? "Hide" : "Show"; b.setAttribute("aria-label", show ? "Hide password" : "Show password"); });
+  const pw = $("a-pw"), meter = $("a-meter");
+  if (pw && meter) pw.oninput = () => {
+    const v = pw.value; let sc = 0;
+    if (v.length >= 8) sc++; if (/[a-z]/.test(v) && /[A-Z]/.test(v)) sc++; if (/\d/.test(v)) sc++; if (/[^A-Za-z0-9]/.test(v) || v.length >= 12) sc++;
+    meter.querySelectorAll("i").forEach((x, i) => x.style.background = i < sc ? ["#ff453a", "#ff9f0a", "#ffd60a", "#30d158"][sc - 1] : "");
+    $("a-mtxt").textContent = !v ? "Use 8+ characters; mix letters and numbers." : ["Too weak", "Getting there", "Good", "Strong"][Math.max(0, sc - 1)];
+  };
+  const f = card.querySelector("form");
+  if (f) f.onsubmit = (e) => { e.preventDefault(); authSubmit(f, data); };
+  if (name === "sent") {
+    let n = 30; const rs = $("a-resend"), cd = $("a-cd");
+    const tick = () => { if (!cd.isConnected) return; cd.textContent = n > 0 ? `You can resend in ${n}s` : ""; if (n <= 0) { rs.disabled = false; return; } n--; setTimeout(tick, 1000); };
+    tick();
+    rs.onclick = () => { rs.disabled = true; authSend(data.kind, data.email).then(() => { n = 30; tick(); }).catch((er) => { cd.textContent = er.message; }); };
+  }
+  setTimeout(() => { const first = card.querySelector("input:not([type=hidden])") || card.querySelector(".a-btn"); first && first.focus(); }, 50);
+}
+function aErr(f, id, msg) { const e = f.querySelector(`[data-e="${id}"]`), i = f.querySelector("#" + id); if (e) e.textContent = msg || ""; if (i) { i.classList.toggle("bad", !!msg); if (msg) i.setAttribute("aria-invalid", "true"); else i.removeAttribute("aria-invalid"); } return !msg; }
+function authSend(kind, email) {
+  if (kind === "recover") return authCall("/recover", { body: { email }, query: `?redirect_to=${authBack()}` });
+  return authCall("/otp", { body: { email, create_user: true }, query: `?redirect_to=${authBack()}` });
+}
+function authDone() {
+  closeAuth(); authUi();
+  const t = auth.next; auth.next = null;
+  if (t && t !== state.tab) setTab(t); else if (location.hash.startsWith("#firm/")) route();
+}
+async function authSubmit(f, data) {
+  const kind = f.dataset.do, val = (id) => (f.querySelector("#" + id) || {}).value || "", em = val("a-em").trim();
+  let ok = true;
+  if (f.querySelector("#a-nm")) ok = aErr(f, "a-nm", val("a-nm").trim().length > 1 ? "" : "Enter your name.") && ok;
+  if (f.querySelector("#a-em")) ok = aErr(f, "a-em", /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em) ? "" : em ? "That email doesn't look right." : "Enter your email.") && ok;
+  if (f.querySelector("#a-pw")) { const need = kind === "signin" ? 1 : 8; ok = aErr(f, "a-pw", val("a-pw").length >= need ? "" : kind === "signin" ? "Enter your password." : "Use at least 8 characters.") && ok; }
+  if (f.querySelector("#a-pw2")) ok = aErr(f, "a-pw2", val("a-pw2") === val("a-pw") ? "" : "The two passwords don't match.") && ok;
+  if (!ok) return;
+  const btn = f.querySelector(".a-btn"), label = btn.textContent;
+  btn.disabled = true; btn.innerHTML = '<span class="a-spin"></span> Please wait…';
+  const fail = (er) => { btn.disabled = false; btn.textContent = label; const id = f.querySelector("#a-pw") && kind !== "magic" && kind !== "forgot" ? "a-pw" : "a-em"; aErr(f, id, er.message); };
+  try {
+    if (kind === "signin") { authStore(await authCall("/token", { query: "?grant_type=password", body: { email: em, password: val("a-pw") } })); authDone(); }
+    else if (kind === "signup") {
+      const r = await authCall("/signup", { query: `?redirect_to=${authBack()}`, body: { email: em, password: val("a-pw"), data: { name: val("a-nm").trim() } } });
+      if (r.access_token) { authStore(r); authDone(); } else authScreen("sent", { kind: "confirm", email: em });
+    }
+    else if (kind === "magic") { await authSend("magic", em); authScreen("sent", { kind: "magic", email: em }); }
+    else if (kind === "forgot") { await authSend("recover", em); authScreen("sent", { kind: "recover", email: em }); }
+    else if (kind === "reset") { const u = await authCall("/user", { method: "PUT", token: auth.session.access_token, body: { password: val("a-pw") } }); auth.session.user = u; store(AUTH_KEY, JSON.stringify(auth.session)); authDone(); }
+  } catch (er) { fail(er); }
+}
+
 state.prevVisit = load("ict-last-visit");
+authBoot();
 setTab("overview");
 applyUrl();
 route();
@@ -3412,6 +3701,7 @@ document.querySelectorAll("#fhseg button").forEach((b) => b.onclick = () => {
   document.querySelectorAll("#fhseg button").forEach((x) => x.setAttribute("aria-pressed", x === b));
   renderFpiHistory();
 });
+
 </script>
 </body>
 </html>

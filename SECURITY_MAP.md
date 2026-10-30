@@ -1,4 +1,4 @@
-# Security map: India Capital Tracker
+# Security map: CapitalColumbus
 
 Written during the pre-launch security pass (toolkit checks 00 and 26). No secret values are recorded here.
 
