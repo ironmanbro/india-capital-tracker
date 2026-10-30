@@ -831,6 +831,7 @@ body.anon .gnav button:not([data-g="home"])::after{content:"🔒";position:absol
     <div class="ftiles" id="ov-tiles"></div>
     <div class="ftiles" id="ov-cross"></div>
     <p class="dsrc" data-src="review,nsdl_flows,nsdl_fpi_list" data-what="Sources: news checked by the review step, NSE, NSDL and DPIIT. Each section shows its own source and update time" style="margin:-4px 0 14px"></p>
+    <p class="dsrc" id="fx-home" style="margin:-6px 0 14px" hidden></p>
     <div class="ovgrid">
       <div class="ovc"><div class="ovh"><div><h3>Latest FPI flow</h3><div class="sub" id="ov-flow-sub">NSDL</div></div><button class="link" data-go="flows">Flows ↗</button></div><div class="flowwrap"><div id="ov-flow"></div><div class="fchart" id="ov-fpibars"></div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Biggest deals this week</h3><div class="sub">Largest agreed or completed deals, last 7 days</div></div><button class="link" data-go="feed">Feed ↗</button></div><div id="ov-deals"></div></div>
@@ -1055,6 +1056,7 @@ body.anon .gnav button:not([data-g="home"])::after{content:"🔒";position:absol
       <a href="https://www.linkedin.com/in/kishansinghania/" target="_blank" rel="noopener">LinkedIn</a> ·
       <a href="mailto:Kishansinghania18@gmail.com">Kishansinghania18@gmail.com</a> ·
       <button class="link" type="button" data-gloss-open>Jargon explained</button></div>
+    <div class="sub" id="fx-foot"></div>
     <div class="sub">A personal project tracking foreign capital flowing into and out of India. Sources: Google News and NSE; stories may contain errors, so check the original article. Not affiliated with any employer. Not investment advice.</div>
   </footer>
 </div>
@@ -3766,6 +3768,11 @@ function xtSources(X) {
 async function xtInit() {
   const X = await loadExtra(), fx = X.fx_usd_inr?.data?.slice(-1)[0]?.usd_inr;
   if (fx > 60 && fx < 140 && window.__fx !== fx) { window.__fx = fx; try { render(); renderOverview(); } catch {} }
+  const last = X.fx_usd_inr?.data?.slice(-1)[0];
+  if (last && window.__fx) {
+    const t = `Exchange rate used for every US$ and ₹ figure: US$1 = ₹${last.usd_inr.toFixed(2)} (European Central Bank reference rate for ${last.date}, via Frankfurter)`;
+    $("fx-home").textContent = t; $("fx-home").hidden = false; $("fx-foot").textContent = t + ". Figures reported directly in US$ by NSDL are shown as published.";
+  }
   xtHome(X); xtFlows(X); xtSources(X);
 }
 
