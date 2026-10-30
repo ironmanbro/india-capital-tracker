@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mockup: merged tabs with hover menus</title>
+<style>
+:root{--bg:#000;--panel:#0c0c0e;--ink:#f5f5f7;--muted:#8e8e93;--line:rgba(255,255,255,.1);--chip:rgba(255,255,255,.07);--accent:#6f95ff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:1000px;margin:0 auto;padding:20px 16px 60px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+h1{font-size:22px;margin:0}
+.sub{color:var(--muted);font-size:13px}
+.search{flex:1;max-width:340px;background:var(--chip);border:1px solid var(--line);border-radius:10px;padding:9px 12px;color:var(--muted);font-size:14px}
+nav{display:flex;gap:6px;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:18px;flex-wrap:wrap}
+.tab{position:relative}
+.tab>button{display:flex;align-items:center;gap:6px;background:none;border:0;color:var(--muted);font:inherit;font-weight:600;padding:9px 14px;border-radius:10px;cursor:pointer}
+.tab>button:hover,.tab:focus-within>button,.tab.open>button{background:var(--chip);color:var(--ink)}
+.tab.active>button{background:var(--chip);color:var(--ink);box-shadow:inset 0 -2px 0 var(--accent)}
+.tab>button .car{font-size:10px;opacity:.7;transition:transform .15s}
+.tab:hover .car,.tab.open .car{transform:rotate(180deg)}
+.menu{position:absolute;top:100%;left:0;min-width:270px;padding:6px;margin-top:4px;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.55);opacity:0;visibility:hidden;transform:translateY(-4px);transition:opacity .12s,transform .12s,visibility .12s;z-index:20}
+/* the invisible bridge keeps the menu open while the pointer travels from the tab to it */
+.menu::before{content:"";position:absolute;left:0;right:0;top:-8px;height:8px}
+.tab:hover .menu,.tab:focus-within .menu,.tab.open .menu{opacity:1;visibility:visible;transform:none}
+.menu button{display:block;width:100%;text-align:left;background:none;border:0;color:var(--ink);font:inherit;padding:9px 10px;border-radius:8px;cursor:pointer}
+.menu button:hover,.menu button:focus-visible{background:var(--chip);outline:0}
+.menu button small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.menu button.on{box-shadow:inset 3px 0 0 var(--accent)}
+.crumb{color:var(--muted);font-size:13px;margin-bottom:6px}
+.crumb b{color:var(--ink)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-top:12px}
+.card h2{margin:0 0 4px;font-size:17px}
+.bar{height:8px;border-radius:4px;background:var(--chip);margin-top:10px;overflow:hidden}.bar i{display:block;height:100%;width:60%;background:var(--accent)}
+.hint{margin-top:22px;padding:12px 14px;border:1px dashed var(--line);border-radius:12px;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div><h1>India Capital Tracker</h1><div class="sub">Mockup: 4 tabs, merged ones open a menu on hover</div></div>
+    <div class="search">Search investors, companies, FPIs, GIFT funds…</div>
+  </header>
+
+  <nav id="nav" aria-label="Sections"></nav>
+
+  <div class="crumb" id="crumb"></div>
+  <div class="card"><h2 id="ctitle"></h2><div class="sub" id="cdesc"></div><div class="bar"><i></i></div></div>
+  <div class="card"><div class="sub">Page content for the chosen view appears here. Each view keeps exactly what its tab shows today.</div></div>
+
+  <div class="hint">Try it: hover (or tap on a phone, or Tab with the keyboard) over <b>Deals</b>, <b>Markets</b> or <b>Registers</b>, then choose a view. Clicking the tab itself opens the view you used last.</div>
+</div>
+
+<script>
+const TABS = [
+  { id: "home", label: "Home", views: [["Home", "Latest numbers and stories from every tab"]] },
+  { id: "deals", label: "Deals", views: [["Stories", "Investments, exits, fund launches and moves"], ["Investors", "Foreign investors, one profile each"], ["Network", "Which firms appear together on deals"]] },
+  { id: "markets", label: "Markets", views: [["Flows", "FPI money in and out each day, and FDI by source"], ["Exchange data", "FII/FPI activity, bulk and block deals, debt holdings, sectors"]] },
+  { id: "registers", label: "Registers", views: [["FPIs", "Every SEBI-registered FPI, assets by country and sector"], ["GIFT City", "Every entity IFSCA regulates at GIFT IFSC"]] },
+];
+const st = { tab: "home", view: { home: 0, deals: 0, markets: 0, registers: 0 } };
+const nav = document.getElementById("nav");
+
+function pick(t, v) { st.tab = t; st.view[t] = v; document.activeElement?.blur(); draw(); }
+function draw() {
+  nav.innerHTML = "";
+  TABS.forEach((t) => {
+    const el = document.createElement("div");
+    el.className = "tab" + (t.id === st.tab ? " active" : "");
+    const multi = t.views.length > 1;
+    el.innerHTML = `<button type="button" aria-haspopup="${multi}">${t.label}${multi ? '<span class="car">▾</span>' : ""}</button>` +
+      (multi ? `<div class="menu" role="menu">${t.views.map((v, i) => `<button type="button" role="menuitem" class="${t.id === st.tab && st.view[t.id] === i ? "on" : ""}" data-i="${i}">${v[0]}<small>${v[1]}</small></button>`).join("")}</div>` : "");
+    el.querySelector(":scope>button").onclick = (e) => {
+      if (multi && matchMedia("(hover:none)").matches) { e.stopPropagation(); const o = el.classList.contains("open"); document.querySelectorAll(".tab.open").forEach((x) => x.classList.remove("open")); el.classList.toggle("open", !o); return; }
+      pick(t.id, st.view[t.id]);
+    };
+    el.querySelectorAll(".menu button").forEach((b) => b.onclick = (e) => { e.stopPropagation(); pick(t.id, +b.dataset.i); });
+    nav.appendChild(el);
+  });
+  const t = TABS.find((x) => x.id === st.tab), v = t.views[st.view[t.id]];
+  document.getElementById("crumb").innerHTML = t.views.length > 1 ? `${t.label} › <b>${v[0]}</b>` : `<b>${t.label}</b>`;
+  document.getElementById("ctitle").textContent = v[0];
+  document.getElementById("cdesc").textContent = v[1];
+}
+document.addEventListener("click", () => document.querySelectorAll(".tab.open").forEach((x) => x.classList.remove("open")));
+draw();
+</script>
+</body>
+</html>
