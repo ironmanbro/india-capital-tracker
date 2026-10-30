@@ -10,7 +10,7 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import Anthropic from "npm:@anthropic-ai/sdk";
-import { googleNewsUrl, NEWS_QUERIES, NSE_FILES, SHP_FEED, type NewsQuery } from "./sources.ts";
+import { googleNewsUrl, NEWS_QUERIES, FPI_FLOWS_URL, NSE_FILES, SHP_FEED, type NewsQuery } from "./sources.ts";
 import { parseFeed, parseShp } from "./shp.ts";
 import { classifyLLM, classifyRules, PRIORITY, type Classified, type RawItem } from "./classify.ts";
 import { dedupe } from "./dedupe.ts";
@@ -267,21 +267,21 @@ async function runNse() {
       const head = rows[0].map((h) => h.toLowerCase());
       const col = (re: RegExp) => head.findIndex((h) => re.test(h));
       const [cDate, cSym, cName, cClient, cSide, cQty, cPrice] =
-        [/^date/, /symbol/, /security/, /client/, /buy|sell/, /quantity/, /price/].map(col);
+        [/date/, /symbol|security code/, /security name|company/, /client/, /buy|sell|deal type/, /quantity/, /price/].map(col);
       if (cClient < 0) throw new Error(`unexpected header: ${rows[0].join(",")}`);
 
       const events = rows.slice(1).filter((r) => r[cClient] && FOREIGN.test(r[cClient]) && !DOMESTIC.test(r[cClient]))
         .map((r) => {
-          const buy = /buy/i.test(r[cSide]);
+          const buy = /^b/i.test(r[cSide]);
           const qty = parseFloat((r[cQty] || "0").replace(/,/g, ""));
           const px = parseFloat((r[cPrice] || "0").replace(/,/g, ""));
           const crore = (qty * px) / 1e7;
           const date = new Date(r[cDate]);
-          const kind = f.source === "nse_bulk" ? "bulk" : "block";
+          const kind = f.source.endsWith("bulk") ? "bulk" : "block";
           return {
             dedup_key: `${f.source}:${r[cDate]}:${r[cSym]}:${r[cClient]}:${r[cSide]}:${qty}`,
             source: f.source,
-            source_name: "NSE",
+            source_name: f.source.startsWith("bse") ? "BSE" : "NSE",
             url: "https://www.nseindia.com/report-detail/display-bulk-and-block-deals",
             title: `${r[cClient]} ${buy ? "bought" : "sold"} ${r[cName] || r[cSym]} shares worth ₹${crore.toFixed(1)} cr (${kind} deal)`,
             published_at: isNaN(+date) ? null : date.toISOString(),
@@ -311,6 +311,29 @@ async function runNse() {
     }
   }
   return out;
+}
+
+// ---------- FPI daily flows ----------
+
+async function runFpi() {
+  if (!FPI_FLOWS_URL) return { skipped: "FPI_FLOWS_URL not set" };
+  const started = new Date();
+  try {
+    const res = await fetch(FPI_FLOWS_URL, { headers: { "user-agent": UA } });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const num = (v?: string) => parseFloat((v ?? "").replace(/,/g, "")) || 0;
+    const rows = parseCsv(await res.text()).slice(1).filter((r) => !isNaN(+new Date(r[0])))
+      .map((r) => ({ flow_date: new Date(r[0]).toISOString().slice(0, 10), category: r[1] || "total",
+        gross_buy_cr: num(r[2]), gross_sell_cr: num(r[3]), net_cr: num(r[4]) }));
+    const { error, count } = await db.from("fpi_flows")
+      .upsert(rows, { onConflict: "flow_date,category", count: "exact" });
+    if (error) throw new Error(error.message);
+    await logRun("fpi_flows", started, true, rows.length, count ?? 0);
+    return { rows: rows.length };
+  } catch (e) {
+    await logRun("fpi_flows", started, false, 0, 0, (e as Error).message);
+    return { error: (e as Error).message };
+  }
 }
 
 // ---------- shareholding patterns ----------
@@ -409,9 +432,9 @@ Deno.serve(async (req) => {
   const window = /^\d+[hd]$/.test(url.searchParams.get("window") ?? "") ? url.searchParams.get("window")! : "1d";
   const deadline = Date.now() + TIME_BUDGET_MS;
 
-  const [news, nse, shp] = await Promise.all([runNews(`when:${window}`, deadline), runNse(), runShp(deadline)]);
+  const [news, nse, shp, fpi] = await Promise.all([runNews(`when:${window}`, deadline), runNse(), runShp(deadline), runFpi()]);
   const stories = await dedupe(db, client, MODEL, deadline);
   // Leftover time goes to upgrading older rule-classified items.
   const upgraded = await reclassify(deadline);
-  return Response.json({ window, llm: Boolean(API_KEY), model: API_KEY ? MODEL : null, news, nse, shp, stories, upgraded });
+  return Response.json({ window, llm: Boolean(API_KEY), model: API_KEY ? MODEL : null, news, nse, shp, fpi, stories, upgraded });
 });
