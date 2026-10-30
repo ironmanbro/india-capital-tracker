@@ -870,7 +870,7 @@ html.lenis,html.lenis body{height:auto}
   </section>
 
   <section id="tab-markets" hidden>
-    <p class="sub" style="margin:0 0 12px">Daily exchange and NSDL data: FII/DII activity, bulk and block deals, IPOs, FPI debt holdings, sector allocations and promoter/public shareholding. Loaded by the daily data job.</p>
+    <p class="sub" style="margin:0 0 12px">Daily exchange and NSDL data: FII/FPI activity, bulk and block deals, IPOs, FPI debt holdings, sector allocations and promoter/public shareholding. Loaded by the daily data job.</p>
     <div id="mk-body"><p class="note">Loading…</p></div>
   </section>
 
@@ -3093,7 +3093,7 @@ const mkTable = (head, rows, id) => rows.length
   : `<p class="note">No data yet.</p>`;
 // Same name test as the ingest function: a heuristic, so it can miss some foreign investors.
 const MK_FOREIGN = /\b(PTE|LLC|L\.?P\.?|PLC|SICAV|ICAV|S\.?A\.?|SARL|GMBH|AG|INC|N\.?V\.?|B\.?V\.?|MAURITIUS|SINGAPORE|CAYMAN|IRELAND|LUXEMBOURG|NORWAY|ABU DHABI|DUBAI|QATAR|KUWAIT|SAUDI|JAPAN|KOREA|TAIWAN|HONG KONG|CANADA|AUSTRALIA|MASTER FUND|FEEDER|OFFSHORE|EMERGING MARKETS?|GOVERNMENT OF|MONETARY AUTHORITY|INVESTMENT AUTHORITY|PENSION|SOVEREIGN|ODI|FPI|GOLDMAN SACHS|MORGAN STANLEY|CITIGROUP|BNP PARIBAS|SOCIETE GENERALE|J\.?P\.? ?MORGAN|BOFA|MERRILL|NOMURA|UBS|CLSA|VANGUARD|BLACKROCK|GIC|NORGES|TEMASEK|FIDELITY|ABERDEEN|MACQUARIE|HSBC|BARCLAYS|CITADEL|JANE STREET|SOCIETE)\b/i, MK_DOMESTIC = /(MUTUAL FUND|\bMF\b|INSURANCE|\bHUF\b|PRIVATE LIMITED|PVT\.? LTD|BROKING|SHARE BROKERS)/i;
-const mkWho = (name) => MK_DOMESTIC.test(name || "") ? "Domestic" : MK_FOREIGN.test(name || "") ? "Foreign" : "Likely domestic";
+const mkForeign = (name) => MK_FOREIGN.test(name || "") && !MK_DOMESTIC.test(name || "");
 const mkSec = (title, note, body) => `<h2 class="fsec">${esc(title)}</h2><p class="note">${esc(note)}</p>${body}`;
 
 async function openMarkets() {
@@ -3112,18 +3112,18 @@ function renderMarkets() {
   const latest = (n, f) => { const all = d(n); const m = all.map(f).sort().pop(); return all.filter((x) => f(x) === m); };
   const dt = (x) => new Date(x || 0).getTime() || 0;
   const out = [];
-  const fii = d("fii_dii").sort((a, b) => dt(b.date) - dt(a.date)).slice(0, 20);
-  out.push(mkSec("FII / DII activity", "Daily cash-market buying and selling, ₹ crore (NSE).",
+  const fii = d("fii_dii").filter((r) => !/^dii$/i.test(r.category)).sort((a, b) => dt(b.date) - dt(a.date)).slice(0, 20);
+  out.push(mkSec("FII / FPI activity", "Daily foreign investor buying and selling in the cash market, ₹ crore (NSE).",
     mkTable(["Date · category", "Buy", "Sell", "Net"], fii.map((r) => [`${r.date} · ${r.category}`, mkFmt(r.buyValue, 2), mkFmt(r.sellValue, 2), mkFmt(r.netValue, 2)]))));
   const deals = (mk.data.nse_deals || []).filter((r) => r.key.startsWith("BULK") || r.key.startsWith("BLOCK"))
-    .map((r) => r.data).sort((a, b) => dt(b.date) - dt(a.date) || (mkNum(b.qty) * mkNum(b.watp)) - (mkNum(a.qty) * mkNum(a.watp))).slice(0, 100);
-  out.push(mkSec("Bulk and block deals", "Latest 100 on NSE. \"Investor\" says whether the client looks foreign or domestic from its name; names that match neither are marked likely domestic.",
-    mkTable(["Date · company · client", "Investor", "Side", "Quantity", "Avg price", "Value (₹ cr)"], deals.map((r) =>
-      [`${r.date} · ${r.name || r.symbol} · ${r.clientName || "–"}`, mkWho(r.clientName), r.buySell || "–", mkFmt(r.qty), mkFmt(r.watp, 2), mkFmt(mkNum(r.qty) * mkNum(r.watp) / 1e7, 1)]))));
-  const who = (state.events || []).filter((e) => e.event_type === "entry" && e.investor && e.target).slice(0, 40);
-  out.push(mkSec("Who invested in whom", "Latest investments from the news and exchange deals, newest first. Investor type comes from the name.",
-    mkTable(["Investor → invested in", "Investor type", "Amount", "Date"], who.map((e) =>
-      [`${e.investor} → ${e.target}`, mkWho(e.investor), e.amount_text || "–", (e.published_at || e.fetched_at || "").slice(0, 10)]))));
+    .map((r) => r.data).filter((r) => mkForeign(r.clientName)).sort((a, b) => dt(b.date) - dt(a.date) || (mkNum(b.qty) * mkNum(b.watp)) - (mkNum(a.qty) * mkNum(a.watp))).slice(0, 100);
+  out.push(mkSec("Bulk and block deals", "Latest 100 on NSE with a foreign-looking client. Foreign is judged from the client name, so some foreign investors may be missing.",
+    mkTable(["Date · company · client", "Side", "Quantity", "Avg price", "Value (₹ cr)"], deals.map((r) =>
+      [`${r.date} · ${r.name || r.symbol} · ${r.clientName || "–"}`, r.buySell || "–", mkFmt(r.qty), mkFmt(r.watp, 2), mkFmt(mkNum(r.qty) * mkNum(r.watp) / 1e7, 1)]))));
+  const who = (state.events || []).filter((e) => e.event_type === "entry" && e.investor && e.target && mkForeign(e.investor)).slice(0, 40);
+  out.push(mkSec("Who invested in whom", "Latest investments from the news and exchange deals, newest first. Foreign investors only, judged from the name.",
+    mkTable(["Investor → invested in", "Amount", "Date"], who.map((e) =>
+      [`${e.investor} → ${e.target}`, e.amount_text || "–", (e.published_at || e.fetched_at || "").slice(0, 10)]))));
   const ipo = d("ipo_current").filter((r) => !r.category || r.category === "Total");
   out.push(mkSec("IPOs open now", "Subscription as a multiple of shares offered.",
     mkTable(["Company", "Price", "Opens – closes", "Subscribed (×)"], ipo.map((r) => [r.companyName, r.issuePrice, `${r.issueStartDate} – ${r.issueEndDate}`, mkFmt(r.noOfTime, 2)]))));
