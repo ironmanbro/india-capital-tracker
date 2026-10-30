@@ -640,6 +640,14 @@ html.lenis,html.lenis body{height:auto}
 }
 .ctog{width:fit-content;margin:0 0 6px auto}.ctog button{padding:4px 10px;font-size:12px}
 .fchg{margin-top:6px;font-size:12px;color:var(--muted)}
+/* Touch: every control at least 44px, as Apple's guidance asks. */
+@media (pointer:coarse){
+  .htools .ib{width:44px;min-width:44px;flex:none;height:44px;margin:-5px -5px -5px 0}
+  .toast button,#toast-b{min-height:44px;min-width:44px}
+  footer a,.maker a,a[href^="mailto:"],a[href*="linkedin.com"]{display:inline-block;padding:14px 3px}
+  #ftoggle,summary,.bkrow{min-height:44px}
+  .ftable td a,.ovrow .t a{display:inline-block;padding:9px 0}
+}
 </style>
 <script src="vendor/lenis.min.js" defer></script>
 </head>
@@ -2509,7 +2517,7 @@ const searchBox = () => isDir() ? (dir.view === "fpi" ? "dq" : "iq2") : state.ta
 const SEARCH_HINT = { investors: "Search investors, funds or companies…", directory: "Search FPI names or registration numbers…", directory_ifsca: "Search GIFT IFSC entities or funds…" };
 function syncSearch() {
   const k = state.tab === "gift" ? "directory_ifsca" : state.tab;
-  $("gq").placeholder = SEARCH_HINT[k] || "Search investors, companies or headlines…";
+  $("gq").placeholder = innerWidth < 700 ? "Search firms, FPIs, deals…" : SEARCH_HINT[k] || "Search investors, companies or headlines…";
   $("gq").value = $(searchBox()).value;
 }
 $("gq").addEventListener("input", () => {
