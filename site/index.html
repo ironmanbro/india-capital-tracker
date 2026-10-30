@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>CapitalColumbus: foreign capital into and out of India</title>
+<title>Indian Capital Tracker</title>
 <meta name="description" content="Track foreign capital moving into and out of India: investments, exits, FPI and FDI flows, and offshore and GIFT City fund launches, in one place.">
 <meta name="author" content="Kishan Singhania">
 <meta name="theme-color" content="#0f1115">
@@ -13,16 +13,16 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <!-- Link previews on LinkedIn, WhatsApp, X and Slack -->
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="CapitalColumbus">
-<meta property="og:title" content="CapitalColumbus: foreign capital into and out of India">
+<meta property="og:site_name" content="Indian Capital Tracker">
+<meta property="og:title" content="Indian Capital Tracker: foreign capital into and out of India">
 <meta property="og:description" content="Track foreign capital moving into and out of India: investments, exits, FPI and FDI flows, and offshore and GIFT City fund launches, in one place.">
 <meta property="og:url" content="https://india-capital-tracker.ironmanbro.workers.dev/">
 <meta property="og:image" content="https://india-capital-tracker.ironmanbro.workers.dev/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="CapitalColumbus: foreign capital moving into and out of India. Built by Kishan Singhania.">
+<meta property="og:image:alt" content="Indian Capital Tracker: foreign capital moving into and out of India. Built by Kishan Singhania.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="CapitalColumbus: foreign capital into and out of India">
+<meta name="twitter:title" content="Indian Capital Tracker: foreign capital into and out of India">
 <meta name="twitter:description" content="Track foreign capital moving into and out of India: investments, exits, FPI and FDI flows, and offshore and GIFT City fund launches, in one place.">
 <meta name="twitter:image" content="https://india-capital-tracker.ironmanbro.workers.dev/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -719,7 +719,7 @@ body.anon .gnav button:not([data-g="home"])::after{content:"🔒";position:absol
 <div class="welcome" id="welcome" data-lenis-prevent role="dialog" aria-modal="true" aria-labelledby="welcome-title" hidden>
   <div class="box">
     <div class="eyebrow">Welcome</div>
-    <h2 id="welcome-title">CapitalColumbus</h2>
+    <h2 id="welcome-title">Indian Capital Tracker</h2>
     <p class="lead">A live feed of foreign money moving into and out of India: investments, exits, offshore fund launches, and funds changing jurisdiction.</p>
     <div class="who">
       <div class="avatar" aria-hidden="true">KS</div>
@@ -739,7 +739,7 @@ body.anon .gnav button:not([data-g="home"])::after{content:"🔒";position:absol
 <div class="wrap">
   <header>
     <div>
-      <div class="eyebrow" style="text-transform:none;letter-spacing:.04em;font-size:13px">CapitalColumbus</div>
+      <div class="eyebrow">Indian Capital Tracker</div>
       <h1 id="ptitle">Overview</h1>
       <div class="sub" id="psub">Foreign investments into India, exits from India, offshore fund launches, and jurisdiction moves</div>
       <div class="maker">Built by <a href="https://www.linkedin.com/in/kishansinghania/" target="_blank" rel="noopener"><strong>Kishan Singhania</strong></a> · <a href="https://www.linkedin.com/in/kishansinghania/" target="_blank" rel="noopener">Connect on LinkedIn →</a></div>
@@ -797,7 +797,7 @@ body.anon .gnav button:not([data-g="home"])::after{content:"🔒";position:absol
   <p class="note" style="margin:-8px 0 16px" id="kpi-note"></p>
 
   <nav class="tabs" role="tablist" aria-label="Sections">
-    <div class="logo" aria-hidden="true">CC</div>
+    <div class="logo" aria-hidden="true">ICT</div>
     <button role="tab" aria-selected="true" data-tab="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Home</button>
     <button role="tab" aria-selected="false" data-tab="feed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7 9h10M7 13h10M7 17h6"/></svg>Feed</button>
     <button role="tab" aria-selected="false" data-tab="investors"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20c-.5-2.5-2-4.2-4-5"/></svg>Investors</button>
@@ -3293,7 +3293,7 @@ function openAuth(screen = "signin", data = {}) {
   if (!box) {
     document.body.insertAdjacentHTML("beforeend", `<div class="auth" id="auth" role="dialog" aria-modal="true" aria-labelledby="auth-title" hidden>
       <button type="button" class="a-x" id="a-close">Continue to Home</button>
-      <div class="a-brand"><div class="a-logo"><i>CC</i> CapitalColumbus</div><div id="a-pitch"></div></div>
+      <div class="a-brand"><div class="a-logo"><i>ICT</i> Indian Capital Tracker</div><div id="a-pitch"></div></div>
       <div class="a-form"><div class="a-card" id="a-card"></div></div></div>`);
     box = $("auth");
     $("a-close").onclick = closeAuth;
@@ -3319,7 +3319,7 @@ function closeAuth() {
 }
 function authScreen(name, data = {}) {
   const card = $("a-card");
-  card.innerHTML = `<div class="a-logo a-mlogo"><i>CC</i> CapitalColumbus</div>` + A_SCREENS[name](data);
+  card.innerHTML = `<div class="a-logo a-mlogo"><i>ICT</i> Indian Capital Tracker</div>` + A_SCREENS[name](data);
   card.querySelectorAll("[data-as]").forEach((b) => b.onclick = () => { auth.notice = ""; authScreen(b.dataset.as, data); });
   card.querySelectorAll("[data-eye]").forEach((b) => b.onclick = () => { const i = b.parentElement.querySelector("input"), show = i.type === "password"; i.type = show ? "text" : "password"; b.textContent = show ? "Hide" : "Show"; b.setAttribute("aria-label", show ? "Hide password" : "Show password"); });
   const pw = $("a-pw"), meter = $("a-meter");
