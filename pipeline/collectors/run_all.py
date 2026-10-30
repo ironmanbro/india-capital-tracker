@@ -5,7 +5,8 @@ mca.py is not in the list: it needs a paid gateway key and company names as argu
 import os, subprocess, sys, time
 
 SCRIPTS = ["final.py", "tracker.py", "ipo.py", "fpi_final.py", "sector.py", "nsdl_all.py", "bse_deals.py", "cci.py", "rbi.py",
-           "sebi.py", "startup_rss.py", "sec13f.py", "exchange.py", "dpiit.py", "gdelt.py"]
+           "sebi.py", "startup_rss.py", "sec13f.py", "exchange.py", "dpiit.py", "gdelt.py",
+           "fx.py", "announcements.py", "pib.py"]
 
 failed = []
 for s in SCRIPTS:

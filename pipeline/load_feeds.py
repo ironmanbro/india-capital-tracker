@@ -10,7 +10,7 @@ BATCH = 500
 FOREIGN = re.compile(r"\b(PTE|LLC|L\.?P\.?|PLC|SICAV|ICAV|S\.?A\.?|SARL|GMBH|AG|INC|N\.?V\.?|B\.?V\.?|MAURITIUS|SINGAPORE|CAYMAN|IRELAND|LUXEMBOURG|NORWAY|ABU DHABI|DUBAI|QATAR|KUWAIT|SAUDI|JAPAN|KOREA|TAIWAN|HONG KONG|CANADA|AUSTRALIA|MASTER FUND|FEEDER|OFFSHORE|EMERGING MARKETS?|GOVERNMENT OF|MONETARY AUTHORITY|INVESTMENT AUTHORITY|PENSION|SOVEREIGN|ODI|FPI|GOLDMAN SACHS|MORGAN STANLEY|CITIGROUP|BNP PARIBAS|SOCIETE GENERALE|J\.?P\.? ?MORGAN|BOFA|MERRILL|NOMURA|UBS|CLSA|VANGUARD|BLACKROCK|GIC|NORGES|TEMASEK|FIDELITY|ABERDEEN|MACQUARIE|HSBC|BARCLAYS|CITADEL|JANE STREET|SOCIETE)\b", re.I)
 DOMESTIC = re.compile(r"(MUTUAL FUND|\bMF\b|INSURANCE|\bHUF\b|PRIVATE LIMITED|PVT\.? LTD|BROKING|SHARE BROKERS)", re.I)
 INR_PER_USD = 88
-EXTRA = ("startup_funding_news", "sec_13f_filings_index", "sec_13f_holdings_latest", "dpiit_fdi_publications", "gdelt_india_investments")
+EXTRA = ("startup_funding_news", "sec_13f_filings_index", "sec_13f_holdings_latest", "dpiit_fdi_publications", "gdelt_india_investments", "fx_usd_inr", "nse_announcements", "pib_releases")
 # dataset -> (file, key function). Time series keep the date in the key so history accumulates;
 # snapshots are keyed by entity and overwritten.
 def deals(d):
