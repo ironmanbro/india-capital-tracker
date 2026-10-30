@@ -712,6 +712,13 @@ body.anon .gnav button:not([data-g="home"])::after{content:"🔒";position:absol
 .a-mperks .a-perks{grid-template-columns:1fr;margin-top:8px}
 @media(max-width:860px){.a-mperks{display:block}}
 @media(max-height:760px){.a-brand h2{font-size:26px!important}.a-perks{gap:9px 16px}.a-perks small{display:none}}
+/* Sign-in page: both halves start on the same line (logo row, then a shared top), and the pitch uses one column width. */
+.a-brand{justify-content:flex-start;gap:34px}
+#a-pitch{max-width:600px}
+.a-brand h2,.a-brand p{max-width:none}
+@media(min-width:861px){.a-form{align-items:flex-start;padding-top:clamp(112px,13vh,170px)}.a-card{max-width:400px}
+  .a-brand{align-items:center}.a-brand .a-logo,#a-pitch{width:100%;max-width:600px}
+  #a-pitch{flex:1;margin-top:calc(clamp(112px,13vh,170px) - 112px)}.a-free{margin-top:auto;padding-top:20px}}
 </style>
 <script src="vendor/lenis.min.js" defer></script>
 </head>
