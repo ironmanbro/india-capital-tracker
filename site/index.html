@@ -2926,9 +2926,11 @@ async function renderAum() {
   const w = $("dir-aum");
   if (dir.view !== "fpi") { w.innerHTML = ""; return; }
   const country = await countryAum();
+  if (dir.view !== "fpi") return;
   try {
     if (!dir.aum) dir.aum = (await api("feed_records?select=data&dataset=eq.fpi_sector&limit=200")).map((r) => r.data);
   } catch { dir.aum = null; }
+  if (dir.view !== "fpi") { w.innerHTML = ""; return; }
   const rows = dir.aum || [];
   const cols = rows[0] ? Object.keys(rows[0]) : [];
   const dates = [...new Set(cols.map((c) => /^AUC as on (.+?)_IN INR Cr\./.exec(c)?.[1]).filter(Boolean))];
@@ -3017,6 +3019,16 @@ function dirPath() {
   return `ifsca_entities?select=enc_id,name,category,sub_category,reg_no,reg_date,address,website,first_seen,ifsca_contacts(contact_name,phone,email,remarks)&${f.map((x) => x + "&").join("")}order=${order}${off}`;
 }
 
+// GIFT entities whose exact name is also on the NSDL FPI register (case ignored).
+async function fpiMatches(names) {
+  const out = new Map(), q = (n) => `name.ilike."${n.replace(/[\\"]/g, "")}"`;
+  for (let i = 0; i < names.length; i += 20) {
+    const part = names.slice(i, i + 20).filter((n) => n && !/[%_*]/.test(n));
+    if (!part.length) continue;
+    (await api(`fpi_registry?select=name,reg_no,category,status&or=(${encodeURIComponent(part.map(q).join(","))})&limit=100`).catch(() => [])).forEach((r) => out.set(gNorm(r.name), r));
+  }
+  return out;
+}
 function dirRow(r) {
   if (dir.view === "fpi") {
     // registered_on is known for registrations of the last three years; older ones show the year only.
@@ -3056,10 +3068,12 @@ function dirRow(r) {
     <td><div class="fn">${esc(r.name)}${isNew ? `<span class="new" title="Registered in the last 30 days">NEW</span>` : ""}</div><div class="freg">${esc(r.reg_no || "No registration number listed")}<span class="cm"> · ${esc(r.sub_category || "")}</span></div></td>
     <td class="h-type ftype">${esc(r.sub_category || "–")}${allCats && r.category ? `<small class="fcat">${esc(r.category)}</small>` : ""}</td>
     <td class="fwhen">${when}</td>
+    <td class="h-fpi">${(() => { const f = dir.fpiHit?.get(gNorm(r.name)); return f ? `<span class="pill c1" title="Registered with SEBI as an FPI: ${esc(f.reg_no)}${f.status ? ` · ${esc(f.status)}` : ""}">Yes${f.category ? ` · Cat ${esc(f.category)}` : ""}</span>` : `<span class="ftype">–</span>`; })()}</td>
     <td class="h-person">${c.contact_name ? esc(c.contact_name) : `<span class="ftype">–</span>`}</td>
     <td class="h-reach freach">${[tel, mail].filter(Boolean).join("") || `<span class="ftype">–</span>`}</td>
-  </tr><tr class="fmore" hidden><td colspan="5"><dl>
+  </tr><tr class="fmore" hidden><td colspan="6"><dl>
     <dt>Category</dt><dd>${esc(r.category || "–")} · ${esc(r.sub_category || "–")}</dd>
+    <dt>Registered as an FPI</dt><dd>${(() => { const f = dir.fpiHit?.get(gNorm(r.name)); return f ? `Yes · ${esc(f.reg_no)}${f.category ? ` · Category ${esc(f.category)}` : ""}` : "No FPI with this exact name"; })()}</dd>
     <dt>Contact</dt><dd>${[c.contact_name && esc(c.contact_name), tel, mail].filter(Boolean).join(" · ") || "–"}</dd>
     <dt>Address</dt><dd>${esc(r.address || "–")}</dd>
     ${site ? `<dt>Website</dt><dd><a href="${safeUrl(site)}" target="_blank" rel="noopener">${esc(r.website)}</a></dd>` : ""}
@@ -3077,7 +3091,7 @@ function dirTable(rows) {
   const head = fpi
     ? `${th("name", "FPI")}${th("country", "Country", "h-country")}<th class="h-cat">Cat.</th><th class="h-type">Type</th>
        ${th("registered", "Registered")}${th("valid", "Valid until", "h-valid")}<th class="h-status">Status</th>`
-    : `${th("name", "Entity")}${th("type", "Type", "h-type")}${th("registered", "Registered")}<th class="h-person">Contact person</th><th class="h-reach">Phone and email</th>`;
+    : `${th("name", "Entity")}${th("type", "Type", "h-type")}${th("registered", "Registered")}<th class="h-fpi" title="Same name on the NSDL FPI register">FPI</th><th class="h-person">Contact person</th><th class="h-reach">Phone and email</th>`;
   return `<div class="ftable-wrap"><div class="scroll"><table class="ftable ${fpi ? "t-fpi" : "t-ifsc"}"><thead><tr>${head}</tr></thead><tbody id="dir-tbody">${rows}</tbody></table></div></div>`;
 }
 // Header buttons sort. A row opens its details: always for GIFT IFSC (address), on phones for FPIs (hidden columns).
@@ -3120,6 +3134,7 @@ async function runDirSearch(reset) {
   try {
     const { rows, total } = await apiPage(dirPath());
     if (seq !== dir.seq) return; // a newer search has started
+    if (dir.view !== "fpi") { const hit = await fpiMatches(rows.map((r) => r.name)); if (seq !== dir.seq) return; dir.fpiHit = new Map([...(reset ? [] : dir.fpiHit || []), ...hit]); }
     const html = rows.map(dirRow).join("");
     const none = `<div class="empty">Nothing matches. Try a shorter name or clear the filters.</div>`;
     if (reset) $("dir-list").innerHTML = html ? dirTable(html) : none;
