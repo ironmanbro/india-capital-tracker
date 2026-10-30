@@ -870,7 +870,7 @@ html.lenis,html.lenis body{height:auto}
   </section>
 
   <section id="tab-markets" hidden>
-    <p class="sub" style="margin:0 0 12px">Daily exchange and NSDL data: FII/DII activity, bulk and block deals, IPOs, FPI debt holdings, sector allocations and promoter/public shareholding. Loaded by the daily data job.</p>
+    <p class="sub" style="margin:0 0 12px">Daily exchange and NSDL data: FII/FPI activity, bulk and block deals with foreign investors, FPI debt holdings and sector allocations. Loaded by the daily data job.</p>
     <div id="mk-body"><p class="note">Loading…</p></div>
   </section>
 
@@ -3084,16 +3084,15 @@ countVisit();
 setInterval(refresh, 5 * 60 * 1000);
 
 // ---------- Markets: data from the daily collector job (table feed_records) ----------
-const MK_PAGE = 25;
 const mk = { loaded: false, data: {} };
 const mkNum = (v) => { const n = parseFloat(String(v ?? "").replace(/,/g, "")); return isNaN(n) ? null : n; };
 const mkFmt = (v, d = 0) => { const n = mkNum(v); return n === null ? "–" : n.toLocaleString("en-IN", { maximumFractionDigits: d }); };
-const mkTable = (head, rows, id) => rows.length
-  ? `<div class="ftable-wrap"><div class="scroll"><table class="ftable"><thead><tr>${head.map((h, i) => `<th${i ? ' class="num"' : ""}>${esc(h)}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c, i) => `<td${i ? ' class="num"' : ""}>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>`
+const mkTable = (head, rows, nText = 1) => rows.length
+  ? `<div class="ftable-wrap"><div class="scroll"><table class="ftable"><thead><tr>${head.map((h, i) => `<th${i >= nText ? ' class="num"' : ""}>${esc(h)}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c, i) => `<td${i >= nText ? ' class="num"' : ""}>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>`
   : `<p class="note">No data yet.</p>`;
 // Same name test as the ingest function: a heuristic, so it can miss some foreign investors.
 const MK_FOREIGN = /\b(PTE|LLC|L\.?P\.?|PLC|SICAV|ICAV|S\.?A\.?|SARL|GMBH|AG|INC|N\.?V\.?|B\.?V\.?|MAURITIUS|SINGAPORE|CAYMAN|IRELAND|LUXEMBOURG|NORWAY|ABU DHABI|DUBAI|QATAR|KUWAIT|SAUDI|JAPAN|KOREA|TAIWAN|HONG KONG|CANADA|AUSTRALIA|MASTER FUND|FEEDER|OFFSHORE|EMERGING MARKETS?|GOVERNMENT OF|MONETARY AUTHORITY|INVESTMENT AUTHORITY|PENSION|SOVEREIGN|ODI|FPI|GOLDMAN SACHS|MORGAN STANLEY|CITIGROUP|BNP PARIBAS|SOCIETE GENERALE|J\.?P\.? ?MORGAN|BOFA|MERRILL|NOMURA|UBS|CLSA|VANGUARD|BLACKROCK|GIC|NORGES|TEMASEK|FIDELITY|ABERDEEN|MACQUARIE|HSBC|BARCLAYS|CITADEL|JANE STREET|SOCIETE)\b/i, MK_DOMESTIC = /(MUTUAL FUND|\bMF\b|INSURANCE|\bHUF\b|PRIVATE LIMITED|PVT\.? LTD|BROKING|SHARE BROKERS)/i;
-const mkWho = (name) => MK_DOMESTIC.test(name || "") ? "Domestic" : MK_FOREIGN.test(name || "") ? "Foreign" : "Likely domestic";
+const mkForeign = (name) => MK_FOREIGN.test(name || "") && !MK_DOMESTIC.test(name || "");
 const mkSec = (title, note, body) => `<h2 class="fsec">${esc(title)}</h2><p class="note">${esc(note)}</p>${body}`;
 
 async function openMarkets() {
@@ -3112,21 +3111,18 @@ function renderMarkets() {
   const latest = (n, f) => { const all = d(n); const m = all.map(f).sort().pop(); return all.filter((x) => f(x) === m); };
   const dt = (x) => new Date(x || 0).getTime() || 0;
   const out = [];
-  const fii = d("fii_dii").sort((a, b) => dt(b.date) - dt(a.date)).slice(0, 20);
-  out.push(mkSec("FII / DII activity", "Daily cash-market buying and selling, ₹ crore (NSE).",
+  const fii = d("fii_dii").filter((r) => !/^dii$/i.test(r.category)).sort((a, b) => dt(b.date) - dt(a.date)).slice(0, 20);
+  out.push(mkSec("FII / FPI activity", "Daily foreign investor buying and selling in the cash market, ₹ crore (NSE).",
     mkTable(["Date · category", "Buy", "Sell", "Net"], fii.map((r) => [`${r.date} · ${r.category}`, mkFmt(r.buyValue, 2), mkFmt(r.sellValue, 2), mkFmt(r.netValue, 2)]))));
   const deals = (mk.data.nse_deals || []).filter((r) => r.key.startsWith("BULK") || r.key.startsWith("BLOCK"))
-    .map((r) => r.data).sort((a, b) => dt(b.date) - dt(a.date) || (mkNum(b.qty) * mkNum(b.watp)) - (mkNum(a.qty) * mkNum(a.watp))).slice(0, 100);
-  out.push(mkSec("Bulk and block deals", "Latest 100 on NSE. \"Investor\" says whether the client looks foreign or domestic from its name; names that match neither are marked likely domestic.",
-    mkTable(["Date · company · client", "Investor", "Side", "Quantity", "Avg price", "Value (₹ cr)"], deals.map((r) =>
-      [`${r.date} · ${r.name || r.symbol} · ${r.clientName || "–"}`, mkWho(r.clientName), r.buySell || "–", mkFmt(r.qty), mkFmt(r.watp, 2), mkFmt(mkNum(r.qty) * mkNum(r.watp) / 1e7, 1)]))));
-  const who = (state.events || []).filter((e) => e.event_type === "entry" && e.investor && e.target).slice(0, 40);
-  out.push(mkSec("Who invested in whom", "Latest investments from the news and exchange deals, newest first. Investor type comes from the name.",
-    mkTable(["Investor → invested in", "Investor type", "Amount", "Date"], who.map((e) =>
-      [`${e.investor} → ${e.target}`, mkWho(e.investor), e.amount_text || "–", (e.published_at || e.fetched_at || "").slice(0, 10)]))));
-  const ipo = d("ipo_current").filter((r) => !r.category || r.category === "Total");
-  out.push(mkSec("IPOs open now", "Subscription as a multiple of shares offered.",
-    mkTable(["Company", "Price", "Opens – closes", "Subscribed (×)"], ipo.map((r) => [r.companyName, r.issuePrice, `${r.issueStartDate} – ${r.issueEndDate}`, mkFmt(r.noOfTime, 2)]))));
+    .map((r) => r.data).filter((r) => mkForeign(r.clientName)).sort((a, b) => dt(b.date) - dt(a.date) || (mkNum(b.qty) * mkNum(b.watp)) - (mkNum(a.qty) * mkNum(a.watp))).slice(0, 100);
+  out.push(mkSec("Bulk and block deals", "Latest 100 on NSE with a foreign-looking client. Foreign is judged from the client name, so some foreign investors may be missing.",
+    mkTable(["Date", "Foreign investor", "Company invested in", "Side", "Quantity", "Avg price", "Value (₹ cr)"], deals.map((r) =>
+      [r.date, r.clientName || "–", r.name || r.symbol || "–", r.buySell || "–", mkFmt(r.qty), mkFmt(r.watp, 2), mkFmt(mkNum(r.qty) * mkNum(r.watp) / 1e7, 1)]), 4)));
+  const who = (state.events || []).filter((e) => e.event_type === "entry" && e.investor && e.target && mkForeign(e.investor)).slice(0, 40);
+  out.push(mkSec("Who invested in whom", "Latest investments from the news and exchange deals, newest first. Foreign investors only, judged from the name.",
+    mkTable(["Foreign investor", "Company invested in", "Amount", "Date"], who.map((e) =>
+      [e.investor, e.target, e.amount_text || "–", (e.published_at || e.fetched_at || "").slice(0, 10)]), 2)));
   const debt = d("fpi_debt_summary");
   out.push(mkSec("FPI debt limits", "Limit use by instrument, ₹ crore (NSDL).",
     mkTable(["Instrument", "Limit", "Invested", "Used (%)"], debt.map((r) => [r["Instrument Type"], mkFmt(r["Upper Limit (Refer to Note 1 &2)_(INR Cr)_(A)"]),
@@ -3138,16 +3134,7 @@ function renderMarkets() {
   const sec = d("fpi_sector").map((r) => { const k = Object.keys(r).find((x) => /Equity$/.test(x)); return [r.Sectors, mkNum(r[k]) || 0, k]; })
     .sort((a, b) => b[1] - a[1]).slice(0, 25);
   out.push(mkSec("FPI equity by sector", sec[0] ? sec[0][2].replace(/_/g, " · ") : "Assets under custody.", mkTable(["Sector", "₹ crore"], sec.map((r) => [r[0], mkFmt(r[1])]))));
-  out.push(`<h2 class="fsec">Promoter and public shareholding</h2><p class="note">Latest filing per company (NSE). Search by name or symbol.</p>
-    <div class="filters"><input id="mk-q" type="search" placeholder="Search company or symbol" aria-label="Search shareholding"></div><div id="mk-shp"></div>`);
   $("mk-body").innerHTML = out.join("");
-  const shp = d("nse_shareholding");
-  const draw = () => {
-    const q = $("mk-q").value.trim().toLowerCase();
-    const rows = shp.filter((r) => !q || `${r.name} ${r.symbol}`.toLowerCase().includes(q)).slice(0, MK_PAGE);
-    $("mk-shp").innerHTML = mkTable(["Company", "Promoter (%)", "Public (%)", "As of"], rows.map((r) => [`${r.name} (${r.symbol})`, mkFmt(r.promoter_holding, 2), mkFmt(r.public_holding, 2), r.date]));
-  };
-  $("mk-q").addEventListener("input", draw); draw();
 }
 </script>
 </body>
