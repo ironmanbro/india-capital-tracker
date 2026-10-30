@@ -3088,8 +3088,8 @@ const MK_PAGE = 25;
 const mk = { loaded: false, data: {} };
 const mkNum = (v) => { const n = parseFloat(String(v ?? "").replace(/,/g, "")); return isNaN(n) ? null : n; };
 const mkFmt = (v, d = 0) => { const n = mkNum(v); return n === null ? "–" : n.toLocaleString("en-IN", { maximumFractionDigits: d }); };
-const mkTable = (head, rows, id) => rows.length
-  ? `<div class="ftable-wrap"><div class="scroll"><table class="ftable"><thead><tr>${head.map((h, i) => `<th${i ? ' class="num"' : ""}>${esc(h)}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c, i) => `<td${i ? ' class="num"' : ""}>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>`
+const mkTable = (head, rows, nText = 1) => rows.length
+  ? `<div class="ftable-wrap"><div class="scroll"><table class="ftable"><thead><tr>${head.map((h, i) => `<th${i >= nText ? ' class="num"' : ""}>${esc(h)}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c, i) => `<td${i >= nText ? ' class="num"' : ""}>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>`
   : `<p class="note">No data yet.</p>`;
 // Same name test as the ingest function: a heuristic, so it can miss some foreign investors.
 const MK_FOREIGN = /\b(PTE|LLC|L\.?P\.?|PLC|SICAV|ICAV|S\.?A\.?|SARL|GMBH|AG|INC|N\.?V\.?|B\.?V\.?|MAURITIUS|SINGAPORE|CAYMAN|IRELAND|LUXEMBOURG|NORWAY|ABU DHABI|DUBAI|QATAR|KUWAIT|SAUDI|JAPAN|KOREA|TAIWAN|HONG KONG|CANADA|AUSTRALIA|MASTER FUND|FEEDER|OFFSHORE|EMERGING MARKETS?|GOVERNMENT OF|MONETARY AUTHORITY|INVESTMENT AUTHORITY|PENSION|SOVEREIGN|ODI|FPI|GOLDMAN SACHS|MORGAN STANLEY|CITIGROUP|BNP PARIBAS|SOCIETE GENERALE|J\.?P\.? ?MORGAN|BOFA|MERRILL|NOMURA|UBS|CLSA|VANGUARD|BLACKROCK|GIC|NORGES|TEMASEK|FIDELITY|ABERDEEN|MACQUARIE|HSBC|BARCLAYS|CITADEL|JANE STREET|SOCIETE)\b/i, MK_DOMESTIC = /(MUTUAL FUND|\bMF\b|INSURANCE|\bHUF\b|PRIVATE LIMITED|PVT\.? LTD|BROKING|SHARE BROKERS)/i;
@@ -3118,12 +3118,12 @@ function renderMarkets() {
   const deals = (mk.data.nse_deals || []).filter((r) => r.key.startsWith("BULK") || r.key.startsWith("BLOCK"))
     .map((r) => r.data).filter((r) => mkForeign(r.clientName)).sort((a, b) => dt(b.date) - dt(a.date) || (mkNum(b.qty) * mkNum(b.watp)) - (mkNum(a.qty) * mkNum(a.watp))).slice(0, 100);
   out.push(mkSec("Bulk and block deals", "Latest 100 on NSE with a foreign-looking client. Foreign is judged from the client name, so some foreign investors may be missing.",
-    mkTable(["Date · company · client", "Side", "Quantity", "Avg price", "Value (₹ cr)"], deals.map((r) =>
-      [`${r.date} · ${r.name || r.symbol} · ${r.clientName || "–"}`, r.buySell || "–", mkFmt(r.qty), mkFmt(r.watp, 2), mkFmt(mkNum(r.qty) * mkNum(r.watp) / 1e7, 1)]))));
+    mkTable(["Date", "Foreign investor", "Domestic investee company", "Side", "Quantity", "Avg price", "Value (₹ cr)"], deals.map((r) =>
+      [r.date, r.clientName || "–", r.name || r.symbol || "–", r.buySell || "–", mkFmt(r.qty), mkFmt(r.watp, 2), mkFmt(mkNum(r.qty) * mkNum(r.watp) / 1e7, 1)]), 4)));
   const who = (state.events || []).filter((e) => e.event_type === "entry" && e.investor && e.target && mkForeign(e.investor)).slice(0, 40);
   out.push(mkSec("Who invested in whom", "Latest investments from the news and exchange deals, newest first. Foreign investors only, judged from the name.",
-    mkTable(["Investor → invested in", "Amount", "Date"], who.map((e) =>
-      [`${e.investor} → ${e.target}`, e.amount_text || "–", (e.published_at || e.fetched_at || "").slice(0, 10)]))));
+    mkTable(["Foreign investor", "Domestic investee company", "Amount", "Date"], who.map((e) =>
+      [e.investor, e.target, e.amount_text || "–", (e.published_at || e.fetched_at || "").slice(0, 10)]), 2)));
   const ipo = d("ipo_current").filter((r) => !r.category || r.category === "Total");
   out.push(mkSec("IPOs open now", "Subscription as a multiple of shares offered.",
     mkTable(["Company", "Price", "Opens – closes", "Subscribed (×)"], ipo.map((r) => [r.companyName, r.issuePrice, `${r.issueStartDate} – ${r.issueEndDate}`, mkFmt(r.noOfTime, 2)]))));
