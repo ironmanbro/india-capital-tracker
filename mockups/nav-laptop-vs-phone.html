@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mockup: all tabs on laptop, merged tabs on phone</title>
+<style>
+:root{--bg:#000;--panel:#0c0c0e;--ink:#f5f5f7;--muted:#8e8e93;--line:rgba(255,255,255,.1);--chip:rgba(255,255,255,.07);--accent:#6f95ff}
+*{box-sizing:border-box}
+body{margin:0;background:#111216;color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+.page{max-width:1180px;margin:0 auto;padding:22px 16px 50px}
+h1{font-size:18px;margin:0 0 4px}.lead{color:var(--muted);margin:0 0 18px}
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:28px;align-items:start}
+@media(max-width:900px){.stage{grid-template-columns:1fr}}
+.cap{color:var(--muted);font-size:12px;letter-spacing:.06em;text-transform:uppercase;margin:0 0 8px}
+/* laptop */
+.laptop{background:var(--bg);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.lbar{display:flex;gap:6px;padding:10px 12px;border-bottom:1px solid var(--line)}.lbar i{width:10px;height:10px;border-radius:50%;background:var(--chip)}
+.lbody{padding:16px}
+.lhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+.lhead b{font-size:17px}.search{background:var(--chip);border:1px solid var(--line);border-radius:9px;padding:7px 10px;color:var(--muted);font-size:12px;min-width:200px}
+.ltabs{display:flex;gap:2px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:12px}
+.ltabs span{padding:7px 12px;border-radius:9px;color:var(--muted);font-weight:600;font-size:13px}
+.ltabs span.on{background:var(--chip);color:var(--ink);box-shadow:inset 0 -2px 0 var(--accent)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:10px}
+.card b{display:block;margin-bottom:6px}.bar{height:7px;border-radius:4px;background:var(--chip);overflow:hidden}.bar i{display:block;height:100%;background:var(--accent)}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.tile{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px}.tile small{color:var(--muted);display:block;font-size:11px}.tile strong{font-size:16px}
+.note{margin-top:14px;color:var(--muted);font-size:12px}
+/* phone */
+.phone{width:300px;height:620px;background:var(--bg);border:8px solid #1c1d22;border-radius:38px;position:relative;overflow:hidden;margin:0 auto;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:96px;height:20px;background:#1c1d22;border-radius:0 0 14px 14px;z-index:5}
+.pscreen{position:absolute;inset:0;padding:30px 14px 78px;overflow:auto}
+.ptop{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.ptop b{font-size:17px}
+.psearch{background:var(--chip);border:1px solid var(--line);border-radius:10px;padding:9px 11px;color:var(--muted);font-size:12px;margin-bottom:10px}
+.crumb{color:var(--muted);font-size:12px;margin-bottom:6px}.crumb b{color:var(--ink)}
+.pbar{position:absolute;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(4,1fr);background:rgba(12,12,14,.96);border-top:1px solid var(--line);padding:6px 6px 14px;z-index:10}
+.pbar button{background:none;border:0;color:var(--muted);font:inherit;font-size:11px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;border-radius:10px;cursor:pointer}
+.pbar button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.pbar button.on{color:var(--ink)}.pbar button.on svg{stroke:var(--accent)}
+.pbar button .dot{width:4px;height:4px;border-radius:50%;background:var(--muted);margin-top:-1px}
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.55);opacity:0;visibility:hidden;transition:.18s;z-index:12}
+.sheet{position:absolute;left:0;right:0;bottom:62px;background:var(--panel);border:1px solid var(--line);border-radius:18px 18px 0 0;padding:8px 10px 12px;transform:translateY(110%);transition:transform .2s;z-index:13;pointer-events:none}
+.open .scrim{opacity:1;visibility:visible}.open .sheet{transform:none;pointer-events:auto}
+.sheet h4{margin:6px 6px 6px;font-size:12px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+.sheet button{display:block;width:100%;text-align:left;background:none;border:0;color:var(--ink);font:inherit;padding:11px 10px;border-radius:10px;min-height:44px;cursor:pointer}
+.sheet button small{display:block;color:var(--muted);font-size:11px;margin-top:1px}.sheet button.on{background:var(--chip);box-shadow:inset 3px 0 0 var(--accent)}
+.try{margin-top:10px;color:var(--muted);font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Navigation: all tabs on laptop, merged tabs on phone</h1>
+  <p class="lead">Wide screens keep every tab open in one row. Below about 700px wide, the same tabs fold into four bottom buttons, and each merged button opens a sheet to pick the view.</p>
+
+  <div class="stage">
+    <div>
+      <p class="cap">Laptop · unchanged</p>
+      <div class="laptop">
+        <div class="lbar"><i></i><i></i><i></i></div>
+        <div class="lbody">
+          <div class="lhead"><b>Flows</b><div class="search">Search investors, companies, FPIs…</div></div>
+          <div class="ltabs"><span>Home</span><span>Feed</span><span>Investors</span><span>Network</span><span class="on">Flows</span><span>Markets</span><span>FPIs</span><span>GIFT City</span></div>
+          <div class="tiles"><div class="tile"><small>FPI net, today</small><strong>−₹943 cr</strong></div><div class="tile"><small>This month</small><strong>−₹45,828 cr</strong></div><div class="tile"><small>FDI, FY26</small><strong>$6.7bn</strong></div></div>
+          <div class="card"><b>FPI net investment, recent days</b><div class="bar"><i style="width:62%"></i></div></div>
+          <div class="note">All eight tabs are visible at once, as today. No hover or extra tap needed.</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <p class="cap">Phone · merged</p>
+      <div class="phone" id="phone">
+        <div class="notch"></div>
+        <div class="pscreen">
+          <div class="ptop"><b id="ptitle">Home</b><span style="color:var(--muted)">☼</span></div>
+          <div class="psearch">Search investors, companies, FPIs…</div>
+          <div class="crumb" id="crumb"></div>
+          <div class="tiles" style="grid-template-columns:1fr 1fr"><div class="tile"><small>FPI net, today</small><strong>−₹943 cr</strong></div><div class="tile"><small>Largest FPI country</small><strong>USA</strong></div></div>
+          <div class="card"><b id="ctitle"></b><div class="bar"><i style="width:55%"></i></div></div>
+          <div class="card" style="color:var(--muted)">Content for the chosen view.</div>
+        </div>
+        <div class="scrim" id="scrim"></div>
+        <div class="sheet" id="sheet" role="menu"></div>
+        <div class="pbar" id="pbar"></div>
+      </div>
+      <p class="try">Tap Deals, Markets or Registers.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const ICON = {
+  home: '<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+  deals: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7 9h10M7 13h10M7 17h6"/>',
+  markets: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  registers: '<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M9 7h6"/>',
+};
+const TABS = [
+  { id: "home", label: "Home", views: [["Home", "Latest numbers and stories"]] },
+  { id: "deals", label: "Deals", views: [["Stories", "Investments, exits, fund launches"], ["Investors", "Foreign investors, one profile each"], ["Network", "Firms that appear together"]] },
+  { id: "markets", label: "Markets", views: [["Flows", "FPI and FDI money flows"], ["Exchange data", "FII/FPI, deals, debt, sectors"]] },
+  { id: "registers", label: "Registers", views: [["FPIs", "Every registered FPI, assets held"], ["GIFT City", "Entities IFSCA regulates"]] },
+];
+const st = { tab: "home", view: { home: 0, deals: 0, markets: 0, registers: 0 }, sheet: null };
+const $ = (id) => document.getElementById(id);
+function draw() {
+  $("pbar").innerHTML = TABS.map((t) => `<button type="button" data-id="${t.id}" class="${t.id === st.tab ? "on" : ""}"><svg viewBox="0 0 24 24">${ICON[t.id]}</svg>${t.label}${t.views.length > 1 ? '<span class="dot"></span>' : ""}</button>`).join("");
+  $("pbar").querySelectorAll("button").forEach((b) => b.onclick = () => {
+    const t = TABS.find((x) => x.id === b.dataset.id);
+    if (t.views.length === 1) { st.tab = t.id; st.sheet = null; } else st.sheet = st.sheet === t.id ? null : t.id;
+    draw();
+  });
+  const t = TABS.find((x) => x.id === st.sheet);
+  $("sheet").innerHTML = t ? `<h4>${t.label}</h4>` + t.views.map((v, i) => `<button type="button" role="menuitem" data-i="${i}" class="${st.tab === t.id && st.view[t.id] === i ? "on" : ""}">${v[0]}<small>${v[1]}</small></button>`).join("") : "";
+  $("sheet").querySelectorAll("button").forEach((b) => b.onclick = () => { st.tab = t.id; st.view[t.id] = +b.dataset.i; st.sheet = null; draw(); });
+  $("phone").classList.toggle("open", !!st.sheet);
+  const cur = TABS.find((x) => x.id === st.tab), v = cur.views[st.view[cur.id]];
+  $("ptitle").textContent = v[0];
+  $("crumb").innerHTML = cur.views.length > 1 ? `${cur.label} › <b>${v[0]}</b>` : "";
+  $("ctitle").textContent = v[0];
+}
+$("scrim").onclick = () => { st.sheet = null; draw(); };
+draw();
+</script>
+</body>
+</html>
