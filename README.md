@@ -1,4 +1,4 @@
-# CapitalColumbus
+# Indian Capital Tracker
 
 A live feed of foreign money moving into and out of India: investments, exits,
 offshore and GIFT City fund launches, and funds changing jurisdiction.
