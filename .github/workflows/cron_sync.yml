@@ -18,12 +18,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install requests pandas openpyxl lxml
+      - run: pip install -r pipeline/collectors/requirements.txt openpyxl
       - name: Collect
-        run: |
-          for s in final tracker ipo fpi_final sector; do python pipeline/collectors/$s.py || echo "$s failed"; done
+        working-directory: pipeline/collectors
+        run: python run_all.py || echo "some scripts failed (see above)"
       - name: Load into Supabase
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-        run: python pipeline/load_feeds.py
+        run: python pipeline/load_feeds.py pipeline/collectors/data

@@ -2755,9 +2755,24 @@ async function apiPage(path) {
 
 
 // FPI assets under custody by sector (NSDL, via the daily data job): latest date in the file.
+// AUC by country: NSDL's top-10 table, shown as published (column names come from the file).
+async function countryAum() {
+  try {
+    if (dir.country === undefined) dir.country = (await api("feed_records?select=data&dataset=eq.nsdl&key=eq.fpi_auc_country_top10&limit=1"))[0]?.data || null;
+  } catch { dir.country = null; }
+  const t = (dir.country || []).find((x) => x.rows && x.rows.length);
+  if (!t) return "";
+  const cols = Object.keys(t.rows[0]);
+  const cell = (v) => typeof v === "number" ? nfmt(v) : esc(v);
+  return `<h2 class="fsec">Assets held by country</h2><p class="note">${esc(t.title || "FPI assets under custody, top countries")} (NSDL).</p>
+    <div class="ftable-wrap"><div class="scroll"><table class="ftable"><thead><tr>${cols.map((c, i) => `<th${i ? ' class="num"' : ""}>${esc(c)}</th>`).join("")}</tr></thead><tbody>${t.rows.map((r) =>
+      `<tr>${cols.map((c, i) => `<td${i ? ' class="num"' : ""}>${cell(r[c])}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>`;
+}
+
 async function renderAum() {
   const w = $("dir-aum");
   if (dir.view !== "fpi") { w.innerHTML = ""; return; }
+  const country = await countryAum();
   try {
     if (!dir.aum) dir.aum = (await api("feed_records?select=data&dataset=eq.fpi_sector&limit=200")).map((r) => r.data);
   } catch { dir.aum = null; }
@@ -2765,7 +2780,7 @@ async function renderAum() {
   const cols = rows[0] ? Object.keys(rows[0]) : [];
   const dates = [...new Set(cols.map((c) => /^AUC as on (.+?)_IN INR Cr\./.exec(c)?.[1]).filter(Boolean))];
   const last = dates[dates.length - 1];
-  if (!last) { w.innerHTML = ""; return; }
+  if (!last) { w.innerHTML = country; return; }
   const num = (v) => parseFloat(String(v ?? "").replace(/,/g, "")) || 0;
   const pre = `AUC as on ${last}_IN INR Cr._`;
   const val = (r, suffix) => num(r[pre + suffix]);
@@ -2773,7 +2788,7 @@ async function renderAum() {
   const total = grand ? val(grand, "Total") : 0;
   const list = rows.filter((r) => r !== grand && r.Sectors).map((r) => ({ n: r.Sectors, eq: val(r, "Equity"), t: val(r, "Total") })).sort((a, b) => b.t - a.t);
   const max = list[0]?.t || 1;
-  w.innerHTML = `<h2 class="fsec">Assets held by sector</h2><p class="note">FPI assets under custody as on ${esc(last)}, ₹ crore (NSDL). ${total ? `All sectors: ${nfmt(total)}.` : ""}</p>
+  w.innerHTML = country + `<h2 class="fsec">Assets held by sector</h2><p class="note">FPI assets under custody as on ${esc(last)}, ₹ crore (NSDL). ${total ? `All sectors: ${nfmt(total)}.` : ""}</p>
     <div class="ftable-wrap"><div class="scroll"><table class="ftable"><thead><tr><th>Sector</th><th class="num">Equity</th><th class="num">Total</th><th class="num">Share</th><th></th></tr></thead><tbody>${list.map((r) =>
       `<tr><td>${esc(r.n)}</td><td class="num">${nfmt(r.eq)}</td><td class="num">${nfmt(r.t)}</td><td class="num">${total ? (r.t / total * 100).toFixed(1) + "%" : "–"}</td><td style="width:22%"><div style="height:6px;border-radius:3px;background:var(--accent);width:${(r.t / max * 100).toFixed(1)}%"></div></td></tr>`).join("")}</tbody></table></div></div>`;
 }

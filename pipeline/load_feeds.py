@@ -52,6 +52,14 @@ def collect(directory):
         out["nse_deals"] = {}
         for r, k, as_of in deals(json.load(open(p))):
             out["nse_deals"][k] = {"dataset": "nse_deals", "key": k, "as_of": as_of, "data": r, "loaded_at": now}
+    # NSDL report pages: one record per file (a list of {title, rows} tables). The full FPI list is skipped; fpi_registry has it.
+    nd = os.path.join(directory, "nsdl")
+    if os.path.isdir(nd):
+        out["nsdl"] = {}
+        for fn in sorted(os.listdir(nd)):
+            if fn.endswith(".json") and fn != "list_of_fpis.json":
+                k = fn[:-5]
+                out["nsdl"][k] = {"dataset": "nsdl", "key": k, "as_of": None, "data": json.load(open(os.path.join(nd, fn))), "loaded_at": now}
     return {n: list(v.values()) for n, v in out.items()}
 
 
