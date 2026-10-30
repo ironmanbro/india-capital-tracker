@@ -10,6 +10,7 @@ BATCH = 500
 FOREIGN = re.compile(r"\b(PTE|LLC|L\.?P\.?|PLC|SICAV|ICAV|S\.?A\.?|SARL|GMBH|AG|INC|N\.?V\.?|B\.?V\.?|MAURITIUS|SINGAPORE|CAYMAN|IRELAND|LUXEMBOURG|NORWAY|ABU DHABI|DUBAI|QATAR|KUWAIT|SAUDI|JAPAN|KOREA|TAIWAN|HONG KONG|CANADA|AUSTRALIA|MASTER FUND|FEEDER|OFFSHORE|EMERGING MARKETS?|GOVERNMENT OF|MONETARY AUTHORITY|INVESTMENT AUTHORITY|PENSION|SOVEREIGN|ODI|FPI|GOLDMAN SACHS|MORGAN STANLEY|CITIGROUP|BNP PARIBAS|SOCIETE GENERALE|J\.?P\.? ?MORGAN|BOFA|MERRILL|NOMURA|UBS|CLSA|VANGUARD|BLACKROCK|GIC|NORGES|TEMASEK|FIDELITY|ABERDEEN|MACQUARIE|HSBC|BARCLAYS|CITADEL|JANE STREET|SOCIETE)\b", re.I)
 DOMESTIC = re.compile(r"(MUTUAL FUND|\bMF\b|INSURANCE|\bHUF\b|PRIVATE LIMITED|PVT\.? LTD|BROKING|SHARE BROKERS)", re.I)
 INR_PER_USD = 88
+EXTRA = ("startup_funding_news", "sec_13f_filings_index", "sec_13f_holdings_latest", "dpiit_fdi_publications", "gdelt_india_investments")
 # dataset -> (file, key function). Time series keep the date in the key so history accumulates;
 # snapshots are keyed by entity and overwritten.
 def deals(d):
@@ -133,6 +134,23 @@ def collect(directory):
                 out.setdefault("rbi", {})[fn[:-5]] = {"dataset": "rbi", "key": fn[:-5], "as_of": None, "data": body, "loaded_at": now}
             else:
                 print(f"rbi/{fn}: too large to store, skipped")
+    # Extra sources (SEBI, startup news, SEC 13F, NSE extras, DPIIT, GDELT): each file is kept whole under dataset "extra".
+    ex = {}
+    for root, _, files in os.walk(directory):
+        rel = os.path.relpath(root, directory)
+        if rel.split(os.sep)[0] in ("rbi", "nsdl"):
+            continue
+        for fn in sorted(files):
+            if not fn.endswith(".json") or fn.split(".")[0] not in EXTRA and rel not in ("sebi", "exchange"):
+                continue
+            body = json.load(open(os.path.join(root, fn)))
+            k = fn[:-5] if rel == "." else f"{rel}/{fn[:-5]}"
+            if len(json.dumps(body)) < 4_000_000:
+                ex[k] = {"dataset": "extra", "key": k, "as_of": None, "data": body, "loaded_at": now}
+            else:
+                print(f"{k}: too large to store, skipped")
+    if ex:
+        out["extra"] = ex
     # NSDL report pages: one record per file (a list of {title, rows} tables). The full FPI list is skipped; fpi_registry has it.
     nd = os.path.join(directory, "nsdl")
     if os.path.isdir(nd):
