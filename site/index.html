@@ -243,15 +243,10 @@ h1,h2,h3{text-wrap:balance}
 .pgbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:8px}
 .pgbar .link{min-height:32px}
 .backbtn{margin:0 0 10px;font-weight:600}
-.c3{position:relative}
 .netmore{margin:0 0 10px}
 .netmore>summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:13px;padding:6px 0;min-height:32px}
 .netsvg{position:relative}
 .nback{position:absolute;top:10px;right:10px;z-index:2}
-#c3{display:block;width:100%;height:620px;touch-action:none;cursor:grab}
-#c3:active{cursor:grabbing}
-.c3bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:8px 12px}
-@media (max-width:600px){#c3{height:520px}}
 .inv{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:8px;min-width:0}
 .inv h3{margin:0;font-size:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;overflow-wrap:anywhere}
 .inv .new{font-size:10px;font-weight:700;letter-spacing:.05em;padding:2px 6px;border-radius:999px;background:var(--accent);color:var(--accent-ink)}
@@ -538,7 +533,6 @@ abbr.term{text-decoration:underline dotted;text-underline-offset:3px;cursor:help
 :root:not([data-theme="light"]) .irow .in b{font-size:1rem;letter-spacing:-.015em}
 :root:not([data-theme="light"]) .irow .ic b{font-size:1.1rem;font-weight:600;letter-spacing:-.025em}
 :root:not([data-theme="light"]) .cat{border-width:0!important;background:rgba(255,255,255,.07);padding:3px 10px!important}
-:root:not([data-theme="light"]) #c3{border-radius:26px}
 :root:not([data-theme="light"]) .sub,:root:not([data-theme="light"]) .note,:root:not([data-theme="light"]) p{color:var(--muted)}
 :root:not([data-theme="light"]) table th{font-weight:600;letter-spacing:0;text-transform:none}
 @media (max-width:700px){:root:not([data-theme="light"]) h1{font-size:2rem!important}
@@ -551,7 +545,7 @@ abbr.term{text-decoration:underline dotted;text-underline-offset:3px;cursor:help
 :root:not([data-theme="light"]) .kpi,:root:not([data-theme="light"]) .ftile,:root:not([data-theme="light"]) .ovc,:root:not([data-theme="light"]) .fcard,:root:not([data-theme="light"]) .irow,:root:not([data-theme="light"]) .card{border-color:rgba(255,255,255,.4)!important}}
 @media (prefers-reduced-motion:reduce){:root:not([data-theme="light"]) .irow,:root:not([data-theme="light"]) .reset{transition:none}
 :root:not([data-theme="light"]) .irow:hover{transform:none}}
-/* Daylight look (light theme only): white cards with soft shadows, frosted glass on the floating layers, the constellation kept dark. */
+/* Daylight look (light theme only): white cards with soft shadows, frosted glass on the floating layers. */
 :root[data-theme="light"]{--bg:#f5f5f7;--panel:#fff;--ink:#1d1d1f;--muted:#6e6e73;--line:rgba(0,0,0,.08);--chip:rgba(0,0,0,.05);
   --accent:#0071e3;--accent-ink:#fff;--entry:#0071e3;--in:#0071e3;--out:#e8590c;--good:#1d9a4b;--bad:#d70015;
   --glass:linear-gradient(180deg,#fff,#fff);--shadow:0 2px 6px rgba(0,0,0,.04),0 16px 40px rgba(0,0,0,.07);
@@ -597,7 +591,6 @@ abbr.term{text-decoration:underline dotted;text-underline-offset:3px;cursor:help
 :root[data-theme="light"] .irow .ic b{font-size:1.1rem;font-weight:600;letter-spacing:-.025em}
 :root[data-theme="light"] .cat{border-width:0!important;background:rgba(0,0,0,.05);padding:3px 10px!important}
 :root[data-theme="light"] .netpanel{background:#fff!important;border:0!important;border-radius:26px!important;box-shadow:var(--shadow)!important}
-:root[data-theme="light"] #c3{border-radius:26px}
 :root[data-theme="light"] .sub,:root[data-theme="light"] .note,:root[data-theme="light"] p{color:var(--muted)}
 :root[data-theme="light"] .tag,:root[data-theme="light"] .tg{background:rgba(0,0,0,.05)!important}
 :root[data-theme="light"] table th{font-weight:600;letter-spacing:0;text-transform:none}
@@ -807,7 +800,7 @@ html.lenis,html.lenis body{height:auto}
       <select id="nsel" aria-label="Choose a firm"><option value="">Choose a firm…</option></select>
       <div class="seg" id="nview" role="group" aria-label="View">
         <button type="button" data-v="one" aria-pressed="true">One firm</button>
-        <button type="button" data-v="all" aria-pressed="false">All firms</button>
+        <button type="button" data-v="all" aria-pressed="false">Top firms</button>
       </div>
       <div class="seg" id="nhops" role="group" aria-label="How far to look">
         <button type="button" data-h="1" aria-pressed="false">1 hop</button>
@@ -827,7 +820,7 @@ html.lenis,html.lenis body{height:auto}
       <button class="reset" id="pgo" type="button">Find the link</button>
     </div>
     </details>
-    <p class="sub" style="margin:0 0 10px">A line means two firms appeared in the same deal story; it is not an ownership record. A dashed line is a stake of 1% or more from a company's shareholding filing. Click a firm to see its own links, or a line to see its stories.</p>
+    <p class="sub" style="margin:0 0 10px">A line means two firms appeared in the same deal story; it is not an ownership record. A dashed line is a stake of 1% or more from a company's shareholding filing. Click a firm to highlight its neighbours, then open its links and stories.</p>
     <div class="netwrap">
       <div class="netsvg" id="net-graph"></div>
       <aside class="netpanel" id="net-panel" aria-live="polite"></aside>
@@ -1657,7 +1650,7 @@ function render() {
 // ---------- Network: which firms appear on the same deal stories ----------
 // Built from every loaded story, not the Feed filters. Investors link to the company they bought into or sold;
 // a story with no company links its firms to each other (co-investors, or buyer and seller).
-const net = { src: null, g: null, center: null, edge: null, hops: innerWidth < 700 ? 1 : 2, view: "all", flat: false, f: { kind: "all", links: "all", period: "all", type: "all" }, sig: "" };
+const net = { src: null, g: null, center: null, edge: null, hops: innerWidth < 700 ? 1 : 2, view: "all", focus: null, f: { kind: "all", links: "all", period: "all", type: "all" }, sig: "" };
 // A link's weight counts its stories and any filed stakes; its label says which.
 const edgeW = (ed) => ed.stories.size + ed.stakes.length;
 const edgeLabel = (ed) => [ed.stories.size && `${ed.stories.size} stor${ed.stories.size === 1 ? "y" : "ies"} name both`,
@@ -1722,8 +1715,8 @@ function buildNetwork() {
 }
 
 // With paged set, the first 5 show and "View more" / "View all" reveal the rest (see the [data-pg] handler).
-// On the one-firm and path views: a button on the picture itself that returns to the 3D constellation.
-const backToAll = `<button class="reset nback" id="net-all" type="button">⟲ Show full constellation</button>`;
+// On the one-firm and path views: a button on the picture itself that returns to the network of top firms.
+const backToAll = `<button class="reset nback" id="net-all" type="button">⟲ Back to the network</button>`;
 // Smooth scrolling (Lenis) is off for people who ask for reduced motion; scrolling to the top goes through it when on.
 let lenis = null;
 function toTop(instant) {
@@ -1823,17 +1816,16 @@ function renderNetwork() {
 }
 
 $("net-graph").addEventListener("click", (ev) => {
-  const c = ev.target.closest("button[id^=c3]")?.id;
-  if (c === "c3spin") return net.c3.spin();
-  if (c === "c3in") return net.c3.zoom(1.3);
-  if (c === "c3out") return net.c3.zoom(1 / 1.3);
   if (ev.target.closest("#net-all")) { net.view = "all"; net.edge = null; return renderNetwork(); }
-  if (c === "c3flat" || c === "c3on") { net.flat = c === "c3flat"; return renderNetwork(); }
+  const g = ev.target.closest(".gn");
+  if (g) { net.focus = net.focus === g.dataset.k ? null : g.dataset.k; return renderNetwork(); }
   const n = ev.target.closest(".nn"), e = ev.target.closest(".ne");
   if (n) { net.center = n.dataset.k; net.edge = null; net.view = "one"; renderNetwork(); }
   else if (e) { net.edge = e.dataset.e; renderNetwork(); }
 });
 $("net-graph").addEventListener("keydown", (ev) => {
+  const g = ev.target.closest(".gn");
+  if (g && (ev.key === "Enter" || ev.key === " ")) { ev.preventDefault(); net.focus = net.focus === g.dataset.k ? null : g.dataset.k; return renderNetwork(); }
   const n = ev.target.closest(".nn");
   if (n && (ev.key === "Enter" || ev.key === " ")) { ev.preventDefault(); net.center = n.dataset.k; net.edge = null; net.view = "one"; renderNetwork(); }
 });
@@ -2295,7 +2287,7 @@ $("nsel").addEventListener("change", () => {
 // ---------- Filters and the path between two firms ----------
 const FILTER_IDS = { nkind: "kind", nlinks: "links", ntype: "type", nperiod: "period" };
 Object.entries(FILTER_IDS).forEach(([id, k]) => $(id).addEventListener("change", () => { net.f[k] = $(id).value; net.edge = null; renderNetwork(); }));
-// Filters and the path finder stay folded on a phone so the constellation is the first thing on screen.
+// Filters and the path finder stay folded on a phone so the network is the first thing on screen.
 $("netmore").open = innerWidth >= 700;
 $("nreset").onclick = () => { net.f = { kind: "all", links: "all", period: "all", type: "all" }; Object.entries(FILTER_IDS).forEach(([id, k]) => $(id).value = net.f[k]); net.edge = null; net.pa = net.pb = null; $("nq").value = ""; net.view = "all"; renderNetwork(); };
 $("pgo").onclick = () => { net.pa = $("pa").value; net.pb = $("pb").value; net.view = net.pa && net.pb ? "path" : net.view; renderNetwork(); };
@@ -2347,221 +2339,78 @@ document.addEventListener("click", (ev) => {
   if (left <= 0) bar.remove(); else { bar.querySelector(".sub").textContent = `Showing ${total - left} of ${total}`; b.parentNode.querySelector('[data-pg="10"]').textContent = `View ${Math.min(10, left)} more`; }
 });
 $("net-panel").addEventListener("click", (ev) => {
+  if (ev.target.closest("[data-clear]")) { net.focus = null; return renderNetwork(); }
+  const fk = ev.target.closest("[data-f]")?.dataset.f;
+  if (fk) { net.focus = fk; return renderNetwork(); }
   const k = ev.target.closest("[data-k]")?.dataset.k;
   if (k) { net.center = k; net.edge = null; net.view = "one"; renderNetwork(); }
 });
 
-// The whole picture: the most-connected firms and the links among them. A small force simulation places
-// them (linked firms pull together, every pair pushes apart), starting from a circle so it lays out the
-// same way each time. It reruns only when the stories change or the screen crosses the phone width.
+// The default view: a flat, labelled graph of the most-linked firms and the links among them. Click a dot to
+// highlight its neighbours; the side panel then opens its full links. Same input, same picture.
 function renderAllFirms() {
   const { nodes, adj, edges } = net.g, sm = innerWidth < 700;
   const deg = (k) => adj.get(k)?.size || 0;
   const linked = [...nodes.values()].filter((n) => deg(n.key) && kindOk(n)).sort((a, b) => deg(b.key) - deg(a.key) || b.stories.size - a.stories.size);
+  const N = sm ? 20 : 30, top = linked.slice(0, N), keys = new Set(top.map((n) => n.key));
+  const W = sm ? 420 : 900, H = sm ? 560 : 520;
   const id = `${nodes.size}|${edges.size}|${net.f.kind}|${sm}`;
   if (net.allId !== id) {
-    // The best-connected firms are laid out by a small force simulation; every other firm is placed in a
-    // ring around the best-connected firm it links to, and firms with no such link sit in small clusters
-    // on the outside. Same input, same picture.
-    const nCore = sm ? 120 : 200, core = linked.slice(0, nCore), cs = new Set(core.map((n) => n.key));
-    const sat = new Map(core.map((n) => [n.key, []])), rest = [], lines = [], pos = new Map();
-    linked.slice(nCore).forEach((n) => {
-      let best = null;
-      adj.get(n.key).forEach((_, k) => { if (cs.has(k) && (!best || deg(k) > deg(best))) best = k; });
-      best ? sat.get(best).push(n.key) : rest.push(n.key);
-    });
-    const r0 = (n) => Math.min(22, 4 + 2.2 * Math.sqrt(deg(n.key))) * 1.8 + 5, R = new Map(core.map((n) => [n.key, r0(n) + 4.2 * Math.sqrt(sat.get(n.key).length)]));
-    const P = core.map((n, i) => ({ k: n.key, x: 40 + 420 * Math.sqrt(i / nCore) * Math.cos(i * 2.4), y: 40 + 420 * Math.sqrt(i / nCore) * Math.sin(i * 2.4), vx: 0, vy: 0 }));
-    const at = new Map(P.map((p) => [p.k, p])), cl = [...edges.values()].filter((e) => cs.has(e.a) && cs.has(e.b));
+    // Fruchterman-Reingold layout: dots push apart, linked dots pull together, and the movement cools over time.
+    const P = top.map((n, i) => { const r = Math.sqrt((i + 1) / N); return { k: n.key, x: W / 2 + Math.cos(i * 2.4) * W * 0.3 * r, y: H / 2 + Math.sin(i * 2.4) * H * 0.3 * r, dx: 0, dy: 0 }; });
+    const at = new Map(P.map((p) => [p.k, p])), lines = [...edges.values()].filter((e) => keys.has(e.a) && keys.has(e.b));
+    const kk = 0.62 * Math.sqrt(W * H / (P.length || 1));
     for (let it = 0; it < 300; it++) {
-      const t = 1 - it / 300;
+      const t = W * 0.1 * (1 - it / 300) + 1;
+      P.forEach((p) => { p.dx = 0; p.dy = 0; });
       for (let i = 0; i < P.length; i++) for (let j = i + 1; j < P.length; j++) {
-        const a = P[i], b = P[j], dx = a.x - b.x, dy = a.y - b.y, d2 = dx * dx + dy * dy + 0.01, d = Math.sqrt(d2), F = 25 * (R.get(a.k) + R.get(b.k)) ** 2 / d2;
-        a.vx += dx / d * F; a.vy += dy / d * F; b.vx -= dx / d * F; b.vy -= dy / d * F;
+        const a = P[i], b = P[j]; let dx = a.x - b.x, dy = a.y - b.y; const d = Math.hypot(dx, dy) || 0.01, F = kk * kk / d;
+        dx /= d; dy /= d; a.dx += dx * F; a.dy += dy * F; b.dx -= dx * F; b.dy -= dy * F;
       }
-      cl.forEach((e) => {
-        const a = at.get(e.a), b = at.get(e.b), dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1, F = (d - (R.get(e.a) + R.get(e.b) + 20)) * 0.02;
-        a.vx += dx / d * F; a.vy += dy / d * F; b.vx -= dx / d * F; b.vy -= dy / d * F;
+      lines.forEach((e) => {
+        const a = at.get(e.a), b = at.get(e.b); let dx = a.x - b.x, dy = a.y - b.y; const d = Math.hypot(dx, dy) || 0.01, F = d * d / kk;
+        dx /= d; dy /= d; a.dx -= dx * F; a.dy -= dy * F; b.dx += dx * F; b.dy += dy * F;
       });
       P.forEach((p) => {
-        p.vx += -p.x * 0.002; p.vy += -p.y * 0.002;
-        const v = Math.hypot(p.vx, p.vy) || 1, c = Math.min(v, 40) / v;
-        p.x += p.vx * c * t; p.y += p.vy * c * t; p.vx *= 0.5; p.vy *= 0.5;
+        p.dx += (W / 2 - p.x) * 0.05; p.dy += (H / 2 - p.y) * 0.05;
+        const len = Math.hypot(p.dx, p.dy) || 0.01, m = Math.min(len, t);
+        p.x = Math.min(W - 70, Math.max(70, p.x + p.dx / len * m)); p.y = Math.min(H - 26, Math.max(34, p.y + p.dy / len * m));
       });
     }
-    let ext = 0;
-    P.forEach((p) => { pos.set(p.k, [p.x, p.y, 1]); ext = Math.max(ext, Math.hypot(p.x, p.y) + R.get(p.k)); });
-    cl.forEach((e) => lines.push([e.a, e.b, e]));
-    core.forEach((n) => {
-      const [cx, cy] = pos.get(n.key);
-      sat.get(n.key).sort((a, b) => deg(b) - deg(a)).forEach((k, i) => {
-        const a = i * 2.39996, r = r0(n) + 4.2 * Math.sqrt(i + 1);
-        pos.set(k, [cx + r * Math.cos(a), cy + r * Math.sin(a), 0]);
-        lines.push([n.key, k, adj.get(k).get(n.key)]);
-      });
-    });
-    let slot = 0;
-    rest.forEach((k) => {
-      if (pos.has(k)) return;
-      const group = [k, ...[...adj.get(k).keys()].filter((x) => !pos.has(x) && rest.includes(x))].slice(0, 6);
-      const a = slot * 2.39996, r = ext + 30 + 7 * Math.sqrt(slot++), cx = r * Math.cos(a), cy = r * Math.sin(a);
-      group.forEach((x, i) => {
-        pos.set(x, [cx + (i ? 8 * Math.cos(i * 1.7) : 0), cy + (i ? 8 * Math.sin(i * 1.7) : 0), 0]);
-        if (i) lines.push([k, x, adj.get(k).get(x)]);
-      });
-    });
-    // The same layout in 3D: best-connected firms get a depth from their name, and the firms linked to one
-    // fill a ball around it.
-    const hz = (k) => { let h = 2166136261; for (let i = 0; i < k.length; i++) h = Math.imul(h ^ k.charCodeAt(i), 16777619); return ((h >>> 0) % 10000) / 10000; };
-    const pos3 = new Map();
-    core.forEach((n) => {
-      const [cx, cy] = pos.get(n.key), cz = (hz(n.key) - 0.5) * ext * 1.6, list = sat.get(n.key);
-      pos3.set(n.key, [cx, cy, cz]);
-      list.forEach((k, i) => {
-        const y = 1 - 2 * (i + 0.5) / list.length, rr = Math.sqrt(1 - y * y), a = i * 2.39996, r = r0(n) + 7 * Math.cbrt(i + 1);
-        pos3.set(k, [cx + r * rr * Math.cos(a), cy + r * y, cz + r * rr * Math.sin(a)]);
-      });
-    });
-    pos.forEach(([x, y], k) => { if (!pos3.has(k)) pos3.set(k, [x, y, (hz(k) - 0.5) * ext * 1.6]); });
-    net.all = { pos, pos3, lines, core: cs };
-    net.allId = id;
+    net.all = { at, lines, keys, top }; net.allId = id;
   }
-  const { pos, lines, core } = net.all;
-  if (!net.flat) return render3D(linked, deg);
-  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
-  pos.forEach(([x, y]) => { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); });
-  const pad = 30, vw = x1 - x0 + 2 * pad, vh = y1 - y0 + 2 * pad, s = Math.max(vw / (sm ? 700 : 1000), vh / (sm ? 820 : 640), 0.5), f = sm ? 1.7 : 1;
-  const named = new Set(linked.slice(0, sm ? 10 : 26).map((n) => n.key));
-  const fillOf = (n) => n.asTarget > n.asFirm ? "var(--node-co,var(--muted))" : "var(--entry)";
-  const dots = linked.filter((n) => pos.has(n.key));
-  const rOf = (n) => core.has(n.key) ? Math.min(22, 4 + 2.2 * Math.sqrt(deg(n.key))) * s * (sm ? 1.2 : 1) : 1.9 * s;
-  $("net-graph").innerHTML = `<svg viewBox="${x0 - pad} ${y0 - pad} ${vw} ${vh}" role="img" aria-label="All ${dots.length} linked firms as a constellation">
-    <g stroke="var(--line)" stroke-width="${0.7 * s}" stroke-opacity=".7">${lines.map(([a, b, e]) => { const p = pos.get(a), q = pos.get(b); return `<line x1="${p[0]}" y1="${p[1]}" x2="${q[0]}" y2="${q[1]}"${e && !e.stories.size ? ` stroke-dasharray="${3 * s} ${2 * s}"` : ""}/>`; }).join("")}</g>
-    ${dots.map((n) => { const p = pos.get(n.key), r = rOf(n);
-      return `<g class="nn" data-k="${esc(n.key)}" tabindex="${core.has(n.key) ? 0 : -1}" role="button" aria-label="${esc(n.name)}: ${deg(n.key)} links">
-        <circle cx="${p[0]}" cy="${p[1]}" r="${r}" fill="${fillOf(n)}" stroke="var(--panel)" stroke-width="${0.8 * s}"><title>${esc(n.name)} · ${deg(n.key)} linked firm${deg(n.key) === 1 ? "" : "s"}</title></circle>
-        ${named.has(n.key) ? `<text x="${p[0]}" y="${p[1] - r - 4 * s}" text-anchor="middle" font-size="${11 * f * s}" font-weight="600" fill="var(--ink)" paint-order="stroke" stroke="var(--panel)" stroke-width="${3 * s}">${esc(n.name.length > 20 ? n.name.slice(0, 19) + "…" : n.name)}</text>` : ""}</g>`; }).join("")}</svg>
-    <div class="flegend" style="padding:0 16px 12px"><span><i style="background:var(--entry)"></i>Investor or buyer</span><span><i style="background:var(--node-co,var(--muted))"></i>Company invested in</span><span>Big dots are the best-connected firms; small dots ring the firm they link to</span><button class="reset" id="c3on" type="button">3D view</button></div>`;
-  allPanel(dots.length, linked, deg);
+  const { at, lines } = net.all, f = net.focus && keys.has(net.focus) ? net.focus : null;
+  const nb = new Set(f ? [f] : []);
+  if (f) lines.forEach((e) => { if (e.a === f) nb.add(e.b); if (e.b === f) nb.add(e.a); });
+  const wt = (e) => e.stories.size + e.stakes.length, mxe = Math.max(1, ...lines.map(wt)), d0 = Math.max(1, deg(top[0]?.key));
+  const rOf = (n) => (sm ? 5 : 6) + Math.sqrt(deg(n.key) / d0) * (sm ? 10 : 13);
+  const fillOf = (n) => isCompany(n) ? "var(--node-co,var(--muted))" : "var(--entry)";
+  $("net-graph").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="The ${top.length} most linked firms and the links among them">
+    <g stroke="var(--muted)" stroke-linecap="round">${lines.map((e) => { const p = at.get(e.a), q = at.get(e.b), on = !f || e.a === f || e.b === f;
+      return `<line x1="${p.x.toFixed(1)}" y1="${p.y.toFixed(1)}" x2="${q.x.toFixed(1)}" y2="${q.y.toFixed(1)}" stroke-opacity="${on ? 0.5 : 0.07}" stroke-width="${(0.8 + wt(e) / mxe * 3.5).toFixed(1)}"${e.stories.size ? "" : ' stroke-dasharray="4 3"'}/>`; }).join("")}</g>
+    ${top.map((n) => { const p = at.get(n.key), r = rOf(n), on = !f || nb.has(n.key), label = n.name.length > 22 ? n.name.slice(0, 21) + "…" : n.name;
+      return `<g class="gn" data-k="${esc(n.key)}" tabindex="0" role="button" aria-label="${esc(n.name)}: ${deg(n.key)} linked firms" opacity="${on ? 1 : 0.22}" style="cursor:pointer">
+        <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${r.toFixed(1)}" fill="${fillOf(n)}" stroke="${f === n.key ? "var(--ink)" : "var(--panel)"}" stroke-width="${f === n.key ? 3 : 2}"><title>${esc(n.name)} · ${deg(n.key)} linked firm${deg(n.key) === 1 ? "" : "s"}</title></circle>
+        <text x="${p.x.toFixed(1)}" y="${(p.y - r - 4).toFixed(1)}" text-anchor="middle" font-size="${sm ? 11 : 12}" font-weight="600" fill="var(--ink)" paint-order="stroke" stroke="var(--panel)" stroke-width="3">${esc(label)}</text></g>`; }).join("")}
+  </svg>
+  <div class="flegend" style="padding:0 16px 12px"><span><i style="background:var(--entry)"></i>Investor or buyer</span><span><i style="background:var(--node-co,var(--muted))"></i>Company invested in</span><span>Bigger dot = more links · thicker line = more stories · dashed line = stake only</span></div>`;
+  allPanel(top, linked, deg, f);
 }
-// The constellation in 3D on a canvas: drag to rotate, wheel or +/- to zoom, click a dot to open its links.
-function render3D(linked, deg) {
-  const { pos3, lines, core } = net.all, sm = innerWidth < 700;
-  $("net-graph").innerHTML = `<div class="c3" data-lenis-prevent><canvas id="c3" role="img" aria-label="All ${linked.length} linked firms as a rotatable 3D constellation"></canvas>
-    <div class="c3bar"><button class="reset" id="c3spin" type="button">Pause</button><button class="reset" id="c3out" type="button" aria-label="Zoom out">−</button><input type="range" id="c3z" min="0.5" max="5" step="0.01" value="1" aria-label="Zoom" style="width:140px;accent-color:var(--accent)"><button class="reset" id="c3in" type="button" aria-label="Zoom in">+</button><button class="reset" id="c3flat" type="button">Flat view</button><span class="sub">Drag to rotate · scroll to zoom · click a dot</span></div></div>
-    <div class="flegend" style="padding:0 16px 12px"><span><i style="background:var(--entry)"></i>Investor or buyer</span><span><i style="background:var(--node-co,var(--muted))"></i>Company invested in</span><span>Big dots are the best-connected firms</span></div>`;
-  allPanel(linked.length, linked, deg);
-  const cv = $("c3"), ctx = cv.getContext("2d"), dpr = devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
-  cv.width = W * dpr; cv.height = H * dpr; ctx.scale(dpr, dpr);
-  const cs = getComputedStyle(cv), col = (n, d) => cs.getPropertyValue(n).trim() || d;
-  const C = { entry: col("--entry", "#6d8dff"), muted: col("--muted", "#98a0ad"), co: col("--node-co", col("--muted", "#98a0ad")), ink: col("--ink", "#fff"), line: col("--line", "#444"), panel: col("--panel", "#111") };
-  const dots = linked.filter((n) => pos3.has(n.key)).map((n) => ({ n, p: pos3.get(n.key), core: core.has(n.key), fill: n.asTarget > n.asFirm ? C.co : C.entry }));
-  let R = 1; dots.forEach((d) => { R = Math.max(R, Math.hypot(...d.p)); });
-  const v = net.v3 || (net.v3 = { ry: 0.6, rx: -0.35, zoom: 1, spin: !matchMedia("(prefers-reduced-motion: reduce)").matches });
-  const named = new Set(linked.slice(0, sm ? 6 : 14).map((n) => n.key)), pr = new Map();
-  let cur = null, near = [], labels = [], dirty = true, touch = false;
-  $("c3spin").textContent = v.spin ? "Pause" : "Spin";
-  const slider = $("c3z"), setZoom = (z) => { v.zoom = Math.max(0.5, Math.min(5, z)); slider.value = v.zoom; dirty = true; };
-  slider.value = v.zoom; slider.oninput = () => setZoom(+slider.value);
-  const proj = (p) => {
-    const cy = Math.cos(v.ry), sy = Math.sin(v.ry), cx = Math.cos(v.rx), sx = Math.sin(v.rx);
-    const x = p[0] * cy + p[2] * sy, z1 = -p[0] * sy + p[2] * cy, y = p[1] * cx - z1 * sx, z = p[1] * sx + z1 * cx;
-    const f = 2.2 * R, k = f / (f + z), sc = Math.min(W, H) / (2.1 * R) * v.zoom;
-    return [W / 2 + x * k * sc, H / 2 + y * k * sc, z, k * v.zoom * Math.min(W, H) / 620];
-  };
-  const draw = () => {
-    ctx.clearRect(0, 0, W, H); pr.clear();
-    dots.forEach((d) => pr.set(d.n.key, proj(d.p)));
-    ctx.lineWidth = 0.6; ctx.strokeStyle = C.line; ctx.globalAlpha = 0.5; ctx.beginPath();
-    lines.forEach(([a, b]) => { const p = pr.get(a), q = pr.get(b); if (p && q) { ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); } });
-    ctx.stroke();
-    const order = [...dots].sort((a, b) => pr.get(b.n.key)[2] - pr.get(a.n.key)[2]);
-    order.forEach((d) => {
-      const [x, y, z, k] = pr.get(d.n.key), r = (d.core ? Math.min(13, 3 + 1.2 * Math.sqrt(deg(d.n.key))) : 1.9) * k;
-      ctx.globalAlpha = Math.max(0.3, Math.min(1, 0.85 - z / (3 * R)));
-      ctx.fillStyle = d.fill; ctx.beginPath(); ctx.arc(x, y, Math.max(r, 0.8), 0, 6.2832); ctx.fill();
-      if (d.core && r > 3) { ctx.strokeStyle = C.panel; ctx.lineWidth = 1; ctx.stroke(); }
-    });
-    ctx.globalAlpha = 1; ctx.font = "600 11px system-ui,sans-serif"; ctx.textAlign = "center"; ctx.lineWidth = 3; ctx.strokeStyle = C.panel; ctx.fillStyle = C.ink;
-    const label = (d) => { const [x, y, , k] = pr.get(d.n.key), t = d.n.name.length > 22 ? d.n.name.slice(0, 21) + "…" : d.n.name, yy = y - (Math.min(13, 3 + 1.2 * Math.sqrt(deg(d.n.key))) * k) - 5; ctx.strokeText(t, x, yy); ctx.fillText(t, x, yy); };
-    order.filter((d) => named.has(d.n.key) && pr.get(d.n.key)[2] < 0.35 * R).forEach(label);
-    // Names of the dots closest to the cursor or finger, each beside its own dot; the closest is outlined and
-    // is the one a click or tap opens. Each name is itself clickable.
-    labels = []; near = [];
-    if (cur) {
-      const R = touch ? 90 : 64;
-      near = dots.map((d) => { const q = pr.get(d.n.key); return { d, q, dist: Math.hypot(q[0] - cur.x, q[1] - cur.y) }; }).filter((x) => x.dist < R).sort((a, b) => a.dist - b.dist || a.q[2] - b.q[2]).slice(0, 8);
-      ctx.font = "600 12px system-ui,sans-serif"; ctx.textAlign = "left";
-      near.forEach((x, i) => {
-        const [px, py] = x.q, t = x.d.n.name.length > 30 ? x.d.n.name.slice(0, 29) + "…" : x.d.n.name, w = ctx.measureText(t).width + 14, h = 20;
-        let bx = px + 9, by = py - 24;
-        if (bx + w > W - 4) bx = px - 9 - w;
-        by = Math.max(4, Math.min(H - h - 4, by));
-        for (let k = 0; k < 20 && labels.some((l) => bx < l.x + l.w && bx + w > l.x && by < l.y + l.h && by + h > l.y); k++) by += h + 2;
-        by = Math.min(by, H - h - 4);
-        labels.push({ d: x.d, x: bx, y: by, w, h });
-        ctx.strokeStyle = i === 0 ? C.entry : C.line; ctx.lineWidth = i === 0 ? 2 : 1;
-        ctx.beginPath(); ctx.arc(px, py, (x.d.core ? Math.min(13, 3 + 1.2 * Math.sqrt(deg(x.d.n.key))) : 2.4) * x.q[3] + 3, 0, 6.2832); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(bx + (bx > px ? 0 : w), by + h / 2); ctx.stroke();
-        ctx.fillStyle = C.panel; ctx.globalAlpha = 0.95; ctx.beginPath(); ctx.roundRect(bx, by, w, h, 6); ctx.fill(); ctx.globalAlpha = 1; ctx.stroke();
-        ctx.fillStyle = C.ink; ctx.fillText(t, bx + 7, by + 14);
-      });
-    }
-  };
-  const xy = (ev) => { const b = cv.getBoundingClientRect(); return [ev.clientX - b.left, ev.clientY - b.top]; };
-  const open = (d) => { net.center = d.n.key; net.edge = null; net.view = "one"; renderNetwork(); };
-  const labelAt = (x, y) => labels.find((l) => x >= l.x && x <= l.x + l.w && y >= l.y && y <= l.y + l.h);
-  let drag = null;
-  cv.onpointerdown = (ev) => { cv.setPointerCapture(ev.pointerId); touch = ev.pointerType !== "mouse"; v.vx = v.vy = 0; drag = { x: ev.clientX, y: ev.clientY, moved: 0, t: ev.timeStamp, vx: 0, vy: 0 }; };
-  cv.onpointermove = (ev) => {
-    if (drag) {
-      const dx = ev.clientX - drag.x, dy = ev.clientY - drag.y;
-      drag.moved += Math.abs(dx) + Math.abs(dy); drag.x = ev.clientX; drag.y = ev.clientY;
-      v.ry += dx * 0.008; v.rx = Math.max(-1.4, Math.min(1.4, v.rx - dy * 0.008));
-      // Release speed (radians per millisecond), lightly smoothed, so the cloud keeps turning when let go.
-      const dt = Math.max(1, ev.timeStamp - drag.t); drag.t = ev.timeStamp;
-      drag.vy = 0.6 * drag.vy + 0.4 * (dx * 0.008) / dt; drag.vx = 0.6 * drag.vx + 0.4 * (-dy * 0.008) / dt;
-      if (drag.moved > 5) { v.spin = false; cur = null; $("c3spin").textContent = "Spin"; }
-    } else if (ev.pointerType === "mouse") { const [x, y] = xy(ev); cur = { x, y }; cv.style.cursor = labelAt(x, y) ? "pointer" : "grab"; }
-    dirty = true;
-  };
-  cv.onpointerleave = () => { if (!touch) { cur = null; dirty = true; } };
-  cv.onpointerup = (ev) => {
-    const was = drag; drag = null;
-    // Momentum: continue at the release speed and slow down smoothly (a flick throws it, a held finger does not).
-    if (was && was.moved >= 5 && ev.timeStamp - was.t < 80 && !matchMedia("(prefers-reduced-motion: reduce)").matches) { v.vy = was.vy; v.vx = was.vx; dirty = true; }
-    if (!was || was.moved >= 5) return;
-    const [x, y] = xy(ev), hit = labelAt(x, y);
-    if (hit) return open(hit.d);
-    cur = { x, y }; draw();
-    // A mouse click opens the closest dot; a tap does too when only one dot is under the finger, otherwise
-    // the names appear and the next tap picks one.
-    const close = near.filter((n) => n.dist < (touch ? 20 : 16));
-    if (close.length && (!touch || close.length === 1)) open(close[0].d);
-    dirty = true;
-  };
-  cv.onwheel = (ev) => { ev.preventDefault(); setZoom(v.zoom * Math.exp(-ev.deltaY * 0.0012)); };
-  net.c3 = { zoom: (f) => setZoom(v.zoom * f), spin: () => { v.spin = !v.spin; $("c3spin").textContent = v.spin ? "Pause" : "Spin"; } };
-  let prevT = 0;
-  const tick = (ts = 0) => {
-    if (!cv.isConnected || state.tab !== "network" || net.view !== "all" || net.flat) return;
-    const dt = Math.min(34, prevT ? ts - prevT : 16); prevT = ts;
-    if (!drag && (Math.abs(v.vy || 0) > 1e-5 || Math.abs(v.vx || 0) > 1e-5)) {
-      v.ry += v.vy * dt; v.rx = Math.max(-1.4, Math.min(1.4, v.rx + v.vx * dt));
-      const k = Math.pow(0.996, dt); v.vy *= k; v.vx *= k; dirty = true;
-    }
-    if (v.spin && !cur) { v.ry += 0.003; dirty = true; }
-    if (dirty) { dirty = false; draw(); }
-    requestAnimationFrame(tick);
-  };
-  tick();
-}
-function allPanel(count, linked, deg) {
-  const { nodes, edges } = net.g, dots = linked.filter((n) => net.all.pos.has(n.key));
-  const inv = dots.filter((n) => !isCompany(n)).length;
-  $("net-panel").innerHTML = `<h3>Whole network</h3>
-    <div class="sub">${dots.length.toLocaleString("en-IN")} linked firms (${inv.toLocaleString("en-IN")} investors, ${(dots.length - inv).toLocaleString("en-IN")} companies) · ${edges.size.toLocaleString("en-IN")} links. Click any dot to open its links.</div>
-    <ul>${linked.slice(0, 12).map((n) => `<li><button class="link" data-k="${esc(n.key)}" style="font-weight:600;color:var(--ink)">${esc(n.name)}</button><div class="sub">${deg(n.key)} linked firms · ${n.stories.size} stor${n.stories.size === 1 ? "y" : "ies"}</div></li>`).join("")}</ul>`;
+function allPanel(top, linked, deg, f) {
+  const { nodes, adj } = net.g;
+  if (f) {
+    const n = nodes.get(f), nbs = [...adj.get(f).keys()].map((k) => nodes.get(k)).filter(Boolean).sort((a, b) => deg(b.key) - deg(a.key)).slice(0, 10);
+    $("net-panel").innerHTML = `<h3>${esc(n.name)}</h3>
+      <div class="sub">${deg(f)} linked firm${deg(f) === 1 ? "" : "s"} · ${n.stories.size} stor${n.stories.size === 1 ? "y" : "ies"}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0"><button class="reset" type="button" data-k="${esc(f)}">Open links and stories</button><button class="reset" type="button" data-clear="1">Clear highlight</button></div>
+      <div class="sub"><b>Linked firms</b></div>
+      <ul>${nbs.map((m) => `<li><button class="link" data-f="${esc(m.key)}" style="font-weight:600;color:var(--ink)">${esc(m.name)}</button><div class="sub">${deg(m.key)} linked firms</div></li>`).join("")}</ul>`;
+    return;
+  }
+  const inv = top.filter((n) => !isCompany(n)).length;
+  $("net-panel").innerHTML = `<h3>Most-linked firms</h3>
+    <div class="sub">The ${top.length} most linked of ${linked.length.toLocaleString("en-IN")} firms (${inv} investors, ${top.length - inv} companies). Click a dot to highlight its neighbours.</div>
+    <ul>${top.slice(0, 12).map((n) => `<li><button class="link" data-f="${esc(n.key)}" style="font-weight:600;color:var(--ink)">${esc(n.name)}</button><div class="sub">${deg(n.key)} linked firms · ${n.stories.size} stor${n.stories.size === 1 ? "y" : "ies"}</div></li>`).join("")}</ul>`;
 }
 
 document.querySelectorAll("#nhops button").forEach((b) => b.onclick = () => {
