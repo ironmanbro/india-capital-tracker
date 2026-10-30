@@ -220,6 +220,12 @@ def post(url, key, table, conflict, recs, resolution="merge-duplicates"):
 def main(argv):
     directory = next((a for a in argv if not a.startswith("--")), "data")
     url, key = os.environ.get("SUPABASE_URL"), os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+    global INR_PER_USD
+    fx = os.path.join(directory, "fx_usd_inr.json")
+    if os.path.exists(fx):  # event amounts in US$ use the same ECB rate the site shows
+        rows = json.load(open(fx))
+        if rows and 60 < rows[-1]["usd_inr"] < 140:
+            INR_PER_USD = rows[-1]["usd_inr"]
     data = collect(directory)
     for name, recs in data.items():
         print(f"{name}: {len(recs)} records")
