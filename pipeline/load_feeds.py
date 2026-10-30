@@ -19,6 +19,56 @@ def deals(d):
                 yield r, "|".join([k[:-5], r.get("date") or "", r.get("symbol") or "", r.get("clientName") or "",
                                    r.get("buySell") or "", str(r.get("qty"))]), r.get("date")
 
+
+def iso_date(v):
+    """Any of the date styles the exchanges and regulators use -> 'YYYY-MM-DD', or None."""
+    t = str(v or "").strip().split("T")[0]
+    for f in ("%Y-%m-%d", "%d-%b-%Y", "%d %b %Y", "%d %B %Y", "%d/%m/%Y", "%d-%m-%Y", "%d.%m.%Y", "%b %d, %Y", "%B %d, %Y", "%d %B, %Y"):
+        try:
+            return datetime.strptime(t, f).strftime("%Y-%m-%d")
+        except ValueError:
+            pass
+    return None
+
+
+def _num(v):
+    try:
+        return float(str(v).replace(",", "").strip())
+    except ValueError:
+        return None
+
+
+def bse_rows(kind, rows_):
+    """BSE deal rows (whatever column names its feed or a downloaded file uses) -> the NSE field names the site reads."""
+    def pick(r, *pats):
+        keys = {re.sub(r"[^a-z0-9]", "", str(k).lower()): v for k, v in r.items()}
+        for pat in pats:
+            for k, v in keys.items():
+                if re.search(pat, k) and v not in (None, ""):
+                    return v
+        return None
+    out = []
+    for r in rows_ if isinstance(rows_, list) else []:
+        if not isinstance(r, dict):
+            continue
+        d = iso_date(pick(r, r"dealdate", r"tradedate", r"date"))
+        client = str(pick(r, r"clientname", r"client") or "").strip()
+        qty, price = _num(pick(r, r"^qty", r"quantity", r"noofshares")), _num(pick(r, r"tradeprice", r"price", r"wap", r"rate"))
+        side = str(pick(r, r"buysell", r"^bs$", r"dealtype", r"transactiontype", r"buyorsell") or "").strip().lower()
+        if not (d and client and qty and side):
+            continue
+        buy = side.startswith(("b", "p"))
+        sell = side.startswith("s")
+        if not (buy or sell):
+            continue
+        name = str(pick(r, r"scripname", r"securityname", r"companyname", r"^name$") or "").strip()
+        code = str(pick(r, r"scripcode", r"scripcd", r"securitycode", r"^code$") or "").strip()
+        out.append({"date": datetime.strptime(d, "%Y-%m-%d").strftime("%d-%b-%Y"), "symbol": code or name, "code": code, "name": name or code,
+                    "clientName": client, "buySell": "BUY" if buy else "SELL", "qty": str(int(qty)), "watp": str(price if price is not None else ""),
+                    "exchange": "BSE", "kind": kind, "remarks": str(pick(r, r"remark") or "")})
+    return out
+
+
 def rows(f):
     d = json.load(open(f))
     return d if isinstance(d, list) else [d]
@@ -52,6 +102,37 @@ def collect(directory):
         out["nse_deals"] = {}
         for r, k, as_of in deals(json.load(open(p))):
             out["nse_deals"][k] = {"dataset": "nse_deals", "key": k, "as_of": as_of, "data": r, "loaded_at": now}
+    # BSE bulk and block deals (bse_deals.py, or bse_offline.py from a downloaded file), in the NSE field names.
+    bse = {}
+    for kind in ("bulk", "block"):
+        p = os.path.join(directory, f"bse_{kind}_deals.json")
+        if os.path.exists(p):
+            for n in bse_rows(kind, json.load(open(p))):
+                k = "|".join([f"BSE_{kind.upper()}", n["date"], n["code"] or n["symbol"], n["clientName"], n["buySell"], n["qty"]])
+                bse[k] = {"dataset": "bse_deals", "key": k, "as_of": iso_date(n["date"]), "data": n, "loaded_at": now}
+    if bse:
+        out["bse_deals"] = bse
+    # Competition Commission merger and acquisition approvals: one record per combination.
+    p = os.path.join(directory, "cci_merger_approvals.json")
+    if os.path.exists(p):
+        out["cci"] = {}
+        for r in json.load(open(p)):
+            k = r.get("combination_no") or (r.get("parties") or "")[:80]
+            if k:
+                out["cci"][k] = {"dataset": "cci", "key": k, "as_of": iso_date(r.get("decision_date")) or iso_date(r.get("notification_date")), "data": r, "loaded_at": now}
+    # RBI: weekly reserves keep one record per week (history builds up); the other files are kept whole.
+    rd = os.path.join(directory, "rbi")
+    if os.path.isdir(rd):
+        for fn in sorted(os.listdir(rd)):
+            if not fn.endswith(".json"):
+                continue
+            body = json.load(open(os.path.join(rd, fn)))
+            if fn == "weekly_reserves.json":
+                out["rbi_reserves"] = {r["as_on"]: {"dataset": "rbi_reserves", "key": r["as_on"], "as_of": iso_date(r["as_on"]), "data": r, "loaded_at": now} for r in body if r.get("as_on")}
+            elif len(json.dumps(body)) < 4_000_000:
+                out.setdefault("rbi", {})[fn[:-5]] = {"dataset": "rbi", "key": fn[:-5], "as_of": None, "data": body, "loaded_at": now}
+            else:
+                print(f"rbi/{fn}: too large to store, skipped")
     # NSDL report pages: one record per file (a list of {title, rows} tables). The full FPI list is skipped; fpi_registry has it.
     nd = os.path.join(directory, "nsdl")
     if os.path.isdir(nd):
@@ -63,33 +144,49 @@ def collect(directory):
     return {n: list(v.values()) for n, v in out.items()}
 
 
+def _event(r, kind, exch, page):
+    client = r.get("clientName") or ""
+    if not (FOREIGN.search(client) and not DOMESTIC.search(client)):
+        return None
+    buy = (r.get("buySell") or "").upper().startswith("B")
+    try:
+        value = float(str(r["qty"]).replace(",", "")) * float(str(r["watp"]).replace(",", ""))
+        published = datetime.strptime(r["date"], "%d-%b-%Y").replace(tzinfo=timezone.utc).isoformat()
+    except (KeyError, TypeError, ValueError):
+        return None
+    ev = "entry" if buy else "exit"
+    target = r.get("name") or r.get("symbol")
+    low = exch.lower()
+    return {
+        "dedup_key": f"nse_api_{kind}:{r['date']}:{r.get('symbol')}:{client}:{r.get('buySell')}:{r['qty']}" if exch == "NSE" else f"bse_{kind}:{r['date']}:{r.get('code') or r.get('symbol')}:{client}:{r.get('buySell')}:{r['qty']}",
+        "source": f"{low}_{kind}", "source_name": exch, "url": page,
+        "title": f"{client} {'bought' if buy else 'sold'} {target} shares worth ₹{value / 1e7:.1f} cr ({kind} deal on {exch})" if exch != "NSE" else f"{client} {'bought' if buy else 'sold'} {target} shares worth ₹{value / 1e7:.1f} cr ({kind} deal)",
+        "published_at": published, "event_type": ev, "event_types": [ev],
+        "parties": [{"name": client, "role": "buyer" if buy else "seller", "type": "fpi"}],
+        "investor": client, "investor_type": "fpi", "target": target,
+        "amount_usd_m": round(value / INR_PER_USD / 1e6, 1), "amount_text": f"₹{value / 1e7:.1f} cr",
+        "priority": 3 if buy else 2, "confidence": 0.9, "classifier": "structured", "query_tag": f"{low}_{kind}", "raw": r,
+    }
+
+
 def deal_events(d):
-    """Foreign-client bulk and block deals as `events` rows, shaped like the ingest function's NSE rows."""
+    """Foreign-client NSE bulk and block deals as `events` rows, shaped like the ingest function's NSE rows."""
     out = []
     for k, kind in (("BULK_DEALS_DATA", "bulk"), ("BLOCK_DEALS_DATA", "block")):
         for r in d.get(k) or []:
-            client = r.get("clientName") or ""
-            if not (FOREIGN.search(client) and not DOMESTIC.search(client)):
-                continue
-            buy = (r.get("buySell") or "").upper().startswith("B")
-            try:
-                value = float(r["qty"]) * float(r["watp"])
-                published = datetime.strptime(r["date"], "%d-%b-%Y").replace(tzinfo=timezone.utc).isoformat()
-            except (KeyError, TypeError, ValueError):
-                continue
-            ev = "entry" if buy else "exit"
-            target = r.get("name") or r.get("symbol")
-            out.append({
-                "dedup_key": f"nse_api_{kind}:{r['date']}:{r.get('symbol')}:{client}:{r.get('buySell')}:{r['qty']}",
-                "source": f"nse_{kind}", "source_name": "NSE",
-                "url": "https://www.nseindia.com/report-detail/display-bulk-and-block-deals",
-                "title": f"{client} {'bought' if buy else 'sold'} {target} shares worth ₹{value / 1e7:.1f} cr ({kind} deal)",
-                "published_at": published, "event_type": ev, "event_types": [ev],
-                "parties": [{"name": client, "role": "buyer" if buy else "seller", "type": "fpi"}],
-                "investor": client, "investor_type": "fpi", "target": target,
-                "amount_usd_m": round(value / INR_PER_USD / 1e6, 1), "amount_text": f"₹{value / 1e7:.1f} cr",
-                "priority": 3 if buy else 2, "confidence": 0.9, "classifier": "structured", "query_tag": f"nse_{kind}", "raw": r,
-            })
+            e = _event(r, kind, "NSE", "https://www.nseindia.com/report-detail/display-bulk-and-block-deals")
+            if e:
+                out.append(e)
+    return out
+
+
+def bse_events(recs):
+    out = []
+    for rec in recs:
+        r = rec["data"]
+        e = _event(r, r["kind"], "BSE", f"https://www.bseindia.com/markets/equity/EQReports/{r['kind']}_deals.aspx")
+        if e:
+            out.append(e)
     return out
 
 
@@ -112,10 +209,11 @@ def main(argv):
             continue
         post(url, key, "feed_records", "dataset,key", recs)
     f = os.path.join(directory, "bulk_block_deals.json")
-    if os.path.exists(f):
-        evs = deal_events(json.load(open(f)))
-        print(f"events (foreign bulk/block): {len(evs)}")
-        if evs and "--dry-run" not in argv and url and key:
+    evs = deal_events(json.load(open(f))) if os.path.exists(f) else []
+    evs += bse_events(data.get("bse_deals", []))
+    if evs:
+        print(f"events (foreign bulk/block, NSE and BSE): {len(evs)}")
+        if "--dry-run" not in argv and url and key:
             post(url, key, "events", "dedup_key", evs, "ignore-duplicates")
 
 
