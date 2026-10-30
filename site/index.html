@@ -3103,7 +3103,7 @@ async function checkOwner() {
   }
   const o = load("ict-owner");
   dir.ownerKey = o && o.startsWith("owner-") ? o : null;
-  document.querySelector('nav.tabs button[data-tab="health"]').hidden = !o;
+  sourcesUi();
   $("leads-csv").hidden = !dir.ownerKey;
 }
 checkOwner();
@@ -3172,8 +3172,8 @@ function showWelcome() {
 
 // ---------- Sign-in (Supabase Auth). Only Home is open to everyone; every other tab asks you to sign in. ----------
 var auth = { session: null, next: null, timer: null, notice: "", recovery: false };
-const OPEN_TABS = ["overview", "health"];
-function authAllowed(t) { if (t === "users") return !!auth.admin; return OPEN_TABS.includes(t) || !!auth.session; }
+const OPEN_TABS = ["overview"];
+function authAllowed(t) { if (t === "users") return !!auth.admin; if (t === "health") return !!auth.admin || !!load("ict-owner"); return OPEN_TABS.includes(t) || !!auth.session; }
 const AUTH_KEY = "ict-auth";
 function authMsg(j) {
   const c = j.error_code || j.code || "", m = j.msg || j.message || j.error_description || j.error || "";
@@ -3454,9 +3454,16 @@ async function authAdmin() {
   try { auth.admin = (await authRest("rpc/is_admin", { method: "POST", body: {} })) === true; } catch { auth.admin = false; }
   adminUi();
 }
+// The Sources tab shows for the owner key (as before) or for the signed-in owner account.
+function sourcesUi() {
+  const h = document.querySelector('nav.tabs button[data-tab="health"]');
+  if (h) h.hidden = !((auth && auth.admin) || load("ict-owner"));
+  if (h && h.hidden && state.tab === "health") setTab("overview");
+}
 function adminUi() {
   const b = document.querySelector('nav.tabs button[data-tab="users"]');
   if (b) b.hidden = !auth.admin;
+  sourcesUi();
   try { drawGnav(); } catch {}
   if (!auth.admin && state.tab === "users") setTab("overview");
 }
