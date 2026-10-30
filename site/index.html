@@ -615,6 +615,16 @@ html.lenis,html.lenis body{height:auto}
 .lenis:not(.lenis-autoToggle).lenis-stopped{overflow:clip}
 .lenis [data-lenis-prevent],.lenis [data-lenis-prevent-wheel],.lenis [data-lenis-prevent-touch]{overscroll-behavior:contain}
 .lenis.lenis-smooth iframe{pointer-events:none}
+
+.htools{position:relative}
+#gdrop{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:60;max-height:min(70vh,520px);overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.35);padding:6px}
+#gdrop[hidden]{display:none}
+#gdrop .gh{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 10px 4px}
+#gdrop .gi{display:block;width:100%;text-align:left;background:none;border:0;color:var(--ink);font:inherit;padding:8px 10px;border-radius:8px;cursor:pointer}
+#gdrop .gi:hover,#gdrop .gi.on{background:var(--chip)}
+#gdrop .gi small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+#gdrop .gn{padding:10px;color:var(--muted);font-size:13px}
+.ekv{width:100%;border-collapse:collapse}.ekv th{text-align:left;color:var(--muted);font-weight:500;padding:6px 12px 6px 0;white-space:nowrap;vertical-align:top;width:1%}.ekv td{padding:6px 0;word-break:break-word}
 </style>
 <script src="vendor/lenis.min.js" defer></script>
 </head>
@@ -649,7 +659,8 @@ html.lenis,html.lenis body{height:auto}
     </div>
     <div>
       <div class="htools">
-        <input type="search" id="gq" title="Press / to search" placeholder="Search investors, companies, FPIs, GIFT funds…" aria-label="Search everything">
+        <input type="search" id="gq" title="Press / to search" placeholder="Search investors, companies, FPIs, GIFT funds…" aria-label="Search everything" autocomplete="off" aria-controls="gdrop">
+        <div id="gdrop" role="listbox" hidden></div>
         <button class="ib" id="theme" type="button" aria-label="Switch light or dark" title="Light or dark">&#9788;</button>
       </div>
       <div class="hstatus"><div class="sub" id="updated">Loading…</div><div class="sub" id="visits"></div></div>
@@ -874,6 +885,8 @@ html.lenis,html.lenis body{height:auto}
     <p class="sub" style="margin:0 0 12px">Daily exchange and NSDL data: FII/FPI activity, bulk and block deals with foreign investors, FPI debt holdings and sector allocations. Loaded by the daily data job.</p>
     <div id="mk-body"><p class="note">Loading…</p></div>
   </section>
+
+  <section id="tab-entity" hidden><div id="entity-body"></div></section>
 
   <section id="tab-directory" hidden>
     <div class="fhead" style="margin-bottom:10px">
@@ -2482,7 +2495,7 @@ function setTab(t) {
   state.tab = t;
   document.querySelectorAll("nav.tabs button").forEach((b) => b.setAttribute("aria-selected", b.dataset.tab === t));
   const secId = t === "gift" ? "directory" : t;
-  ["overview", "feed", "investors", "network", "firm", "flows", "markets", "directory", "health"].forEach((x) => $(`tab-${x}`).hidden = x !== secId);
+  ["overview", "feed", "investors", "network", "firm", "flows", "markets", "directory", "entity", "health"].forEach((x) => $(`tab-${x}`).hidden = x !== secId);
   if (was === "firm" && t !== "firm" && location.hash.startsWith("#firm/")) history.replaceState(null, "", location.pathname + location.search);
   // Fade the section in when it changes.
   const sec = $(`tab-${secId}`); sec.classList.remove("enter"); void sec.offsetWidth; sec.classList.add("enter");
@@ -2512,6 +2525,7 @@ const TITLES = {
   investors: ["Investors", "Foreign investors from the news and from shareholding filings, one profile each"],
   network: ["Network", "Which firms appear together on the same deals"],
   firm: ["Profile", "One firm's deals, links and sources"],
+  entity: ["Profile", "Everything the site holds on one name"],
   flows: ["Flows", "FPI money in and out each day, and where FDI comes from"],
   directory: ["FPIs", "Every SEBI-registered foreign portfolio investor, and how much they hold by sector"],
   gift: ["GIFT City", "Every entity IFSCA regulates at GIFT IFSC: fund managers, schemes, banks and more"],
@@ -2549,8 +2563,8 @@ $("gq").addEventListener("input", () => {
   const v = $("gq").value;
   if (isDir()) { $(searchBox()).value = v; clearTimeout(dirTimer); dirTimer = setTimeout(() => runDirSearch(true), 300); return; }
   if (state.tab === "investors") { $("iq").value = v; invShown = 60; renderInvestors(); return; }
+  if (state.tab !== "feed") return;
   $("q").value = v;
-  if (state.tab !== "feed") setTab("feed");
   render();
 });
 
@@ -3201,6 +3215,153 @@ async function renderMarkets() {
     .sort((a, b) => b[1] - a[1]).slice(0, 25);
   out.push(mkSec("FPI equity by sector", sec[0] ? sec[0][2].replace(/_/g, " · ") : "Assets under custody.", mkTable(["Sector", "₹ crore"], sec.map((r) => [r[0], mkFmt(r[1])]))));
   $("mk-body").innerHTML = out.join("");
+}
+
+// ---------- Search everything: a drop-down over every tab, and one profile for any name ----------
+const gNorm = (x) => String(x || "").toUpperCase().replace(/[^A-Z0-9]+/g, " ").trim();
+const gClean = (q) => q.replace(/[*,()%"\\]/g, " ").trim();
+const gdrop = { items: [], on: -1, seq: 0, timer: null };
+
+function gLocal(q) {
+  const n = gNorm(q), out = [];
+  if (n.length < 2) return out;
+  try {
+    if (state.events?.length) {
+      ensureNet();
+      [...net.g.nodes.values()].filter((x) => gNorm(x.name).includes(n)).sort((a, b) => (b.stories?.size || b.stories?.length || 0) - (a.stories?.size || a.stories?.length || 0)).slice(0, 6)
+        .forEach((x) => out.push({ g: "Investors and firms", t: x.name, sub: "Profile with deals, links and sources", go: () => { location.hash = `#firm/${encodeURIComponent(x.key)}`; } }));
+    }
+  } catch {}
+  const co = new Map();
+  (state.events || []).forEach((e) => { if (e.target && gNorm(e.target).includes(n)) co.set(gNorm(e.target), e.target); });
+  (state.holdings || []).forEach((h) => { if (h.company && gNorm(h.company).includes(n)) co.set(gNorm(h.company), h.company); });
+  [...co.values()].slice(0, 6).forEach((c) => out.push({ g: "Companies", t: c, sub: "Stories, holders and exchange deals", go: () => openEntity("company", { name: c }) }));
+  return out;
+}
+async function gRemote(q) {
+  const c = gClean(q);
+  if (c.length < 3) return [];
+  const [fpi, gift] = await Promise.all([
+    api(`fpi_registry?select=reg_no,name,country,category,sub_category,status,registered_on,valid_upto&name=ilike.*${encodeURIComponent(c)}*&order=registered_on.desc.nullslast&limit=6`).catch(() => []),
+    api(`ifsca_entities?select=enc_id,name,category,sub_category,reg_no,reg_date,address,website&name=ilike.*${encodeURIComponent(c)}*&order=reg_date.desc.nullslast&limit=6`).catch(() => []),
+  ]);
+  return [
+    ...fpi.map((r) => ({ g: "FPIs", t: r.name, sub: `${r.country ? SHORT_COUNTRY[r.country] || titleCase(r.country) : ""}${r.category ? ` · Category ${r.category}` : ""}`, go: () => openEntity("fpi", r) })),
+    ...gift.map((r) => ({ g: "GIFT City", t: r.name, sub: `${r.sub_category || r.category || ""}`, go: () => openEntity("gift", r) })),
+  ];
+}
+function gDraw(q, items, loading) {
+  const box = $("gdrop");
+  gdrop.items = items; gdrop.on = -1;
+  if (!q.trim()) { box.hidden = true; return; }
+  let last = "", html = "";
+  items.forEach((it, i) => {
+    if (it.g !== last) { html += `<div class="gh">${esc(it.g)}</div>`; last = it.g; }
+    html += `<button class="gi" type="button" role="option" data-i="${i}">${esc(it.t)}${it.sub ? `<small>${esc(it.sub)}</small>` : ""}</button>`;
+  });
+  if (!items.length) html = `<div class="gn">${loading ? "Searching…" : "No match. Press Enter to search the stories."}</div>`;
+  else if (loading) html += `<div class="gn">Searching registers…</div>`;
+  box.innerHTML = html; box.hidden = false;
+}
+function gSearch() {
+  const q = $("gq").value, seq = ++gdrop.seq;
+  const local = gLocal(q);
+  gDraw(q, local, q.trim().length >= 3);
+  clearTimeout(gdrop.timer);
+  if (q.trim().length < 3) return;
+  gdrop.timer = setTimeout(async () => {
+    const remote = await gRemote(q);
+    if (seq === gdrop.seq) gDraw(q, [...local, ...remote], false);
+  }, 250);
+}
+function gPick(i) {
+  const it = gdrop.items[i];
+  if (!it) return;
+  $("gdrop").hidden = true; $("gq").value = ""; $("gq").blur();
+  it.go();
+}
+$("gq").addEventListener("input", gSearch);
+$("gq").addEventListener("focus", () => { if ($("gq").value.trim()) gSearch(); });
+$("gq").addEventListener("keydown", (ev) => {
+  const box = $("gdrop"), n = gdrop.items.length;
+  if (ev.key === "Escape") { box.hidden = true; return; }
+  if (!box.hidden && n && (ev.key === "ArrowDown" || ev.key === "ArrowUp")) {
+    ev.preventDefault();
+    gdrop.on = (gdrop.on + (ev.key === "ArrowDown" ? 1 : -1) + n) % n;
+    box.querySelectorAll(".gi").forEach((b, i) => b.classList.toggle("on", i === gdrop.on));
+    box.querySelector(".gi.on")?.scrollIntoView({ block: "nearest" });
+  }
+  if (ev.key === "Enter") {
+    if (gdrop.on >= 0) { ev.preventDefault(); gPick(gdrop.on); return; }
+    // No name picked: search the stories, as before.
+    if (!["feed", "investors", "directory", "gift"].includes(state.tab) && $("gq").value.trim()) {
+      $("q").value = $("gq").value; box.hidden = true; setTab("feed"); render();
+    }
+  }
+});
+$("gdrop").addEventListener("mousedown", (ev) => { const b = ev.target.closest(".gi"); if (b) { ev.preventDefault(); gPick(+b.dataset.i); } });
+document.addEventListener("click", (ev) => { if (!ev.target.closest(".htools")) $("gdrop").hidden = true; });
+
+// One profile page for any FPI, GIFT City entity or company: facts, stories, deals and holdings from every tab.
+const xCache = {};
+async function dealsAll() {
+  if (!xCache.deals) {
+    try { xCache.deals = (await api("feed_records?select=key,data&dataset=eq.nse_deals&limit=1000")).filter((r) => /^(BULK|BLOCK)_DEALS\|/.test(r.key)).map((r) => r.data); }
+    catch { xCache.deals = []; }
+  }
+  return xCache.deals;
+}
+const eFacts = (rows) => `<table class="ekv"><tbody>${rows.filter(([, v]) => v).map(([k, v]) => `<tr><th>${esc(k)}</th><td>${v.h !== undefined ? v.h : esc(v)}</td></tr>`).join("")}</tbody></table>`;
+const eSec = (title, note, body) => `<h2 class="fsec">${esc(title)}</h2>${note ? `<p class="note">${esc(note)}</p>` : ""}${body}`;
+function eStories(name) {
+  const n = gNorm(name);
+  if (n.length < 4) return "";
+  const list = (state.events || []).filter((e) => gNorm(`${e.investor} ${e.target} ${e.title}`).includes(n)).slice(0, 12);
+  if (!list.length) return "";
+  return eSec("Stories", "From the Feed, newest first.", `<div class="ftable-wrap"><table class="ftable"><tbody>${list.map((e) =>
+    `<tr><td><a href="${safeUrl(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a></td><td class="num">${esc(TYPES[typeOf(e)] || "")}</td><td class="num">${esc((e.published_at || e.fetched_at || "").slice(0, 10))}</td></tr>`).join("")}</tbody></table></div>`);
+}
+const eDeals = (rows) => rows.length ? eSec("Bulk and block deals", "From NSE, latest day files.", mkTable(["Date", "Investor", "Company", "Side", "Quantity", "Avg price", "Value (₹ cr)"],
+  rows.slice(0, 20).map((r) => [r.date, r.clientName || "–", r.name || r.symbol || "–", r.buySell || "–", mkFmt(r.qty), mkFmt(r.watp, 2), mkFmt(mkNum(r.qty) * mkNum(r.watp) / 1e7, 1)]), 3)) : "";
+const eHeld = (rows, who) => rows.length ? eSec(who === "holder" ? "Holdings in listed companies" : "Holders", "From shareholding-pattern filings.", mkTable(who === "holder" ? ["Company", "Category", "Stake (%)", "As of"] : ["Holder", "Category", "Stake (%)", "As of"],
+  rows.slice(0, 30).map((h) => [who === "holder" ? `${h.company}${h.symbol ? ` (${h.symbol})` : ""}` : h.holder, h.category || "–", mkFmt(h.pct, 2), h.period_end || "–"]), 2)) : "";
+
+async function openEntity(kind, ref) {
+  if (state.tab !== "entity") state.prevTab = state.tab;
+  setTab("entity");
+  const box = $("entity-body");
+  box.innerHTML = `<div class="empty">Loading…</div>`;
+  try {
+    const name = ref.name, n = gNorm(name);
+    const deals = await dealsAll();
+    const prof = state.profiles?.get(invKey(name));
+    let head = "", facts = [], extra = "";
+    if (kind === "fpi") {
+      head = "Foreign portfolio investor";
+      facts = [["Registration number", ref.reg_no], ["Country", ref.country ? titleCase(ref.country) : ""], ["Category", ref.category ? `Category ${ref.category}${ref.sub_category ? ` · ${ref.sub_category}` : ""}` : ""],
+        ["Status", ref.status], ["Registered", ref.registered_on], ["Valid until", ref.valid_upto]];
+      const gift = await api(`ifsca_entities?select=name,category,sub_category,reg_date&name=eq.${encodeURIComponent(gClean(name))}&limit=1`).catch(() => []);
+      if (gift[0]) facts.push(["Also in GIFT City", `${gift[0].sub_category || gift[0].category}${gift[0].reg_date ? `, registered ${gift[0].reg_date}` : ""}`]);
+    } else if (kind === "gift") {
+      head = "GIFT City entity";
+      const c = await api(`ifsca_contacts?select=contact_name,phone,email,remarks&enc_id=eq.${encodeURIComponent(ref.enc_id)}&limit=3`).catch(() => []);
+      const ct = c[0] || {};
+      facts = [["Category", ref.category], ["Type", ref.sub_category], ["Registration number", ref.reg_no], ["Registered", ref.reg_date], ["Address", ref.address],
+        ["Website", /^https?:\/\//i.test(ref.website || "") ? { h: `<a href="${safeUrl(ref.website)}" target="_blank" rel="noopener">${esc(ref.website)}</a>` } : ""],
+        ["Contact", [ct.contact_name, ct.phone, ct.email].filter(Boolean).join(" · ")]];
+    } else {
+      head = "Company";
+      facts = [["Listed symbol", (state.holdings || []).find((h) => gNorm(h.company) === n)?.symbol]];
+    }
+    if (prof) facts.push(["About", prof.summary || prof.description || prof.site_description], ["Website", prof.website && /^https?:\/\//i.test(prof.website) ? { h: `<a href="${safeUrl(prof.website)}" target="_blank" rel="noopener">${esc(prof.website)}</a>` } : ""]);
+    const myDeals = kind === "company" ? deals.filter((r) => gNorm(r.name) === n || gNorm(r.symbol) === n) : deals.filter((r) => gNorm(r.clientName) === n);
+    const held = kind === "company" ? (state.holdings || []).filter((h) => gNorm(h.company) === n) : (state.holdings || []).filter((h) => gNorm(h.holder) === n);
+    box.innerHTML = `<button class="reset" id="ent-back" type="button">← Back</button>
+      <div class="fhead" style="margin:12px 0 4px"><div><h2 style="margin:0">${esc(name)}</h2><div class="sub">${esc(head)}</div></div></div>
+      ${eFacts(facts) || ""}${eStories(name)}${eDeals(myDeals)}${eHeld(held, kind === "company" ? "company" : "holder")}${extra}`;
+    $("ent-back").onclick = () => setTab(state.prevTab || "overview");
+    $("ptitle").textContent = name;
+  } catch (e) { box.innerHTML = `<div class="empty">Could not load this profile: ${esc(e.message)}</div>`; }
 }
 </script>
 </body>
