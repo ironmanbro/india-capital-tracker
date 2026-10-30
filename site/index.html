@@ -707,6 +707,7 @@ html.lenis,html.lenis body{height:auto}
     <button role="tab" aria-selected="false" data-tab="flows"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Flows</button>
     <button role="tab" aria-selected="false" data-tab="markets"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l5-5 4 4 8-9"/><path d="M15 7h5v5"/></svg>Markets</button>
     <button role="tab" aria-selected="false" data-tab="directory"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M9 7h6"/></svg>Directory</button>
+    <button role="tab" aria-selected="false" data-tab="gift"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V9l8-5 8 5v12"/><path d="M9 21v-6h6v6M4 21h16"/></svg>GIFT City</button>
     <div class="grow"></div>
     <button role="tab" aria-selected="false" data-tab="health" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v3M12 18v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M3 12h3M18 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/><circle cx="12" cy="12" r="3.5"/></svg>Sources</button>
   </nav>
@@ -714,12 +715,12 @@ html.lenis,html.lenis body{height:auto}
   <section id="tab-overview">
     <p class="takeaway" id="ov-take"></p>
     <div class="ftiles" id="ov-tiles"></div>
-    <p class="dsrc" data-src="review,nsdl_flows,nsdl_fpi_list,ifsca_directory" data-what="Sources: news checked by the review step, NSE, NSDL, IFSCA and DPIIT. Each section shows its own source and update time" style="margin:-4px 0 14px"></p>
+    <p class="dsrc" data-src="review,nsdl_flows,nsdl_fpi_list" data-what="Sources: news checked by the review step, NSE, NSDL and DPIIT. Each section shows its own source and update time" style="margin:-4px 0 14px"></p>
     <div class="ovgrid">
       <div class="ovc"><div class="ovh"><div><h3>Latest FPI flow</h3><div class="sub" id="ov-flow-sub">NSDL</div></div><button class="link" data-go="flows">Flows ↗</button></div><div class="flowwrap"><div id="ov-flow"></div><div class="fchart" id="ov-fpibars"></div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Biggest deals this week</h3><div class="sub">Largest agreed or completed deals, last 7 days</div></div><button class="link" data-go="feed">Feed ↗</button></div><div id="ov-deals"></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Latest stories</h3><div class="sub">Checked and added every 3 hours</div></div><button class="link" data-go="feed">All stories</button></div><div id="ov-stories"></div></div>
-      <div class="ovc"><div class="ovh"><div><h3>New registrations</h3><div class="sub">NSDL FPIs and GIFT IFSC entities</div></div><button class="link" data-go="directory">Directory ↗</button></div><div id="ov-regs"><div class="sub">Loading…</div></div></div>
+      <div class="ovc"><div class="ovh"><div><h3>New FPI registrations</h3><div class="sub">Latest additions to the NSDL register</div></div><button class="link" data-go="directory">Directory ↗</button></div><div id="ov-regs"><div class="sub">Loading…</div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Following</h3><div class="sub">Firms you follow, on this device</div></div></div><div id="ov-follow"></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Where the money comes from</h3><div class="sub">Capital deals in the last 90 days. Tap a row to see them</div></div></div><div id="ov-break"></div></div>
       <div class="ovc span2"><div class="ovh"><div><h3>The last 30 days</h3><div class="sub">Reported deal value by category, and the most active investors</div></div><button class="link" data-go="investors">Investors ↗</button></div><div id="ov-week"></div></div>
@@ -866,9 +867,6 @@ html.lenis,html.lenis body{height:auto}
       <p class="note" style="margin-top:8px">Total FDI = equity + re-invested earnings + other capital, on the international definition DPIIT uses. The latest year is provisional and may be revised.</p>
     </div>
     <div class="ftip" id="ftip" hidden></div>
-    <h2 class="fsec">Ownership changes · named holders over 1%</h2>
-    <p class="note">Company-level, from NSE shareholding-pattern filings. Change is in percentage points between two consecutive reported quarters, not a relative increase. "Foreign" is a name and category heuristic. A holder appearing or disappearing may only have crossed the 1% naming threshold, so those rows show no change.</p>
-    <div id="own-wrap"></div>
   </section>
 
   <section id="tab-markets" hidden>
@@ -879,7 +877,7 @@ html.lenis,html.lenis body{height:auto}
   <section id="tab-directory" hidden>
     <div class="fhead" style="margin-bottom:10px">
       <p class="sub" style="margin:0;max-width:640px" id="dir-intro"></p>
-      <div class="seg" role="group" aria-label="Directory" id="dirseg">
+      <div class="seg" role="group" aria-label="Directory" id="dirseg" hidden>
         <button data-v="fpi" aria-pressed="true">FPIs (NSDL)</button><button data-v="ifsca" aria-pressed="false">GIFT IFSC</button>
       </div>
     </div>
@@ -1528,24 +1526,6 @@ document.querySelectorAll("#dseg button").forEach((b) => b.onclick = () => {
   renderDpiit();
 });
 
-// ---------- Ownership changes from NSE shareholding filings (nse_ownership_changes) ----------
-const own = { loaded: false };
-async function renderOwnership() {
-  const w = $("own-wrap");
-  if (!own.loaded) {
-    own.loaded = true;
-    try { own.rows = await api("nse_ownership_changes?select=*&status=eq.comparable&order=latest_period.desc&limit=500"); }
-    catch { own.rows = null; }
-  }
-  if (!own.rows) { w.innerHTML = '<p class="note">Could not load ownership changes.</p>'; own.loaded = false; return; }
-  if (!own.rows.length) { w.innerHTML = '<p class="note">No ownership changes loaded yet.</p>'; return; }
-  const rows = [...own.rows].sort((a, b) => Math.abs(b.pct_point_change) - Math.abs(a.pct_point_change)).slice(0, 50);
-  const f = (n) => n == null ? "—" : Number(n).toLocaleString("en-IN", { maximumFractionDigits: 2 });
-  w.innerHTML = `<div class="ftable-wrap"><table class="ftable"><thead><tr><th>Company</th><th>Holder</th><th>Category</th><th>Quarters</th><th>Previous %</th><th>Latest %</th><th>Change (pp)</th><th>Shares change</th><th>Filings</th></tr></thead><tbody>${rows.map((r) => {
-    const c = Number(r.pct_point_change);
-    return `<tr><td>${esc(r.symbol)}</td><td>${esc(r.holder)}${r.foreign_flag ? " <small>(foreign)</small>" : ""}</td><td>${esc(r.category || "—")}</td><td>${esc(r.previous_period)} → ${esc(r.latest_period)}</td><td>${f(r.previous_pct)}</td><td>${f(r.latest_pct)}</td><td style="color:var(--${c >= 0 ? "in" : "out"})">${c > 0 ? "+" : ""}${f(c)}</td><td>${f(r.shares_change)}</td><td>${[["previous_source_url", "Prev"], ["latest_source_url", "Latest"]].map(([k, l]) => r[k] ? `<a href="${safeUrl(r[k])}" target="_blank" rel="noopener noreferrer">${l}</a>` : "").filter(Boolean).join(" · ") || "—"}</td></tr>`;
-  }).join("")}</tbody></table></div>`;
-}
 function renderFlows() {
   if (!flows.loaded || state.tab !== "flows") return;
   const r = flowRange();
@@ -2123,7 +2103,7 @@ function applyUrl() {
   if (p.get("type")) state.types = new Set(p.get("type").split(",").filter((t) => TYPES[t]));
   ["country", "sector", "story"].forEach((k) => state[k] = p.get(k) || null);
   const tab = p.get("tab") || (state.story || state.country || state.sector ? "feed" : null);
-  if (tab && tab !== "health" && tab !== "firm" && $(`tab-${tab}`)) setTab(tab);
+  if (tab && tab !== "health" && tab !== "firm" && $(`tab-${tab === "gift" ? "directory" : tab}`)) setTab(tab);
   state.urlReady = true;
   syncUrl();
 }
@@ -2499,20 +2479,22 @@ function setTab(t) {
   const was = state.tab;
   state.tab = t;
   document.querySelectorAll("nav.tabs button").forEach((b) => b.setAttribute("aria-selected", b.dataset.tab === t));
-  ["overview", "feed", "investors", "network", "firm", "flows", "markets", "directory", "health"].forEach((x) => $(`tab-${x}`).hidden = x !== t);
+  const secId = t === "gift" ? "directory" : t;
+  ["overview", "feed", "investors", "network", "firm", "flows", "markets", "directory", "health"].forEach((x) => $(`tab-${x}`).hidden = x !== secId);
   if (was === "firm" && t !== "firm" && location.hash.startsWith("#firm/")) history.replaceState(null, "", location.pathname + location.search);
   // Fade the section in when it changes.
-  const sec = $(`tab-${t}`); sec.classList.remove("enter"); void sec.offsetWidth; sec.classList.add("enter");
+  const sec = $(`tab-${secId}`); sec.classList.remove("enter"); void sec.offsetWidth; sec.classList.add("enter");
   // The news filters and story counts only apply to the story tabs.
   const stories = t === "feed" || t === "investors";
   document.querySelector(".filterbar").hidden = !stories;
   document.querySelector(".filterbar").classList.toggle("noq", t === "investors");
   ["kpis", "kpi-note"].forEach((id) => $(id).hidden = t !== "feed");
+  if (t === "directory" || t === "gift") dir.view = t === "gift" ? "ifsca" : "fpi";
   setTitle();
   if (typeof syncSearch === "function") syncSearch();
-  if (t === "flows") { renderFlows(); renderOwnership(); }
+  if (t === "flows") renderFlows();
   if (t === "markets") openMarkets();
-  if (t === "directory") openDirectory();
+  if (t === "directory" || t === "gift") { dir.view = t === "gift" ? "ifsca" : "fpi"; openDirectory(); }
   if (t === "investors" && state.events?.length) renderInvestors();
   if (t === "network") renderNetwork();
   if (t === "firm") renderFirm();
@@ -2529,7 +2511,8 @@ const TITLES = {
   network: ["Network", "Which firms appear together on the same deals"],
   firm: ["Profile", "One firm's deals, links and sources"],
   flows: ["Flows", "FPI money in and out each day, and where FDI comes from"],
-  directory: ["Directory", "Every SEBI-registered FPI and every GIFT IFSC entity"],
+  directory: ["Directory", "Every SEBI-registered foreign portfolio investor"],
+  gift: ["GIFT City", "Every entity IFSCA regulates at GIFT IFSC: fund managers, schemes, banks and more"],
   health: ["Sources", "When each source last ran"],
 };
 function setTitle() {
@@ -2552,16 +2535,17 @@ $("theme").onclick = () => { const v = document.documentElement.dataset.theme ==
 
 // ---------- One search box: the directory when it is open, the stories otherwise ----------
 // The tab's own (hidden) box that the header search fills in.
-const searchBox = () => state.tab === "directory" ? (dir.view === "fpi" ? "dq" : "iq2") : state.tab === "investors" ? "iq" : "q";
+const isDir = () => state.tab === "directory" || state.tab === "gift";
+const searchBox = () => isDir() ? (dir.view === "fpi" ? "dq" : "iq2") : state.tab === "investors" ? "iq" : "q";
 const SEARCH_HINT = { investors: "Search investors, funds or companies…", directory: "Search FPI names or registration numbers…", directory_ifsca: "Search GIFT IFSC entities or funds…" };
 function syncSearch() {
-  const k = state.tab === "directory" && dir.view !== "fpi" ? "directory_ifsca" : state.tab;
+  const k = state.tab === "gift" ? "directory_ifsca" : state.tab;
   $("gq").placeholder = SEARCH_HINT[k] || "Search investors, companies or headlines…";
   $("gq").value = $(searchBox()).value;
 }
 $("gq").addEventListener("input", () => {
   const v = $("gq").value;
-  if (state.tab === "directory") { $(searchBox()).value = v; clearTimeout(dirTimer); dirTimer = setTimeout(() => runDirSearch(true), 300); return; }
+  if (isDir()) { $(searchBox()).value = v; clearTimeout(dirTimer); dirTimer = setTimeout(() => runDirSearch(true), 300); return; }
   if (state.tab === "investors") { $("iq").value = v; invShown = 60; renderInvestors(); return; }
   $("q").value = v;
   if (state.tab !== "feed") setTab("feed");
@@ -2596,13 +2580,12 @@ const tg = (t) => `<span class="tg"><i style="background:${color(t)}"></i>${TYPE
 let ovRegs = null;
 async function loadOverviewRegs() {
   try {
-    const [st, f, i] = await Promise.all([
+    const [st, f] = await Promise.all([
       api("directory_stats?select=*"),
       api("fpi_registry?select=name,country,category,registered_on&registered_on=not.is.null&order=registered_on.desc,serial.desc&limit=4"),
-      api("ifsca_entities?select=name,category,sub_category,reg_date&category=eq.Fund%20Management&reg_date=not.is.null&order=reg_date.desc&limit=3"),
     ]);
-    ovRegs = { st: st[0] || {}, f, i };
-  } catch { ovRegs = { st: {}, f: [], i: [] }; }
+    ovRegs = { st: st[0] || {}, f };
+  } catch { ovRegs = { st: {}, f: [] }; }
   renderOverview();
 }
 // "Source · updated" lines: each names its dataset and when that source last ran successfully.
@@ -2634,7 +2617,6 @@ function renderOverview() {
     last && tile(`FPI net, ${toDMY(last.day)}`, crore(last.Total), `Equity ${crore(last.Equity)} · Debt ${crore(last.Debt)}`, Math.sign(last.Total)),
     last && tile(`FPI net, ${monLabel(last.day)} so far`, crore(mon), "All segments", Math.sign(mon)),
     tile("New FPIs, last 30 days", st.fpi_new_30d != null ? nfmt(st.fpi_new_30d) : "–", "NSDL register", 0),
-    tile("New GIFT IFSC entities, 30 days", st.ifsca_new_30d != null ? nfmt(st.ifsca_new_30d) : "–", "IFSCA directory", 0),
   ].filter(Boolean).join("");
   // Rings: the size of equity and debt flows against the larger of the two.
   if (last) {
@@ -2668,8 +2650,7 @@ function renderOverview() {
   $("ov-stories").innerHTML = state.events.slice(0, 6).map((e) => `<div class="ovrow"><div style="min-width:0"><div class="t"><a href="${safeUrl(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a></div>
       <div class="meta" style="margin-top:5px">${tg(typeOf(e))}<span>${esc(e.source_name || e.source)}</span><span>${ago(e.published_at || e.fetched_at)}</span></div></div>${amountCr(e) ? `<span class="amtflag">${esc(money(e).split(" (")[0])}</span>` : ""}</div>`).join("");
   if (ovRegs) {
-    const rows = [...ovRegs.f.map((r) => ({ n: r.name, m: `FPI · ${r.country ? SHORT_COUNTRY[r.country] || titleCase(r.country) : ""} · Cat ${r.category || ""}`, d: r.registered_on, c: "var(--in)" })),
-      ...ovRegs.i.map((r) => ({ n: r.name, m: `GIFT IFSC · ${r.sub_category || r.category}`, d: r.reg_date, c: "var(--fund_launch)" }))].sort((a, b) => b.d.localeCompare(a.d)).slice(0, 7);
+    const rows = [...ovRegs.f.map((r) => ({ n: r.name, m: `FPI · ${r.country ? SHORT_COUNTRY[r.country] || titleCase(r.country) : ""} · Cat ${r.category || ""}`, d: r.registered_on, c: "var(--in)" }))].sort((a, b) => b.d.localeCompare(a.d)).slice(0, 7);
     $("ov-regs").innerHTML = rows.map((r) => `<div class="ovrow"><div style="min-width:0"><div class="t">${esc(r.n)}</div><div class="meta" style="margin-top:5px"><span class="tg"><i style="background:${r.c}"></i>${esc(r.m)}</span></div></div><span class="side">${toDMY(r.d)}</span></div>`).join("") || `<div class="sub">No new registrations.</div>`;
   }
   // The last 30 days: reported amounts by category, and investors with the most stories.
@@ -2805,9 +2786,9 @@ function renderDirTiles() {
   $("dir-tiles").innerHTML = fpi ? [
     tile("FPIs on the register", nfmt(s.fpis), `Category I ${nfmt(s.fpi_cat1)} · Category II ${nfmt(s.fpi_cat2)}`, 0),
     tile(`Registered in ${new Date().getFullYear()}`, nfmt(s.fpi_this_year), "From the year in the registration number", 0),
-    tile("Based in GIFT IFSC", nfmt(s.fpi_gift), "FPIs whose country is India IFSC (GIFT City)", 0),
     tile("Registered in the last 30 days", nfmt(s.fpi_new_30d), "New FPIs, newest first in the list below", 0),
   ].join("") : [
+    tile("FPIs based in GIFT IFSC", nfmt(s.fpi_gift), "FPIs whose country is India IFSC (GIFT City)", 0),
     tile("Entities in the directory", nfmt(s.ifsca), "All categories, including surrendered or cancelled", 0),
     tile("Fund management entries", nfmt(s.ifsca_funds), "Fund managers and their schemes", 0),
     tile("Registered in the last 30 days", nfmt(s.ifsca_new_30d), s.ifsca_detailed < s.ifsca ? `Registration dates read for ${nfmt(s.ifsca_detailed)} of ${nfmt(s.ifsca)} so far` : "From IFSCA's registration dates", 0),

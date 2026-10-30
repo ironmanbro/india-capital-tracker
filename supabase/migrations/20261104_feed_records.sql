@@ -1,6 +1,4 @@
 -- Raw JSON from the pipeline/collectors scripts. One row per (dataset, key); snapshots overwrite, time series keep the date in the key.
--- Supersedes fpi_flows, which no collector fills.
-drop table if exists public.fpi_flows;
 create table if not exists public.feed_records (
   dataset text not null, key text not null, as_of text, data jsonb not null, loaded_at timestamptz not null default now(),
   primary key (dataset, key)
