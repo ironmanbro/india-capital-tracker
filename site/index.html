@@ -2722,13 +2722,13 @@ async function loadOverviewCross() {
   ovX = true;
   try {
     const [deals, ctry, counts] = await Promise.all([
-      api("feed_records?select=key,data&dataset=eq.nse_deals&limit=1000"),
+      api("feed_records?select=key,data&dataset=in.(nse_deals,bse_deals)&limit=2000"),
       api("feed_records?select=data&dataset=eq.nsdl&key=eq.fpi_auc_country_top10&limit=1"),
       api("fpi_country_counts?select=country,n"),
     ]);
     const out = [];
     const val = (r) => mkNum(r.qty) * mkNum(r.watp) / 1e7;
-    const buys = deals.filter((r) => /^(BULK|BLOCK)_DEALS\|/.test(r.key)).map((r) => r.data)
+    const buys = deals.filter((r) => /^((BULK|BLOCK)_DEALS|BSE_(BULK|BLOCK))\|/.test(r.key)).map((r) => r.data)
       .filter((r) => mkForeign(r.clientName) && /^b/i.test(r.buySell || "") && !isNaN(val(r)));
     const day = buys.map((r) => r.date).sort((a, b) => new Date(b) - new Date(a))[0];
     const top = buys.filter((r) => r.date === day).sort((a, b) => val(b) - val(a))[0];
@@ -3597,7 +3597,12 @@ async function openMarkets() {
   if (mk.loaded) return;
   const body = $("mk-body");
   try {
-    const rows = await api("feed_records?select=dataset,key,as_of,data&limit=20000&order=dataset");
+    const [rows, cci, rbi] = await Promise.all([
+      api("feed_records?select=dataset,key,as_of,data&dataset=in.(fii_dii,nse_deals,bse_deals,fpi_debt_summary,fpi_far_gsec,fpi_general_gsec,fpi_sector)&limit=20000&order=dataset"),
+      api("feed_records?select=key,as_of,data&dataset=eq.cci&order=as_of.desc.nullslast&limit=25").catch(() => []),
+      api("feed_records?select=key,as_of,data&dataset=eq.rbi_reserves&order=as_of.desc.nullslast&limit=1").catch(() => []),
+    ]);
+    mk.cci = cci; mk.rbi = rbi;
     for (const r of rows) (mk.data[r.dataset] ||= []).push(r);
     mk.loaded = true;
     await renderMarkets();
@@ -3612,15 +3617,17 @@ async function renderMarkets() {
   const fii = d("fii_dii").filter((r) => !/^dii$/i.test(r.category)).sort((a, b) => dt(b.date) - dt(a.date)).slice(0, 20);
   out.push(mkSec("FII / FPI activity", "Daily foreign investor buying and selling in the cash market, in US$ with ₹ crore in brackets (NSE).",
     mkTable(["Date · category", "Buy", "Sell", "Net"], fii.map((r) => [`${r.date} · ${r.category}`, mkUsd(mkNum(r.buyValue)), mkUsd(mkNum(r.sellValue)), mkUsd(mkNum(r.netValue))]))));
-  const deals = (mk.data.nse_deals || []).filter((r) => r.key.startsWith("BULK") || r.key.startsWith("BLOCK"))
-    .map((r) => r.data).filter((r) => mkForeign(r.clientName)).sort((a, b) => dt(b.date) - dt(a.date) || (mkNum(b.qty) * mkNum(b.watp)) - (mkNum(a.qty) * mkNum(a.watp))).slice(0, 100);
+  const deals = [
+    ...(mk.data.nse_deals || []).filter((r) => /^(BULK|BLOCK)_DEALS\|/.test(r.key)).map((r) => ({ ...r.data, exchange: "NSE", kind: r.key.startsWith("BULK") ? "bulk" : "block" })),
+    ...(mk.data.bse_deals || []).map((r) => r.data),
+  ].filter((r) => mkForeign(r.clientName)).sort((a, b) => dt(b.date) - dt(a.date) || (mkNum(b.qty) * mkNum(b.watp)) - (mkNum(a.qty) * mkNum(a.watp))).slice(0, 100);
   const reg = await xRegistry(deals.map((r) => r.clientName));
-  out.push(mkSec("Bulk and block deals", "Latest 100 on NSE with a foreign-looking client. Foreign is judged from the client name, so some foreign investors may be missing. Country and category come from the NSDL FPI register, and GIFT City shows clients IFSCA lists; both match on the exact name, so some show a dash. Names with a profile are links.",
-    mkTable(["Date", "Foreign investor", "Company invested in", "Country", "FPI category", "GIFT City", "Side", "Quantity", "Avg price", "Value"], deals.map((r) => {
+  out.push(mkSec("Bulk and block deals", "Latest 100 on NSE and BSE with a foreign-looking client. Foreign is judged from the client name, so some foreign investors may be missing. Country and category come from the NSDL FPI register, and GIFT City shows clients IFSCA lists; both match on the exact name, so some show a dash. Names with a profile are links.",
+    mkTable(["Date", "Exchange", "Foreign investor", "Company invested in", "Country", "FPI category", "GIFT City", "Side", "Quantity", "Avg price", "Value"], deals.map((r) => {
       const f = reg.get(r.clientName);
-      return [r.date, xFirm(r.clientName), r.name || r.symbol || "–", f.country ? SHORT_COUNTRY[f.country] || titleCase(f.country) : "–", f.cat ? `Cat ${f.cat}` : "–", f.gift ? "Yes" : "–",
+      return [r.date, `${r.exchange || "NSE"} ${r.kind || ""}`.trim(), xFirm(r.clientName), r.name || r.symbol || "–", f.country ? SHORT_COUNTRY[f.country] || titleCase(f.country) : "–", f.cat ? `Cat ${f.cat}` : "–", f.gift ? "Yes" : "–",
         r.buySell || "–", mkFmt(r.qty), mkFmt(r.watp, 2), mkUsd(mkNum(r.qty) * mkNum(r.watp) / 1e7)];
-    }), 7)));
+    }), 8)));
   const who = (state.events || []).filter((e) => e.event_type === "entry" && e.investor && e.target && mkForeign(e.investor)).slice(0, 40);
   out.push(mkSec("Who invested in whom", "Latest investments from the news and exchange deals, newest first. Foreign investors only, judged from the name.",
     mkTable(["Foreign investor", "Company invested in", "Amount", "Date"], who.map((e) =>
@@ -3629,6 +3636,19 @@ async function renderMarkets() {
   out.push(mkSec("FPI debt limits", "Limit use by instrument, in US$ with ₹ crore in brackets (NSDL).",
     mkTable(["Instrument", "Limit", "Invested", "Used (%)"], debt.map((r) => [r["Instrument Type"], mkUsd(mkNum(r["Upper Limit (Refer to Note 1 &2)_(INR Cr)_(A)"])),
       mkUsd(mkNum(r["Total Investment_(INR Cr)_(D)=(B)+(C)"])), mkFmt(r["% of Limits Utilised_(E)"], 1)]))));
+  const cci = (mk.cci || []).map((r) => r.data);
+  if (cci.length) {
+    const link = (r) => { const h = (r.order_links || [])[0]; if (!h) return "–"; try { return { h: `<a href="${safeUrl(new URL(h, "https://www.cci.gov.in").href)}" target="_blank" rel="noopener">Order</a>` }; } catch { return "–"; } };
+    out.push(mkSec("Competition Commission approvals", "Mergers and acquisitions cleared by the CCI, newest decision first. Foreign buyers are among the parties.",
+      mkTable(["Decision", "Parties", "Combination", "Status", "Order"], cci.map((r) => [r.decision_date || "–", r.parties || "–", r.combination_no || "–", r.status || "–", link(r)]), 5)));
+  }
+  const rs = (mk.rbi || [])[0]?.data;
+  if (rs && rs.items) {
+    const both2 = (usdMn, inrCr) => usdMn == null || isNaN(usdMn) ? "–" : { h: `${usdMn < 0 ? "−" : ""}${fmtUsd(Math.abs(usdMn))} <small class="inr">(${inrCr < 0 ? "−" : ""}${fmtCr(Math.abs(inrCr || 0))})</small>` };
+    out.push(mkSec("India's foreign exchange reserves", `As on ${rs.as_on}, from the RBI's Weekly Statistical Supplement, in US$ with ₹ crore in brackets.`,
+      mkTable(["Item", "Level", "Change in the week", "Change since end-March"], Object.entries(rs.items).map(([k, v]) =>
+        [k, both2(mkNum(v.usd_mn), mkNum(v.inr_cr)), both2(mkNum(v.wk_chg_usd_mn), mkNum(v.wk_chg_inr_cr)), both2(mkNum(v.vs_end_mar_usd_mn), mkNum(v.vs_end_mar_inr_cr))]))));
+  }
   const gs = [...d("fpi_far_gsec"), ...d("fpi_general_gsec")].sort((a, b) => b["Indicative Value Of Aggregate Holding Of FPIS (INR CR#)"] - a["Indicative Value Of Aggregate Holding Of FPIS (INR CR#)"]).slice(0, 20);
   out.push(mkSec("Largest FPI government-bond holdings", "Top 20 by value, in US$ with ₹ crore in brackets (NSDL).",
     mkTable(["Security", "FPI holding", "Outstanding", "FPI share (%)"], gs.map((r) => [r["Security Description"], mkUsd(mkNum(r["Indicative Value Of Aggregate Holding Of FPIS (INR CR#)"])),
@@ -3729,7 +3749,7 @@ document.addEventListener("click", (ev) => { if (!ev.target.closest(".htools")) 
 const xCache = {};
 async function dealsAll() {
   if (!xCache.deals) {
-    try { xCache.deals = (await api("feed_records?select=key,data&dataset=eq.nse_deals&limit=1000")).filter((r) => /^(BULK|BLOCK)_DEALS\|/.test(r.key)).map((r) => r.data); }
+    try { xCache.deals = (await api("feed_records?select=key,data&dataset=in.(nse_deals,bse_deals)&limit=2000")).filter((r) => /^((BULK|BLOCK)_DEALS|BSE_(BULK|BLOCK))\|/.test(r.key)).map((r) => r.data); }
     catch { xCache.deals = []; }
   }
   return xCache.deals;
