@@ -2762,11 +2762,14 @@ async function countryAum() {
   } catch { dir.country = null; }
   const t = (dir.country || []).find((x) => x.rows && x.rows.length);
   if (!t) return "";
-  const cols = Object.keys(t.rows[0]);
-  const cell = (v) => typeof v === "number" ? nfmt(v) : esc(v);
-  return `<h2 class="fsec">Assets held by country</h2><p class="note">${esc(t.title || "FPI assets under custody, top countries")} (NSDL).</p>
-    <div class="ftable-wrap"><div class="scroll"><table class="ftable"><thead><tr>${cols.map((c, i) => `<th${i ? ' class="num"' : ""}>${esc(c)}</th>`).join("")}</tr></thead><tbody>${t.rows.map((r) =>
-      `<tr>${cols.map((c, i) => `<td${i ? ' class="num"' : ""}>${cell(r[c])}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>`;
+  const n = (v) => typeof v === "number" ? v : 0;
+  const get = (r, re) => Object.entries(r).filter(([k]) => re.test(k)).reduce((a, [, v]) => a + n(v), 0);
+  const rows = t.rows.map((r) => ({ c: r.Country, total: n(r["AUC (INR Cr.)_Total"]), eq: n(r["AUC (INR Cr.)_Equity"]), debt: get(r, /^AUC \(INR Cr\.\)_Debt_/) }));
+  const all = rows.find((r) => /^total$/i.test(r.c)), list = rows.filter((r) => r !== all && r.c);
+  const max = Math.max(...list.map((r) => r.total), 1);
+  return `<h2 class="fsec">Assets held by country</h2><p class="note">FPI assets under custody for the ten largest countries, ₹ crore (NSDL). ${all ? `All countries: ${nfmt(all.total)}.` : ""}</p>
+    <div class="ftable-wrap"><div class="scroll"><table class="ftable"><thead><tr><th>Country</th><th class="num">Equity</th><th class="num">Debt</th><th class="num">Total</th><th class="num">Share</th><th></th></tr></thead><tbody>${list.map((r) =>
+      `<tr><td>${esc(titleCase(r.c))}</td><td class="num">${nfmt(r.eq)}</td><td class="num">${nfmt(r.debt)}</td><td class="num">${nfmt(r.total)}</td><td class="num">${all ? (r.total / all.total * 100).toFixed(1) + "%" : "–"}</td><td style="width:22%"><div style="height:6px;border-radius:3px;background:var(--accent);width:${(r.total / max * 100).toFixed(1)}%"></div></td></tr>`).join("")}</tbody></table></div></div>`;
 }
 
 async function renderAum() {
