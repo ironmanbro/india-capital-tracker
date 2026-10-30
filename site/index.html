@@ -705,6 +705,7 @@ html.lenis,html.lenis body{height:auto}
     <button role="tab" aria-selected="false" data-tab="investors"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20c-.5-2.5-2-4.2-4-5"/></svg>Investors</button>
     <button role="tab" aria-selected="false" data-tab="network"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="2.5"/><circle cx="5" cy="5" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="18" cy="19" r="2"/><path d="M6.5 6.5l3.7 3.7M17.3 7.3l-3.5 3.3M16.6 17.5l-2.8-3.6"/></svg>Network</button>
     <button role="tab" aria-selected="false" data-tab="flows"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Flows</button>
+    <button role="tab" aria-selected="false" data-tab="markets"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l5-5 4 4 8-9"/><path d="M15 7h5v5"/></svg>Markets</button>
     <button role="tab" aria-selected="false" data-tab="directory"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M9 7h6"/></svg>Directory</button>
     <div class="grow"></div>
     <button role="tab" aria-selected="false" data-tab="health" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v3M12 18v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M3 12h3M18 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/><circle cx="12" cy="12" r="3.5"/></svg>Sources</button>
@@ -865,6 +866,11 @@ html.lenis,html.lenis body{height:auto}
       <p class="note" style="margin-top:8px">Total FDI = equity + re-invested earnings + other capital, on the international definition DPIIT uses. The latest year is provisional and may be revised.</p>
     </div>
     <div class="ftip" id="ftip" hidden></div>
+  </section>
+
+  <section id="tab-markets" hidden>
+    <p class="sub" style="margin:0 0 12px">Daily exchange and NSDL data: FII/DII activity, bulk and block deals, IPOs, FPI debt holdings, sector allocations and promoter/public shareholding. Loaded by the daily data job.</p>
+    <div id="mk-body"><p class="note">Loading…</p></div>
   </section>
 
   <section id="tab-directory" hidden>
@@ -2472,7 +2478,7 @@ function setTab(t) {
   const was = state.tab;
   state.tab = t;
   document.querySelectorAll("nav.tabs button").forEach((b) => b.setAttribute("aria-selected", b.dataset.tab === t));
-  ["overview", "feed", "investors", "network", "firm", "flows", "directory", "health"].forEach((x) => $(`tab-${x}`).hidden = x !== t);
+  ["overview", "feed", "investors", "network", "firm", "flows", "markets", "directory", "health"].forEach((x) => $(`tab-${x}`).hidden = x !== t);
   if (was === "firm" && t !== "firm" && location.hash.startsWith("#firm/")) history.replaceState(null, "", location.pathname + location.search);
   // Fade the section in when it changes.
   const sec = $(`tab-${t}`); sec.classList.remove("enter"); void sec.offsetWidth; sec.classList.add("enter");
@@ -2484,6 +2490,7 @@ function setTab(t) {
   setTitle();
   if (typeof syncSearch === "function") syncSearch();
   if (t === "flows") renderFlows();
+  if (t === "markets") openMarkets();
   if (t === "directory") openDirectory();
   if (t === "investors" && state.events?.length) renderInvestors();
   if (t === "network") renderNetwork();
@@ -3030,6 +3037,65 @@ showWelcome();
 countVisit();
 setInterval(refresh, 5 * 60 * 1000);
 
+// ---------- Markets: data from the daily collector job (table feed_records) ----------
+const MK_PAGE = 25;
+const mk = { loaded: false, data: {} };
+const mkNum = (v) => { const n = parseFloat(String(v ?? "").replace(/,/g, "")); return isNaN(n) ? null : n; };
+const mkFmt = (v, d = 0) => { const n = mkNum(v); return n === null ? "–" : n.toLocaleString("en-IN", { maximumFractionDigits: d }); };
+const mkTable = (head, rows, id) => rows.length
+  ? `<div class="ftable-wrap"><div class="scroll"><table class="ftable"><thead><tr>${head.map((h, i) => `<th${i ? ' class="num"' : ""}>${esc(h)}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c, i) => `<td${i ? ' class="num"' : ""}>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>`
+  : `<p class="note">No data yet.</p>`;
+const mkSec = (title, note, body) => `<h2 class="fsec">${esc(title)}</h2><p class="note">${esc(note)}</p>${body}`;
+
+async function openMarkets() {
+  if (mk.loaded) return;
+  const body = $("mk-body");
+  try {
+    const rows = await api("feed_records?select=dataset,key,as_of,data&limit=20000&order=dataset");
+    for (const r of rows) (mk.data[r.dataset] ||= []).push(r);
+    mk.loaded = true;
+    renderMarkets();
+  } catch (e) { body.innerHTML = `<p class="note">Could not load market data: ${esc(e.message)}</p>`; }
+}
+
+function renderMarkets() {
+  const d = (n) => (mk.data[n] || []).map((r) => r.data);
+  const latest = (n, f) => { const all = d(n); const m = all.map(f).sort().pop(); return all.filter((x) => f(x) === m); };
+  const dt = (x) => new Date(x || 0).getTime() || 0;
+  const out = [];
+  const fii = d("fii_dii").sort((a, b) => dt(b.date) - dt(a.date)).slice(0, 20);
+  out.push(mkSec("FII / DII activity", "Daily cash-market buying and selling, ₹ crore (NSE).",
+    mkTable(["Date · category", "Buy", "Sell", "Net"], fii.map((r) => [`${r.date} · ${r.category}`, mkFmt(r.buyValue, 2), mkFmt(r.sellValue, 2), mkFmt(r.netValue, 2)]))));
+  const deals = (mk.data.nse_deals || []).filter((r) => r.key.startsWith("BULK") || r.key.startsWith("BLOCK"))
+    .map((r) => r.data).sort((a, b) => dt(b.date) - dt(a.date) || (mkNum(b.qty) * mkNum(b.watp)) - (mkNum(a.qty) * mkNum(a.watp))).slice(0, 100);
+  out.push(mkSec("Bulk and block deals", "Latest 100 on NSE. Foreign-looking buyers and sellers also appear in the Feed.",
+    mkTable(["Date · company · client", "Side", "Quantity", "Avg price", "Value (₹ cr)"], deals.map((r) =>
+      [`${r.date} · ${r.name || r.symbol} · ${r.clientName || "–"}`, r.buySell || "–", mkFmt(r.qty), mkFmt(r.watp, 2), mkFmt(mkNum(r.qty) * mkNum(r.watp) / 1e7, 1)]))));
+  const ipo = d("ipo_current").filter((r) => !r.category || r.category === "Total");
+  out.push(mkSec("IPOs open now", "Subscription as a multiple of shares offered.",
+    mkTable(["Company", "Price", "Opens – closes", "Subscribed (×)"], ipo.map((r) => [r.companyName, r.issuePrice, `${r.issueStartDate} – ${r.issueEndDate}`, mkFmt(r.noOfTime, 2)]))));
+  const debt = d("fpi_debt_summary");
+  out.push(mkSec("FPI debt limits", "Limit use by instrument, ₹ crore (NSDL).",
+    mkTable(["Instrument", "Limit", "Invested", "Used (%)"], debt.map((r) => [r["Instrument Type"], mkFmt(r["Upper Limit (Refer to Note 1 &2)_(INR Cr)_(A)"]),
+      mkFmt(r["Total Investment_(INR Cr)_(D)=(B)+(C)"]), mkFmt(r["% of Limits Utilised_(E)"], 1)]))));
+  const gs = [...d("fpi_far_gsec"), ...d("fpi_general_gsec")].sort((a, b) => b["Indicative Value Of Aggregate Holding Of FPIS (INR CR#)"] - a["Indicative Value Of Aggregate Holding Of FPIS (INR CR#)"]).slice(0, 20);
+  out.push(mkSec("Largest FPI government-bond holdings", "Top 20 by value, ₹ crore (NSDL).",
+    mkTable(["Security", "FPI holding", "Outstanding", "FPI share (%)"], gs.map((r) => [r["Security Description"], mkFmt(r["Indicative Value Of Aggregate Holding Of FPIS (INR CR#)"]),
+      mkFmt(r["Outstanding Position Of Govt# Securities (INR CR#)"]), mkFmt(r["Sec Holdings (%)"], 1)]))));
+  const sec = d("fpi_sector").map((r) => { const k = Object.keys(r).find((x) => /Equity$/.test(x)); return [r.Sectors, mkNum(r[k]) || 0, k]; })
+    .sort((a, b) => b[1] - a[1]).slice(0, 25);
+  out.push(mkSec("FPI equity by sector", sec[0] ? sec[0][2].replace(/_/g, " · ") : "Assets under custody.", mkTable(["Sector", "₹ crore"], sec.map((r) => [r[0], mkFmt(r[1])]))));
+  out.push(`<h2 class="fsec">Promoter and public shareholding</h2><p class="note">Latest filing per company (NSE). Search by name or symbol.</p>
+    <div class="filters"><input id="mk-q" type="search" placeholder="Search company or symbol" aria-label="Search shareholding"></div><div id="mk-shp"></div>`);
+  $("mk-body").innerHTML = out.join("");
+  const shp = d("nse_shareholding");
+  const draw = () => {
+    const q = $("mk-q").value.trim().toLowerCase();
+    const rows = shp.filter((r) => !q || `${r.name} ${r.symbol}`.toLowerCase().includes(q)).slice(0, MK_PAGE);
+    $("mk-shp").innerHTML = mkTable(["Company", "Promoter (%)", "Public (%)", "As of"], rows.map((r) => [`${r.name} (${r.symbol})`, mkFmt(r.promoter_holding, 2), mkFmt(r.public_holding, 2), r.date]));
+  };
+  $("mk-q").addEventListener("input", draw); draw();
+}
 </script>
 </body>
 </html>

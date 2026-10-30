@@ -1,7 +1,8 @@
 name: Sync NSE and NSDL data
 
 on:
-  # Daily schedule is off until the feed_records table exists and the Markets tab is restored.
+  schedule:
+    - cron: "0 2 * * *"
   workflow_dispatch:
 
 permissions:
