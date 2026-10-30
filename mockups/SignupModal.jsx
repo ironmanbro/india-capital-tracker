@@ -1,0 +1,237 @@
+// Multi-step sign-up modal: React + Tailwind CSS + Framer Motion. Mock only: no account is created and nothing is sent.
+// In a real project, replace the two lines below with:
+//   import { useState, useRef, useEffect, useCallback } from "react";
+//   import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+const { useState, useRef, useEffect, useCallback } = React;
+const { motion, AnimatePresence, useReducedMotion } = Motion;
+
+const ACCENT = "bg-[#E8381C] hover:bg-[#f2472b] focus-visible:ring-[#E8381C]/50";
+const INPUT = "h-12 w-full rounded-xl border border-white/10 bg-[#222222] px-4 text-base text-white placeholder:text-white/40 outline-none transition focus:border-[#E8381C] focus:ring-4 focus:ring-[#E8381C]/20 read-only:cursor-default read-only:text-white/70";
+
+/* ---------- small pieces ---------- */
+const Icon = {
+  x: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true" {...p}><path d="M6 6l12 12M18 6L6 18" /></svg>,
+  check: (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...p}><path d="M5 12.5l4.5 4.5L19 7.500" /></svg>,
+  google: (p) => <svg viewBox="0 0 24 24" aria-hidden="true" {...p}><path fill="#4285F4" d="M21.600 12.230c0-.710-.060-1.230-.200-1.770H12v3.340h5.500c-.110.830-.710 2.080-2.040 2.920l-.020.110 2.960 2.290.210.020c1.880-1.740 2.990-4.300 2.990-6.910z" /><path fill="#34A853" d="M12 22c2.700 0 4.960-.890 6.610-2.420l-3.150-2.440c-.840.590-1.970 1-3.460 1-2.650 0-4.890-1.740-5.690-4.150l-.110.010-3.080 2.390-.040.100C4.730 19.800 8.100 22 12 22z" /><path fill="#FBBC05" d="M6.310 14c-.210-.630-.330-1.300-.330-2s.120-1.370.320-2l-.010-.130-3.120-2.430-.100.050A10 10 0 0 0 2 12c0 1.610.390 3.140 1.070 4.500L6.310 14z" /><path fill="#EA4335" d="M12 5.850c1.880 0 3.140.810 3.860 1.490l2.820-2.760C16.950 2.990 14.700 2 12 2 8.100 2 4.730 4.200 3.070 7.500L6.300 10c.810-2.410 3.050-4.150 5.700-4.150z" /></svg>,
+  apple: (p) => <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...p}><path d="M16.400 12.700c0-2.300 1.900-3.400 2-3.500-1.100-1.600-2.800-1.800-3.400-1.800-1.400-.1-2.800.8-3.500.8s-1.800-.8-3-.8C6.900 7.400 5.500 8.300 4.700 9.700c-1.600 2.800-.4 6.900 1.200 9.200.8 1.100 1.700 2.400 2.900 2.300 1.200 0 1.600-.7 3-.7s1.800.7 3 .7 2-1.100 2.800-2.200c.9-1.300 1.200-2.500 1.300-2.600-.1 0-2.500-1-2.500-3.700zM14.100 5.800c.6-.8 1.100-1.800.9-2.900-.9 0-2 .6-2.700 1.400-.6.700-1.100 1.800-1 2.800 1.100.1 2.100-.5 2.800-1.300z" /></svg>,
+};
+
+// The little face next to the chat bubble: its eyes follow how much you have typed, and close on the password step.
+function Mascot({ look = 0, closed = false }) {
+  return (
+    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#222222] ring-1 ring-white/10" aria-hidden="true">
+      <motion.div className="flex gap-1.5" animate={{ x: Math.max(-3, Math.min(3, look * 0.5 - 3)) }} transition={{ type: "spring", stiffness: 300, damping: 24 }}>
+        {[0, 1].map((i) => (
+          <motion.span key={i} className="block w-1.5 rounded-full bg-white" style={{ originY: 0.5 }}
+            animate={{ height: closed ? 2 : 8 }} transition={{ type: "spring", stiffness: 400, damping: 26 }} />
+        ))}
+      </motion.div>
+    </div>
+  );
+}
+
+function Bubble({ text, reduce }) {
+  return (
+    <div className="flex min-h-[40px] items-center gap-3" role="status" aria-live="polite">
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div key={text} initial={reduce ? { opacity: 0 } : { opacity: 0, y: 6, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={reduce ? { opacity: 0 } : { opacity: 0, y: -6, scale: 0.96 }} transition={{ duration: 0.18 }}
+          className="rounded-full bg-[#f4f1ee] px-3.5 py-1.5 text-[13px] font-medium text-[#1a1a1a] shadow-sm">
+          {text}
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// Fields that have been answered stay on screen, read-only, with a tick.
+function Answered({ id, label, value, type = "text", reduce }) {
+  return (
+    <motion.div layout={!reduce} initial={reduce ? false : { opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} transition={{ duration: 0.22 }} className="overflow-hidden">
+      <label htmlFor={id} className="sr-only">{label}</label>
+      <div className="relative">
+        <input id={id} type={type} readOnly value={value} tabIndex={-1} className={INPUT + " pr-10"} />
+        <Icon.check className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#E8381C]" />
+      </div>
+    </motion.div>
+  );
+}
+
+// Six single-digit boxes: type to move on, Backspace and the arrow keys to move back, paste a whole code.
+function OtpInput({ digits, setDigits, onComplete, disabled, invalid, describedBy }) {
+  const refs = useRef([]);
+  useEffect(() => { refs.current[0] && refs.current[0].focus(); }, []); // land on the first box when the step appears
+  const put = (i, v) => {
+    const next = digits.slice(); next[i] = v; setDigits(next);
+    if (next.every(Boolean)) onComplete(next.join(""));
+  };
+  return (
+    <div role="group" aria-label="6-digit verification code" className="grid grid-cols-6 gap-2">
+      {digits.map((d, i) => (
+        <input key={i} ref={(el) => { refs.current[i] = el; }} value={d} disabled={disabled}
+          type="text" inputMode="numeric" pattern="[0-9]*" maxLength={1} autoComplete={i === 0 ? "one-time-code" : "off"}
+          aria-label={`Digit ${i + 1} of 6`} aria-invalid={invalid || undefined} aria-describedby={describedBy}
+          onChange={(e) => { const v = e.target.value.replace(/\D/g, "").slice(-1); put(i, v); if (v && refs.current[i + 1]) refs.current[i + 1].focus(); }}
+          onKeyDown={(e) => {
+            if (e.key === "Backspace" && !d && refs.current[i - 1]) { refs.current[i - 1].focus(); }
+            else if (e.key === "ArrowLeft" && refs.current[i - 1]) { e.preventDefault(); refs.current[i - 1].focus(); }
+            else if (e.key === "ArrowRight" && refs.current[i + 1]) { e.preventDefault(); refs.current[i + 1].focus(); }
+          }}
+          onPaste={(e) => {
+            const t = (e.clipboardData.getData("text") || "").replace(/\D/g, "").slice(0, 6);
+            if (!t) return; e.preventDefault();
+            const next = Array.from({ length: 6 }, (_, j) => t[j] || ""); setDigits(next);
+            refs.current[Math.min(t.length, 5)]?.focus(); if (next.every(Boolean)) onComplete(next.join(""));
+          }}
+          onFocus={(e) => e.target.select()}
+          className={"h-12 w-full rounded-xl border bg-[#222222] text-center text-lg font-semibold text-white outline-none transition focus:border-[#E8381C] focus:ring-4 focus:ring-[#E8381C]/20 disabled:opacity-60 " + (invalid ? "border-red-500" : "border-white/10")} />
+      ))}
+    </div>
+  );
+}
+
+/* ---------- the modal ---------- */
+function SignupModal({ open = true, onClose = () => {}, onLogin = () => {}, onDone = () => {} }) {
+  const reduce = useReducedMotion();
+  const [step, setStep] = useState("name"); // name -> email -> code -> password -> done
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [digits, setDigits] = useState(Array(6).fill(""));
+  const [password, setPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
+  const [newsletter, setNewsletter] = useState(true);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const dialog = useRef(null);
+  // Each step's field takes focus the moment it appears (it mounts after the previous field has animated out).
+  const focusRef = useCallback((el) => { if (el) el.focus({ preventScroll: true }); }, []);
+  const first = name.trim().split(" ")[0];
+
+  if (!open) return null;
+
+  const fail = (m) => { setError(m); return false; };
+  const wait = (ms, next) => { setBusy(true); setTimeout(() => { setBusy(false); next(); }, ms); };
+  const go = (s) => { setError(""); setStep(s); };
+
+  const submit = (e) => {
+    e && e.preventDefault();
+    if (busy) return;
+    if (step === "name") { if (name.trim().length < 2) return fail("Tell us your name so we can say hi."); go("email"); }
+    else if (step === "email") { if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return fail("That email doesn't look right."); wait(500, () => go("code")); }
+    else if (step === "code") { if (!digits.every(Boolean)) return fail("Enter all 6 digits."); wait(900, () => go("password")); } // demo: any 6 digits are accepted
+    else if (step === "password") { if (password.length < 8) return fail("Use at least 8 characters."); wait(900, () => go("done")); }
+  };
+
+  const bubble = { name: "Hi! What's your name?", email: `Nice to meet you, ${first}!`, code: busy ? "Checking…" : "Check your inbox.", password: "I'm not looking.", done: `Welcome aboard, ${first}!` }[step];
+  const label = { name: "Continue", email: busy ? "Sending code…" : "Continue", code: busy ? "Checking…" : "Continue", password: busy ? "Creating account…" : "Create my free account", done: "Start exploring" }[step];
+  const typed = step === "name" ? name.length : step === "email" ? email.length : step === "code" ? digits.filter(Boolean).length * 2 : 0;
+
+  // Escape closes; Tab stays inside the dialog.
+  const onKeyDown = (e) => {
+    if (e.key === "Escape") { onClose(); return; }
+    if (e.key !== "Tab" || !dialog.current) return;
+    const f = [...dialog.current.querySelectorAll("button,input,a[href]")].filter((x) => !x.disabled && x.tabIndex !== -1 && x.offsetParent !== null);
+    if (!f.length) return;
+    const a = f[0], z = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === a) { e.preventDefault(); z.focus(); }
+    else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a.focus(); }
+  };
+
+  const errId = "signup-error";
+  const errorEl = error ? <p id={errId} role="alert" className="mt-2 text-[13px] text-red-400">{error}</p> : null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }} onKeyDown={onKeyDown}>
+      <motion.div ref={dialog} role="dialog" aria-modal="true" aria-labelledby="signup-title"
+        initial={reduce ? { opacity: 0 } : { opacity: 0, y: 24, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ type: "spring", stiffness: 320, damping: 30 }}
+        className="relative max-h-[94dvh] w-full max-w-[400px] overflow-y-auto rounded-t-3xl border border-white/10 bg-[#161616] p-6 text-white shadow-[0_30px_80px_-20px_rgba(0,0,0,.8)] sm:rounded-3xl">
+        <button type="button" onClick={onClose} aria-label="Close" className="absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full text-white/50 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40">
+          <Icon.x className="h-4 w-4" />
+        </button>
+
+        <h2 id="signup-title" className="pr-8 text-[22px] font-semibold tracking-tight">Sign up to keep exploring</h2>
+        <div className="mt-2 flex items-center gap-2.5 text-[13px] text-white/60">
+          <div className="flex -space-x-2" aria-hidden="true">
+            {["from-rose-400 to-orange-500", "from-sky-400 to-indigo-500", "from-emerald-400 to-teal-600"].map((g, i) => (
+              <span key={i} className={`grid h-6 w-6 place-items-center rounded-full bg-gradient-to-br ${g} text-[10px] font-bold text-white ring-2 ring-[#161616]`}>{"ASK"[i]}</span>
+            ))}
+          </div>
+          <span><b className="font-semibold text-white">8,000+</b> builders already joined</span>
+        </div>
+
+        <div className="mt-5 grid grid-cols-2 gap-2.5">
+          <button type="button" className="flex h-11 items-center justify-center gap-2 rounded-xl border border-white/10 bg-[#222222] text-sm font-medium transition hover:bg-[#2b2b2b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"><Icon.google className="h-4 w-4" />Google</button>
+          <button type="button" className="flex h-11 items-center justify-center gap-2 rounded-xl border border-white/10 bg-[#222222] text-sm font-medium transition hover:bg-[#2b2b2b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"><Icon.apple className="h-4 w-4" />Apple</button>
+        </div>
+        <div className="my-4 flex items-center gap-3 text-xs text-white/40"><span className="h-px flex-1 bg-white/10" />or with your email<span className="h-px flex-1 bg-white/10" /></div>
+
+        <div className="flex items-center gap-3">
+          <Mascot look={typed} closed={step === "password"} />
+          <Bubble text={bubble} reduce={reduce} />
+        </div>
+
+        <form onSubmit={submit} noValidate className="mt-3 space-y-2.5">
+          {step !== "name" && step !== "done" && <Answered id="su-name" label="Your name" value={name} reduce={reduce} />}
+          {step === "password" && <Answered id="su-email-done" label="Your email" value={email} type="email" reduce={reduce} />}
+
+          <AnimatePresence mode="wait" initial={false}>
+            {step === "name" && (
+              <motion.div key="name" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.16 }}>
+                <label htmlFor="su-name-in" className="sr-only">Your name</label>
+                <input id="su-name-in" ref={focusRef} value={name} onChange={(e) => { setName(e.target.value); setError(""); }} type="text" autoComplete="given-name" placeholder="Your name" aria-invalid={!!error || undefined} aria-describedby={error ? errId : undefined} className={INPUT} />
+                {errorEl}
+              </motion.div>
+            )}
+            {step === "email" && (
+              <motion.div key="email" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.16 }}>
+                <label htmlFor="su-email-in" className="sr-only">Your email</label>
+                <input id="su-email-in" ref={focusRef} value={email} onChange={(e) => { setEmail(e.target.value); setError(""); }} type="email" autoComplete="email" placeholder="Your email" aria-invalid={!!error || undefined} aria-describedby={error ? errId : undefined} className={INPUT} />
+                {errorEl}
+              </motion.div>
+            )}
+            {step === "code" && (
+              <motion.div key="code" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.16 }}>
+                <OtpInput digits={digits} setDigits={(d) => { setDigits(d); setError(""); }} disabled={busy} invalid={!!error} describedBy="su-code-help" onComplete={() => wait(900, () => go("password"))} />
+                <p id="su-code-help" className="mt-2 text-xs text-white/50">
+                  Enter the code sent to <span className="text-white/80">{email}</span> · <button type="button" onClick={() => { setDigits(Array(6).fill("")); go("email"); }} className="underline underline-offset-2 hover:text-white">Change</button>
+                  <span className="block pt-1 text-white/35">Demo: any 6 digits work.</span>
+                </p>
+                {errorEl}
+              </motion.div>
+            )}
+            {step === "password" && (
+              <motion.div key="password" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.16 }} className="space-y-3">
+                <div>
+                  <label htmlFor="su-pw" className="sr-only">Password</label>
+                  <div className="relative">
+                    <input id="su-pw" ref={focusRef} value={password} onChange={(e) => { setPassword(e.target.value); setError(""); }} type={showPw ? "text" : "password"} autoComplete="new-password" placeholder="Choose a password (8+ characters)" aria-invalid={!!error || undefined} aria-describedby={error ? errId : undefined} className={INPUT + " pr-16"} />
+                    <button type="button" onClick={() => setShowPw(!showPw)} aria-pressed={showPw} className="absolute right-1.5 top-1/2 h-9 -translate-y-1/2 rounded-lg px-2.5 text-xs font-semibold text-white/60 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40">{showPw ? "Hide" : "Show"}</button>
+                  </div>
+                  {errorEl}
+                </div>
+                <label className="flex cursor-pointer items-start gap-2.5 text-[13px] leading-snug text-white/65">
+                  <input type="checkbox" checked={newsletter} onChange={(e) => setNewsletter(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-[#E8381C]" />
+                  <span><b className="font-medium text-white/85">You're also subscribed to the Monday newsletter.</b> One email a week, unsubscribe anytime.</span>
+                </label>
+              </motion.div>
+            )}
+            {step === "done" && (
+              <motion.div key="done" initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} className="rounded-xl border border-white/10 bg-[#1d1d1d] p-4 text-sm text-white/70">
+                <p className="flex items-center gap-2 font-medium text-white"><span className="grid h-6 w-6 place-items-center rounded-full bg-emerald-500/20 text-emerald-400"><Icon.check className="h-3.5 w-3.5" /></span>Account created for {email}</p>
+                <p className="mt-1.5">{newsletter ? "You're on the Monday newsletter list." : "You opted out of the newsletter."}</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <button type={step === "done" ? "button" : "submit"} onClick={step === "done" ? onDone : undefined} disabled={busy}
+            className={`flex h-12 w-full items-center justify-center gap-2 rounded-xl text-[15px] font-semibold text-white transition focus-visible:outline-none focus-visible:ring-4 active:scale-[0.98] disabled:cursor-progress disabled:opacity-70 ${ACCENT}`}>
+            {busy && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true" />}
+            {label}
+          </button>
+        </form>
+
+        {step !== "done" && <p className="mt-4 text-center text-[13px] text-white/50">Already a member? <button type="button" onClick={onLogin} className="font-medium text-white underline underline-offset-2 hover:text-white/80">Log in</button></p>}
+      </motion.div>
+    </div>
+  );
+}
