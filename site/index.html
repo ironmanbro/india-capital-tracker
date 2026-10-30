@@ -865,7 +865,7 @@ html.lenis,html.lenis body{height:auto}
     </div>
 
     <div class="fcard">
-      <div class="fhead"><div><h3>FPI net investment by month<span class="era cur">This calendar year</span></h3><div class="sub" id="fmonth-sub">US$ · all segments</div></div></div>
+      <div class="fhead"><div><h3>FPI net investment by month<span class="era cur">All available months</span></h3><div class="sub" id="fmonth-sub">US$ · all segments</div></div></div>
       <div class="flegend"><span><i style="background:var(--in)"></i>Net inflow</span><span><i style="background:var(--out)"></i>Net outflow</span></div>
       <div class="fchart" id="fmonth"></div>
       <p class="dsrc" data-src="nsdl_flows" data-what="NSDL FPI calendar-year report"></p>
@@ -1512,7 +1512,7 @@ document.addEventListener("click", (ev) => { if (!ev.target.closest?.(".fchart .
 
 function renderFlowCharts() {
   hideTip();
-  const seg = flows.seg, r = flowRange(), d = flows.daily.filter((x) => inDays(x.day, r)), mon = flows.monthly.filter((m) => inMonths(m.month, r));
+  const seg = flows.seg, r = flowRange(), d = flows.daily.filter((x) => inDays(x.day, r)), mon = flows.monthly;
   $("fday").dataset.title = "FPI net investment by day";
   barChart($("fday"), d.map((x) => ({ ...x, v: usdMOf(x[seg]) })), {
     axis: usdAxis,
