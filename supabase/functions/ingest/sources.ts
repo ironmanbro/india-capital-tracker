@@ -76,9 +76,6 @@ export const NSE_FILES = [
     .map(([source, env]) => ({ source, url: Deno.env.get(env) ?? "" })).filter((f) => f.url),
 ];
 
-// Daily FPI flows as CSV (columns: date, category, gross_buy, gross_sell, net in ₹ crore). NSDL publishes HTML,
-// so point this at a CSV export of it; unset means skipped.
-export const FPI_FLOWS_URL = Deno.env.get("FPI_FLOWS_URL") ?? "";
 
 // NSE's RSS feed of shareholding-pattern filings (listed at nseindia.com/rss-feed). The address could not be
 // checked from the build environment; set SHP_FEED_URL to override it without a code change.

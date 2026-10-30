@@ -10,7 +10,7 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import Anthropic from "npm:@anthropic-ai/sdk";
-import { googleNewsUrl, NEWS_QUERIES, FPI_FLOWS_URL, NSE_FILES, SHP_FEED, type NewsQuery } from "./sources.ts";
+import { googleNewsUrl, NEWS_QUERIES, NSE_FILES, SHP_FEED, type NewsQuery } from "./sources.ts";
 import { parseFeed, parseShp } from "./shp.ts";
 import { classifyLLM, classifyRules, PRIORITY, type Classified, type RawItem } from "./classify.ts";
 import { dedupe } from "./dedupe.ts";
@@ -313,29 +313,6 @@ async function runNse() {
   return out;
 }
 
-// ---------- FPI daily flows ----------
-
-async function runFpi() {
-  if (!FPI_FLOWS_URL) return { skipped: "FPI_FLOWS_URL not set" };
-  const started = new Date();
-  try {
-    const res = await fetch(FPI_FLOWS_URL, { headers: { "user-agent": UA } });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const num = (v?: string) => parseFloat((v ?? "").replace(/,/g, "")) || 0;
-    const rows = parseCsv(await res.text()).slice(1).filter((r) => !isNaN(+new Date(r[0])))
-      .map((r) => ({ flow_date: new Date(r[0]).toISOString().slice(0, 10), category: r[1] || "total",
-        gross_buy_cr: num(r[2]), gross_sell_cr: num(r[3]), net_cr: num(r[4]) }));
-    const { error, count } = await db.from("fpi_flows")
-      .upsert(rows, { onConflict: "flow_date,category", count: "exact" });
-    if (error) throw new Error(error.message);
-    await logRun("fpi_flows", started, true, rows.length, count ?? 0);
-    return { rows: rows.length };
-  } catch (e) {
-    await logRun("fpi_flows", started, false, 0, 0, (e as Error).message);
-    return { error: (e as Error).message };
-  }
-}
-
 // ---------- shareholding patterns ----------
 
 const NSE_HEADERS = { "user-agent": UA, referer: "https://www.nseindia.com/" };
@@ -432,9 +409,9 @@ Deno.serve(async (req) => {
   const window = /^\d+[hd]$/.test(url.searchParams.get("window") ?? "") ? url.searchParams.get("window")! : "1d";
   const deadline = Date.now() + TIME_BUDGET_MS;
 
-  const [news, nse, shp, fpi] = await Promise.all([runNews(`when:${window}`, deadline), runNse(), runShp(deadline), runFpi()]);
+  const [news, nse, shp] = await Promise.all([runNews(`when:${window}`, deadline), runNse(), runShp(deadline)]);
   const stories = await dedupe(db, client, MODEL, deadline);
   // Leftover time goes to upgrading older rule-classified items.
   const upgraded = await reclassify(deadline);
-  return Response.json({ window, llm: Boolean(API_KEY), model: API_KEY ? MODEL : null, news, nse, shp, fpi, stories, upgraded });
+  return Response.json({ window, llm: Boolean(API_KEY), model: API_KEY ? MODEL : null, news, nse, shp, stories, upgraded });
 });
