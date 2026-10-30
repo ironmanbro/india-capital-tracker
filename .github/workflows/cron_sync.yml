@@ -2,7 +2,9 @@ name: Sync NSE and NSDL data
 
 on:
   schedule:
-    - cron: "0 2 * * *"
+    - cron: "0 2 * * *"      # 7:30 am IST: everything, including the previous day's deals as a safety net
+    - cron: "30 12 * * 1-5"  # 6:00 pm IST on trading days: NSE bulk and block deals are out after the close
+    - cron: "30 15 * * 1-5"  # 9:00 pm IST: second try, because the deals file only ever holds the latest day
   workflow_dispatch:
 
 permissions:
