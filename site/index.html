@@ -719,6 +719,14 @@ body.anon .gnav button:not([data-g="home"])::after{content:"🔒";position:absol
 @media(min-width:861px){.a-form{align-items:flex-start;padding-top:clamp(112px,13vh,170px)}.a-card{max-width:400px}
   .a-brand{align-items:center}.a-brand .a-logo,#a-pitch{width:100%;max-width:600px}
   #a-pitch{flex:1;margin-top:calc(clamp(112px,13vh,170px) - 112px)}.a-free{margin-top:auto;padding-top:20px}}
+.a-chk{display:flex;gap:10px;align-items:flex-start;margin:16px 0 0!important;font-size:13px;line-height:1.4;color:var(--muted);cursor:pointer;font-weight:400!important}
+.a-chk input{width:18px!important;height:18px!important;min-height:0!important;margin-top:1px;flex:none;accent-color:var(--accent)}
+.a-doc{font-size:13.5px;line-height:1.5;color:var(--muted);margin:0 0 6px}.a-doc h3{font-size:13px;color:var(--ink);margin:14px 0 4px}.a-doc ul{margin:0;padding-left:18px}.a-doc li{margin:3px 0}.a-doc p{margin:0}
+.a-doc table{width:100%;border-collapse:collapse;font-size:12px}.a-doc td{padding:5px 6px 5px 0;border-bottom:1px solid var(--line);vertical-align:top;color:var(--ink)}.a-doc td.m{color:var(--muted);white-space:nowrap}
+.us-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-top:12px}
+.us-bar{height:6px;border-radius:3px;background:var(--chip);overflow:hidden;margin-top:3px}.us-bar i{display:block;height:100%;background:var(--accent)}
+.us-row{padding:7px 0;border-top:1px solid var(--line);font-size:13px}.us-row .n{float:right;color:var(--muted)}
+.us-user{display:block;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);color:var(--ink);font:inherit;padding:10px 4px;cursor:pointer;min-height:44px}.us-user:hover{background:var(--chip)}.us-user small{display:block;color:var(--muted)}
 </style>
 <script src="vendor/lenis.min.js" defer></script>
 </head>
@@ -815,6 +823,7 @@ body.anon .gnav button:not([data-g="home"])::after{content:"🔒";position:absol
     <button role="tab" aria-selected="false" data-tab="gift"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V9l8-5 8 5v12"/><path d="M9 21v-6h6v6M4 21h16"/></svg>GIFT City</button>
     <div class="grow"></div>
     <button role="tab" aria-selected="false" data-tab="health" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v3M12 18v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M3 12h3M18 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/><circle cx="12" cy="12" r="3.5"/></svg>Sources</button>
+    <button role="tab" aria-selected="false" data-tab="users" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.500 20c.8-3.500 3.400-5.500 6.500-5.500s5.700 2 6.500 5.500"/><path d="M16 4.500a3.500 3.500 0 0 1 0 7M21.500 20c-.5-2.500-2-4.200-4-5"/></svg>Users</button>
   </nav>
 
   <section id="tab-overview">
@@ -989,6 +998,8 @@ body.anon .gnav button:not([data-g="home"])::after{content:"🔒";position:absol
     <p class="sub" style="margin:0 0 12px">Daily exchange and NSDL data: FII/FPI activity, bulk and block deals with foreign investors, FPI debt holdings and sector allocations. Loaded by the daily data job.</p>
     <div id="mk-body"><p class="note">Loading…</p></div>
   </section>
+
+  <section id="tab-users" hidden><div id="us-body"><p class="note">Loading…</p></div></section>
 
   <section id="tab-entity" hidden><div id="entity-body"></div></section>
 
@@ -2522,12 +2533,12 @@ document.querySelectorAll("#nhops button").forEach((b) => b.onclick = () => {
 });
 
 function setTab(t) {
-  if (!authAllowed(t)) { auth.next = t; t = "overview"; setTimeout(() => openAuth("signin"), 0); }
+  if (!authAllowed(t)) { auth.next = t; t = "overview"; if (!auth.session) setTimeout(() => openAuth("signin"), 0); }
   const was = state.tab;
   state.tab = t;
   document.querySelectorAll("nav.tabs button").forEach((b) => b.setAttribute("aria-selected", b.dataset.tab === t));
   const secId = t === "gift" ? "directory" : t;
-  ["overview", "feed", "investors", "network", "firm", "flows", "markets", "directory", "entity", "health"].forEach((x) => $(`tab-${x}`).hidden = x !== secId);
+  ["overview", "feed", "investors", "network", "firm", "flows", "markets", "directory", "entity", "users", "health"].forEach((x) => $(`tab-${x}`).hidden = x !== secId);
   if (was === "firm" && t !== "firm" && location.hash.startsWith("#firm/")) history.replaceState(null, "", location.pathname + location.search);
   // Fade the section in when it changes.
   const sec = $(`tab-${secId}`); sec.classList.remove("enter"); void sec.offsetWidth; sec.classList.add("enter");
@@ -2540,12 +2551,14 @@ function setTab(t) {
   setTitle();
   if (typeof syncSearch === "function") syncSearch();
   if (t === "flows") { renderFlows(); renderFpiHistory(); }
+  if (t === "users") renderUsers();
   if (t === "markets") openMarkets();
   if (t === "directory" || t === "gift") { dir.view = t === "gift" ? "ifsca" : "fpi"; openDirectory(); }
   if (t === "investors" && state.events?.length) renderInvestors();
   if (t === "network") renderNetwork();
   if (t === "firm") renderFirm();
   try { gnav.open = null; drawGnav(); } catch {}
+  if (auth.session && t !== "entity") track("view", t, t === "firm" ? net.firm : null);
   if (typeof syncUrl === "function") syncUrl();
   if (t === "overview" && typeof renderOverview === "function") requestAnimationFrame(renderOverview);
 }
@@ -2559,6 +2572,7 @@ const TITLES = {
   network: ["Network", "Which firms appear together on the same deals"],
   firm: ["Profile", "One firm's deals, links and sources"],
   entity: ["Profile", "Everything the site holds on one name"],
+  users: ["Users", "Who signs in and what they open (owner only)"],
   flows: ["Flows", "FPI money in and out each day, and where FDI comes from"],
   directory: ["FPIs", "Every SEBI-registered foreign portfolio investor, and how much they hold by sector"],
   gift: ["GIFT City", "Every entity IFSCA regulates at GIFT IFSC: fund managers, schemes, banks and more"],
@@ -3159,13 +3173,13 @@ function showWelcome() {
 // ---------- Sign-in (Supabase Auth). Only Home is open to everyone; every other tab asks you to sign in. ----------
 var auth = { session: null, next: null, timer: null, notice: "", recovery: false };
 const OPEN_TABS = ["overview", "health"];
-function authAllowed(t) { return OPEN_TABS.includes(t) || !!auth.session; }
+function authAllowed(t) { if (t === "users") return !!auth.admin; return OPEN_TABS.includes(t) || !!auth.session; }
 const AUTH_KEY = "ict-auth";
 function authMsg(j) {
   const c = j.error_code || j.code || "", m = j.msg || j.message || j.error_description || j.error || "";
   return ({ invalid_credentials: "Wrong email or password.", email_not_confirmed: "Confirm your email first: check your inbox for the link.", user_already_exists: "An account with this email already exists. Try signing in.",
     over_email_send_rate_limit: "Too many emails sent. Wait a few minutes and try again.", over_request_rate_limit: "Too many attempts. Wait a moment and try again.", weak_password: "That password is too weak. Use a longer, less common one.",
-    signup_disabled: "Sign-ups are turned off right now.", same_password: "Choose a password you haven't used before." })[c] || (/invalid login/i.test(m) ? "Wrong email or password." : m) || "Something went wrong. Try again.";
+    signup_disabled: "Sign-ups are turned off right now.", otp_disabled: "We don't have an account for that email yet. Create one first.", same_password: "Choose a password you haven't used before." })[c] || (/invalid login/i.test(m) ? "Wrong email or password." : m) || "Something went wrong. Try again.";
 }
 async function authCall(path, { method = "POST", body, token, query = "" } = {}) {
   let res;
@@ -3203,7 +3217,7 @@ function authBoot() {
   } else {
     try { const saved = JSON.parse(load(AUTH_KEY) || "null"); if (saved && saved.access_token) { auth.session = saved; if (saved.expires_at * 1000 < Date.now() + 10000) authRefresh(); else authStore(saved); } } catch {}
   }
-  authUi();
+  authUi(); authAdmin();
   if (auth.recovery) setTimeout(() => openAuth("reset"), 0);
   else if (auth.notice) setTimeout(() => openAuth("signin"), 0);
 }
@@ -3213,8 +3227,10 @@ function authUi() {
   document.body.classList.toggle("anon", !auth.session);
   const a = $("acct");
   if (a) {
-    a.innerHTML = auth.session ? `Signed in${who ? ` as <b>${esc(who)}</b>` : ""} · <button class="link" id="acct-out" type="button">Sign out</button>` : `<button class="link" id="acct-in" type="button">Sign in to open every tab</button>`;
-    const out = $("acct-out"), inn = $("acct-in");
+    a.innerHTML = auth.session ? `Signed in${who ? ` as <b>${esc(who)}</b>` : ""} · <button class="link" id="acct-act" type="button">My activity</button> · <button class="link" id="acct-priv" type="button">Privacy</button> · <button class="link" id="acct-out" type="button">Sign out</button>` : `<button class="link" id="acct-in" type="button">Sign in to open every tab</button>`;
+    const out = $("acct-out"), inn = $("acct-in"), act = $("acct-act"), pv = $("acct-priv");
+    if (act) act.onclick = () => { auth.prevScreen = null; openAuth("activity"); };
+    if (pv) pv.onclick = () => { auth.prevScreen = null; openAuth("privacy"); };
     if (out) out.onclick = authOut;
     if (inn) inn.onclick = () => { auth.next = null; openAuth("signin"); };
   }
@@ -3222,7 +3238,7 @@ function authUi() {
 }
 async function authOut() {
   const t = auth.session && auth.session.access_token;
-  authClear(); authUi();
+  authClear(); auth.admin = false; authUi(); adminUi();
   if (t) authCall("/logout", { token: t }).catch(() => {});
   if (!authAllowed(state.tab)) setTab("overview");
 }
@@ -3245,9 +3261,10 @@ const A_SCREENS = {
       ${A_EMAIL}
       <label for="a-pw">Password</label><div class="a-field"><input id="a-pw" type="password" placeholder="At least 8 characters" autocomplete="new-password">${A_EYE}</div>
       <div class="a-meter" id="a-meter" aria-hidden="true"><i></i><i></i><i></i><i></i></div><div class="a-sub" id="a-mtxt" style="margin:6px 0 0;font-size:12px">Use 8+ characters; mix letters and numbers.</div><div class="a-err" data-e="a-pw" role="alert"></div>
+      <label class="a-chk"><input type="checkbox" id="a-agree"> <span>I agree that Indian Capital Tracker records the pages I open and what I search while signed in, as set out in the <button type="button" class="a-lnk" data-as="privacy">privacy notice</button>.</span></label><div class="a-err" data-e="a-agree" role="alert"></div>
       <button class="a-btn" type="submit">Create account</button></form>
     <div class="a-foot">Already have an account? <button class="a-lnk" data-as="signin">Sign in</button></div>${aPerksMobile()}`,
-  magic: () => `<h1 id="auth-title">Sign in with a link</h1><p class="a-sub">We'll email you a link. Open it on this device and you're in. No password needed.</p>
+  magic: () => `<h1 id="auth-title">Sign in with a link</h1><p class="a-sub">For accounts you already have. We'll email you a link; open it on this device and you're in. No password needed.</p>
     <form novalidate data-do="magic">${A_EMAIL}<button class="a-btn" type="submit">Email me the link</button></form>
     <div class="a-foot"><button class="a-lnk" data-as="signin">← Back to sign in</button></div>`,
   forgot: () => `<h1 id="auth-title">Reset your password</h1><p class="a-sub">Enter your email and we'll send a link to choose a new one.</p>
@@ -3258,6 +3275,18 @@ const A_SCREENS = {
       <label for="a-pw">New password</label><div class="a-field"><input id="a-pw" type="password" placeholder="At least 8 characters" autocomplete="new-password">${A_EYE}</div><div class="a-err" data-e="a-pw" role="alert"></div>
       <label for="a-pw2">Repeat it</label><input id="a-pw2" type="password" placeholder="Same password again" autocomplete="new-password"><div class="a-err" data-e="a-pw2" role="alert"></div>
       <button class="a-btn" type="submit">Save password and continue</button></form>`,
+  privacy: () => `<h1 id="auth-title">Privacy notice</h1><p class="a-sub">In plain words: what we keep when you have an account, and your choices.</p>
+    <div class="a-doc"><h3>What we record</h3><ul><li>Your name and email, so you can sign in.</li><li>While you are signed in: which tab you open, which firm or profile you open, what you search for, when you sign in, the time of each, and whether you used a phone, tablet or laptop.</li></ul>
+    <h3>What we do not record</h3><ul><li>Your password (it is stored scrambled by our sign-in provider, Supabase, and we cannot read it).</li><li>Your IP address in our own records, or anything you do on other websites.</li><li>Anything you do while signed out.</li></ul>
+    <h3>Why</h3><p>To see which parts of the site are useful, fix what is broken, and contact account holders about the site.</p>
+    <h3>Who can see it</h3><p>Only the site owner. We do not sell or share it. Your data is stored with Supabase, which hosts the database.</p>
+    <h3>Your choices</h3><ul><li>Open <b>My activity</b> (under the header once you are signed in) to see everything we hold about your visits, download it, or delete it whenever you like.</li><li>To delete your account, email the address at the bottom of the page.</li></ul>
+    <h3>How long</h3><p>Activity is deleted automatically after 12 months. Your account stays until you ask for it to be deleted.</p></div>
+    <button class="a-btn ghost" type="button" data-back="1">← Back</button>`,
+  activity: (d) => `<h1 id="auth-title">My activity</h1><p class="a-sub">Everything recorded about your visits while signed in. Only you and the site owner can see it.</p>
+    <div id="a-act" class="a-doc" style="max-height:44vh;overflow:auto">Loading…</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="a-btn ghost" type="button" id="a-dl" style="flex:1">Download</button><button class="a-btn ghost" type="button" id="a-del" style="flex:1">Delete all</button></div>
+    <button class="a-btn ghost" type="button" data-back="1">← Back</button>`,
   sent: (d) => `<div class="a-ok" aria-hidden="true">✉︎</div><h1 id="auth-title">Check your email</h1>
     <p class="a-sub">${({ confirm: "We sent a link to confirm your account to", magic: "We sent a sign-in link to", recover: "If an account exists for", })[d.kind] || "We emailed"} <b style="color:var(--ink)">${esc(d.email)}</b>${d.kind === "recover" ? ", a reset link is on its way" : ""}. Open it on this device. It works once and expires soon.</p>
     <div class="a-note" style="margin-top:14px">Can't see it? Check your <b>spam</b> or <b>promotions</b> folder, and mark it "not spam" so the next one arrives in your inbox.</div>
@@ -3327,7 +3356,9 @@ function closeAuth() {
 function authScreen(name, data = {}) {
   const card = $("a-card");
   card.innerHTML = `<div class="a-logo a-mlogo"><i>ICT</i> Indian Capital Tracker</div>` + A_SCREENS[name](data);
-  card.querySelectorAll("[data-as]").forEach((b) => b.onclick = () => { auth.notice = ""; authScreen(b.dataset.as, data); });
+  card.querySelectorAll("[data-as]").forEach((b) => b.onclick = () => { auth.notice = ""; auth.prevScreen = name; authScreen(b.dataset.as, data); });
+  card.querySelectorAll("[data-back]").forEach((b) => b.onclick = () => { if (auth.prevScreen && !auth.session) authScreen(auth.prevScreen); else closeAuth(); });
+  if (name === "activity") authActivity();
   card.querySelectorAll("[data-eye]").forEach((b) => b.onclick = () => { const i = b.parentElement.querySelector("input"), show = i.type === "password"; i.type = show ? "text" : "password"; b.textContent = show ? "Hide" : "Show"; b.setAttribute("aria-label", show ? "Hide password" : "Show password"); });
   const pw = $("a-pw"), meter = $("a-meter");
   if (pw && meter) pw.oninput = () => {
@@ -3349,10 +3380,10 @@ function authScreen(name, data = {}) {
 function aErr(f, id, msg) { const e = f.querySelector(`[data-e="${id}"]`), i = f.querySelector("#" + id); if (e) e.textContent = msg || ""; if (i) { i.classList.toggle("bad", !!msg); if (msg) i.setAttribute("aria-invalid", "true"); else i.removeAttribute("aria-invalid"); } return !msg; }
 function authSend(kind, email) {
   if (kind === "recover") return authCall("/recover", { body: { email }, query: `?redirect_to=${authBack()}` });
-  return authCall("/otp", { body: { email, create_user: true }, query: `?redirect_to=${authBack()}` });
+  return authCall("/otp", { body: { email, create_user: false }, query: `?redirect_to=${authBack()}` });
 }
 function authDone() {
-  closeAuth(); authUi();
+  closeAuth(); authUi(); track("signin", "auth", null); authAdmin();
   const t = auth.next; auth.next = null;
   if (t && t !== state.tab) setTab(t); else if (location.hash.startsWith("#firm/")) route();
 }
@@ -3363,6 +3394,7 @@ async function authSubmit(f, data) {
   if (f.querySelector("#a-em")) ok = aErr(f, "a-em", /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em) ? "" : em ? "That email doesn't look right." : "Enter your email.") && ok;
   if (f.querySelector("#a-pw")) { const need = kind === "signin" ? 1 : 8; ok = aErr(f, "a-pw", val("a-pw").length >= need ? "" : kind === "signin" ? "Enter your password." : "Use at least 8 characters.") && ok; }
   if (f.querySelector("#a-pw2")) ok = aErr(f, "a-pw2", val("a-pw2") === val("a-pw") ? "" : "The two passwords don't match.") && ok;
+  if (f.querySelector("#a-agree")) ok = aErr(f, "a-agree", f.querySelector("#a-agree").checked ? "" : "Please tick this to create an account.") && ok;
   if (!ok) return;
   const btn = f.querySelector(".a-btn"), label = btn.textContent;
   btn.disabled = true; btn.innerHTML = '<span class="a-spin"></span> Please wait…';
@@ -3370,13 +3402,96 @@ async function authSubmit(f, data) {
   try {
     if (kind === "signin") { authStore(await authCall("/token", { query: "?grant_type=password", body: { email: em, password: val("a-pw") } })); authDone(); }
     else if (kind === "signup") {
-      const r = await authCall("/signup", { query: `?redirect_to=${authBack()}`, body: { email: em, password: val("a-pw"), data: { name: val("a-nm").trim() } } });
+      const r = await authCall("/signup", { query: `?redirect_to=${authBack()}`, body: { email: em, password: val("a-pw"), data: { name: val("a-nm").trim(), consent_at: new Date().toISOString(), consent_version: "2026-10" } } });
       if (r.access_token) { authStore(r); authDone(); } else authScreen("sent", { kind: "confirm", email: em });
     }
     else if (kind === "magic") { await authSend("magic", em); authScreen("sent", { kind: "magic", email: em }); }
     else if (kind === "forgot") { await authSend("recover", em); authScreen("sent", { kind: "recover", email: em }); }
     else if (kind === "reset") { const u = await authCall("/user", { method: "PUT", token: auth.session.access_token, body: { password: val("a-pw") } }); auth.session.user = u; store(AUTH_KEY, JSON.stringify(auth.session)); authDone(); }
   } catch (er) { fail(er); }
+}
+
+// ---------- Activity log: what each signed-in person opens. Each person can see and delete their own rows; only the owner sees everyone's. ----------
+const trackDevice = () => innerWidth < 700 ? "phone" : innerWidth < 1100 && matchMedia("(pointer:coarse)").matches ? "tablet" : "laptop";
+let lastTrack = { k: "", t: 0 };
+async function authRest(path, { method = "GET", body, headers = {} } = {}) {
+  if (!auth.session) throw new Error("Sign in first.");
+  if (auth.session.expires_at * 1000 < Date.now() + 15000) await authRefresh();
+  if (!auth.session) throw new Error("Your session ended. Sign in again.");
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { method, keepalive: method === "POST", headers: { apikey: KEY, Authorization: `Bearer ${auth.session.access_token}`, "Content-Type": "application/json", ...headers }, body: body ? JSON.stringify(body) : undefined });
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).message || res.statusText);
+  return res.status === 204 || res.headers.get("content-length") === "0" ? null : res.json().catch(() => null);
+}
+function track(kind, page, detail) {
+  if (!auth.session) return;
+  const key = `${kind}|${page}|${detail || ""}`;
+  if (key === lastTrack.k && Date.now() - lastTrack.t < 2500) return;
+  lastTrack = { k: key, t: Date.now() };
+  authRest("user_activity", { method: "POST", headers: { Prefer: "return=minimal" }, body: { kind, page: String(page).slice(0, 40), detail: detail ? String(detail).slice(0, 120) : null, device: trackDevice() } }).catch(() => {});
+}
+// What people type in the search box is logged once they stop typing.
+let searchTimer;
+$("gq").addEventListener("input", () => { clearTimeout(searchTimer); searchTimer = setTimeout(() => { const v = $("gq").value.trim(); if (auth.session && v.length >= 3) track("search", state.tab, v); }, 1500); });
+
+// "My activity": see, download or delete your own rows.
+const actWhen = (iso) => new Date(iso).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "numeric", minute: "2-digit", hour12: true });
+async function authActivity() {
+  const box = $("a-act");
+  try {
+    const rows = await authRest("user_activity?select=at,kind,page,detail,device&order=at.desc&limit=200");
+    box.innerHTML = rows.length ? `<table>${rows.map((r) => `<tr><td class="m">${esc(actWhen(r.at))}</td><td>${esc(r.kind)} · ${esc(r.page)}${r.detail ? `<br><span style="color:var(--muted)">${esc(r.detail)}</span>` : ""}</td><td class="m">${esc(r.device || "")}</td></tr>`).join("")}</table>` : "Nothing recorded yet.";
+    $("a-dl").onclick = () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(rows, null, 2)], { type: "application/json" })); a.download = "my-activity.json"; a.click(); };
+    $("a-del").onclick = async () => {
+      if (!confirm("Delete all your recorded activity? This cannot be undone.")) return;
+      try { await authRest("user_activity?id=gt.0", { method: "DELETE" }); box.textContent = "Deleted. Nothing is recorded about your past visits now."; } catch (e) { box.textContent = e.message; }
+    };
+  } catch (e) { box.textContent = e.message; }
+}
+
+// Owner only: the Users view. The database decides who the owner is; the page only asks.
+async function authAdmin() {
+  if (!auth.session) return;
+  try { auth.admin = (await authRest("rpc/is_admin", { method: "POST", body: {} })) === true; } catch { auth.admin = false; }
+  adminUi();
+}
+function adminUi() {
+  const b = document.querySelector('nav.tabs button[data-tab="users"]');
+  if (b) b.hidden = !auth.admin;
+  try { drawGnav(); } catch {}
+  if (!auth.admin && state.tab === "users") setTab("overview");
+}
+const usRpc = (fn, body) => authRest(`rpc/${fn}`, { method: "POST", body });
+let usDays = 30;
+async function renderUsers() {
+  const box = $("us-body");
+  if (!auth.admin) { box.innerHTML = `<p class="note">This view is for the site owner.</p>`; return; }
+  box.innerHTML = `<p class="note">Loading…</p>`;
+  try {
+    const [sm, users] = await Promise.all([usRpc("activity_summary", { days: usDays }), usRpc("activity_users", {})]);
+    const bars = (rows, key, label) => rows.length ? rows.map((r) => `<div class="us-row"><span class="n">${nfmt(r.n)}</span>${esc(label ? label(r) : r[key])}<div class="us-bar"><i style="width:${(r.n / rows[0].n * 100).toFixed(0)}%"></i></div></div>`).join("") : `<div class="note">Nothing yet.</div>`;
+    box.innerHTML = `<div class="fhead" style="margin-bottom:8px"><p class="sub" style="margin:0;max-width:640px">Who signs in and what they open. Only you can see this. People can see and delete their own rows from "My activity".</p>
+      <div class="seg" id="us-days" role="group" aria-label="Period">${[7, 30, 90, 365].map((d) => `<button data-d="${d}" aria-pressed="${d === usDays}">${d === 365 ? "1 year" : d + " days"}</button>`).join("")}</div></div>
+      <div class="ftiles">${tile("Registered users", nfmt(sm.users_total), "All accounts", 0)}${tile(`Active, last ${usDays} days`, nfmt(sm.users_active), "Opened at least one page", 0)}${tile("Things recorded", nfmt(sm.events), `In the last ${usDays} days`, 0)}</div>
+      <div class="fcard" style="margin-top:12px"><div class="fhead"><div><h3>Activity per day</h3><div class="sub">All recorded actions, India time</div></div></div><div class="fchart" id="us-chart"></div></div>
+      <div class="us-grid">
+        <div class="fcard"><h3>Tabs opened</h3>${bars(sm.per_page, "page")}</div>
+        <div class="fcard"><h3>Devices</h3>${bars(sm.devices, "device")}</div>
+        <div class="fcard"><h3>Firms and profiles opened</h3>${bars(sm.top_open, "detail")}</div>
+        <div class="fcard"><h3>What people search for</h3>${bars(sm.top_search, "detail")}</div></div>
+      <div class="fcard" style="margin-top:12px"><h3>People</h3><div class="sub" style="margin-bottom:6px">Tap a person for their timeline.</div>
+        ${users.map((u) => `<button class="us-user" data-u="${esc(u.id)}"><b>${esc(u.name || u.email)}</b> <span style="color:var(--muted)">${esc(u.name ? u.email : "")}</span><small>Joined ${esc((u.created_at || "").slice(0, 10))} · last sign-in ${u.last_sign_in_at ? esc(actWhen(u.last_sign_in_at)) : "never"} · ${nfmt(u.events)} actions${u.last_seen ? ` · last seen ${esc(actWhen(u.last_seen))}` : ""}</small></button>`).join("")}
+        <div id="us-line" style="margin-top:10px"></div></div>`;
+    document.querySelectorAll("#us-days button").forEach((b) => b.onclick = () => { usDays = +b.dataset.d; renderUsers(); });
+    const per = sm.per_day || [];
+    barChart($("us-chart"), per.map((d) => ({ ...d, v: d.n })), { height: 200, label: (p) => p.day.slice(5), axis: (v) => String(Math.round(v)), line: { kind: "cum", name: "Running total", full: (v) => String(Math.round(v)) }, tip: (p) => `<b>${esc(p.day)}</b><div class="row"><span>Actions</span><span>${nfmt(p.n)}</span></div>` });
+    box.querySelectorAll(".us-user").forEach((b) => b.onclick = async () => {
+      const line = $("us-line"); line.innerHTML = `<div class="note">Loading…</div>`;
+      try {
+        const rows = await usRpc("activity_timeline", { uid: b.dataset.u, lim: 200 });
+        line.innerHTML = rows.length ? `<div class="fcard" style="background:var(--chip)"><b>Timeline</b> (latest ${rows.length})${rows.map((r) => `<div class="us-row"><span class="n">${esc(actWhen(r.at))} · ${esc(r.device || "")}</span>${esc(r.kind)} · ${esc(r.page)}${r.detail ? ` · <span style="color:var(--muted)">${esc(r.detail)}</span>` : ""}</div>`).join("")}</div>` : `<div class="note">Nothing recorded for this person.</div>`;
+      } catch (e) { line.innerHTML = `<div class="note">${esc(e.message)}</div>`; }
+    });
+  } catch (e) { box.innerHTML = `<p class="note">Could not load: ${esc(e.message)}</p>`; }
 }
 
 state.prevVisit = load("ict-last-visit");
@@ -3533,6 +3648,7 @@ function gPick(i) {
   const it = gdrop.items[i];
   if (!it) return;
   $("gdrop").hidden = true; $("gq").value = ""; $("gq").blur();
+  track("open", "search", `${it.t} · ${it.g}`);
   it.go();
 }
 $("gq").addEventListener("input", gSearch);
@@ -3584,6 +3700,7 @@ const eHeld = (rows, who) => rows.length ? eSec(who === "holder" ? "Holdings in 
 async function openEntity(kind, ref) {
   if (state.tab !== "entity") state.prevTab = state.tab;
   setTab("entity");
+  track("open", "entity", `${ref.name} (${kind})`);
   const box = $("entity-body");
   box.innerHTML = `<div class="empty">Loading…</div>`;
   try {
@@ -3633,6 +3750,7 @@ function gnavViews(g) {
   // The Sources tab shows for the owner only.
   const src = document.querySelector('nav.tabs button[data-tab="health"]');
   if (g.id === "home" && src && !src.hidden) v.push(["health", "Sources", "When each source last ran"]);
+  if (g.id === "home" && auth.admin) v.push(["users", "Users", "Who signs in and what they open"]);
   return v;
 }
 function drawGnav() {
