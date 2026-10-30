@@ -643,6 +643,8 @@ html.lenis,html.lenis body{height:auto}
   #gsheet button small{display:block;color:var(--muted);font-size:11px;margin-top:1px}
   #gsheet button.on{background:var(--chip);box-shadow:inset 3px 0 0 var(--accent)}
 }
+.ctog{width:fit-content;margin:0 0 6px auto}.ctog button{padding:4px 10px;font-size:12px}
+.fchg{margin-top:6px;font-size:12px;color:var(--muted)}
 </style>
 <script src="vendor/lenis.min.js" defer></script>
 </head>
@@ -1455,7 +1457,18 @@ function renderFlowTiles() {
 }
 
 // Diverging bars on one zero line: blue above for net inflow, orange below for net outflow.
-function barChart(el, points, { height = 220, label, tip, axis }) {
+// Every chart can show bars, a line, or both (the Bars / Line / Both switch above it), and every point carries its change on the previous one.
+const pctChg = (v, prev) => prev == null || prev === 0 || v == null ? null : (v - prev) / Math.abs(prev) * 100;
+const fmtPct = (c) => c == null ? "–" : `${c >= 0 ? "▲ +" : "▼ −"}${Math.abs(c) >= 100 ? Math.round(Math.abs(c)).toLocaleString("en-IN") : Math.abs(c).toFixed(1)}%`;
+function barChart(el, points, opts) {
+  const { height = 220, label, tip, axis } = opts;
+  el._args = [points, opts];
+  if (el.id && !document.querySelector(`.ctog[data-for="${el.id}"]`)) {
+    el.insertAdjacentHTML("beforebegin", `<div class="seg ctog" data-for="${el.id}" role="group" aria-label="Chart type"><button data-m="bar" aria-pressed="false">Bars</button><button data-m="line" aria-pressed="false">Line</button><button data-m="both" aria-pressed="true">Both</button></div>`);
+    document.querySelectorAll(`.ctog[data-for="${el.id}"] button`).forEach((b) => b.onclick = () => { el.dataset.mode = b.dataset.m; barChart(el, ...el._args); });
+  }
+  const mode = el.dataset.mode || "both";
+  document.querySelectorAll(`.ctog[data-for="${el.id}"] button`).forEach((b) => b.setAttribute("aria-pressed", b.dataset.m === mode));
   const W = Math.max(320, el.clientWidth || 800), H = height, L = 56, R = 8, T = 10, B = 26;
   if (!points.length) { el.innerHTML = `<div class="empty">No data in this period.</div>`; return; }
   const vals = points.flatMap((p) => p.v2 == null ? [p.v] : [p.v, p.v2]);
@@ -1472,7 +1485,7 @@ function barChart(el, points, { height = 220, label, tip, axis }) {
   points.forEach((p, i) => {
     const x = L + i * step + (step - bw) / 2, z = y(0);
     // Rounded only at the data end; flat against the zero line.
-    for (const v of p.v2 == null ? [p.v] : [p.v, p.v2]) {
+    for (const v of mode === "line" ? [] : p.v2 == null ? [p.v] : [p.v, p.v2]) {
       const h = Math.max(1, Math.abs(y(v) - z)), r = Math.min(4, bw / 2, h);
       const d = v >= 0
         ? `M${x},${z}V${z - h + r}Q${x},${z - h} ${x + r},${z - h}H${x + bw - r}Q${x + bw},${z - h} ${x + bw},${z - h + r}V${z}Z`
@@ -1483,7 +1496,21 @@ function barChart(el, points, { height = 220, label, tip, axis }) {
     const lab = label(p, i);
     if (lab && i % every === 0) g += `<text class="axis" x="${L + i * step + step / 2}" y="${H - 8}" text-anchor="middle">${esc(lab)}</text>`;
   });
-  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(el.dataset.title || "")}">${g}</svg>`;
+  if (mode !== "bar") {
+    const pt = (v, i) => `${(L + i * step + step / 2).toFixed(1)},${y(v).toFixed(1)}`;
+    const series = [["v", "var(--accent)", ""], ...(points.some((p) => p.v2 != null) ? [["v2", "var(--muted)", "5 4"]] : [])];
+    series.forEach(([k, col, dash]) => {
+      const idx = points.map((p, i) => [p, i]).filter(([p]) => p[k] != null);
+      if (idx.length < 2) return;
+      if (mode === "line" && k === "v") g += `<path d="M${pt(idx[0][0][k], idx[0][1])}${idx.slice(1).map(([p, i]) => `L${pt(p[k], i)}`).join("")}L${(L + idx[idx.length - 1][1] * step + step / 2).toFixed(1)},${y(0)}L${(L + idx[0][1] * step + step / 2).toFixed(1)},${y(0)}Z" fill="${col}" fill-opacity=".1" stroke="none"/>`;
+      g += `<polyline fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"${dash ? ` stroke-dasharray="${dash}"` : ""} points="${idx.map(([p, i]) => pt(p[k], i)).join(" ")}"/>`;
+      if (points.length <= 40) idx.forEach(([p, i]) => { g += `<circle cx="${(L + i * step + step / 2).toFixed(1)}" cy="${y(p[k]).toFixed(1)}" r="2.6" fill="var(--panel)" stroke="${col}" stroke-width="1.6"/>`; });
+    });
+  }
+  // Latest point against the one before it.
+  const lastP = points[points.length - 1], prevP = points[points.length - 2], lc = prevP ? pctChg(lastP.v, prevP.v) : null;
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(el.dataset.title || "")}">${g}</svg>` +
+    (lc == null ? "" : `<div class="fchg">Latest ${esc(label(lastP, points.length - 1) || "")} against the one before: <b style="color:var(--${lc >= 0 ? "in" : "out"})">${fmtPct(lc)}</b></div>`);
   // The tooltip sits in page coordinates just above the chosen column, so it scrolls with the chart.
   const tipEl = $("ftip");
   if (tipEl.parentNode !== document.body) document.body.appendChild(tipEl);
@@ -1491,7 +1518,8 @@ function barChart(el, points, { height = 220, label, tip, axis }) {
     const show = () => {
       document.querySelectorAll(".fchart .hit.on").forEach((x) => x.classList.remove("on"));
       h.classList.add("on");
-      tipEl.innerHTML = tip(points[+h.dataset.i]); tipEl.hidden = false;
+      const hi = +h.dataset.i, cc = hi > 0 ? pctChg(points[hi].v, points[hi - 1].v) : null;
+      tipEl.innerHTML = tip(points[hi]) + (cc == null ? "" : `<div class="row"><span>Change on previous</span><span style="color:var(--${cc >= 0 ? "in" : "out"})">${fmtPct(cc)}</span></div>`); tipEl.hidden = false;
       const r = h.getBoundingClientRect(), w = tipEl.offsetWidth, ht = tipEl.offsetHeight;
       const left = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, document.documentElement.clientWidth - w - 8));
       const top = r.top - ht - 6 >= 0 ? r.top - ht - 6 : r.top + 6;
@@ -3477,7 +3505,7 @@ async function renderFpiHistory() {
   const signed = (cr) => `${cr < 0 ? "−" : "+"}${bothH(Math.abs(cr))}`;
   $("fhist-tiles").innerHTML = [
     fh.view === "fy" && cum != null && tile("Net FPI investment since 1992-93", bothH(cum), "Cumulative, all segments", 0),
-    tile(`Latest: ${esc(last.label)}${last.partial ? " (so far)" : ""}`, signed(last.total), `Equity ${signed(last.eq)}`, Math.sign(last.total)),
+    tile(`Latest: ${esc(last.label)}${last.partial ? " (so far)" : ""}`, signed(last.total), `Equity ${signed(last.eq)}${pts.length > 1 ? ` · ${fmtPct(pctChg(last.total, pts[pts.length - 2].total))} on previous` : ""}`, Math.sign(last.total)),
     tile("Strongest inflow", signed(best.total), esc(best.label), 1),
     tile("Largest outflow", signed(worst.total), esc(worst.label), -1),
   ].filter(Boolean).join("");
