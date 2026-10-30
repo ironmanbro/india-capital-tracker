@@ -2395,14 +2395,27 @@ function renderAllFirms() {
   const fillOf = (n) => isCompany(n) ? "var(--node-co,var(--muted))" : "var(--entry)";
   // Hubs always carry a name; so does everything next to the clicked dot. Other dots show their name on hover.
   const named = (n) => f ? nb.has(n.key) : hubSet.has(n.key);
+  // Names are placed biggest first, above the dot or else below it, so no two overlap.
+  const info = (n) => { const p = at.get(n.key), r = rOf(n), label = n.name.length > 20 ? n.name.slice(0, 19) + "…" : n.name;
+    const anchor = p.x < 110 ? "start" : p.x > W - 110 ? "end" : "middle", lx = anchor === "start" ? p.x - r : anchor === "end" ? p.x + r : p.x;
+    return { p, r, label, anchor, lx, w: label.length * (sm ? 6.2 : 6.7) }; };
+  const placed = [], ly = new Map();
+  [...top].filter(named).sort((a, b) => deg(b.key) - deg(a.key)).forEach((n) => {
+    const { p, r, anchor, lx, w } = info(n), x0 = anchor === "middle" ? lx - w / 2 : anchor === "start" ? lx : lx - w;
+    let pick = p.y - r - 5;
+    for (const dy of [-r - 5, r + 15, -r - 20, r + 30]) {
+      const y = p.y + dy, bx = { x0, x1: x0 + w, y0: y - 12, y1: y + 4 };
+      if (!placed.some((q) => q.x0 < bx.x1 && q.x1 > bx.x0 && q.y0 < bx.y1 && q.y1 > bx.y0)) { pick = y; placed.push(bx); break; }
+    }
+    ly.set(n.key, pick);
+  });
   $("net-graph").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="The ${hubSet.size} most linked firms and their strongest links">
     <g stroke="var(--muted)" stroke-linecap="round">${lines.map((e) => { const p = at.get(e.a), q = at.get(e.b), on = !f || e.a === f || e.b === f;
       return `<line x1="${p.x.toFixed(1)}" y1="${p.y.toFixed(1)}" x2="${q.x.toFixed(1)}" y2="${q.y.toFixed(1)}" stroke-opacity="${on ? 0.5 : 0.07}" stroke-width="${(0.8 + wt(e) / mxe * 3.5).toFixed(1)}"${e.stories.size ? "" : ' stroke-dasharray="4 3"'}/>`; }).join("")}</g>
-    ${top.map((n) => { const p = at.get(n.key), r = rOf(n), on = !f || nb.has(n.key), label = n.name.length > 20 ? n.name.slice(0, 19) + "…" : n.name;
-      const anchor = p.x < 110 ? "start" : p.x > W - 110 ? "end" : "middle", lx = anchor === "start" ? p.x - r : anchor === "end" ? p.x + r : p.x;
+    ${top.map((n) => { const { p, r, label, anchor, lx } = info(n), on = !f || nb.has(n.key);
       return `<g class="gn" data-k="${esc(n.key)}" tabindex="0" role="button" aria-label="${esc(n.name)}: ${deg(n.key)} linked firms" opacity="${on ? 1 : 0.2}" style="cursor:pointer">
         <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${r.toFixed(1)}" fill="${fillOf(n)}" stroke="${f === n.key ? "var(--ink)" : "var(--panel)"}" stroke-width="${f === n.key ? 3 : 2}"><title>${esc(n.name)} · ${deg(n.key)} linked firm${deg(n.key) === 1 ? "" : "s"}</title></circle>
-        ${named(n) ? `<text x="${lx.toFixed(1)}" y="${(p.y - r - 5).toFixed(1)}" text-anchor="${anchor}" font-size="${sm ? 11 : 12}" font-weight="600" fill="var(--ink)" paint-order="stroke" stroke="var(--panel)" stroke-width="3">${esc(label)}</text>` : ""}</g>`; }).join("")}
+        ${named(n) ? `<text x="${lx.toFixed(1)}" y="${ly.get(n.key).toFixed(1)}" text-anchor="${anchor}" font-size="${sm ? 11 : 12}" font-weight="600" fill="var(--ink)" paint-order="stroke" stroke="var(--panel)" stroke-width="3">${esc(label)}</text>` : ""}</g>`; }).join("")}
   </svg>
   <div class="flegend" style="padding:0 16px 12px"><span><i style="background:var(--entry)"></i>Investor or buyer</span><span><i style="background:var(--node-co,var(--muted))"></i>Company invested in</span><span>Bigger dot = more links · thicker line = more stories · dashed line = stake only · hover a dot for its name</span></div>`;
   allPanel(linked.slice(0, hubSet.size), linked, deg, f);
