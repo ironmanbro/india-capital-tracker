@@ -362,6 +362,8 @@ header .eyebrow{color:var(--muted);font-size:12px;font-weight:700;letter-spacing
 .flowwrap{display:grid;grid-template-columns:minmax(260px,auto) minmax(0,1fr);gap:16px;align-items:center}
 #ov-fpibars{min-width:0;width:100%}
 @media (max-width:1100px){.flowwrap{grid-template-columns:1fr}}
+.ovc{container-type:inline-size}
+@container (max-width:760px){.flowwrap{grid-template-columns:1fr}}
 /* Very narrow screens (a foldable's cover display): cards give up some padding instead of overflowing. */
 /* Phones: the ring sits beside its figures instead of leaving a blank gap with the figures wrapped underneath. */
 @media (max-width:700px){.rings{flex-wrap:nowrap;gap:16px}.rings svg{width:112px;height:112px;flex:none}.rstats{min-width:0;flex:1}.rstats b{font-size:1.05rem}.rstats div{margin:6px 0}.ovh .link{white-space:nowrap}}
@@ -1476,10 +1478,6 @@ function niceScale(vals) {
 function barChart(el, points, opts) {
   const { height = 220, label, tip, axis } = opts, lineSpec = opts.line || pctLine();
   el._args = [points, opts];
-  if (el.id && !document.querySelector(`.ctog[data-for="${el.id}"]`)) {
-    el.insertAdjacentHTML("beforebegin", `<div class="seg ctog" data-for="${el.id}" role="group" aria-label="Chart type"><button data-m="bar" aria-pressed="false">Bars</button><button data-m="line" aria-pressed="false">Line</button><button data-m="both" aria-pressed="true">Both</button></div>`);
-    document.querySelectorAll(`.ctog[data-for="${el.id}"] button`).forEach((b) => b.onclick = () => { el.dataset.mode = b.dataset.m; barChart(el, ...el._args); });
-  }
   if (!points.length) { el.innerHTML = `<div class="empty">No data in this period.</div>`; return; }
   // The line's values: running total or change on the previous point.
   let run = 0;
@@ -1487,7 +1485,6 @@ function barChart(el, points, opts) {
   const lvals = lv.filter((v) => v != null);
   const canLine = lvals.length > 1;
   const mode = canLine ? el.dataset.mode || "both" : "bar";
-  document.querySelectorAll(`.ctog[data-for="${el.id}"] button`).forEach((b) => b.setAttribute("aria-pressed", b.dataset.m === mode));
   const showBars = mode !== "line", showLine = mode !== "bar", both = showBars && showLine;
   const W = Math.max(320, el.clientWidth || 800), H = height, L = 56, R = both ? 56 : 8, T = 10, B = 26;
   const fmt = (v) => v === 0 ? "0" : Math.abs(v) >= 1000 ? `${v < 0 ? "−" : ""}${(Math.abs(v) / 1000).toLocaleString("en-IN", { maximumFractionDigits: 1 })}k` : `${v < 0 ? "−" : ""}${Math.abs(v)}`;
@@ -1525,7 +1522,10 @@ function barChart(el, points, opts) {
   const last = lv[lv.length - 1], lastLab = label(points[points.length - 1], points.length - 1) || "";
   const key = canLine && showLine ? `<span style="color:var(--accent)">━ ${esc(lineSpec.name)}${both ? " (right axis)" : ""}</span> · ` : "";
   const latest = lineSpec.kind === "cum" ? `${esc(lineSpec.name)} to ${esc(lastLab)}: <b>${lineSpec.full(last)}</b>` : last == null ? "" : `Latest ${esc(lastLab)} against the one before: <b style="color:var(--${last >= 0 ? "in" : "out"})">${fmtPct(last)}</b>`;
-  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(el.dataset.title || "")}">${g}</svg>` + (canLine ? `<div class="fchg">${key}${latest}</div>` : "");
+  // The switch lives inside the chart box, so it never becomes a cell of the card's own grid.
+  const tog = canLine ? `<div class="seg ctog" role="group" aria-label="Chart type">${[["bar", "Bars"], ["line", "Line"], ["both", "Both"]].map(([m, l]) => `<button data-m="${m}" aria-pressed="${m === mode}">${l}</button>`).join("")}</div>` : "";
+  el.innerHTML = tog + `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(el.dataset.title || "")}">${g}</svg>` + (canLine ? `<div class="fchg">${key}${latest}</div>` : "");
+  el.querySelectorAll(".ctog button").forEach((b) => b.onclick = () => { el.dataset.mode = b.dataset.m; barChart(el, ...el._args); });
   // The tooltip sits in page coordinates just above the chosen column, so it scrolls with the chart.
   const tipEl = $("ftip");
   if (tipEl.parentNode !== document.body) document.body.appendChild(tipEl);
