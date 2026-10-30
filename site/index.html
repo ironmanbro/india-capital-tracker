@@ -871,6 +871,16 @@ html.lenis,html.lenis body{height:auto}
       <p class="dsrc" data-src="nsdl_flows" data-what="NSDL FPI calendar-year report"></p>
     </div>
 
+    <div class="fcard">
+      <div class="fhead"><div><h3>FPI net investment over the years</h3><div class="sub" id="fhist-sub">US$ (₹ crore in brackets) · all segments</div></div>
+        <div class="seg" role="group" aria-label="Period" id="fhseg"><button data-v="fy" aria-pressed="true">Yearly</button><button data-v="q" aria-pressed="false">Quarterly</button></div></div>
+      <div class="ftiles" id="fhist-tiles"></div>
+      <div class="flegend"><span><i style="background:var(--in)"></i>Net inflow</span><span><i style="background:var(--out)"></i>Net outflow</span></div>
+      <div class="fchart" id="fhist"></div>
+      <p class="note" id="fhist-note" style="margin-top:8px"></p>
+      <p class="dsrc" data-src="nsdl_flows" data-what="NSDL annual and quarterly FPI net investment reports"></p>
+    </div>
+
     <h2 class="fsec">FDI · foreign direct investment</h2>
     <p class="note" id="dpiit-sub">Long-term stakes in Indian companies. From DPIIT's quarterly FDI fact sheet, by financial year.</p>
     <div class="fcard">
@@ -2534,7 +2544,7 @@ function setTab(t) {
   if (t === "directory" || t === "gift") dir.view = t === "gift" ? "ifsca" : "fpi";
   setTitle();
   if (typeof syncSearch === "function") syncSearch();
-  if (t === "flows") renderFlows();
+  if (t === "flows") { renderFlows(); renderFpiHistory(); }
   if (t === "markets") openMarkets();
   if (t === "directory" || t === "gift") { dir.view = t === "gift" ? "ifsca" : "fpi"; openDirectory(); }
   if (t === "investors" && state.events?.length) renderInvestors();
@@ -3432,6 +3442,55 @@ function drawGnav() {
   document.body.classList.toggle("gopen", !!og);
 }
 drawGnav();
+
+// ---------- FPI net investment over the years: NSDL's annual (since 1992-93) and quarterly reports, from feed_records ----------
+const fh = { view: "fy", data: null };
+async function renderFpiHistory() {
+  const box = $("fhist");
+  if (!box) return;
+  if (!fh.data) {
+    try {
+      const rows = await api("feed_records?select=key,data&dataset=eq.nsdl&key=in.(fpi_investment_financial_year,fpi_quarterly_net_investment)");
+      fh.data = Object.fromEntries(rows.map((r) => [r.key, r.data]));
+    } catch { fh.data = {}; }
+  }
+  const pick = (r, re) => Object.entries(r).filter(([k]) => re.test(k)).reduce((a, [, v]) => a + (typeof v === "number" ? v : 0), 0);
+  const mk = (label, r, tot, eq, debt, partial) => ({ label, total: tot(r), eq: eq(r), debt: debt(r), partial });
+  let pts = [], note = "";
+  if (fh.view === "fy") {
+    const rows = ((fh.data.fpi_investment_financial_year || [])[0]?.rows || []).filter((r) => /^\d{4}-\d{2}/.test(String(r["Financial Year"])));
+    pts = rows.map((r) => mk(String(r["Financial Year"]).replace(/\s*\*+/, ""), r, (x) => pick(x, /Total for the FY$/), (x) => pick(x, /INR crores_Equity$/i), (x) => pick(x, /_Debt_/), /\*/.test(r["Financial Year"])));
+    note = "Financial years run April to March. The lighter bar, marked 'so far', is the year in progress. Debt is the sum of the general, VRR and FAR routes.";
+  } else {
+    const q = fh.data.fpi_quarterly_net_investment || {};
+    Object.keys(q).sort().forEach((y) => (q[y][0] || []).filter((r) => /^quarter/i.test(r.Quarter)).forEach((r) => {
+      const n = /Quarter\s*(\d)/i.exec(r.Quarter)?.[1];
+      pts.push(mk(`Q${n} ${y.slice(2)}`, r, (x) => pick(x, /INR Crores_Total$/i), (x) => pick(x, /INR Crores_Equity$/i), (x) => pick(x, /_Debt_/), false));
+    }));
+    note = "Calendar-year quarters (Q1 is January to March). Earlier years are not in the data loaded so far.";
+  }
+  $("fhist-note").textContent = note;
+  if (!pts.length) { box.innerHTML = `<div class="empty">No history loaded yet. It fills when the daily data job runs.</div>`; $("fhist-tiles").innerHTML = ""; return; }
+  box.dataset.title = "FPI net investment over the years";
+  const cum = (fh.data.fpi_investment_financial_year?.[0]?.rows || []).filter((r) => /^\d{4}-\d{2}/.test(String(r["Financial Year"]))).map((r) => pick(r, /Cumulative total/i)).pop();
+  const best = pts.reduce((a, p) => p.total > a.total ? p : a), worst = pts.reduce((a, p) => p.total < a.total ? p : a), last = pts[pts.length - 1];
+  const signed = (cr) => `${cr < 0 ? "−" : "+"}${bothH(Math.abs(cr))}`;
+  $("fhist-tiles").innerHTML = [
+    fh.view === "fy" && cum != null && tile("Net FPI investment since 1992-93", bothH(cum), "Cumulative, all segments", 0),
+    tile(`Latest: ${esc(last.label)}${last.partial ? " (so far)" : ""}`, signed(last.total), `Equity ${signed(last.eq)}`, Math.sign(last.total)),
+    tile("Strongest inflow", signed(best.total), esc(best.label), 1),
+    tile("Largest outflow", signed(worst.total), esc(worst.label), -1),
+  ].filter(Boolean).join("");
+  barChart(box, pts.map((p) => ({ ...p, v: usdMOf(p.total) })), {
+    height: 230, axis: usdAxis, label: (p) => fh.view === "fy" ? p.label.slice(2) : p.label,
+    tip: (p) => `<b>${esc(p.label)}${p.partial ? " (so far)" : ""}</b><div class="row"><span>All segments</span><span>${signed(p.total)}</span></div><div class="row"><span>Equity</span><span>${signed(p.eq)}</span></div><div class="row"><span>Debt</span><span>${signed(p.debt)}</span></div>`,
+  });
+}
+document.querySelectorAll("#fhseg button").forEach((b) => b.onclick = () => {
+  fh.view = b.dataset.v;
+  document.querySelectorAll("#fhseg button").forEach((x) => x.setAttribute("aria-pressed", x === b));
+  renderFpiHistory();
+});
 </script>
 </body>
 </html>
