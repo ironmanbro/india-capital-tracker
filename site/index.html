@@ -836,6 +836,8 @@ body.anon .gnav button:not([data-g="home"])::after{content:"🔒";position:absol
       <div class="ovc"><div class="ovh"><div><h3>Biggest deals this week</h3><div class="sub">Largest agreed or completed deals, last 7 days</div></div><button class="link" data-go="feed">Feed ↗</button></div><div id="ov-deals"></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Latest stories</h3><div class="sub">Checked and added every 3 hours</div></div><button class="link" data-go="feed">All stories</button></div><div id="ov-stories"></div></div>
       <div class="ovc"><div class="ovh"><div><h3>New FPI registrations</h3><div class="sub">Latest additions to the NSDL register</div></div><button class="link" data-go="directory">FPIs ↗</button></div><div id="ov-regs"><div class="sub">Loading…</div></div></div>
+      <div class="ovc"><div class="ovh"><div><h3>Funding and deal news</h3><div class="sub">Startup media and global coverage</div></div><button class="link" data-go="markets">Markets ↗</button></div><div id="ov-news"><div class="sub">Loading…</div></div></div>
+      <div class="ovc"><div class="ovh"><div><h3>SEBI filings</h3><div class="sub">Latest takeover and public issue filings</div></div><button class="link" data-go="markets">Markets ↗</button></div><div id="ov-sebi"><div class="sub">Loading…</div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Following</h3><div class="sub">Firms you follow, on this device</div></div></div><div id="ov-follow"></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Where the money comes from</h3><div class="sub">Capital deals in the last 90 days. Tap a row to see them</div></div></div><div id="ov-break"></div></div>
       <div class="ovc span2"><div class="ovh"><div><h3>The last 30 days</h3><div class="sub">Reported deal value by category, and the most active investors</div></div><button class="link" data-go="investors">Investors ↗</button></div><div id="ov-week"></div></div>
@@ -991,6 +993,9 @@ body.anon .gnav button:not([data-g="home"])::after{content:"🔒";position:absol
       <p class="dsrc" data-src="dpiit_fdi" data-what="DPIIT quarterly FDI fact sheet" data-edition="1"></p>
       <p class="note" style="margin-top:8px">Total FDI = equity + re-invested earnings + other capital, on the international definition DPIIT uses. The latest year is provisional and may be revised.</p>
     </div>
+    <h2 class="fsec">FDI reports from DPIIT</h2>
+    <p class="note">Latest FDI newsletters and fact sheets published by DPIIT, with the original PDFs.</p>
+    <div id="dpiit-pubs"><p class="note">Loading…</p></div>
     <div class="ftip" id="ftip" hidden></div>
   </section>
 
@@ -1040,6 +1045,7 @@ body.anon .gnav button:not([data-g="home"])::after{content:"🔒";position:absol
       <input type="file" id="shp-file" accept=".xml,.xbrl,text/xml" multiple style="margin-top:10px"> <span class="sub">You can choose many files at once.</span>
       <div id="shp-out"></div>
     </div>
+    <div id="xt-sources" style="margin-top:16px"></div>
   </section>
   <p class="note">New stories are checked and added every 3 hours.</p>
 
@@ -3656,7 +3662,100 @@ async function renderMarkets() {
   const sec = d("fpi_sector").map((r) => { const k = Object.keys(r).find((x) => /Equity$/.test(x)); return [r.Sectors, mkNum(r[k]) || 0, k]; })
     .sort((a, b) => b[1] - a[1]).slice(0, 25);
   out.push(mkSec("FPI equity by sector", "FPI equity assets under custody by sector, in US$ with ₹ crore in brackets (NSDL).", mkTable(["Sector", "Assets (US$)"], sec.map((r) => [r[0], mkUsd(r[1])]))));
+  try { out.push(...xtMarkets(await loadExtra())); } catch {}
   $("mk-body").innerHTML = out.join("");
+}
+
+// ---------- Extra sources (SEBI, news, derivatives, pledges, DPIIT): one load, shown on Home, Markets, Flows, profiles and Sources ----------
+const xt = { p: null };
+const loadExtra = () => xt.p ||= api("feed_records?select=key,data,loaded_at&dataset=eq.extra&limit=50").then((rows) => Object.fromEntries(rows.map((r) => [r.key, r]))).catch(() => { xt.p = null; return {}; });
+const xtT = (v) => { const m = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})/.exec(String(v)); return m ? Date.UTC(+m[1], m[2] - 1, +m[3], +m[4], +m[5]) : new Date(v).getTime() || 0; };
+const xtD = (ms) => ms ? new Date(ms).toISOString().slice(0, 10) : "–";
+const xtA = (url, text) => url ? { h: `<a href="${safeUrl(url)}" target="_blank" rel="noopener">${esc(text)}</a>` } : text;
+const xtSrc = (label, url, row) => `<p class="dsrc">Source: <a href="${safeUrl(url)}" target="_blank" rel="noopener">${esc(label)}</a>${row?.loaded_at ? ` · collected ${esc(istTime(row.loaded_at))} IST` : ""}</p>`;
+const SRC_NAME = { entrackr: "Entrackr", inc42: "Inc42", yourstory: "YourStory", economic_times_startups: "ET Startups", pr_newswire_apac: "PR Newswire" };
+function xtNews(X) {
+  const seen = new Set();
+  return [...(X.startup_funding_news?.data || []).map((r) => ({ title: r.title, url: r.link, src: SRC_NAME[r.source] || r.source, t: xtT(r.published), sum: r.summary })),
+    ...(X.gdelt_india_investments?.data || []).map((r) => ({ title: (r.title || "").replace(/\s+/g, " "), url: r.url, src: r.domain, t: xtT(r.seendate), sum: "" }))]
+    .filter((r) => r.title && r.url && !seen.has(gNorm(r.title)) && seen.add(gNorm(r.title))).sort((a, b) => b.t - a.t);
+}
+const xtSebi = (X, k) => (X[`sebi/${k}`]?.data || []).map((r) => ({ ...r, t: xtT(r.date) })).sort((a, b) => b.t - a.t);
+const xtNet = (r, a, b) => mkNum(r[a]) - mkNum(r[b]);
+
+function xtMarkets(X) {
+  const out = [], oi = X["exchange/nse_participant_oi"]?.data || [], vol = X["exchange/nse_participant_volume"]?.data || [];
+  const days = [...new Set(oi.map((r) => r.date))].sort().reverse();
+  if (days.length) {
+    const day = days[0], at = (rows, d, c) => rows.find((r) => r.date === d && r["Client Type"] === c);
+    out.push(mkSec(`Derivatives positions by investor type, ${day}`, "Open contracts on NSE futures and options by who holds them. Net is long minus short. FII means foreign institutional investors.",
+      mkTable(["Investor type", "Index futures net", "Stock futures net", "Index call options net", "Index put options net", "Total long", "Total short"],
+        ["FII", "DII", "Pro", "Client"].map((c) => { const r = at(oi, day, c); return r ? [c, mkFmt(xtNet(r, "Future Index Long", "Future Index Short")), mkFmt(xtNet(r, "Future Stock Long", "Future Stock Short")),
+          mkFmt(xtNet(r, "Option Index Call Long", "Option Index Call Short")), mkFmt(xtNet(r, "Option Index Put Long", "Option Index Put Short")), mkFmt(r["Total Long Contracts"]), mkFmt(r["Total Short Contracts"])] : null; }).filter(Boolean)) +
+      mkTable(["Date", "FII index futures long", "FII index futures short", "Long share (%)", "FII volume (contracts)"], days.map((d) => { const r = at(oi, d, "FII"), v = at(vol, d, "FII"); if (!r) return null;
+        const l = mkNum(r["Future Index Long"]), s = mkNum(r["Future Index Short"]); return [d, mkFmt(l), mkFmt(s), mkFmt(l / (l + s) * 100, 1), v ? mkFmt(v["Total Long Contracts"]) : "–"]; }).filter(Boolean)) +
+      xtSrc("NSE participant-wise open interest and volume", "https://www.nseindia.com/all-reports-derivatives", X["exchange/nse_participant_oi"])));
+  }
+  const pl = (X["exchange/nse_pledged_shares"]?.data || []).map((r) => ({ n: r.comName, own: mkNum(r.percPromoterHolding), co: mkNum(r.percSharesPledged), of: mkNum(r.totPromoterHolding) > 0 ? mkNum(r.numSharesPledged) / mkNum(r.totPromoterHolding) * 100 : null, d: r.shp }))
+    .filter((r) => r.of != null && r.of > 0 && r.own > 0).sort((a, b) => b.of - a.of).slice(0, 25);
+  if (pl.length) out.push(mkSec("Most-pledged promoter holdings", "Listed companies whose promoters have pledged the largest share of their own holding as loan collateral, from the latest quarterly disclosure. A high figure is a risk signal for lenders and investors.",
+    mkTable(["Company", "Promoter holding (%)", "Pledged, share of promoter holding (%)", "Pledged, share of company (%)", "Disclosure as of"], pl.map((r) => [xFirm(r.n), mkFmt(r.own, 1), mkFmt(r.of, 1), mkFmt(r.co, 2), r.d || "–"]), 4) +
+    xtSrc("NSE pledged shares disclosures", "https://www.nseindia.com/companies-listing/corporate-filings-pledged-data", X["exchange/nse_pledged_shares"])));
+  const sebi = (k, title, note, n) => { const l = xtSebi(X, k).slice(0, n); if (l.length) out.push(mkSec(title, note, mkTable(["Date", "Filing", "Foreign link"], l.map((r) => [xtD(r.t), xtA(r.url, r.title), r.foreign_hint ? "Title suggests" : "–"]), 2) + xtSrc("SEBI", "https://www.sebi.gov.in/", X[`sebi/${k}`]))); };
+  const hint = " The foreign-link flag only means the title contains a word such as Fund, Singapore or Mauritius, so open the filing to confirm.";
+  sebi("takeovers", "SEBI takeover filings", "Open offers and acquisition filings under the takeover code, newest first." + hint, 25);
+  sebi("public_issues", "SEBI public issue filings", "Draft and final offer documents for IPOs and other issues, newest first." + hint, 25);
+  sebi("enforcement_orders", "SEBI enforcement orders", "Orders passed by SEBI, newest first. An order is not proof of wrongdoing by every name in the title.", 15);
+  const news = xtNews(X).slice(0, 30);
+  if (news.length) out.push(mkSec("Funding and deal news", "Headlines from Indian startup media and global news coverage, newest first. These are reports, not verified facts, so open the source.",
+    mkTable(["Headline", "Source", "Date"], news.map((r) => [xtA(r.url, r.title), r.src, xtD(r.t)]), 1) + xtSrc("Entrackr, Inc42, YourStory, ET Startups, PR Newswire and GDELT", "https://www.gdeltproject.org/", X.startup_funding_news)));
+  return out;
+}
+
+function xtHome(X) {
+  const row = (t, href, meta, d) => `<div class="ovrow"><div style="min-width:0"><div class="t"><a href="${safeUrl(href)}" target="_blank" rel="noopener">${esc(t)}</a></div><div class="meta" style="margin-top:5px">${esc(meta)}</div></div><span class="side">${esc(d)}</span></div>`;
+  const nw = xtNews(X).slice(0, 6), sb = [...xtSebi(X, "takeovers").map((r) => ({ ...r, k: "Takeover" })), ...xtSebi(X, "public_issues").map((r) => ({ ...r, k: "Public issue" }))].sort((a, b) => b.t - a.t).slice(0, 6);
+  if ($("ov-news")) $("ov-news").innerHTML = nw.map((r) => row(r.title, r.url, r.src, xtD(r.t))).join("") || `<div class="sub">No headlines yet.</div>`;
+  if ($("ov-sebi")) $("ov-sebi").innerHTML = sb.map((r) => row(r.title, r.url, `SEBI · ${r.k}`, xtD(r.t))).join("") || `<div class="sub">No filings yet.</div>`;
+}
+
+function xtFlows(X) {
+  const el = $("dpiit-pubs"), l = (X.dpiit_fdi_publications?.data || []).filter((r) => r.is_fdi).sort((a, b) => xtT(b.date.split("/").reverse().join("-")) - xtT(a.date.split("/").reverse().join("-"))).slice(0, 12);
+  if (!el || !l.length) return;
+  el.innerHTML = mkTable(["Published", "Report", "Files"], l.map((r) => [r.date, xtA(r.post_url, r.title),
+    { h: (r.files || []).filter((f) => f.url).slice(0, 3).map((f) => `<a href="${safeUrl(f.url)}" target="_blank" rel="noopener">${esc((f.title || "PDF").slice(0, 40))}</a>`).join("<br>") || "–" }]), 2) +
+    xtSrc("DPIIT publications", "https://www.dpiit.gov.in/documents", X.dpiit_fdi_publications);
+}
+
+// Profile pages: mentions in the news and SEBI filings, and the pledge disclosure for a listed company.
+function xtProfile(X, name, kind) {
+  const n = gNorm(name);
+  if (n.length < 4) return "";
+  const has = (s) => gNorm(s).includes(n), out = [];
+  const news = xtNews(X).filter((r) => has(`${r.title} ${r.sum}`)).slice(0, 8);
+  if (news.length) out.push(eSec("In the news", "Funding and deal headlines that mention this name, newest first. Reports, not verified facts.", mkTable(["Headline", "Source", "Date"], news.map((r) => [xtA(r.url, r.title), r.src, xtD(r.t)]), 1)));
+  const sb = ["takeovers", "public_issues", "enforcement_orders"].flatMap((k) => xtSebi(X, k).filter((r) => has(r.title)).map((r) => ({ ...r, k: k.replace("_", " ") }))).sort((a, b) => b.t - a.t).slice(0, 8);
+  if (sb.length) out.push(eSec("SEBI filings", "Filings and orders with this name in the title.", mkTable(["Date", "Filing", "Type"], sb.map((r) => [xtD(r.t), xtA(r.url, r.title), r.k]), 2)));
+  const p = kind === "company" ? (X["exchange/nse_pledged_shares"]?.data || []).find((r) => gNorm(r.comName) === n) : null;
+  if (p) out.push(eSec("Promoter pledge", `Latest disclosure, as of ${p.shp}.`, eFacts([["Promoter holding", `${mkFmt(p.percPromoterHolding, 1)}%`], ["Shares pledged", mkFmt(p.numSharesPledged)],
+    ["Pledged, share of promoter holding", mkNum(p.totPromoterHolding) > 0 ? `${mkFmt(mkNum(p.numSharesPledged) / mkNum(p.totPromoterHolding) * 100, 1)}%` : ""]])));
+  return out.join("");
+}
+
+// Sources tab: what each collected source holds and when it was last collected, with a link to the original.
+function xtSources(X) {
+  const el = $("xt-sources");
+  if (!el) return;
+  const S = [["SEBI takeover filings", "sebi/takeovers", "https://www.sebi.gov.in/"], ["SEBI public issue filings", "sebi/public_issues", "https://www.sebi.gov.in/"], ["SEBI enforcement orders", "sebi/enforcement_orders", "https://www.sebi.gov.in/"],
+    ["Startup funding news (RSS)", "startup_funding_news", "https://entrackr.com/"], ["GDELT news", "gdelt_india_investments", "https://www.gdeltproject.org/"], ["DPIIT FDI publications", "dpiit_fdi_publications", "https://www.dpiit.gov.in/documents"],
+    ["NSE participant open interest", "exchange/nse_participant_oi", "https://www.nseindia.com/all-reports-derivatives"], ["NSE participant volume", "exchange/nse_participant_volume", "https://www.nseindia.com/all-reports-derivatives"],
+    ["NSE promoter pledges", "exchange/nse_pledged_shares", "https://www.nseindia.com/companies-listing/corporate-filings-pledged-data"]];
+  el.innerHTML = `<h2 class="fsec">Collected sources</h2>` + mkTable(["Source", "Records", "Last collected (IST)"], S.map(([t, k, u]) => [xtA(u, t), X[k] ? mkFmt(X[k].data.length) : "–", X[k] ? istTime(X[k].loaded_at) : "Not yet collected"]), 1);
+}
+
+async function xtInit() {
+  const X = await loadExtra();
+  xtHome(X); xtFlows(X); xtSources(X);
 }
 
 // ---------- Search everything: a drop-down over every tab, and one profile for any name ----------
@@ -3777,7 +3876,7 @@ async function openEntity(kind, ref) {
   box.innerHTML = `<div class="empty">Loading…</div>`;
   try {
     const name = ref.name, n = gNorm(name);
-    const deals = await dealsAll();
+    const deals = await dealsAll(), X = await loadExtra();
     const prof = state.profiles?.get(invKey(name));
     let head = "", facts = [], extra = "";
     if (kind === "fpi") {
@@ -3802,7 +3901,7 @@ async function openEntity(kind, ref) {
     const held = kind === "company" ? (state.holdings || []).filter((h) => gNorm(h.company) === n) : (state.holdings || []).filter((h) => gNorm(h.holder) === n);
     box.innerHTML = `<button class="reset" id="ent-back" type="button">← Back</button>
       <div class="fhead" style="margin:12px 0 4px"><div><h2 style="margin:0">${esc(name)}</h2><div class="sub">${esc(head)}</div></div></div>
-      ${eFacts(facts) || ""}${(() => { try { ensureNet(); return net.g.nodes.has(invKey(name)) ? egoCard("ego-map-e") : ""; } catch { return ""; } })()}${eStories(name)}${eDeals(myDeals)}${eHeld(held, kind === "company" ? "company" : "holder")}${extra}`;
+      ${eFacts(facts) || ""}${(() => { try { ensureNet(); return net.g.nodes.has(invKey(name)) ? egoCard("ego-map-e") : ""; } catch { return ""; } })()}${eStories(name)}${eDeals(myDeals)}${eHeld(held, kind === "company" ? "company" : "holder")}${extra}${xtProfile(X, name, kind)}`;
     if ($("ego-map-e")) egoMap(invKey(name), $("ego-map-e"));
     $("ent-back").onclick = () => setTab(state.prevTab || "overview");
     $("ptitle").textContent = name;
@@ -3899,6 +3998,8 @@ document.querySelectorAll("#fhseg button").forEach((b) => b.onclick = () => {
   document.querySelectorAll("#fhseg button").forEach((x) => x.setAttribute("aria-pressed", x === b));
   renderFpiHistory();
 });
+
+xtInit();
 
 </script>
 </body>
