@@ -715,6 +715,7 @@ html.lenis,html.lenis body{height:auto}
   <section id="tab-overview">
     <p class="takeaway" id="ov-take"></p>
     <div class="ftiles" id="ov-tiles"></div>
+    <div class="ftiles" id="ov-cross"></div>
     <p class="dsrc" data-src="review,nsdl_flows,nsdl_fpi_list" data-what="Sources: news checked by the review step, NSE, NSDL and DPIIT. Each section shows its own source and update time" style="margin:-4px 0 14px"></p>
     <div class="ovgrid">
       <div class="ovc"><div class="ovh"><div><h3>Latest FPI flow</h3><div class="sub" id="ov-flow-sub">NSDL</div></div><button class="link" data-go="flows">Flows ↗</button></div><div class="flowwrap"><div id="ov-flow"></div><div class="fchart" id="ov-fpibars"></div></div></div>
@@ -2608,8 +2609,38 @@ function renderSources() {
   if (!el) return;
   Object.defineProperty(el, "innerHTML", { configurable: true, get() { return d.get.call(el); }, set(v) { if (el.__h !== v) { el.__h = v; d.set.call(el, v); } } });
 });
+// Home tiles that draw on other tabs' data: Markets deals, FPIs by country, and the GIFT City directory.
+let ovX = null;
+async function loadOverviewCross() {
+  if (ovX) return;
+  ovX = true;
+  try {
+    const [deals, ctry, counts, gift] = await Promise.all([
+      api("feed_records?select=key,data&dataset=eq.nse_deals&limit=1000"),
+      api("feed_records?select=data&dataset=eq.nsdl&key=eq.fpi_auc_country_top10&limit=1"),
+      api("fpi_country_counts?select=country,n"),
+      api("ifsca_entities?select=name,sub_category,reg_date&reg_date=not.is.null&order=reg_date.desc&limit=1"),
+    ]);
+    const out = [];
+    const val = (r) => mkNum(r.qty) * mkNum(r.watp) / 1e7;
+    const buys = deals.filter((r) => /^(BULK|BLOCK)_DEALS\|/.test(r.key)).map((r) => r.data)
+      .filter((r) => mkForeign(r.clientName) && /^b/i.test(r.buySell || "") && !isNaN(val(r)));
+    const day = buys.map((r) => r.date).sort((a, b) => new Date(b) - new Date(a))[0];
+    const top = buys.filter((r) => r.date === day).sort((a, b) => val(b) - val(a))[0];
+    if (top) out.push(tile(`Largest foreign buy, ${esc(top.date)}`, esc(fmtCr(val(top))), `${esc(top.clientName)} · ${esc(top.name || top.symbol)}`, 1));
+    const t = (ctry[0]?.data || []).find((x) => x.rows?.length);
+    if (t) {
+      const all = t.rows.find((r) => /^total$/i.test(r.Country)), c1 = t.rows.filter((r) => r !== all && r.Country).sort((a, b) => (b["AUC (INR Cr.)_Total"] || 0) - (a["AUC (INR Cr.)_Total"] || 0))[0];
+      const n = counts.find((c) => String(c.country || "").toUpperCase() === String(c1?.Country).toUpperCase())?.n;
+      if (c1) out.push(tile("Largest FPI country by assets", esc(titleCase(c1.Country)), `${all ? (c1["AUC (INR Cr.)_Total"] / all["AUC (INR Cr.)_Total"] * 100).toFixed(1) + "% of FPI assets" : ""}${n ? ` · ${nfmt(n)} FPIs registered` : ""}`, 0));
+    }
+    if (gift[0]) out.push(tile("Newest GIFT City entity", esc(gift[0].name), `${esc(gift[0].sub_category || "")} · registered ${esc(gift[0].reg_date)}`, 0));
+    $("ov-cross").innerHTML = out.join("");
+  } catch { ovX = null; }
+}
 function renderOverview() {
   if (!$("tab-overview") || !state.events.length) return;
+  loadOverviewCross();
   const now = Date.now(), t7 = (e) => now - new Date(e.published_at || e.fetched_at) < 7 * 864e5;
   const d = flows.daily, last = d[d.length - 1];
   const mon = last ? d.filter((x) => x.day.startsWith(last.day.slice(0, 7))).reduce((a, x) => a + x.Total, 0) : null;
@@ -2768,9 +2799,15 @@ async function countryAum() {
   const all = rows.find((r) => /^total$/i.test(r.c)), list = rows.filter((r) => r !== all && r.c);
   const max = Math.max(...list.map((r) => r.total), 1);
   return `<h2 class="fsec">Assets held by country</h2><p class="note">FPI assets under custody for the ten largest countries, ₹ crore (NSDL). ${all ? `All countries: ${nfmt(all.total)}.` : ""}</p>
-    <div class="ftable-wrap"><div class="scroll"><table class="ftable"><thead><tr><th>Country</th><th class="num">Equity</th><th class="num">Debt</th><th class="num">Total</th><th class="num">Share</th><th></th></tr></thead><tbody>${list.map((r) =>
-      `<tr><td>${esc(titleCase(r.c))}</td><td class="num">${nfmt(r.eq)}</td><td class="num">${nfmt(r.debt)}</td><td class="num">${nfmt(r.total)}</td><td class="num">${all ? (r.total / all.total * 100).toFixed(1) + "%" : "–"}</td><td style="width:22%"><div style="height:6px;border-radius:3px;background:var(--accent);width:${(r.total / max * 100).toFixed(1)}%"></div></td></tr>`).join("")}</tbody></table></div></div>`;
+    <div class="ftable-wrap"><div class="scroll"><table class="ftable"><thead><tr><th>Country</th><th class="num">Equity</th><th class="num">Debt</th><th class="num">Total</th><th class="num">Share</th><th class="num">FPIs registered</th><th></th></tr></thead><tbody>${list.map((r) =>
+      `<tr><td>${esc(titleCase(r.c))}</td><td class="num">${nfmt(r.eq)}</td><td class="num">${nfmt(r.debt)}</td><td class="num">${nfmt(r.total)}</td><td class="num">${all ? (r.total / all.total * 100).toFixed(1) + "%" : "–"}</td><td class="num">${dir.countryN?.has(String(r.c).toUpperCase()) ? nfmt(dir.countryN.get(String(r.c).toUpperCase())) : "–"}</td><td style="width:22%"><div style="height:6px;border-radius:3px;background:var(--accent);width:${(r.total / max * 100).toFixed(1)}%"></div></td></tr>`).join("")}</tbody></table></div></div>`;
 }
+
+$("dir-aum").addEventListener("click", (ev) => {
+  const b = ev.target.closest("button[data-sector]");
+  if (!b) return;
+  state.sector = b.dataset.sector; state.country = null; state.story = null; state.types.clear(); setTab("feed"); render(); toTop(true);
+});
 
 async function renderAum() {
   const w = $("dir-aum");
@@ -2789,11 +2826,12 @@ async function renderAum() {
   const val = (r, suffix) => num(r[pre + suffix]);
   const grand = rows.find((r) => /grand total/i.test(r.Sectors || ""));
   const total = grand ? val(grand, "Total") : 0;
-  const list = rows.filter((r) => r !== grand && r.Sectors).map((r) => ({ n: r.Sectors, eq: val(r, "Equity"), t: val(r, "Total") })).sort((a, b) => b.t - a.t);
+  const grp = (n) => (SECTORS.find(([, re]) => re.test(n)) || [null])[0];
+  const list = rows.filter((r) => r !== grand && r.Sectors).map((r) => { const g = grp(r.Sectors); return { n: r.Sectors, eq: val(r, "Equity"), t: val(r, "Total"), g, k: g ? (state.events || []).filter((e) => sectorOf(e) === g).length : 0 }; }).sort((a, b) => b.t - a.t);
   const max = list[0]?.t || 1;
   w.innerHTML = country + `<h2 class="fsec">Assets held by sector</h2><p class="note">FPI assets under custody as on ${esc(last)}, ₹ crore (NSDL). ${total ? `All sectors: ${nfmt(total)}.` : ""}</p>
-    <div class="ftable-wrap"><div class="scroll"><table class="ftable"><thead><tr><th>Sector</th><th class="num">Equity</th><th class="num">Total</th><th class="num">Share</th><th></th></tr></thead><tbody>${list.map((r) =>
-      `<tr><td>${esc(r.n)}</td><td class="num">${nfmt(r.eq)}</td><td class="num">${nfmt(r.t)}</td><td class="num">${total ? (r.t / total * 100).toFixed(1) + "%" : "–"}</td><td style="width:22%"><div style="height:6px;border-radius:3px;background:var(--accent);width:${(r.t / max * 100).toFixed(1)}%"></div></td></tr>`).join("")}</tbody></table></div></div>`;
+    <div class="ftable-wrap"><div class="scroll"><table class="ftable"><thead><tr><th>Sector</th><th class="num">Equity</th><th class="num">Total</th><th class="num">Share</th><th class="num" title="News stories in the same sector group, from the Feed">Stories</th><th></th></tr></thead><tbody>${list.map((r) =>
+      `<tr><td>${esc(r.n)}</td><td class="num">${nfmt(r.eq)}</td><td class="num">${nfmt(r.t)}</td><td class="num">${total ? (r.t / total * 100).toFixed(1) + "%" : "–"}</td><td class="num">${r.g ? `<button class="link" data-sector="${esc(r.g)}" title="Open ${esc(r.g)} stories in the Feed">${nfmt(r.k)}</button>` : "–"}</td><td style="width:22%"><div style="height:6px;border-radius:3px;background:var(--accent);width:${(r.t / max * 100).toFixed(1)}%"></div></td></tr>`).join("")}</tbody></table></div></div>`;
 }
 
 async function openDirectory() {
@@ -2805,6 +2843,7 @@ async function openDirectory() {
       const y = new Date().getFullYear();
       $("dyear-f").innerHTML = `<option value="">Any year</option>` + [0, 1, 2, 3, 4].map((i) => `<option value="${y - i}">Registered in ${y - i}</option>`).join("") + `<option value="older">Before ${y - 4}</option>`;
       dir.types = types;
+      dir.countryN = new Map(countries.map((c) => [String(c.country || "").toUpperCase(), c.n]));
       const cats = [...new Map(types.map((t) => [t.category, 0])).keys()].filter(Boolean);
       const catN = (c) => types.filter((t) => t.category === c).reduce((a, t) => a + t.n, 0);
       $("icat2").innerHTML = `<option value="">All categories</option>` + cats.sort((a, b) => catN(b) - catN(a)).map((c) => `<option value="${esc(c)}"${c === "Fund Management" ? " selected" : ""}>${esc(c)} (${nfmt(catN(c))})</option>`).join("");
@@ -3088,11 +3127,34 @@ const mk = { loaded: false, data: {} };
 const mkNum = (v) => { const n = parseFloat(String(v ?? "").replace(/,/g, "")); return isNaN(n) ? null : n; };
 const mkFmt = (v, d = 0) => { const n = mkNum(v); return n === null ? "–" : n.toLocaleString("en-IN", { maximumFractionDigits: d }); };
 const mkTable = (head, rows, nText = 1) => rows.length
-  ? `<div class="ftable-wrap"><div class="scroll"><table class="ftable"><thead><tr>${head.map((h, i) => `<th${i >= nText ? ' class="num"' : ""}>${esc(h)}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c, i) => `<td${i >= nText ? ' class="num"' : ""}>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>`
+  ? `<div class="ftable-wrap"><div class="scroll"><table class="ftable"><thead><tr>${head.map((h, i) => `<th${i >= nText ? ' class="num"' : ""}>${esc(h)}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c, i) => `<td${i >= nText ? ' class="num"' : ""}>${c && typeof c === "object" ? c.h : esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>`
   : `<p class="note">No data yet.</p>`;
 // Same name test as the ingest function: a heuristic, so it can miss some foreign investors.
 const MK_FOREIGN = /\b(PTE|LLC|L\.?P\.?|PLC|SICAV|ICAV|S\.?A\.?|SARL|GMBH|AG|INC|N\.?V\.?|B\.?V\.?|MAURITIUS|SINGAPORE|CAYMAN|IRELAND|LUXEMBOURG|NORWAY|ABU DHABI|DUBAI|QATAR|KUWAIT|SAUDI|JAPAN|KOREA|TAIWAN|HONG KONG|CANADA|AUSTRALIA|MASTER FUND|FEEDER|OFFSHORE|EMERGING MARKETS?|GOVERNMENT OF|MONETARY AUTHORITY|INVESTMENT AUTHORITY|PENSION|SOVEREIGN|ODI|FPI|GOLDMAN SACHS|MORGAN STANLEY|CITIGROUP|BNP PARIBAS|SOCIETE GENERALE|J\.?P\.? ?MORGAN|BOFA|MERRILL|NOMURA|UBS|CLSA|VANGUARD|BLACKROCK|GIC|NORGES|TEMASEK|FIDELITY|ABERDEEN|MACQUARIE|HSBC|BARCLAYS|CITADEL|JANE STREET|SOCIETE)\b/i, MK_DOMESTIC = /(MUTUAL FUND|\bMF\b|INSURANCE|\bHUF\b|PRIVATE LIMITED|PVT\.? LTD|BROKING|SHARE BROKERS)/i;
 const mkForeign = (name) => MK_FOREIGN.test(name || "") && !MK_DOMESTIC.test(name || "");
+// ---------- Cross-tab helpers ----------
+// An investor name becomes a link to its profile when the firm appears in the stories (same key the Network tab uses).
+const xFirm = (name) => {
+  try {
+    if (state.events?.length) { ensureNet(); const k = invKey(name); if (net.g.nodes.has(k)) return { h: `<a href="#firm/${encodeURIComponent(k)}">${esc(name)}</a>` }; }
+  } catch {}
+  return name || "–";
+};
+// Registry facts for a list of client names: FPI country and category (NSDL register) and whether IFSCA lists the name.
+async function xRegistry(names) {
+  const out = new Map(), key = (n) => String(n || "").toUpperCase().replace(/\s+/g, " ").trim();
+  const uniq = [...new Set(names.filter(Boolean))];
+  for (let i = 0; i < uniq.length; i += 25) {
+    const list = encodeURIComponent(uniq.slice(i, i + 25).map((n) => `"${n.replace(/"/g, "")}"`).join(","));
+    const [reg, gift] = await Promise.all([
+      api(`fpi_registry?select=name,country,category&name=in.(${list})&limit=100`).catch(() => []),
+      api(`ifsca_entities?select=name&name=in.(${list})&limit=100`).catch(() => []),
+    ]);
+    reg.forEach((r) => out.set(key(r.name), { ...(out.get(key(r.name)) || {}), country: r.country, cat: r.category }));
+    gift.forEach((r) => out.set(key(r.name), { ...(out.get(key(r.name)) || {}), gift: true }));
+  }
+  return { get: (n) => out.get(key(n)) || {} };
+}
 const mkSec = (title, note, body) => `<h2 class="fsec">${esc(title)}</h2><p class="note">${esc(note)}</p>${body}`;
 
 async function openMarkets() {
@@ -3102,11 +3164,11 @@ async function openMarkets() {
     const rows = await api("feed_records?select=dataset,key,as_of,data&limit=20000&order=dataset");
     for (const r of rows) (mk.data[r.dataset] ||= []).push(r);
     mk.loaded = true;
-    renderMarkets();
+    await renderMarkets();
   } catch (e) { body.innerHTML = `<p class="note">Could not load market data: ${esc(e.message)}</p>`; }
 }
 
-function renderMarkets() {
+async function renderMarkets() {
   const d = (n) => (mk.data[n] || []).map((r) => r.data);
   const latest = (n, f) => { const all = d(n); const m = all.map(f).sort().pop(); return all.filter((x) => f(x) === m); };
   const dt = (x) => new Date(x || 0).getTime() || 0;
@@ -3116,13 +3178,17 @@ function renderMarkets() {
     mkTable(["Date · category", "Buy", "Sell", "Net"], fii.map((r) => [`${r.date} · ${r.category}`, mkFmt(r.buyValue, 2), mkFmt(r.sellValue, 2), mkFmt(r.netValue, 2)]))));
   const deals = (mk.data.nse_deals || []).filter((r) => r.key.startsWith("BULK") || r.key.startsWith("BLOCK"))
     .map((r) => r.data).filter((r) => mkForeign(r.clientName)).sort((a, b) => dt(b.date) - dt(a.date) || (mkNum(b.qty) * mkNum(b.watp)) - (mkNum(a.qty) * mkNum(a.watp))).slice(0, 100);
-  out.push(mkSec("Bulk and block deals", "Latest 100 on NSE with a foreign-looking client. Foreign is judged from the client name, so some foreign investors may be missing.",
-    mkTable(["Date", "Foreign investor", "Company invested in", "Side", "Quantity", "Avg price", "Value (₹ cr)"], deals.map((r) =>
-      [r.date, r.clientName || "–", r.name || r.symbol || "–", r.buySell || "–", mkFmt(r.qty), mkFmt(r.watp, 2), mkFmt(mkNum(r.qty) * mkNum(r.watp) / 1e7, 1)]), 4)));
+  const reg = await xRegistry(deals.map((r) => r.clientName));
+  out.push(mkSec("Bulk and block deals", "Latest 100 on NSE with a foreign-looking client. Foreign is judged from the client name, so some foreign investors may be missing. Country and category come from the NSDL FPI register, and GIFT City shows clients IFSCA lists; both match on the exact name, so some show a dash. Names with a profile are links.",
+    mkTable(["Date", "Foreign investor", "Company invested in", "Country", "FPI category", "GIFT City", "Side", "Quantity", "Avg price", "Value (₹ cr)"], deals.map((r) => {
+      const f = reg.get(r.clientName);
+      return [r.date, xFirm(r.clientName), r.name || r.symbol || "–", f.country ? SHORT_COUNTRY[f.country] || titleCase(f.country) : "–", f.cat ? `Cat ${f.cat}` : "–", f.gift ? "Yes" : "–",
+        r.buySell || "–", mkFmt(r.qty), mkFmt(r.watp, 2), mkFmt(mkNum(r.qty) * mkNum(r.watp) / 1e7, 1)];
+    }), 7)));
   const who = (state.events || []).filter((e) => e.event_type === "entry" && e.investor && e.target && mkForeign(e.investor)).slice(0, 40);
   out.push(mkSec("Who invested in whom", "Latest investments from the news and exchange deals, newest first. Foreign investors only, judged from the name.",
     mkTable(["Foreign investor", "Company invested in", "Amount", "Date"], who.map((e) =>
-      [e.investor, e.target, e.amount_text || "–", (e.published_at || e.fetched_at || "").slice(0, 10)]), 2)));
+      [xFirm(e.investor), e.target, e.amount_text || "–", (e.published_at || e.fetched_at || "").slice(0, 10)]), 2)));
   const debt = d("fpi_debt_summary");
   out.push(mkSec("FPI debt limits", "Limit use by instrument, ₹ crore (NSDL).",
     mkTable(["Instrument", "Limit", "Invested", "Used (%)"], debt.map((r) => [r["Instrument Type"], mkFmt(r["Upper Limit (Refer to Note 1 &2)_(INR Cr)_(A)"]),
