@@ -706,7 +706,7 @@ html.lenis,html.lenis body{height:auto}
     <button role="tab" aria-selected="false" data-tab="network"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="2.5"/><circle cx="5" cy="5" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="18" cy="19" r="2"/><path d="M6.5 6.5l3.7 3.7M17.3 7.3l-3.5 3.3M16.6 17.5l-2.8-3.6"/></svg>Network</button>
     <button role="tab" aria-selected="false" data-tab="flows"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Flows</button>
     <button role="tab" aria-selected="false" data-tab="markets"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l5-5 4 4 8-9"/><path d="M15 7h5v5"/></svg>Markets</button>
-    <button role="tab" aria-selected="false" data-tab="directory"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M9 7h6"/></svg>Directory</button>
+    <button role="tab" aria-selected="false" data-tab="directory"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M9 7h6"/></svg>FPIs</button>
     <button role="tab" aria-selected="false" data-tab="gift"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V9l8-5 8 5v12"/><path d="M9 21v-6h6v6M4 21h16"/></svg>GIFT City</button>
     <div class="grow"></div>
     <button role="tab" aria-selected="false" data-tab="health" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v3M12 18v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M3 12h3M18 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/><circle cx="12" cy="12" r="3.5"/></svg>Sources</button>
@@ -720,7 +720,7 @@ html.lenis,html.lenis body{height:auto}
       <div class="ovc"><div class="ovh"><div><h3>Latest FPI flow</h3><div class="sub" id="ov-flow-sub">NSDL</div></div><button class="link" data-go="flows">Flows ↗</button></div><div class="flowwrap"><div id="ov-flow"></div><div class="fchart" id="ov-fpibars"></div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Biggest deals this week</h3><div class="sub">Largest agreed or completed deals, last 7 days</div></div><button class="link" data-go="feed">Feed ↗</button></div><div id="ov-deals"></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Latest stories</h3><div class="sub">Checked and added every 3 hours</div></div><button class="link" data-go="feed">All stories</button></div><div id="ov-stories"></div></div>
-      <div class="ovc"><div class="ovh"><div><h3>New FPI registrations</h3><div class="sub">Latest additions to the NSDL register</div></div><button class="link" data-go="directory">Directory ↗</button></div><div id="ov-regs"><div class="sub">Loading…</div></div></div>
+      <div class="ovc"><div class="ovh"><div><h3>New FPI registrations</h3><div class="sub">Latest additions to the NSDL register</div></div><button class="link" data-go="directory">FPIs ↗</button></div><div id="ov-regs"><div class="sub">Loading…</div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Following</h3><div class="sub">Firms you follow, on this device</div></div></div><div id="ov-follow"></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Where the money comes from</h3><div class="sub">Capital deals in the last 90 days. Tap a row to see them</div></div></div><div id="ov-break"></div></div>
       <div class="ovc span2"><div class="ovh"><div><h3>The last 30 days</h3><div class="sub">Reported deal value by category, and the most active investors</div></div><button class="link" data-go="investors">Investors ↗</button></div><div id="ov-week"></div></div>
@@ -894,6 +894,7 @@ html.lenis,html.lenis body{height:auto}
       <select id="itype2" aria-label="Type"><option value="">All types</option></select>
       <button class="reset" id="leads-csv" type="button" hidden title="Only visible to you">Download all (CSV)</button>
     </div>
+    <div id="dir-aum"></div>
     <div class="dsum" id="dir-sum"></div>
     <div class="dlist" id="dir-list"></div>
     <button class="reset" id="dir-more" type="button" hidden style="margin-top:10px">Show more</button>
@@ -2511,7 +2512,7 @@ const TITLES = {
   network: ["Network", "Which firms appear together on the same deals"],
   firm: ["Profile", "One firm's deals, links and sources"],
   flows: ["Flows", "FPI money in and out each day, and where FDI comes from"],
-  directory: ["Directory", "Every SEBI-registered foreign portfolio investor"],
+  directory: ["FPIs", "Every SEBI-registered foreign portfolio investor, and how much they hold by sector"],
   gift: ["GIFT City", "Every entity IFSCA regulates at GIFT IFSC: fund managers, schemes, banks and more"],
   health: ["Sources", "When each source last ran"],
 };
@@ -2752,6 +2753,46 @@ async function apiPage(path) {
   return { rows: await res.json(), total };
 }
 
+
+// FPI assets under custody by sector (NSDL, via the daily data job): latest date in the file.
+// AUC by country: NSDL's top-10 table, shown as published (column names come from the file).
+async function countryAum() {
+  try {
+    if (dir.country === undefined) dir.country = (await api("feed_records?select=data&dataset=eq.nsdl&key=eq.fpi_auc_country_top10&limit=1"))[0]?.data || null;
+  } catch { dir.country = null; }
+  const t = (dir.country || []).find((x) => x.rows && x.rows.length);
+  if (!t) return "";
+  const cols = Object.keys(t.rows[0]);
+  const cell = (v) => typeof v === "number" ? nfmt(v) : esc(v);
+  return `<h2 class="fsec">Assets held by country</h2><p class="note">${esc(t.title || "FPI assets under custody, top countries")} (NSDL).</p>
+    <div class="ftable-wrap"><div class="scroll"><table class="ftable"><thead><tr>${cols.map((c, i) => `<th${i ? ' class="num"' : ""}>${esc(c)}</th>`).join("")}</tr></thead><tbody>${t.rows.map((r) =>
+      `<tr>${cols.map((c, i) => `<td${i ? ' class="num"' : ""}>${cell(r[c])}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>`;
+}
+
+async function renderAum() {
+  const w = $("dir-aum");
+  if (dir.view !== "fpi") { w.innerHTML = ""; return; }
+  const country = await countryAum();
+  try {
+    if (!dir.aum) dir.aum = (await api("feed_records?select=data&dataset=eq.fpi_sector&limit=200")).map((r) => r.data);
+  } catch { dir.aum = null; }
+  const rows = dir.aum || [];
+  const cols = rows[0] ? Object.keys(rows[0]) : [];
+  const dates = [...new Set(cols.map((c) => /^AUC as on (.+?)_IN INR Cr\./.exec(c)?.[1]).filter(Boolean))];
+  const last = dates[dates.length - 1];
+  if (!last) { w.innerHTML = country; return; }
+  const num = (v) => parseFloat(String(v ?? "").replace(/,/g, "")) || 0;
+  const pre = `AUC as on ${last}_IN INR Cr._`;
+  const val = (r, suffix) => num(r[pre + suffix]);
+  const grand = rows.find((r) => /grand total/i.test(r.Sectors || ""));
+  const total = grand ? val(grand, "Total") : 0;
+  const list = rows.filter((r) => r !== grand && r.Sectors).map((r) => ({ n: r.Sectors, eq: val(r, "Equity"), t: val(r, "Total") })).sort((a, b) => b.t - a.t);
+  const max = list[0]?.t || 1;
+  w.innerHTML = country + `<h2 class="fsec">Assets held by sector</h2><p class="note">FPI assets under custody as on ${esc(last)}, ₹ crore (NSDL). ${total ? `All sectors: ${nfmt(total)}.` : ""}</p>
+    <div class="ftable-wrap"><div class="scroll"><table class="ftable"><thead><tr><th>Sector</th><th class="num">Equity</th><th class="num">Total</th><th class="num">Share</th><th></th></tr></thead><tbody>${list.map((r) =>
+      `<tr><td>${esc(r.n)}</td><td class="num">${nfmt(r.eq)}</td><td class="num">${nfmt(r.t)}</td><td class="num">${total ? (r.t / total * 100).toFixed(1) + "%" : "–"}</td><td style="width:22%"><div style="height:6px;border-radius:3px;background:var(--accent);width:${(r.t / max * 100).toFixed(1)}%"></div></td></tr>`).join("")}</tbody></table></div></div>`;
+}
+
 async function openDirectory() {
   if (!dir.meta) {
     try {
@@ -2768,7 +2809,7 @@ async function openDirectory() {
       dir.meta = true;
     } catch (e) { $("dir-list").innerHTML = `<div class="empty">Could not load the directory: ${esc(e.message)}</div>`; return; }
   }
-  renderDirTiles(); runDirSearch(true);
+  renderDirTiles(); renderAum(); runDirSearch(true);
 }
 
 function fillIfscaTypes() {
@@ -2938,7 +2979,7 @@ async function runDirSearch(reset) {
 document.querySelectorAll("#dirseg button").forEach((b) => b.onclick = () => {
   dir.view = b.dataset.v;
   document.querySelectorAll("#dirseg button").forEach((x) => x.setAttribute("aria-pressed", x === b));
-  syncSearch(); renderDirTiles(); runDirSearch(true);
+  syncSearch(); renderDirTiles(); renderAum(); runDirSearch(true);
 });
 let dirTimer;
 ["dq", "iq2"].forEach((id) => $(id).addEventListener("input", () => { clearTimeout(dirTimer); dirTimer = setTimeout(() => runDirSearch(true), 300); }));
@@ -3047,6 +3088,9 @@ const mkFmt = (v, d = 0) => { const n = mkNum(v); return n === null ? "–" : n.
 const mkTable = (head, rows, id) => rows.length
   ? `<div class="ftable-wrap"><div class="scroll"><table class="ftable"><thead><tr>${head.map((h, i) => `<th${i ? ' class="num"' : ""}>${esc(h)}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c, i) => `<td${i ? ' class="num"' : ""}>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>`
   : `<p class="note">No data yet.</p>`;
+// Same name test as the ingest function: a heuristic, so it can miss some foreign investors.
+const MK_FOREIGN = /\b(PTE|LLC|L\.?P\.?|PLC|SICAV|ICAV|S\.?A\.?|SARL|GMBH|AG|INC|N\.?V\.?|B\.?V\.?|MAURITIUS|SINGAPORE|CAYMAN|IRELAND|LUXEMBOURG|NORWAY|ABU DHABI|DUBAI|QATAR|KUWAIT|SAUDI|JAPAN|KOREA|TAIWAN|HONG KONG|CANADA|AUSTRALIA|MASTER FUND|FEEDER|OFFSHORE|EMERGING MARKETS?|GOVERNMENT OF|MONETARY AUTHORITY|INVESTMENT AUTHORITY|PENSION|SOVEREIGN|ODI|FPI|GOLDMAN SACHS|MORGAN STANLEY|CITIGROUP|BNP PARIBAS|SOCIETE GENERALE|J\.?P\.? ?MORGAN|BOFA|MERRILL|NOMURA|UBS|CLSA|VANGUARD|BLACKROCK|GIC|NORGES|TEMASEK|FIDELITY|ABERDEEN|MACQUARIE|HSBC|BARCLAYS|CITADEL|JANE STREET|SOCIETE)\b/i, MK_DOMESTIC = /(MUTUAL FUND|\bMF\b|INSURANCE|\bHUF\b|PRIVATE LIMITED|PVT\.? LTD|BROKING|SHARE BROKERS)/i;
+const mkWho = (name) => MK_DOMESTIC.test(name || "") ? "Domestic" : MK_FOREIGN.test(name || "") ? "Foreign" : "Likely domestic";
 const mkSec = (title, note, body) => `<h2 class="fsec">${esc(title)}</h2><p class="note">${esc(note)}</p>${body}`;
 
 async function openMarkets() {
@@ -3070,9 +3114,13 @@ function renderMarkets() {
     mkTable(["Date · category", "Buy", "Sell", "Net"], fii.map((r) => [`${r.date} · ${r.category}`, mkFmt(r.buyValue, 2), mkFmt(r.sellValue, 2), mkFmt(r.netValue, 2)]))));
   const deals = (mk.data.nse_deals || []).filter((r) => r.key.startsWith("BULK") || r.key.startsWith("BLOCK"))
     .map((r) => r.data).sort((a, b) => dt(b.date) - dt(a.date) || (mkNum(b.qty) * mkNum(b.watp)) - (mkNum(a.qty) * mkNum(a.watp))).slice(0, 100);
-  out.push(mkSec("Bulk and block deals", "Latest 100 on NSE. Foreign-looking buyers and sellers also appear in the Feed.",
-    mkTable(["Date · company · client", "Side", "Quantity", "Avg price", "Value (₹ cr)"], deals.map((r) =>
-      [`${r.date} · ${r.name || r.symbol} · ${r.clientName || "–"}`, r.buySell || "–", mkFmt(r.qty), mkFmt(r.watp, 2), mkFmt(mkNum(r.qty) * mkNum(r.watp) / 1e7, 1)]))));
+  out.push(mkSec("Bulk and block deals", "Latest 100 on NSE. \"Investor\" says whether the client looks foreign or domestic from its name; names that match neither are marked likely domestic.",
+    mkTable(["Date · company · client", "Investor", "Side", "Quantity", "Avg price", "Value (₹ cr)"], deals.map((r) =>
+      [`${r.date} · ${r.name || r.symbol} · ${r.clientName || "–"}`, mkWho(r.clientName), r.buySell || "–", mkFmt(r.qty), mkFmt(r.watp, 2), mkFmt(mkNum(r.qty) * mkNum(r.watp) / 1e7, 1)]))));
+  const who = (state.events || []).filter((e) => e.event_type === "entry" && e.investor && e.target).slice(0, 40);
+  out.push(mkSec("Who invested in whom", "Latest investments from the news and exchange deals, newest first. Investor type comes from the name.",
+    mkTable(["Investor → invested in", "Investor type", "Amount", "Date"], who.map((e) =>
+      [`${e.investor} → ${e.target}`, mkWho(e.investor), e.amount_text || "–", (e.published_at || e.fetched_at || "").slice(0, 10)]))));
   const ipo = d("ipo_current").filter((r) => !r.category || r.category === "Total");
   out.push(mkSec("IPOs open now", "Subscription as a multiple of shares offered.",
     mkTable(["Company", "Price", "Opens – closes", "Subscribed (×)"], ipo.map((r) => [r.companyName, r.issuePrice, `${r.issueStartDate} – ${r.issueEndDate}`, mkFmt(r.noOfTime, 2)]))));
