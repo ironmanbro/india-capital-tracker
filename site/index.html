@@ -715,12 +715,12 @@ html.lenis,html.lenis body{height:auto}
   <section id="tab-overview">
     <p class="takeaway" id="ov-take"></p>
     <div class="ftiles" id="ov-tiles"></div>
-    <p class="dsrc" data-src="review,nsdl_flows,nsdl_fpi_list,ifsca_directory" data-what="Sources: news checked by the review step, NSE, NSDL, IFSCA and DPIIT. Each section shows its own source and update time" style="margin:-4px 0 14px"></p>
+    <p class="dsrc" data-src="review,nsdl_flows,nsdl_fpi_list" data-what="Sources: news checked by the review step, NSE, NSDL and DPIIT. Each section shows its own source and update time" style="margin:-4px 0 14px"></p>
     <div class="ovgrid">
       <div class="ovc"><div class="ovh"><div><h3>Latest FPI flow</h3><div class="sub" id="ov-flow-sub">NSDL</div></div><button class="link" data-go="flows">Flows ↗</button></div><div class="flowwrap"><div id="ov-flow"></div><div class="fchart" id="ov-fpibars"></div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Biggest deals this week</h3><div class="sub">Largest agreed or completed deals, last 7 days</div></div><button class="link" data-go="feed">Feed ↗</button></div><div id="ov-deals"></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Latest stories</h3><div class="sub">Checked and added every 3 hours</div></div><button class="link" data-go="feed">All stories</button></div><div id="ov-stories"></div></div>
-      <div class="ovc"><div class="ovh"><div><h3>New registrations</h3><div class="sub">NSDL FPIs and GIFT IFSC entities</div></div><button class="link" data-go="directory">Directory ↗</button></div><div id="ov-regs"><div class="sub">Loading…</div></div></div>
+      <div class="ovc"><div class="ovh"><div><h3>New FPI registrations</h3><div class="sub">Latest additions to the NSDL register</div></div><button class="link" data-go="directory">Directory ↗</button></div><div id="ov-regs"><div class="sub">Loading…</div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Following</h3><div class="sub">Firms you follow, on this device</div></div></div><div id="ov-follow"></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Where the money comes from</h3><div class="sub">Capital deals in the last 90 days. Tap a row to see them</div></div></div><div id="ov-break"></div></div>
       <div class="ovc span2"><div class="ovh"><div><h3>The last 30 days</h3><div class="sub">Reported deal value by category, and the most active investors</div></div><button class="link" data-go="investors">Investors ↗</button></div><div id="ov-week"></div></div>
@@ -2580,13 +2580,12 @@ const tg = (t) => `<span class="tg"><i style="background:${color(t)}"></i>${TYPE
 let ovRegs = null;
 async function loadOverviewRegs() {
   try {
-    const [st, f, i] = await Promise.all([
+    const [st, f] = await Promise.all([
       api("directory_stats?select=*"),
       api("fpi_registry?select=name,country,category,registered_on&registered_on=not.is.null&order=registered_on.desc,serial.desc&limit=4"),
-      api("ifsca_entities?select=name,category,sub_category,reg_date&category=eq.Fund%20Management&reg_date=not.is.null&order=reg_date.desc&limit=3"),
     ]);
-    ovRegs = { st: st[0] || {}, f, i };
-  } catch { ovRegs = { st: {}, f: [], i: [] }; }
+    ovRegs = { st: st[0] || {}, f };
+  } catch { ovRegs = { st: {}, f: [] }; }
   renderOverview();
 }
 // "Source · updated" lines: each names its dataset and when that source last ran successfully.
@@ -2618,7 +2617,6 @@ function renderOverview() {
     last && tile(`FPI net, ${toDMY(last.day)}`, crore(last.Total), `Equity ${crore(last.Equity)} · Debt ${crore(last.Debt)}`, Math.sign(last.Total)),
     last && tile(`FPI net, ${monLabel(last.day)} so far`, crore(mon), "All segments", Math.sign(mon)),
     tile("New FPIs, last 30 days", st.fpi_new_30d != null ? nfmt(st.fpi_new_30d) : "–", "NSDL register", 0),
-    tile("New GIFT IFSC entities, 30 days", st.ifsca_new_30d != null ? nfmt(st.ifsca_new_30d) : "–", "IFSCA directory", 0),
   ].filter(Boolean).join("");
   // Rings: the size of equity and debt flows against the larger of the two.
   if (last) {
@@ -2652,8 +2650,7 @@ function renderOverview() {
   $("ov-stories").innerHTML = state.events.slice(0, 6).map((e) => `<div class="ovrow"><div style="min-width:0"><div class="t"><a href="${safeUrl(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a></div>
       <div class="meta" style="margin-top:5px">${tg(typeOf(e))}<span>${esc(e.source_name || e.source)}</span><span>${ago(e.published_at || e.fetched_at)}</span></div></div>${amountCr(e) ? `<span class="amtflag">${esc(money(e).split(" (")[0])}</span>` : ""}</div>`).join("");
   if (ovRegs) {
-    const rows = [...ovRegs.f.map((r) => ({ n: r.name, m: `FPI · ${r.country ? SHORT_COUNTRY[r.country] || titleCase(r.country) : ""} · Cat ${r.category || ""}`, d: r.registered_on, c: "var(--in)" })),
-      ...ovRegs.i.map((r) => ({ n: r.name, m: `GIFT IFSC · ${r.sub_category || r.category}`, d: r.reg_date, c: "var(--fund_launch)" }))].sort((a, b) => b.d.localeCompare(a.d)).slice(0, 7);
+    const rows = [...ovRegs.f.map((r) => ({ n: r.name, m: `FPI · ${r.country ? SHORT_COUNTRY[r.country] || titleCase(r.country) : ""} · Cat ${r.category || ""}`, d: r.registered_on, c: "var(--in)" }))].sort((a, b) => b.d.localeCompare(a.d)).slice(0, 7);
     $("ov-regs").innerHTML = rows.map((r) => `<div class="ovrow"><div style="min-width:0"><div class="t">${esc(r.n)}</div><div class="meta" style="margin-top:5px"><span class="tg"><i style="background:${r.c}"></i>${esc(r.m)}</span></div></div><span class="side">${toDMY(r.d)}</span></div>`).join("") || `<div class="sub">No new registrations.</div>`;
   }
   // The last 30 days: reported amounts by category, and investors with the most stories.
@@ -2789,9 +2786,9 @@ function renderDirTiles() {
   $("dir-tiles").innerHTML = fpi ? [
     tile("FPIs on the register", nfmt(s.fpis), `Category I ${nfmt(s.fpi_cat1)} · Category II ${nfmt(s.fpi_cat2)}`, 0),
     tile(`Registered in ${new Date().getFullYear()}`, nfmt(s.fpi_this_year), "From the year in the registration number", 0),
-    tile("Based in GIFT IFSC", nfmt(s.fpi_gift), "FPIs whose country is India IFSC (GIFT City)", 0),
     tile("Registered in the last 30 days", nfmt(s.fpi_new_30d), "New FPIs, newest first in the list below", 0),
   ].join("") : [
+    tile("FPIs based in GIFT IFSC", nfmt(s.fpi_gift), "FPIs whose country is India IFSC (GIFT City)", 0),
     tile("Entities in the directory", nfmt(s.ifsca), "All categories, including surrendered or cancelled", 0),
     tile("Fund management entries", nfmt(s.ifsca_funds), "Fund managers and their schemes", 0),
     tile("Registered in the last 30 days", nfmt(s.ifsca_new_30d), s.ifsca_detailed < s.ifsca ? `Registration dates read for ${nfmt(s.ifsca_detailed)} of ${nfmt(s.ifsca)} so far` : "From IFSCA's registration dates", 0),
