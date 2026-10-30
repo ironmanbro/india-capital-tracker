@@ -653,7 +653,7 @@ html.lenis,html.lenis body{height:auto}
   <div class="box">
     <div class="eyebrow">Welcome</div>
     <h2 id="welcome-title">India Capital Tracker</h2>
-    <p class="lead">A live feed of foreign money moving into and out of India: investments, exits, offshore and GIFT City fund launches, and funds changing jurisdiction.</p>
+    <p class="lead">A live feed of foreign money moving into and out of India: investments, exits, offshore fund launches, and funds changing jurisdiction.</p>
     <div class="who">
       <div class="avatar" aria-hidden="true">KS</div>
       <div><div><strong>Built by Kishan Singhania</strong></div>
@@ -674,7 +674,7 @@ html.lenis,html.lenis body{height:auto}
     <div>
       <div class="eyebrow">India Capital Tracker</div>
       <h1 id="ptitle">Overview</h1>
-      <div class="sub" id="psub">Foreign investments into India, exits from India, offshore and GIFT City fund launches, and jurisdiction moves</div>
+      <div class="sub" id="psub">Foreign investments into India, exits from India, offshore fund launches, and jurisdiction moves</div>
       <div class="maker">Built by <a href="https://www.linkedin.com/in/kishansinghania/" target="_blank" rel="noopener"><strong>Kishan Singhania</strong></a> · <a href="https://www.linkedin.com/in/kishansinghania/" target="_blank" rel="noopener">Connect on LinkedIn →</a></div>
     </div>
     <div>
@@ -1457,36 +1457,54 @@ function renderFlowTiles() {
 }
 
 // Diverging bars on one zero line: blue above for net inflow, orange below for net outflow.
-// Every chart can show bars, a line, or both (the Bars / Line / Both switch above it), and every point carries its change on the previous one.
+// Charts show bars, a line, or both (the Bars / Line / Both switch above them). The line is a second measure, chosen per chart:
+//  kind "cum": the running total, for flows that swing above and below zero (a percentage of a value near or below zero says little);
+//  kind "pct": the change on the previous period, for levels that stay positive (growth).
+// With Both, bars use the left axis and the line uses its own axis on the right.
 const pctChg = (v, prev) => prev == null || prev === 0 || v == null ? null : (v - prev) / Math.abs(prev) * 100;
 const fmtPct = (c) => c == null ? "–" : `${c >= 0 ? "▲ +" : "▼ −"}${Math.abs(c) >= 100 ? Math.round(Math.abs(c)).toLocaleString("en-IN") : Math.abs(c).toFixed(1)}%`;
+const cumLine = (name = "Running total") => ({ kind: "cum", name, full: (m) => `${m < 0 ? "−" : "+"}${usdBr(Math.abs(m))}` });
+const pctLine = (name = "Change on previous") => ({ kind: "pct", name, full: fmtPct });
+function niceScale(vals) {
+  // Round tick values (1, 2 or 5 times a power of ten); the scale is widened to the outer ticks.
+  const raw = (Math.max(0, ...vals) - Math.min(0, ...vals)) / 4 || 1, pow = 10 ** Math.floor(Math.log10(raw));
+  const tstep = [1, 2, 5, 10].map((m) => m * pow).find((s) => s >= raw);
+  const max = Math.ceil(Math.max(0, ...vals) / tstep) * tstep, min = Math.floor(Math.min(0, ...vals) / tstep) * tstep;
+  const ticks = []; for (let v = min; v <= max + tstep / 2; v += tstep) ticks.push(Math.round(v));
+  return { min, max, ticks };
+}
 function barChart(el, points, opts) {
-  const { height = 220, label, tip, axis } = opts;
+  const { height = 220, label, tip, axis } = opts, lineSpec = opts.line || pctLine();
   el._args = [points, opts];
   if (el.id && !document.querySelector(`.ctog[data-for="${el.id}"]`)) {
     el.insertAdjacentHTML("beforebegin", `<div class="seg ctog" data-for="${el.id}" role="group" aria-label="Chart type"><button data-m="bar" aria-pressed="false">Bars</button><button data-m="line" aria-pressed="false">Line</button><button data-m="both" aria-pressed="true">Both</button></div>`);
     document.querySelectorAll(`.ctog[data-for="${el.id}"] button`).forEach((b) => b.onclick = () => { el.dataset.mode = b.dataset.m; barChart(el, ...el._args); });
   }
-  const mode = el.dataset.mode || "both";
-  document.querySelectorAll(`.ctog[data-for="${el.id}"] button`).forEach((b) => b.setAttribute("aria-pressed", b.dataset.m === mode));
-  const W = Math.max(320, el.clientWidth || 800), H = height, L = 56, R = 8, T = 10, B = 26;
   if (!points.length) { el.innerHTML = `<div class="empty">No data in this period.</div>`; return; }
-  const vals = points.flatMap((p) => p.v2 == null ? [p.v] : [p.v, p.v2]);
-  // Round tick values (1, 2 or 5 times a power of ten); the scale is widened to the outer ticks.
-  const raw = (Math.max(0, ...vals) - Math.min(0, ...vals)) / 4 || 1, pow = 10 ** Math.floor(Math.log10(raw));
-  const tstep = [1, 2, 5, 10].map((m) => m * pow).find((s) => s >= raw);
-  const max = Math.ceil(Math.max(0, ...vals) / tstep) * tstep, min = Math.floor(Math.min(0, ...vals) / tstep) * tstep;
-  const span = (max - min) || 1, y = (v) => T + (max - v) / span * (H - T - B);
-  const step = (W - L - R) / points.length, bw = Math.max(2, Math.min(28, step - 2));
-  const ticks = []; for (let v = min; v <= max + tstep / 2; v += tstep) ticks.push(Math.round(v));
+  // The line's values: running total or change on the previous point.
+  let run = 0;
+  const lv = points.map((p, i) => lineSpec.kind === "cum" ? (run += p.v) : i ? pctChg(p.v, points[i - 1].v) : null);
+  const lvals = lv.filter((v) => v != null);
+  const canLine = lvals.length > 1;
+  const mode = canLine ? el.dataset.mode || "both" : "bar";
+  document.querySelectorAll(`.ctog[data-for="${el.id}"] button`).forEach((b) => b.setAttribute("aria-pressed", b.dataset.m === mode));
+  const showBars = mode !== "line", showLine = mode !== "bar", both = showBars && showLine;
+  const W = Math.max(320, el.clientWidth || 800), H = height, L = 56, R = both ? 56 : 8, T = 10, B = 26;
   const fmt = (v) => v === 0 ? "0" : Math.abs(v) >= 1000 ? `${v < 0 ? "−" : ""}${(Math.abs(v) / 1000).toLocaleString("en-IN", { maximumFractionDigits: 1 })}k` : `${v < 0 ? "−" : ""}${Math.abs(v)}`;
+  const lfmt = lineSpec.kind === "cum" ? (axis || fmt) : (v) => v === 0 ? "0" : `${v < 0 ? "−" : ""}${Math.abs(Math.round(v))}%`;
+  const sBar = niceScale(points.map((p) => p.v)), sLine = niceScale(lvals);
+  const main = showBars ? sBar : sLine, mainFmt = showBars ? (axis || fmt) : lfmt;
+  const span = (main.max - main.min) || 1, y = (v) => T + (main.max - v) / span * (H - T - B);
+  const span2 = (sLine.max - sLine.min) || 1, y2 = both ? (v) => T + (sLine.max - v) / span2 * (H - T - B) : y;
+  const step = (W - L - R) / points.length, bw = Math.max(2, Math.min(28, step - 2));
   const every = Math.ceil(points.length / Math.max(1, Math.floor((W - L) / 64)));
-  let g = ticks.map((v) => `<line class="${v === 0 ? "zero" : "grid"}" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text class="axis" x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${(axis || fmt)(v)}</text>`).join("");
+  let g = main.ticks.map((v) => `<line class="${v === 0 ? "zero" : "grid"}" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text class="axis" x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${mainFmt(v)}</text>`).join("");
+  if (both) g += sLine.ticks.map((v) => `<text class="axis" x="${W - R + 6}" y="${y2(v) + 4}" text-anchor="start" style="fill:var(--accent)">${lfmt(v)}</text>`).join("");
   points.forEach((p, i) => {
     const x = L + i * step + (step - bw) / 2, z = y(0);
-    // Rounded only at the data end; flat against the zero line.
-    for (const v of mode === "line" ? [] : p.v2 == null ? [p.v] : [p.v, p.v2]) {
-      const h = Math.max(1, Math.abs(y(v) - z)), r = Math.min(4, bw / 2, h);
+    if (showBars) {
+      // Rounded only at the data end; flat against the zero line.
+      const v = p.v, h = Math.max(1, Math.abs(y(v) - z)), r = Math.min(4, bw / 2, h);
       const d = v >= 0
         ? `M${x},${z}V${z - h + r}Q${x},${z - h} ${x + r},${z - h}H${x + bw - r}Q${x + bw},${z - h} ${x + bw},${z - h + r}V${z}Z`
         : `M${x},${z}V${z + h - r}Q${x},${z + h} ${x + r},${z + h}H${x + bw - r}Q${x + bw},${z + h} ${x + bw},${z + h - r}V${z}Z`;
@@ -1496,21 +1514,18 @@ function barChart(el, points, opts) {
     const lab = label(p, i);
     if (lab && i % every === 0) g += `<text class="axis" x="${L + i * step + step / 2}" y="${H - 8}" text-anchor="middle">${esc(lab)}</text>`;
   });
-  if (mode !== "bar") {
-    const pt = (v, i) => `${(L + i * step + step / 2).toFixed(1)},${y(v).toFixed(1)}`;
-    const series = [["v", "var(--accent)", ""], ...(points.some((p) => p.v2 != null) ? [["v2", "var(--muted)", "5 4"]] : [])];
-    series.forEach(([k, col, dash]) => {
-      const idx = points.map((p, i) => [p, i]).filter(([p]) => p[k] != null);
-      if (idx.length < 2) return;
-      if (mode === "line" && k === "v") g += `<path d="M${pt(idx[0][0][k], idx[0][1])}${idx.slice(1).map(([p, i]) => `L${pt(p[k], i)}`).join("")}L${(L + idx[idx.length - 1][1] * step + step / 2).toFixed(1)},${y(0)}L${(L + idx[0][1] * step + step / 2).toFixed(1)},${y(0)}Z" fill="${col}" fill-opacity=".1" stroke="none"/>`;
-      g += `<polyline fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"${dash ? ` stroke-dasharray="${dash}"` : ""} points="${idx.map(([p, i]) => pt(p[k], i)).join(" ")}"/>`;
-      if (points.length <= 40) idx.forEach(([p, i]) => { g += `<circle cx="${(L + i * step + step / 2).toFixed(1)}" cy="${y(p[k]).toFixed(1)}" r="2.6" fill="var(--panel)" stroke="${col}" stroke-width="1.6"/>`; });
-    });
+  if (showLine) {
+    const cx = (i) => (L + i * step + step / 2).toFixed(1);
+    const idx = lv.map((v, i) => [v, i]).filter(([v]) => v != null);
+    if (!both) g += `<path d="M${cx(idx[0][1])},${y2(0)}${idx.map(([v, i]) => `L${cx(i)},${y2(v).toFixed(1)}`).join("")}L${cx(idx[idx.length - 1][1])},${y2(0)}Z" fill="var(--accent)" fill-opacity=".1" stroke="none"/>`;
+    g += `<polyline fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="${idx.map(([v, i]) => `${cx(i)},${y2(v).toFixed(1)}`).join(" ")}"/>`;
+    if (points.length <= 40) idx.forEach(([v, i]) => { g += `<circle cx="${cx(i)}" cy="${y2(v).toFixed(1)}" r="2.6" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.6"/>`; });
   }
-  // Latest point against the one before it.
-  const lastP = points[points.length - 1], prevP = points[points.length - 2], lc = prevP ? pctChg(lastP.v, prevP.v) : null;
-  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(el.dataset.title || "")}">${g}</svg>` +
-    (lc == null ? "" : `<div class="fchg">Latest ${esc(label(lastP, points.length - 1) || "")} against the one before: <b style="color:var(--${lc >= 0 ? "in" : "out"})">${fmtPct(lc)}</b></div>`);
+  // Line key and its latest value.
+  const last = lv[lv.length - 1], lastLab = label(points[points.length - 1], points.length - 1) || "";
+  const key = canLine && showLine ? `<span style="color:var(--accent)">━ ${esc(lineSpec.name)}${both ? " (right axis)" : ""}</span> · ` : "";
+  const latest = lineSpec.kind === "cum" ? `${esc(lineSpec.name)} to ${esc(lastLab)}: <b>${lineSpec.full(last)}</b>` : last == null ? "" : `Latest ${esc(lastLab)} against the one before: <b style="color:var(--${last >= 0 ? "in" : "out"})">${fmtPct(last)}</b>`;
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(el.dataset.title || "")}">${g}</svg>` + (canLine ? `<div class="fchg">${key}${latest}</div>` : "");
   // The tooltip sits in page coordinates just above the chosen column, so it scrolls with the chart.
   const tipEl = $("ftip");
   if (tipEl.parentNode !== document.body) document.body.appendChild(tipEl);
@@ -1518,8 +1533,8 @@ function barChart(el, points, opts) {
     const show = () => {
       document.querySelectorAll(".fchart .hit.on").forEach((x) => x.classList.remove("on"));
       h.classList.add("on");
-      const hi = +h.dataset.i, cc = hi > 0 ? pctChg(points[hi].v, points[hi - 1].v) : null;
-      tipEl.innerHTML = tip(points[hi]) + (cc == null ? "" : `<div class="row"><span>Change on previous</span><span style="color:var(--${cc >= 0 ? "in" : "out"})">${fmtPct(cc)}</span></div>`); tipEl.hidden = false;
+      const hi = +h.dataset.i, lvv = lv[hi];
+      tipEl.innerHTML = tip(points[hi]) + (lvv == null ? "" : `<div class="row"><span>${esc(lineSpec.name)}</span><span style="color:var(--accent)">${lineSpec.full(lvv)}</span></div>`); tipEl.hidden = false;
       const r = h.getBoundingClientRect(), w = tipEl.offsetWidth, ht = tipEl.offsetHeight;
       const left = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, document.documentElement.clientWidth - w - 8));
       const top = r.top - ht - 6 >= 0 ? r.top - ht - 6 : r.top + 6;
@@ -1543,14 +1558,14 @@ function renderFlowCharts() {
   const seg = flows.seg, r = flowRange(), d = flows.daily.filter((x) => inDays(x.day, r)), mon = flows.monthly;
   $("fday").dataset.title = "FPI net investment by day";
   barChart($("fday"), d.map((x) => ({ ...x, v: usdMOf(x[seg]) })), {
-    axis: usdAxis,
+    axis: usdAxis, line: cumLine(),
     label: (p) => `${p.day.slice(8, 10)} ${MON[+p.day.slice(5, 7) - 1]}`,
     tip: (p) => `<b>${toDMY(p.day)}</b><div class="row"><span>All segments</span><span>${crore(p.Total)}</span></div><div class="row"><span>Equity</span><span>${crore(p.Equity)}</span></div><div class="row"><span>Debt</span><span>${crore(p.Debt)}</span></div><div class="row"><span>In US$</span><span>${usdm(p.usd)}</span></div>`,
   });
   $("fday-sub").textContent = `US$ (₹ crore in brackets) · ${seg === "Total" ? "all segments" : seg.toLowerCase()} · ${d.length} trading day${d.length === 1 ? "" : "s"}${d.length ? ` from ${toDMY(d[0].day)} to ${toDMY(d[d.length - 1].day)}` : " in this period"}`;
   $("fmonth").dataset.title = "FPI net investment by month";
   barChart($("fmonth"), mon.map((m) => ({ ...m, v: usdMOf(m.net) })), {
-    axis: usdAxis,
+    axis: usdAxis, line: cumLine(),
     label: (p) => mon.some((m) => m.month.slice(0, 4) !== p.month.slice(0, 4)) ? monLabel(p.month) : MON[+p.month.slice(5, 7) - 1],
     tip: (p) => `<b>${monLabel(p.month)}${p.partial ? " (so far)" : ""}</b><div class="row"><span>Net, all segments</span><span>${crore(p.net)}</span></div>`,
   });
@@ -1594,7 +1609,7 @@ function renderDpiit() {
   const pts = yrs.map((fy, i) => ({ fy, v: av(fy, "Total FDI"), eq: av(fy, "Equity"), prev: i ? av(yrs[i - 1], "Total FDI") : null, partial: i === yrs.length - 1 }));
   $("dannual").dataset.title = "Total FDI into India by financial year";
   barChart($("dannual"), pts, {
-    height: 220,
+    height: 220, line: pctLine("Change on previous year"),
     label: (p) => `FY${p.fy.slice(5)}`,
     tip: (p) => `<b>FY ${p.fy}${p.partial ? " (provisional)" : ""}</b><div class="row"><span>Total FDI</span><span>${usdBr(p.v)}</span></div><div class="row"><span>of which equity</span><span>${usdBr(p.eq)}</span></div>${p.prev ? `<div class="row"><span>Change on year</span><span>${p.v >= p.prev ? "+" : "−"}${Math.abs(Math.round((p.v / p.prev - 1) * 100))}%</span></div>` : ""}`,
   });
@@ -2689,17 +2704,16 @@ function renderSources() {
   if (!el) return;
   Object.defineProperty(el, "innerHTML", { configurable: true, get() { return d.get.call(el); }, set(v) { if (el.__h !== v) { el.__h = v; d.set.call(el, v); } } });
 });
-// Home tiles that draw on other tabs' data: Markets deals, FPIs by country, and the GIFT City directory.
+// Home tiles that draw on other tabs' data: Markets deals and FPIs by country.
 let ovX = null;
 async function loadOverviewCross() {
   if (ovX) return;
   ovX = true;
   try {
-    const [deals, ctry, counts, gift] = await Promise.all([
+    const [deals, ctry, counts] = await Promise.all([
       api("feed_records?select=key,data&dataset=eq.nse_deals&limit=1000"),
       api("feed_records?select=data&dataset=eq.nsdl&key=eq.fpi_auc_country_top10&limit=1"),
       api("fpi_country_counts?select=country,n"),
-      api("ifsca_entities?select=name,sub_category,reg_date&reg_date=not.is.null&order=reg_date.desc&limit=1"),
     ]);
     const out = [];
     const val = (r) => mkNum(r.qty) * mkNum(r.watp) / 1e7;
@@ -2714,7 +2728,6 @@ async function loadOverviewCross() {
       const n = counts.find((c) => String(c.country || "").toUpperCase() === String(c1?.Country).toUpperCase())?.n;
       if (c1) out.push(tile("Largest FPI country by assets", esc(titleCase(c1.Country)), `${all ? (c1["AUC (INR Cr.)_Total"] / all["AUC (INR Cr.)_Total"] * 100).toFixed(1) + "% of FPI assets" : ""}${n ? ` · ${nfmt(n)} FPIs registered` : ""}`, 0));
     }
-    if (gift[0]) out.push(tile("Newest GIFT City entity", esc(gift[0].name), `${esc(gift[0].sub_category || "")} · registered ${esc(gift[0].reg_date)}`, 0));
     $("ov-cross").innerHTML = out.join("");
   } catch { ovX = null; }
 }
@@ -2747,7 +2760,7 @@ function renderOverview() {
     const pts = d.slice(-20).map((x) => ({ ...x, v: usdMOf(x.Total) }));
     $("ov-fpibars").dataset.title = "FPI net investment, recent trading days";
     barChart($("ov-fpibars"), pts, {
-      height: 190, axis: usdAxis,
+      height: 190, axis: usdAxis, line: cumLine(),
       label: (p) => `${p.day.slice(8, 10)} ${MON[+p.day.slice(5, 7) - 1]}`,
       tip: (p) => `<b>${toDMY(p.day)}</b><div class="row"><span>All segments</span><span>${crore(p.Total)}</span></div><div class="row"><span>Equity</span><span>${crore(p.Equity)}</span></div><div class="row"><span>Debt</span><span>${crore(p.Debt)}</span></div>`,
     });
@@ -3510,7 +3523,7 @@ async function renderFpiHistory() {
     tile("Largest outflow", signed(worst.total), esc(worst.label), -1),
   ].filter(Boolean).join("");
   barChart(box, pts.map((p) => ({ ...p, v: usdMOf(p.total) })), {
-    height: 230, axis: usdAxis, label: (p) => fh.view === "fy" ? p.label.slice(2) : p.label,
+    height: 230, axis: usdAxis, line: cumLine(), label: (p) => fh.view === "fy" ? p.label.slice(2) : p.label,
     tip: (p) => `<b>${esc(p.label)}${p.partial ? " (so far)" : ""}</b><div class="row"><span>All segments</span><span>${signed(p.total)}</span></div><div class="row"><span>Equity</span><span>${signed(p.eq)}</span></div><div class="row"><span>Debt</span><span>${signed(p.debt)}</span></div>`,
   });
 }
