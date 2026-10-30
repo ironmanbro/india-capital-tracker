@@ -691,6 +691,27 @@ body.anon nav.tabs button:not([data-tab="overview"]):not([data-tab="health"]){po
 body.anon nav.tabs button:not([data-tab="overview"]):not([data-tab="health"])::after{content:"🔒";position:absolute;top:1px;right:5px;font-size:9px;opacity:.8}
 body.anon .gnav button:not([data-g="home"]){position:relative}
 body.anon .gnav button:not([data-g="home"])::after{content:"🔒";position:absolute;top:2px;right:14px;font-size:10px}
+.a-brand{overflow:auto;gap:22px}
+#a-pitch{display:flex;flex-direction:column;gap:20px}
+.a-kick{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:8px}
+.a-brand h2{font-size:32px!important;line-height:1.12!important;letter-spacing:-.02em!important;margin:0 0 10px!important}
+.a-perks{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:12px 18px}
+.a-perks li{display:flex;gap:11px;align-items:flex-start}
+.a-ic{flex:none;width:34px;height:34px;border-radius:10px;background:var(--chip);border:1px solid var(--line);display:grid;place-items:center;color:var(--accent)}
+.a-ic svg{width:18px;height:18px}
+.a-perks b{display:block;font-size:14px;line-height:1.25}
+.a-perks small{display:block;color:var(--muted);font-size:12px;line-height:1.35;margin-top:2px}
+.a-prev{background:var(--chip);border:1px solid var(--line);border-radius:14px;padding:14px 14px 10px}
+.a-ph{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:6px}
+.a-ph b{font-size:13px}.a-ph small{color:var(--muted);font-size:11px}
+.a-prev svg{display:block;width:100%;height:64px}
+.a-prev>small{display:block;color:var(--muted);font-size:11.5px;margin-top:6px}
+.a-free{font-size:12.5px;color:var(--muted)}.a-free b{color:var(--ink)}
+.a-mperks{display:none;margin-top:22px;border-top:1px solid var(--line);padding-top:14px}
+.a-mperks summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--accent);min-height:44px;display:flex;align-items:center}
+.a-mperks .a-perks{grid-template-columns:1fr;margin-top:8px}
+@media(max-width:860px){.a-mperks{display:block}}
+@media(max-height:760px){.a-brand h2{font-size:26px!important}.a-perks{gap:9px 16px}.a-perks small{display:none}}
 </style>
 <script src="vendor/lenis.min.js" defer></script>
 </head>
@@ -3210,7 +3231,7 @@ const A_SCREENS = {
       <button class="a-btn" type="submit">Sign in</button></form>
     <div class="a-or">or</div>
     <button class="a-btn ghost" type="button" data-as="magic">✉︎ Email me a sign-in link</button>
-    <div class="a-foot">New here? <button class="a-lnk" data-as="signup">Create an account</button></div>`,
+    <div class="a-foot">New here? <button class="a-lnk" data-as="signup">Create an account</button></div>${aPerksMobile()}`,
   signup: () => `<h1 id="auth-title">Create your account</h1><p class="a-sub">Free. Takes under a minute.</p>
     <form novalidate data-do="signup">
       <label for="a-nm">Full name</label><input id="a-nm" type="text" placeholder="Priya Sharma" autocomplete="name"><div class="a-err" data-e="a-nm" role="alert"></div>
@@ -3218,7 +3239,7 @@ const A_SCREENS = {
       <label for="a-pw">Password</label><div class="a-field"><input id="a-pw" type="password" placeholder="At least 8 characters" autocomplete="new-password">${A_EYE}</div>
       <div class="a-meter" id="a-meter" aria-hidden="true"><i></i><i></i><i></i><i></i></div><div class="a-sub" id="a-mtxt" style="margin:6px 0 0;font-size:12px">Use 8+ characters; mix letters and numbers.</div><div class="a-err" data-e="a-pw" role="alert"></div>
       <button class="a-btn" type="submit">Create account</button></form>
-    <div class="a-foot">Already have an account? <button class="a-lnk" data-as="signin">Sign in</button></div>`,
+    <div class="a-foot">Already have an account? <button class="a-lnk" data-as="signin">Sign in</button></div>${aPerksMobile()}`,
   magic: () => `<h1 id="auth-title">Sign in with a link</h1><p class="a-sub">We'll email you a link. Open it on this device and you're in. No password needed.</p>
     <form novalidate data-do="magic">${A_EMAIL}<button class="a-btn" type="submit">Email me the link</button></form>
     <div class="a-foot"><button class="a-lnk" data-as="signin">← Back to sign in</button></div>`,
@@ -3235,14 +3256,43 @@ const A_SCREENS = {
     <button class="a-btn ghost" id="a-resend" type="button" disabled>Resend email</button><div class="a-foot" id="a-cd"></div>
     <div class="a-foot"><button class="a-lnk" data-as="signin">← Back to sign in</button></div>`,
 };
+const A_PERKS = [
+  ["feed", "Live deal feed", "Every foreign investment, exit and fund launch, checked every 3 hours."],
+  ["investors", "Investor profiles", "One page per firm: its deals, holdings and sources."],
+  ["network", "Network map", "See which firms invest together and how any two are linked."],
+  ["flows", "FPI and FDI flows", "Daily, monthly and yearly since 1992-93, in US$ with ₹ in brackets."],
+  ["markets", "Exchange data", "FII/FPI activity, bulk and block deals, debt holdings and sector assets."],
+  ["directory", "FPI register", "Every SEBI-registered FPI, with assets held by country and sector."],
+  ["gift", "GIFT City directory", "Every entity IFSCA regulates there, with contact details."],
+];
+const aIcon = (t) => (document.querySelector(`nav.tabs button[data-tab="${t}"] svg`) || { outerHTML: "" }).outerHTML;
+const aPerkList = () => A_PERKS.map(([t, h, x]) => `<li><span class="a-ic">${aIcon(t)}</span><div><b>${h}</b><small>${x}</small></div></li>`).join("");
+// A taste of Flows: the last trading days of FPI net flow, drawn from the data the page already holds.
+function aPreview() {
+  const d = ((typeof flows !== "undefined" && flows.daily) || []).filter((x) => typeof x.Total === "number").slice(-24);
+  if (d.length < 6) return "";
+  const mx = Math.max(1, ...d.map((x) => Math.abs(x.Total))), w = 240 / d.length, bars = d.map((x, i) => {
+    const h = Math.max(1.5, Math.abs(x.Total) / mx * 26);
+    return `<rect x="${(i * w + 1).toFixed(1)}" y="${x.Total >= 0 ? 28 - h : 28}" width="${(w - 2).toFixed(1)}" height="${h.toFixed(1)}" rx="1.5" fill="var(--${x.Total >= 0 ? "in" : "out"})"/>`;
+  }).join("");
+  return `<div class="a-prev"><div class="a-ph"><b>FPI net flow, last ${d.length} trading days</b><small>a taste of Flows</small></div>
+    <svg viewBox="0 0 240 56" preserveAspectRatio="none" aria-hidden="true"><line x1="0" x2="240" y1="28" y2="28" stroke="var(--line)"/>${bars}</svg>
+    <small>Inside: full charts, running totals and yearly history, plus the deals behind the moves.</small></div>`;
+}
+function authPitch() {
+  const n = (state.events || []).length;
+  return `<div><div class="a-kick">India Capital Tracker</div><h2>See where foreign money is moving in India.</h2>
+    <p>Investments, exits, FPI flows and fund launches in one place${n ? `, with ${n.toLocaleString("en-IN")} stories tracked` : ""}. Sign in free to open everything.</p></div>
+    <ul class="a-perks">${aPerkList()}</ul>${aPreview()}
+    <div class="a-free"><b>Home stays free</b> for everyone: today's FPI flow, the biggest deals this week and the latest stories.</div>`;
+}
+const aPerksMobile = () => `<details class="a-mperks"><summary>What you get when you sign in</summary><ul class="a-perks">${aPerkList()}</ul></details>`;
 function openAuth(screen = "signin", data = {}) {
   let box = $("auth");
   if (!box) {
     document.body.insertAdjacentHTML("beforeend", `<div class="auth" id="auth" role="dialog" aria-modal="true" aria-labelledby="auth-title" hidden>
       <button type="button" class="a-x" id="a-close">Continue to Home</button>
-      <div class="a-brand"><div class="a-logo"><i>ICT</i> India Capital Tracker</div>
-        <div><h2>Follow foreign money in and out of India.</h2><p>Investments, exits, FPI flows and fund launches in one place. Home is open to everyone. Sign in to open the rest.</p></div>
-        <div class="a-stats" id="a-stats"></div></div>
+      <div class="a-brand"><div class="a-logo"><i>ICT</i> India Capital Tracker</div><div id="a-pitch"></div></div>
       <div class="a-form"><div class="a-card" id="a-card"></div></div></div>`);
     box = $("auth");
     $("a-close").onclick = closeAuth;
@@ -3255,8 +3305,7 @@ function openAuth(screen = "signin", data = {}) {
       else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
     });
   }
-  const st = [[(state.events || []).length, "stories tracked"], [ovRegs && ovRegs.st && ovRegs.st.fpis, "FPIs registered"]].filter(([n]) => n).map(([n, l]) => `<div class="a-stat"><b>${(+n).toLocaleString("en-IN")}+</b><small>${l}</small></div>`);
-  $("a-stats").innerHTML = st.join("") + `<div class="a-stat"><b>Daily</b><small>NSE and NSDL data</small></div>`;
+  $("a-pitch").innerHTML = authPitch();
   auth.opener = auth.opener || document.activeElement;
   box.hidden = false; document.body.classList.add("locked");
   authScreen(screen, data);
