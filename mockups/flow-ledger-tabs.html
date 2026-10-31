@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Flow Ledger: tab mockups</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a1019;--panel:#121b29;--ink:#eef1f6;--muted:#93a1b5;--line:rgba(150,175,210,.14);--chip:rgba(150,175,210,.10);--accent:#ffa43a;--in:#3d8bff;--out:#ff7a45;--reloc:#b79bff;--fund:#2fd3a0;--good:#2fd3a0;--bad:#ff6b6b;
+--fd:"Bricolage Grotesque",system-ui,sans-serif;--fb:"IBM Plex Sans",system-ui,sans-serif;--fn:"IBM Plex Mono",ui-monospace,monospace}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(900px 420px at 85% -10%,rgba(255,164,58,.10),transparent 60%),radial-gradient(900px 500px at 0 -20%,rgba(61,139,255,.10),transparent 60%),var(--bg);color:var(--ink);font:14.5px/1.45 var(--fb)}
+.app{display:grid;grid-template-columns:92px 1fr;max-width:1320px;margin:0 auto;min-height:100vh}
+nav{position:sticky;top:0;height:100vh;padding:18px 10px;display:flex;flex-direction:column;gap:4px;border-right:1px solid var(--line)}
+nav a{display:block;text-align:center;padding:10px 4px;border-radius:12px;color:var(--muted);font:600 12px var(--fd);text-decoration:none}
+nav a[aria-current]{background:var(--chip);color:var(--ink);box-shadow:inset 0 -2px 0 var(--accent)}
+nav .logo{width:40px;height:40px;margin:0 auto 12px;border-radius:12px;background:var(--accent);color:#1a1103;display:grid;place-items:center;font:700 14px var(--fd)}
+main{padding:22px 28px 60px;min-width:0}
+header{position:relative;padding-bottom:16px;margin-bottom:20px}
+header:after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;border-radius:3px;background:linear-gradient(90deg,#ffa43a 28%,#eef1f6 28% 34%,#2fd3a0 34%)}
+.eb{font:500 11px var(--fn);letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+h1{font:700 clamp(26px,4vw,38px)/1.05 var(--fd);letter-spacing:-.025em;margin:4px 0 6px}
+.sub,.note{color:var(--muted);font-size:13px}
+.grid{display:grid;gap:14px}.g2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}.g4{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.card h3{font:600 15px var(--fd);margin:0 0 2px}
+.kpi .n{font:700 30px var(--fd);letter-spacing:-.02em;font-variant-numeric:tabular-nums}.kpi .l{color:var(--muted);font-size:12.5px}
+.up{color:var(--good)}.dn{color:var(--bad)}.num{font-family:var(--fn);font-variant-numeric:tabular-nums}
+.chip{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:12px;background:var(--panel)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+table{width:100%;border-collapse:collapse;font-size:13.5px}th{text-align:left;color:var(--muted);font:500 11px var(--fn);letter-spacing:.08em;text-transform:uppercase;padding:8px 6px;border-bottom:1px solid var(--line)}td{padding:11px 6px;border-bottom:1px solid var(--line)}td.r,th.r{text-align:right}
+.row{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid var(--line)}.row:first-of-type{border-top:0}
+.bar{height:6px;border-radius:3px;background:var(--chip);overflow:hidden;margin-top:6px}.bar i{display:block;height:100%}
+.sec{font:700 20px var(--fd);margin:26px 0 10px;letter-spacing:-.01em}
+.tag{font:500 10.5px var(--fn);letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:6px;border:1px solid}
+.pill-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+section{display:none}section.on{display:block}
+.stamp{position:fixed;right:14px;bottom:12px;font:500 11px var(--fn);color:var(--muted);background:var(--panel);border:1px solid var(--line);padding:4px 10px;border-radius:999px}
+@media(max-width:700px){.app{grid-template-columns:1fr}nav{position:fixed;bottom:0;top:auto;height:auto;width:100%;flex-direction:row;overflow-x:auto;background:var(--panel);z-index:5;border:0;border-top:1px solid var(--line)}nav .logo{display:none}nav a{flex:0 0 auto;min-width:74px}main{padding:16px 16px 90px}.stamp{display:none}}
+</style></head><body>
+<div class="app">
+<nav id="nav"><div class="logo">ICT</div></nav>
+<main>
+<header><div class="eb">Indian Capital Tracker</div><h1 id="t"></h1><div class="sub" id="s"></div></header>
+<section id="home">
+ <div class="grid g4" id="homek"></div>
+ <div class="grid g2" style="margin-top:14px">
+  <div class="card"><h3>Latest FPI flow</h3><div class="sub">NSDL, 28 Oct</div><div class="kpi"><div class="n up">+₹2,418 cr</div><div class="l">Net into equity · 5-day net −₹1,102 cr</div></div><svg viewBox="0 0 300 60" width="100%" height="60"><polyline fill="none" stroke="#3d8bff" stroke-width="2.4" points="0,40 30,34 60,46 90,22 120,30 150,14 180,38 210,26 240,10 270,32 300,18"/></svg></div>
+  <div class="card"><h3>Biggest deals this week</h3><div class="sub">Agreed or completed, last 7 days</div><div id="deals"></div></div>
+ </div>
+</section>
+<section id="feed"><div class="pill-row" id="fchips"></div><div class="card" id="fl"></div></section>
+<section id="investors"><div class="card"><h3>Most active investors</h3><div class="sub">Reported deal value, last 90 days</div><table id="it"></table></div></section>
+<section id="network"><div class="grid g2"><div class="card" style="padding:0"><svg viewBox="0 0 520 380" width="100%" id="net"></svg></div><div class="card"><h3>GIC Singapore</h3><div class="sub">Sovereign fund · 14 deals in 90 days</div><div id="nl"></div></div></div></section>
+<section id="flows"><div class="grid g4" id="fk"></div><div class="card" style="margin-top:14px"><h3>FPI net flow, monthly</h3><div class="sub">Equity, ₹ crore. Blue is into India, orange is out.</div><svg id="fb" viewBox="0 0 720 220" width="100%"></svg></div><div class="grid g2" style="margin-top:14px"><div class="card"><h3>Assets held by country</h3><div id="fc"></div></div><div class="card"><h3>Assets held by sector</h3><div id="fs"></div></div></div></section>
+<section id="markets"><div class="grid g2"><div class="card"><h3>Bulk and block deals</h3><div class="sub">NSE and BSE, today</div><table id="mt"></table></div><div class="card"><h3>SEBI filings</h3><div class="sub">Takeover and public issue</div><div id="sf"></div></div></div></section>
+<section id="fpis"><div class="card"><h3>New FPI registrations</h3><div class="sub">Latest additions to the NSDL register</div><table id="ft"></table></div></section>
+<section id="gift"><div class="grid g4" id="gk"></div><div class="card" style="margin-top:14px"><h3>Fund launches</h3><div class="sub">GIFT City IFSC, latest first</div><div id="gl"></div></div></section>
+</main></div>
+<div class="stamp">Mockup · illustrative figures</div>
+<script>
+const $=i=>document.getElementById(i);
+const tabs=[["home","Home","Good afternoon","Saturday 31 October · 38 stories in the last 7 days"],["feed","Feed","Feed","Every story, newest first. Tap a card for the source."],["investors","Investors","Investors","Who is moving money, ranked by reported value."],["network","Network","Network","How firms connect through shared deals."],["flows","Flows","Flows","FPI and FDI, from NSDL and DPIIT."],["markets","Markets","Markets","Bulk and block deals plus regulator filings."],["fpis","FPIs","FPI register","Registered foreign portfolio investors."],["gift","GIFT City","GIFT City","Offshore funds launching from India's IFSC."]];
+const cat={entry:["Entry","#3d8bff"],exit:["Exit","#ff7a45"],fund:["Fund launch","#2fd3a0"],reloc:["Relocation","#b79bff"]};
+const tg=c=>`<span class="tag" style="color:${cat[c][1]};border-color:${cat[c][1]}55">${cat[c][0]}</span>`;
+$("nav").insertAdjacentHTML("beforeend",tabs.map(t=>`<a href="#${t[0]}" data-t="${t[0]}">${t[1]}</a>`).join(""));
+const kp=(n,l,c="")=>`<div class="card kpi"><div class="n ${c}">${n}</div><div class="l">${l}</div></div>`;
+$("homek").innerHTML=kp("38","Stories, 7 days")+kp("$1.9B","Reported inflow","up")+kp("$412M","Reported exits","dn")+kp("9","GIFT City launches");
+const deals=[["Temasek → Haldiram's","$1.0B","entry"],["Bain Capital exits Axis stake","$380M","exit"],["ADIA → Reliance Retail","$250M","entry"],["Fund launch: Mount Everest IFSC","$120M","fund"]];
+$("deals").innerHTML=deals.map(d=>`<div class="row"><div>${d[0]}<div>${tg(d[2])}</div></div><div class="num">${d[1]}</div></div>`).join("");
+$("fchips").innerHTML=["All","Entry","Exit","Fund launch","Relocation"].map((c,i)=>`<span class="chip" ${i?"":'style="border-color:var(--accent);color:var(--accent)"'}>${c}</span>`).join("")+`<span class="chip">Last 7 days ▾</span>`;
+const fl=[["Temasek leads $1B round in Haldiram's","Economic Times · 2h","entry","$1.0B"],["Bain Capital sells Axis Max stake via block deal","Mint · 5h","exit","$380M"],["Brookfield shifts fund domicile to GIFT City","Business Standard · 9h","reloc","—"],["Mount Everest launches IFSC growth fund","Moneycontrol · 1d","fund","$120M"],["ADIA picks 4% in Reliance Retail arm","Reuters · 1d","entry","$250M"]];
+$("fl").innerHTML=fl.map(f=>`<div class="row"><div><b style="font-family:var(--fd)">${f[0]}</b><div class="sub">${f[1]}</div></div><div style="text-align:right">${tg(f[2])}<div class="num">${f[3]}</div></div></div>`).join("");
+const inv=[["Temasek","Singapore","$2.4B",100,"entry"],["GIC","Singapore","$1.7B",71,"entry"],["ADIA","Abu Dhabi","$1.1B",46,"entry"],["Bain Capital","USA","$0.9B",38,"exit"],["Brookfield","Canada","$0.6B",25,"reloc"]];
+$("it").innerHTML="<tr><th>Investor</th><th>Home</th><th>Activity</th><th class=r>Value</th></tr>"+inv.map(i=>`<tr><td><b style="font-family:var(--fd)">${i[0]}</b></td><td class=sub>${i[1]}</td><td style="width:35%"><div class=bar><i style="width:${i[3]}%;background:${cat[i[4]][1]}"></i></div></td><td class="r num">${i[2]}</td></tr>`).join("");
+const nodes=[[260,190,"GIC",26,"#ffa43a"],[110,90,"Haldiram's",16,"#3d8bff"],[400,80,"Zomato",16,"#3d8bff"],[430,250,"Temasek",20,"#3d8bff"],[120,290,"Reliance",18,"#3d8bff"],[270,330,"Brookfield",14,"#b79bff"],[260,50,"ADIA",14,"#3d8bff"]];
+$("net").innerHTML=nodes.slice(1).map(n=>`<line x1="260" y1="190" x2="${n[0]}" y2="${n[1]}" stroke="rgba(150,175,210,.3)"/>`).join("")+`<line x1="430" y1="250" x2="400" y2="80" stroke="rgba(150,175,210,.18)"/><line x1="120" y1="290" x2="110" y2="90" stroke="rgba(150,175,210,.18)"/>`+nodes.map(n=>`<circle cx="${n[0]}" cy="${n[1]}" r="${n[3]}" fill="${n[4]}" opacity=".9"/><text x="${n[0]}" y="${n[1]+n[3]+15}" fill="#eef1f6" font-size="12" text-anchor="middle" font-family="IBM Plex Sans">${n[2]}</text>`).join("");
+$("nl").innerHTML=[["Zomato","$200M · Jan"],["Reliance Retail","$250M · Sep"],["Haldiram's","$300M · Oct"],["Temasek (co-investor)","6 shared deals"]].map(r=>`<div class=row><span>${r[0]}</span><span class="num sub">${r[1]}</span></div>`).join("");
+$("fk").innerHTML=kp("+₹2,418 cr","Latest day, equity","up")+kp("−₹9,140 cr","October net","dn")+kp("$31.2B","FDI, FY26 to date")+kp("₹78.4 L cr","FPI assets in custody");
+const m=[3200,-1800,5400,2100,-7400,4100,6200,-2600,1800,-9140,2300,4800];const mx=9500;
+$("fb").innerHTML=`<line x1="0" y1="110" x2="720" y2="110" stroke="rgba(150,175,210,.3)"/>`+m.map((v,i)=>{const h=Math.abs(v)/mx*95;return `<rect x="${i*60+12}" y="${v>0?110-h:110}" width="36" height="${h}" rx="4" fill="${v>0?"#3d8bff":"#ff7a45"}"/>`}).join("")+["N","D","J","F","M","A","M","J","J","A","S","O"].map((l,i)=>`<text x="${i*60+30}" y="212" text-anchor="middle" fill="#93a1b5" font-size="11" font-family="IBM Plex Mono">${l}</text>`).join("");
+const hb=(rows)=>rows.map(r=>`<div style="margin:12px 0"><div style="display:flex;justify-content:space-between"><span>${r[0]}</span><span class=num>${r[1]}</span></div><div class=bar><i style="width:${r[2]}%;background:#3d8bff"></i></div></div>`).join("");
+$("fc").innerHTML=hb([["United States","₹29.1 L cr",100],["Luxembourg","₹7.4 L cr",25],["Singapore","₹6.9 L cr",24],["Ireland","₹4.2 L cr",14]]);
+$("fs").innerHTML=hb([["Financials","₹21.8 L cr",100],["IT","₹9.6 L cr",44],["Oil, gas and fuels","₹6.3 L cr",29],["Autos","₹5.1 L cr",23]]);
+const md=[["HDFC Bank","Goldman Sachs","Buy","₹1,240 cr"],["Axis Bank","Bain Capital","Sell","₹3,180 cr"],["Zomato","SBI MF","Buy","₹842 cr"],["Paytm","Morgan Stanley","Sell","₹512 cr"]];
+$("mt").innerHTML="<tr><th>Scrip</th><th>Client</th><th>Side</th><th class=r>Value</th></tr>"+md.map(r=>`<tr><td><b style="font-family:var(--fd)">${r[0]}</b></td><td>${r[1]}</td><td class="${r[2]=="Buy"?"up":"dn"}">${r[2]}</td><td class="r num">${r[3]}</td></tr>`).join("");
+$("sf").innerHTML=[["Open offer: Acme Pharma","Takeover · 29 Oct"],["IPO draft: Nova Energy","Public issue · 28 Oct"],["Open offer: Sundaram Textiles","Takeover · 27 Oct"]].map(r=>`<div class=row><span>${r[0]}</span><span class="sub">${r[1]}</span></div>`).join("");
+const fp=[["Aurora Global Opportunities","Luxembourg","Category I","27 Oct"],["Nordic Pension Fund","Norway","Category I","26 Oct"],["Sakura Asia Equity","Japan","Category II","24 Oct"],["Atlas Emerging Markets","Ireland","Category I","23 Oct"]];
+$("ft").innerHTML="<tr><th>Registrant</th><th>Country</th><th>Class</th><th class=r>Registered</th></tr>"+fp.map(r=>`<tr><td><b style="font-family:var(--fd)">${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td><td class="r num">${r[3]}</td></tr>`).join("");
+$("gk").innerHTML=kp("214","Funds registered")+kp("9","Launched, 30 days")+kp("$4.8B","Committed capital","up")+kp("37","Funds relocated here");
+$("gl").innerHTML=[["Mount Everest IFSC Growth Fund","Category III AIF · $120M","fund"],["Brookfield India Infra Fund II","Relocated from Mauritius","reloc"],["Kotak Alt GIFT Credit Fund","Category II AIF · $85M","fund"]].map(r=>`<div class=row><div><b style="font-family:var(--fd)">${r[0]}</b><div class=sub>${r[1]}</div></div>${tg(r[2])}</div>`).join("");
+function show(){const h=(location.hash||"#home").slice(1),t=tabs.find(x=>x[0]==h)||tabs[0];document.querySelectorAll("section").forEach(s=>s.classList.toggle("on",s.id==t[0]));document.querySelectorAll("nav a").forEach(a=>a.toggleAttribute("aria-current",a.dataset.t==t[0]));$("t").textContent=t[2];$("s").textContent=t[3]}
+addEventListener("hashchange",show);show();
+</script></body></html>
