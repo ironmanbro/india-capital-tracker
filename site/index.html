@@ -134,7 +134,7 @@ td.num{font-variant-numeric:tabular-nums;text-align:right}
 .mbcov{display:flex;align-items:center;gap:10px;margin:2px 0 10px;flex-wrap:wrap}.mbbar{width:140px;height:6px;border-radius:3px;background:var(--chip);overflow:hidden}.mbbar i{display:block;height:100%;background:var(--accent)}
 .mbcols{display:grid;grid-template-columns:1fr 1fr;gap:0 24px}@media(max-width:700px){.mbcols{grid-template-columns:1fr}}
 .mbform{display:grid;grid-template-columns:1fr 1fr;gap:10px}.mbform label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}.mbform .wide{grid-column:1/-1}
-.mbform input,.mbform textarea{font:inherit;font-size:14px;color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px}.mbact{display:flex;align-items:center;gap:12px}@media(max-width:700px){.mbform{grid-template-columns:1fr}}
+.mbform input,.mbform textarea{font:inherit;font-size:14px;color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px}.mbown{margin:8px 0}.mbown summary{cursor:pointer;color:var(--accent);font-size:13px}.mbck{display:inline-flex!important;flex-direction:row!important;align-items:center;gap:4px;margin:4px 12px 0 0}.mbact{display:flex;align-items:center;gap:12px}@media(max-width:700px){.mbform{grid-template-columns:1fr}}
 .ftile{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
 .ftile .l{color:var(--muted);font-size:12px}
 .ftile .n{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;margin:2px 0}
@@ -1053,6 +1053,7 @@ body.anon .gnav button:not([data-g="home"])::after{content:"🔒";position:absol
       <div id="shp-out"></div>
     </div>
     <div id="xt-sources" style="margin-top:16px"></div>
+    <div id="mb-queue" style="margin-top:16px"></div>
   </section>
   <p class="note">New stories are checked and added every 3 hours.</p>
 
@@ -2625,6 +2626,7 @@ function setTab(t) {
   if (t === "flows") { renderFlows(); renderFpiHistory(); }
   if (t === "users") renderUsers();
   if (t === "markets") openMarkets();
+  if (t === "health") mbQueue();
   if (t === "directory" || t === "gift") { dir.view = t === "gift" ? "ifsca" : "fpi"; openDirectory(); }
   if (t === "investors" && state.events?.length) renderInvestors();
   if (t === "network") renderNetwork();
@@ -3829,9 +3831,11 @@ async function xtInit() {
 }
 
 // ---------- Meeting brief: one card at the top of every investor profile ----------
-const mb = { enr: null };
+const mb = { enr: null, facts: null };
+const MB_ITEMS = ["Background", "FPI registry", "Fund size", "Key people", "Deal history", "Cheque size", "Website"];
 async function mbEnrich() {
   if (!mb.enr) { try { mb.enr = new Map((await api("investor_enrichment?select=*&limit=2000")).map((r) => [invKey(r.holder), r])); } catch { mb.enr = new Map(); } }
+  if (!mb.facts) { try { mb.facts = new Map((await api("investor_facts?select=*&limit=5000")).map((r) => [r.holder_key, r])); } catch { mb.facts = new Map(); } }
   return mb.enr;
 }
 function mbEvents(key) {
@@ -3863,7 +3867,7 @@ function mbStats(list, key) {
 const mbWhen = (e) => e.published_at || e.fetched_at;
 const mbNoteFields = [["contact_name", "Contact name"], ["contact_role", "Their role"], ["email", "Email"], ["phone", "Phone"], ["last_meeting", "Last meeting", "date"], ["intro_path", "Who can introduce you"], ["next_step", "Next step"], ["notes", "Notes", "area"]];
 
-function mbBuild(key, name, kind, enr, note) {
+function mbBuild(key, name, kind, enr, note, fa) {
   const ev = mbEvents(key), st = mbStats(ev, key), X = xt.last || {};
   const prof = state.profiles?.get(key), reg = state.registry?.get(key);
   const med = st.usd.length ? st.usd[Math.floor(st.usd.length / 2)] : null;
@@ -3874,11 +3878,12 @@ function mbBuild(key, name, kind, enr, note) {
   const sebi = ["takeovers", "public_issues", "enforcement_orders"].reduce((a, k) => a + mention(xtSebi(X, k), (r) => r.title), 0);
   const news = mention(xtNews(X), (r) => r.title);
   const recentExit = st.sell.find((e) => Date.now() - new Date(mbWhen(e)) < 90 * 864e5);
-  const people = [enr?.ceo && `${enr.ceo} (CEO)`, enr?.chair && `${enr.chair} (chair)`, ...(enr?.founders || []).slice(0, 3).map((f) => `${f} (founder)`)].filter(Boolean);
+  const fundM = fa?.fund_size_usd_m ?? (enr?.total_assets_usd ? enr.total_assets_usd / 1e6 : null), na = new Set(fa?.not_applicable || []);
+  const people = fa?.key_people ? fa.key_people.split(/[;\n]+/).map((x) => x.trim()).filter(Boolean) : [enr?.ceo && `${enr.ceo} (CEO)`, enr?.chair && `${enr.chair} (chair)`, ...(enr?.founders || []).slice(0, 3).map((f) => `${f} (founder)`)].filter(Boolean);
   const facts = [["Type", prof?.description || reg?.sub_category], ["Based in", [prof?.headquarters || enr?.headquarters, prof?.country || (reg?.country ? titleCase(reg.country) : "")].filter(Boolean).filter((x, i, a) => a.indexOf(x) === i).join(", ")],
-    ["Fund size", enr?.total_assets_usd ? { h: usdBr(enr.total_assets_usd / 1e6) } : ""], ["Employees", enr?.employees ? nfmt(enr.employees) : ""], ["Key people", people.join(" · ")],
-    ["Owner or parent", prof?.owner || prof?.parent], ["FPI registration", reg ? `${reg.reg_no}${reg.category ? ` · Category ${reg.category}` : ""}${reg.status && reg.status !== "Registered" ? ` · ${reg.status}` : ""}` : ""],
-    ["Website", prof?.website && /^https?:\/\//.test(prof.website) ? { h: `<a href="${safeUrl(prof.website)}" target="_blank" rel="noopener">${esc(prof.website.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, ""))}</a>` } : ""]];
+    ["Fund size", fundM ? { h: usdBr(fundM) } : ""], ["Employees", enr?.employees ? nfmt(enr.employees) : ""], ["Key people", people.join(" · ")],
+    ["About", fa?.background], ["Owner or parent", prof?.owner || prof?.parent], ["FPI registration", reg ? `${reg.reg_no}${reg.category ? ` · Category ${reg.category}` : ""}${reg.status && reg.status !== "Registered" ? ` · ${reg.status}` : ""}` : ""],
+    ["Website", (fa?.website || prof?.website) && /^https?:\/\//.test(fa?.website || prof?.website) ? { h: `<a href="${safeUrl(fa?.website || prof.website)}" target="_blank" rel="noopener">${esc((fa?.website || prof.website).replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, ""))}</a>` } : ""]];
   const pts = [];
   if (st.buy.length) pts.push(`${st.r12} investment${st.r12 === 1 ? "" : "s"} in the last 12 months${st.p12 ? ` against ${st.p12} the year before, so ${st.r12 > st.p12 ? "pace is rising" : st.r12 < st.p12 ? "pace has slowed" : "pace is steady"}` : ""}.`);
   if (sectors.length) pts.push(`Most active in ${sectors.map(([s, c]) => `${s} (${c})`).join(", ")}.`);
@@ -3888,9 +3893,16 @@ function mbBuild(key, name, kind, enr, note) {
   if (!pts.length) pts.push("No deals found in the stories yet, so lead with open questions about their India plans.");
   const watch = [recentExit && `Sold or exited something in the last 90 days: ${recentExit.title}.`, sebi && `${sebi} SEBI filing${sebi === 1 ? "" : "s"} name them.`, reg?.status && reg.status !== "Registered" && `FPI status is "${reg.status}".`].filter(Boolean);
   const has = (v) => !!v;
-  const cov = [["Background", 15, has(prof?.description || prof?.summary || reg)], ["FPI registry", 10, has(reg)], ["Fund size", 10, has(enr?.total_assets_usd)], ["Key people", 15, people.length > 0 || has(note?.contact_name)],
-    ["Deal history", 20, ev.length >= 3], ["Cheque size", 10, st.usd.length > 0], ["Website", 5, has(prof?.website)], ["Your notes", 15, has(note?.notes || note?.next_step)]];
+  const cov = [["Background", 15, has(prof?.description || prof?.summary || reg || fa?.background)], ["FPI registry", 10, has(reg)], ["Fund size", 10, has(fundM)], ["Key people", 15, people.length > 0 || has(note?.contact_name)],
+    ["Deal history", 20, ev.length >= 3], ["Cheque size", 10, st.usd.length > 0], ["Website", 5, has(fa?.website || prof?.website)], ["Your notes", 15, has(note?.notes || note?.next_step)]].map(([l, w, ok]) => [l, w, ok || na.has(l)]);
   const pct = cov.reduce((a, [, w, ok]) => a + (ok ? w : 0), 0), missing = cov.filter(([, , ok]) => !ok).map(([l]) => l);
+  const ownerForm = auth.admin ? `<details class="mbown"><summary>Edit shared facts (owner)</summary><form class="mbform" id="mb-facts">
+    <label>Fund size (US$ million)<input name="fund_size_usd_m" type="number" min="0" step="any" value="${esc(fa?.fund_size_usd_m ?? "")}"></label>
+    <label>Website<input name="website" type="url" maxlength="300" placeholder="https://" value="${esc(fa?.website || "")}"></label>
+    <label class="wide">Key people (separate with ;)<input name="key_people" maxlength="1000" value="${esc(fa?.key_people || "")}"></label>
+    <label class="wide">Background<textarea name="background" rows="3" maxlength="2000">${esc(fa?.background || "")}</textarea></label>
+    <div class="wide"><span class="sub">Not applicable to this investor (counts as complete):</span> ${[...MB_ITEMS, "Your notes"].map((l) => `<label class="mbck"><input type="checkbox" name="na" value="${l}"${na.has(l) ? " checked" : ""}> ${l}</label>`).join("")}</div>
+    <div class="wide mbact"><button class="reset" type="submit">Save shared facts</button><span class="sub" id="mb-fmsg">Visible to everyone who opens this profile.</span></div></form></details>` : "";
   const text = [`${name}`, ...facts.filter(([, v]) => v).map(([k, v]) => `${k}: ${v.h !== undefined ? v.h.replace(/<[^>]+>/g, "") : v}`), "", ...pts.map((p) => `- ${p}`), ...(watch.length ? ["", ...watch.map((p) => `! ${p}`)] : []),
     ...(note ? ["", ...mbNoteFields.filter(([f]) => note[f]).map(([f, l]) => `${l}: ${note[f]}`)] : [])].join("\n");
   const li = (a) => a.map((x) => `<li>${x}</li>`).join("");
@@ -3902,12 +3914,59 @@ function mbBuild(key, name, kind, enr, note) {
       <div style="display:flex;gap:8px"><button class="reset" id="mb-copy" type="button">Copy brief</button></div></div>
     <div class="mbcov"><div class="mbbar"><i style="width:${pct}%"></i></div><span class="sub">Profile ${pct}% complete${missing.length ? ` · still missing: ${missing.join(", ")}` : ""}</span></div>
     ${eFacts(facts)}
+    ${ownerForm}
     <div class="mbcols"><div><h4>Talking points</h4><ul>${li(pts.map(esc))}</ul></div>
       <div><h4>Last moves</h4><ul>${li(moves.map((e) => `<a href="${safeUrl(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a> <span class="sub">${esc(dmy(mbWhen(e)))}</span>`)) || ""}${moves.length ? "" : `<li class="sub">None found</li>`}</ul>
         ${co.length ? `<h4>Often alongside</h4><ul>${li(co.map(([k, c]) => `<a href="#firm/${encodeURIComponent(k)}">${esc(c.name)}</a> <span class="sub">${c.n} deal${c.n === 1 ? "" : "s"}</span>`))}</ul>` : ""}
         ${watch.length ? `<h4>Watch-outs</h4><ul>${li(watch.map(esc))}</ul>` : ""}${news ? `<p class="sub">${news} recent news mention${news === 1 ? "" : "s"}. See In the news below.</p>` : ""}</div></div>
     <h4 style="margin-top:14px">Your contact and notes</h4>${form}</div>`;
-  return { html, text };
+  return { html, text, pct, missing, deals: ev.length };
+}
+
+// Owner tools on the Sources tab: which investors to research first, and a CSV import for shared facts.
+const csvRows = (text) => { const rows = []; let row = [], cell = "", q = false;
+  for (let i = 0; i < text.length; i++) { const c = text[i];
+    if (q) { if (c === '"' && text[i + 1] === '"') { cell += '"'; i++; } else if (c === '"') q = false; else cell += c; }
+    else if (c === '"') q = true; else if (c === ",") { row.push(cell); cell = ""; }
+    else if (c === "\n" || c === "\r") { if (c === "\r" && text[i + 1] === "\n") i++; row.push(cell); cell = ""; if (row.some((x) => x.trim())) rows.push(row); row = []; }
+    else cell += c; }
+  row.push(cell); if (row.some((x) => x.trim())) rows.push(row); return rows; };
+async function mbQueue() {
+  const el = $("mb-queue");
+  if (!el || !auth.admin) return;
+  const enr = await mbEnrich(); await loadExtra();
+  let list = [];
+  try { ensureNet(); list = [...net.g.nodes.values()].filter((n) => n.stories?.size >= 2); } catch {}
+  const rows = list.map((n) => { const b = mbBuild(n.key, n.name, "firm", enr.get(n.key), null, mb.facts?.get(n.key)); return { n, ...b }; })
+    .filter((r) => r.missing.filter((m) => m !== "Your notes").length).sort((a, b) => b.deals - a.deals || a.pct - b.pct).slice(0, 40);
+  el.innerHTML = `<h2 class="fsec">Profiles to complete</h2><p class="note">The most active investors with gaps, most deals first. Open one and use "Edit shared facts", or import many at once below. "Your notes" is private to each user and left out here.</p>` +
+    mkTable(["Investor", "Deals", "Complete", "Still missing"], rows.map((r) => [{ h: `<a href="#firm/${encodeURIComponent(r.n.key)}">${esc(r.n.name)}</a>` }, r.deals, `${r.pct}%`, r.missing.filter((m) => m !== "Your notes").join(", ")]), 1) +
+    `<h2 class="fsec">Import shared facts (CSV)</h2><p class="note">Columns: name, fund_size_usd_m, key_people, website, background, not_applicable (items separated with ;, for example <code>FPI registry;Fund size</code>). Blank cells leave the existing value alone.</p>
+    <input type="file" id="mb-csv" accept=".csv,text/csv"> <button class="reset" id="mb-csv-tpl" type="button">Download template</button> <span class="sub" id="mb-csv-msg"></span>`;
+  $("mb-csv-tpl").onclick = () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob(["name,fund_size_usd_m,key_people,website,background,not_applicable\n" + rows.slice(0, 20).map((r) => `"${r.n.name.replace(/"/g, '""')}",,,,,`).join("\n") + "\n"], { type: "text/csv" })); a.download = "investor-facts-template.csv"; a.click(); URL.revokeObjectURL(a.href); };
+  $("mb-csv").onchange = async (ev) => {
+    const f = ev.target.files[0], msg = $("mb-csv-msg");
+    if (!f) return;
+    const [head, ...body] = csvRows(await f.text()), col = (n) => head.findIndex((h) => h.trim().toLowerCase() === n), ix = ["name", "fund_size_usd_m", "key_people", "website", "background", "not_applicable"].map(col);
+    if (ix[0] < 0) { msg.textContent = "The file needs a name column."; return; }
+    const out = [], bad = [];
+    body.forEach((r, i) => {
+      const g = (j) => (j >= 0 ? (r[j] || "").trim() : ""), key = invKey(g(ix[0]));
+      if (!key) return;
+      const prev = mb.facts?.get(key) || {}, size = g(ix[1]), site = g(ix[3]), na = g(ix[5]).split(";").map((x) => x.trim()).filter((x) => MB_ITEMS.includes(x) || x === "Your notes");
+      if (size && (isNaN(+size) || +size < 0)) return bad.push(`row ${i + 2}: fund size`);
+      if (site && !/^https?:\/\//i.test(site)) return bad.push(`row ${i + 2}: website`);
+      out.push({ holder_key: key, fund_size_usd_m: size ? +size : prev.fund_size_usd_m ?? null, key_people: g(ix[2]) || prev.key_people || null, website: site || prev.website || null,
+        background: g(ix[4]) || prev.background || null, not_applicable: na.length ? na : prev.not_applicable || [], updated_at: new Date().toISOString() });
+    });
+    msg.textContent = "Importing…";
+    try {
+      for (let i = 0; i < out.length; i += 200) await authRest("investor_facts?on_conflict=holder_key", { method: "POST", body: out.slice(i, i + 200), headers: { Prefer: "resolution=merge-duplicates,return=minimal" } });
+      out.forEach((r) => mb.facts.set(r.holder_key, r));
+      msg.textContent = `Imported ${out.length} investors${bad.length ? `; skipped ${bad.length} (${bad.slice(0, 3).join(", ")})` : ""}.`;
+      mbQueue();
+    } catch (e) { msg.textContent = `Could not import: ${e.message}`; }
+  };
 }
 
 async function mbMount(key, name, kind) {
@@ -3918,10 +3977,20 @@ async function mbMount(key, name, kind) {
   let note = null;
   if (auth.session) { try { note = (await authRest(`investor_notes?select=*&holder_key=eq.${encodeURIComponent(key)}&limit=1`))?.[0] || null; } catch {} }
   if ($("mb") !== box) return; // the page changed while loading
-  const brief = mbBuild(key, name, kind, enr.get(key), note);
+  const fa = mb.facts?.get(key), brief = mbBuild(key, name, kind, enr.get(key), note, fa);
   box.innerHTML = brief.html;
   const copy = $("mb-copy");
   copy.onclick = async () => { try { await navigator.clipboard.writeText(brief.text); copy.textContent = "Copied"; } catch { copy.textContent = "Could not copy"; } setTimeout(() => copy.textContent = "Copy brief", 2000); };
+  const ff = $("mb-facts");
+  if (ff) ff.onsubmit = async (ev) => {
+    ev.preventDefault();
+    const fd = new FormData(ff), num = fd.get("fund_size_usd_m");
+    const row = { holder_key: key, fund_size_usd_m: num === "" ? null : +num, key_people: String(fd.get("key_people")).trim() || null, website: String(fd.get("website")).trim() || null,
+      background: String(fd.get("background")).trim() || null, not_applicable: fd.getAll("na"), updated_at: new Date().toISOString() };
+    $("mb-fmsg").textContent = "Saving…";
+    try { await authRest("investor_facts?on_conflict=holder_key", { method: "POST", body: row, headers: { Prefer: "resolution=merge-duplicates,return=minimal" } }); mb.facts.set(key, row); mbMount(key, name, kind); }
+    catch (e) { $("mb-fmsg").textContent = `Could not save: ${e.message}`; }
+  };
   const form = $("mb-form");
   if (form) form.onsubmit = async (ev) => {
     ev.preventDefault();
