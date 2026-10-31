@@ -2607,6 +2607,8 @@ document.querySelectorAll("#nhops button").forEach((b) => b.onclick = () => {
 });
 
 function setTab(t) {
+  // Going to Home drops the country, sector and story filters, so the address goes back to plain "/".
+  if (t === "overview" && state.urlReady && authAllowed(t) && (state.country || state.sector || state.story)) { state.country = state.sector = state.story = null; setTimeout(() => { try { render(); } catch {} syncUrl(); }, 0); }
   if (!authAllowed(t)) {
     auth.next = t;
     const lbl = (document.querySelector(`nav.tabs button[data-tab="${t}"]`)?.innerText || "").trim();
