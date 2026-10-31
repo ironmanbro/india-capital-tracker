@@ -2662,7 +2662,10 @@ function setTitle() {
   const t = state.tab;
   if (t === "overview") {
     const h = +new Date().toLocaleString("en-GB", { timeZone: "Asia/Kolkata", hour: "numeric", hour12: false });
-    $("ptitle").textContent = h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+    // Signed-in people are greeted by first name: "Welcome" on their first visit, "Welcome back" after that.
+    const usr = auth.session && auth.session.user, nm = String((usr && usr.user_metadata && usr.user_metadata.name) || "").trim().split(/\s+/)[0];
+    const first = usr && usr.created_at && usr.last_sign_in_at && Math.abs(new Date(usr.last_sign_in_at) - new Date(usr.created_at)) < 12e4;
+    $("ptitle").textContent = nm ? (first ? `Welcome, ${nm}` : `Welcome back, ${nm}`) : h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
     const day = new Date().toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata", weekday: "long", day: "numeric", month: "long" });
     const wk = state.events.filter((e) => Date.now() - new Date(e.published_at || e.fetched_at) < 7 * 864e5).length;
     $("psub").textContent = `${day} · ${wk} stor${wk === 1 ? "y" : "ies"} in the last 7 days · foreign capital into and out of India`;
@@ -3321,7 +3324,7 @@ function authBoot() {
     authStore({ access_token: h.get("access_token"), refresh_token: h.get("refresh_token"), expires_in: +h.get("expires_in") || 3600 });
     if (h.get("type") === "recovery") auth.recovery = true;
     history.replaceState(null, "", location.pathname + location.search);
-    authCall("/user", { method: "GET", token: auth.session.access_token }).then((u) => { auth.session.user = u; store(AUTH_KEY, JSON.stringify(auth.session)); authUi(); if (!auth.recovery) authAskName(); }).catch(() => {});
+    authCall("/user", { method: "GET", token: auth.session.access_token }).then(async (u) => { auth.session.user = u; store(AUTH_KEY, JSON.stringify(auth.session)); if (!auth.recovery) await authApplyPending(); authUi(); if (!auth.recovery) authAskName(); }).catch(() => {});
   } else if (h.get("error_description")) {
     auth.notice = (h.get("error_description") || "").replace(/\+/g, " ") + " Request a new link below.";
     history.replaceState(null, "", location.pathname + location.search);
@@ -3347,6 +3350,7 @@ function authUi() {
     if (inn) inn.onclick = () => { auth.next = null; openAuth("signin"); };
   }
   try { drawGnav(); } catch {}
+  try { setTitle(); } catch {}
 }
 async function authOut() {
   const t = auth.session && auth.session.access_token;
@@ -3369,7 +3373,7 @@ const A_SCREENS = {
     <div class="a-foot">New here? <button class="a-lnk" data-as="signup">Create an account</button></div>${aPerksMobile()}`,
   signup: () => `<h1 id="auth-title">Create your account</h1><p class="a-sub">Free. Takes under a minute.</p>
     <form novalidate data-do="signup">
-      <label for="a-nm">Full name</label><input id="a-nm" type="text" placeholder="Priya Sharma" autocomplete="name"><div class="a-err" data-e="a-nm" role="alert"></div>
+      <label for="a-nm">Full name</label><input id="a-nm" type="text" placeholder="Kishan Singhania" autocomplete="name"><div class="a-err" data-e="a-nm" role="alert"></div>
       ${A_EMAIL}
       <label for="a-pw">Password</label><div class="a-field"><input id="a-pw" type="password" placeholder="At least 8 characters" autocomplete="new-password">${A_EYE}</div>
       <div class="a-meter" id="a-meter" aria-hidden="true"><i></i><i></i><i></i><i></i></div><div class="a-sub" id="a-mtxt" style="margin:6px 0 0;font-size:12px">Use 8+ characters; mix letters and numbers.</div><div class="a-err" data-e="a-pw" role="alert"></div>
@@ -3377,10 +3381,10 @@ const A_SCREENS = {
       <button class="a-btn" type="submit">Create account</button></form>
     <div class="a-foot">Already have an account? <button class="a-lnk" data-as="signin">Sign in</button></div>${aPerksMobile()}`,
   name: () => `<h1 id="auth-title">What should we call you?</h1><p class="a-sub">Your name can be different from your email. We keep it so the site owner knows who is using the tracker.</p>
-    <form novalidate data-do="name"><label for="a-nm">Full name</label><input id="a-nm" type="text" placeholder="Priya Sharma" autocomplete="name"><div class="a-err" data-e="a-nm" role="alert"></div>
+    <form novalidate data-do="name"><label for="a-nm">Full name</label><input id="a-nm" type="text" placeholder="Kishan Singhania" autocomplete="name"><div class="a-err" data-e="a-nm" role="alert"></div>
       <button class="a-btn" type="submit">Continue</button></form>`,
-  magic: () => `<h1 id="auth-title">Sign in with a link</h1><p class="a-sub">For accounts you already have. We'll email you a link; open it on this device and you're in. No password needed.</p>
-    <form novalidate data-do="magic">${A_EMAIL}<button class="a-btn" type="submit">Email me the link</button></form>
+  magic: () => `<h1 id="auth-title">Sign in with a link</h1><p class="a-sub">For accounts you already have. Tell us your name, and we'll email you a link; open it on this device and you're in. No password needed.</p>
+    <form novalidate data-do="magic"><label for="a-nm">Full name</label><input id="a-nm" type="text" placeholder="Kishan Singhania" autocomplete="name" value="${esc(load("ict-name") || "")}"><div class="a-err" data-e="a-nm" role="alert"></div>${A_EMAIL}<button class="a-btn" type="submit">Email me the link</button></form>
     <div class="a-foot"><button class="a-lnk" data-as="signin">← Back to sign in</button></div>`,
   forgot: () => `<h1 id="auth-title">Reset your password</h1><p class="a-sub">Enter your email and we'll send a link to choose a new one.</p>
     <form novalidate data-do="forgot">${A_EMAIL}<button class="a-btn" type="submit">Send reset link</button></form>
@@ -3498,6 +3502,12 @@ function authSend(kind, email) {
   return authCall("/otp", { body: { email, create_user: false }, query: `?redirect_to=${authBack()}` });
 }
 // Anyone signed in without a saved name is asked for it once, whichever way they signed in (password, email link, Google).
+// A name typed on the email-link screen is saved to the account once the link is opened on this device.
+async function authApplyPending() {
+  const n = load("ict-pending-name");
+  if (!n || !auth.session) return false;
+  try { const u = await authCall("/user", { method: "PUT", token: auth.session.access_token, body: { data: { name: n } } }); auth.session.user = u; store(AUTH_KEY, JSON.stringify(auth.session)); store("ict-pending-name"); return true; } catch { return false; }
+}
 const authNeedsName = () => !!(auth.session && auth.session.user && !String((auth.session.user.user_metadata || {}).name || "").trim());
 function authAskName() { if (authNeedsName()) setTimeout(() => openAuth("name"), 0); }
 function authDone() {
@@ -3529,7 +3539,7 @@ async function authSubmit(f, data) {
       auth.session.user = u; store(AUTH_KEY, JSON.stringify(auth.session));
       closeAuth(); authUi(); const t = auth.next; auth.next = null; if (t && t !== state.tab) setTab(t);
     }
-    else if (kind === "magic") { await authSend("magic", em); authScreen("sent", { kind: "magic", email: em }); }
+    else if (kind === "magic") { store("ict-name", val("a-nm").trim()); store("ict-pending-name", val("a-nm").trim()); await authSend("magic", em); authScreen("sent", { kind: "magic", email: em }); }
     else if (kind === "forgot") { await authSend("recover", em); authScreen("sent", { kind: "recover", email: em }); }
     else if (kind === "reset") { const u = await authCall("/user", { method: "PUT", token: auth.session.access_token, body: { password: val("a-pw") } }); auth.session.user = u; store(AUTH_KEY, JSON.stringify(auth.session)); authDone(); }
   } catch (er) { fail(er); }
