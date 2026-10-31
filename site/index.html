@@ -4279,5 +4279,37 @@ xtInit();
   scan(document);
 })();
 </script>
+<script>
+// Charts draw in once, when first scrolled into view: bars grow, lines draw, progress bars fill. Same data re-rendered does not replay.
+(() => {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window) || !Element.prototype.animate) return;
+  const SVG = "svg:has(path.bar), svg:has(polyline), svg[preserveAspectRatio=none]:has(rect)", FILL = ".m30bar i, .us-bar i", seen = new Set();
+  const hash = (s) => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return h; };
+  const opt = (delay) => ({ duration: 700, delay, easing: "cubic-bezier(0,0,.2,1)" });
+  const play = (el) => {
+    if (el.matches(FILL)) { el.style.transformOrigin = "left"; el.animate({ transform: ["scaleX(0)", "scaleX(1)"] }, opt(0)); return; }
+    el.querySelectorAll("path.bar, rect:not(.hit)").forEach((b, i) => {
+      const down = /--out/.test(b.getAttribute("fill") || "");
+      b.style.transformBox = "fill-box"; b.style.transformOrigin = el.matches("[preserveAspectRatio=none]") ? "center" : down ? "top" : "bottom";
+      b.animate({ transform: ["scaleY(0)", "scaleY(1)"] }, opt(Math.min(i * 12, 300)));
+    });
+    el.querySelectorAll("polyline").forEach((l) => {
+      l.setAttribute("pathLength", "1");
+      l.animate({ strokeDasharray: ["1 1", "1 1"], strokeDashoffset: [1, 0] }, opt(0));
+    });
+    el.querySelectorAll("path[fill-opacity], circle").forEach((a) => a.animate({ opacity: [0, 1] }, opt(350)));
+  };
+  const io = new IntersectionObserver((list) => list.forEach((en) => {
+    if (!en.isIntersecting) return;
+    const el = en.target; io.unobserve(el);
+    const k = el.matches(FILL) ? null : (el.getAttribute("aria-label") || "") + "|" + hash(el.innerHTML);
+    if (k) { if (seen.has(k)) return; seen.add(k); }
+    play(el);
+  }), { threshold: .3 });
+  const scan = (root) => root.querySelectorAll && root.querySelectorAll(SVG + ", " + FILL).forEach((el) => io.observe(el));
+  new MutationObserver((ms) => ms.forEach((m) => m.addedNodes.forEach((n) => n.nodeType === 1 && ((n.matches(SVG + ", " + FILL) ? io.observe(n) : 0), scan(n))))).observe(document.body, { childList: true, subtree: true });
+  scan(document);
+})();
+</script>
 </body>
 </html>
