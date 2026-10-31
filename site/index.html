@@ -4178,5 +4178,35 @@ document.querySelectorAll("#fhseg button").forEach((b) => b.onclick = () => {
 xtInit();
 
 </script>
+<script>
+// Count-up on headline figures: once, when first scrolled into view. Exact original text is restored at the end.
+(() => {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) return;
+  const SEL = ".kpi .n, .ftile .n, .m30v, .fcard .n, .ovc .big, .ovc .n", NUM = /\d[\d,]*(?:\.\d+)?/g, seen = new Set();
+  const skip = (t) => /\d\s*[–\-\/:]\s*\d|\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\b|\b(19|20)\d\d\b/i.test(t) || !/\d/.test(t);
+  const keyOf = (el) => (el.parentElement && (el.parentElement.querySelector(".l") || {}).textContent || "") + "|" + el.textContent;
+  const io = new IntersectionObserver((list) => list.forEach((en) => {
+    if (!en.isIntersecting) return;
+    const el = en.target; io.unobserve(el);
+    const k = keyOf(el), text = el.textContent;
+    if (seen.has(k) || skip(text)) { seen.add(k); return; }
+    seen.add(k);
+    const nodes = [], w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    for (let n; (n = w.nextNode());) if (NUM.test(n.nodeValue)) { NUM.lastIndex = 0; nodes.push([n, n.nodeValue]); } else NUM.lastIndex = 0;
+    const t0 = performance.now(), D = 900;
+    const frame = (now) => {
+      const p = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - p, 3);
+      nodes.forEach(([n, orig]) => { n.nodeValue = orig.replace(NUM, (m) => {
+        const dec = (m.split(".")[1] || "").length, v = parseFloat(m.replace(/,/g, "")) * e;
+        const s = v.toFixed(dec); return m.includes(",") ? Number(s).toLocaleString("en-IN", { minimumFractionDigits: dec, maximumFractionDigits: dec }) : s; }); });
+      if (p < 1 && el.isConnected) requestAnimationFrame(frame); else nodes.forEach(([n, orig]) => { n.nodeValue = orig; });
+    };
+    requestAnimationFrame(frame);
+  }), { threshold: .4 });
+  const scan = (root) => root.querySelectorAll && root.querySelectorAll(SEL).forEach((el) => io.observe(el));
+  new MutationObserver((ms) => ms.forEach((m) => m.addedNodes.forEach((n) => n.nodeType === 1 && (n.matches(SEL) ? io.observe(n) : scan(n))))).observe(document.body, { childList: true, subtree: true });
+  scan(document);
+})();
+</script>
 </body>
 </html>
