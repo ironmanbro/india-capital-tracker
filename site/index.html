@@ -838,12 +838,12 @@ body.anon .gnav button:not([data-g="home"])::after{content:"🔒";position:absol
     <p class="takeaway" id="ov-take"></p>
     <div class="ftiles" id="ov-tiles"></div>
     <div class="ftiles" id="ov-cross"></div>
-    <p class="dsrc" data-src="review,nsdl_flows,nsdl_fpi_list" data-what="Sources: news checked by the review step, NSE, NSDL and DPIIT. Each section shows its own source and update time" style="margin:-4px 0 14px"></p>
+    <p class="dsrc" data-src="review,nsdl_flows,nsdl_fpi_list" data-what="Sources: news reports, NSE, NSDL and DPIIT. Each section shows its own source and update time" style="margin:-4px 0 14px"></p>
     <p class="dsrc" id="fx-home" style="margin:-6px 0 14px" hidden></p>
     <div class="ovgrid">
       <div class="ovc"><div class="ovh"><div><h3>Latest FPI flow</h3><div class="sub" id="ov-flow-sub">NSDL</div></div><button class="link" data-go="flows">Flows ↗</button></div><div class="flowwrap"><div id="ov-flow"></div><div class="fchart" id="ov-fpibars"></div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Biggest deals this week</h3><div class="sub">Largest agreed or completed deals, last 7 days</div></div><button class="link" data-go="feed">Feed ↗</button></div><div id="ov-deals"></div></div>
-      <div class="ovc"><div class="ovh"><div><h3>Latest stories</h3><div class="sub">Checked and added every 3 hours</div></div><button class="link" data-go="feed">All stories</button></div><div id="ov-stories"></div></div>
+      <div class="ovc"><div class="ovh"><div><h3>Latest stories</h3><div class="sub">Updated every 3 hours</div></div><button class="link" data-go="feed">All stories</button></div><div id="ov-stories"></div></div>
       <div class="ovc"><div class="ovh"><div><h3>New FPI registrations</h3><div class="sub">Latest additions to the NSDL register</div></div><button class="link" data-go="directory">FPIs ↗</button></div><div id="ov-regs"><div class="sub">Loading…</div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Funding and deal news</h3><div class="sub">Startup media and global coverage</div></div><button class="link" data-go="markets">Markets ↗</button></div><div id="ov-news"><div class="sub">Loading…</div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>SEBI filings</h3><div class="sub">Latest takeover and public issue filings</div></div><button class="link" data-go="markets">Markets ↗</button></div><div id="ov-sebi"><div class="sub">Loading…</div></div></div>
@@ -854,7 +854,7 @@ body.anon .gnav button:not([data-g="home"])::after{content:"🔒";position:absol
   </section>
 
   <section id="tab-feed" hidden>
-    <p class="dsrc" data-src="review,news,nse_bulk" data-what="News via Google News, checked by the review step; NSE bulk/block deals of ₹25 cr or more" style="margin:0 0 10px"></p>
+    <p class="dsrc" data-src="review,news,nse_bulk" data-what="News via Google News; NSE bulk/block deals of ₹25 cr or more" style="margin:0 0 10px"></p>
     <div class="fbar"><div class="seg" role="group" aria-label="Feed layout" id="fview"><button data-v="board" aria-pressed="true">Board</button><button data-v="list" aria-pressed="false">List</button></div></div>
     <div id="fnote-slot"></div>
     <div class="board" id="board"></div>
@@ -1063,7 +1063,6 @@ body.anon .gnav button:not([data-g="home"])::after{content:"🔒";position:absol
   <footer class="byline">
     <div><strong>Built by Kishan Singhania</strong> ·
       <a href="https://www.linkedin.com/in/kishansinghania/" target="_blank" rel="noopener">LinkedIn</a> ·
-      <a href="mailto:Kishansinghania18@gmail.com">Kishansinghania18@gmail.com</a> ·
       <button class="link" type="button" data-gloss-open>Jargon explained</button></div>
     <div class="sub" id="fx-foot"></div>
     <div class="sub">A personal project tracking foreign capital flowing into and out of India. Sources: Google News and NSE; stories may contain errors, so check the original article. Not affiliated with any employer. Not investment advice.</div>
@@ -2608,7 +2607,12 @@ document.querySelectorAll("#nhops button").forEach((b) => b.onclick = () => {
 });
 
 function setTab(t) {
-  if (!authAllowed(t)) { auth.next = t; t = "overview"; if (!auth.session) setTimeout(() => openAuth("signin"), 0); }
+  if (!authAllowed(t)) {
+    auth.next = t;
+    const lbl = (document.querySelector(`nav.tabs button[data-tab="${t}"]`)?.innerText || "").trim();
+    if (!auth.session) auth.notice = lbl ? `Sign in to open ${lbl}.` : "Sign in to open this section.";
+    t = "overview"; if (!auth.session) setTimeout(() => openAuth("signin"), 0);
+  }
   const was = state.tab;
   state.tab = t;
   document.querySelectorAll("nav.tabs button").forEach((b) => b.setAttribute("aria-selected", b.dataset.tab === t));
@@ -3251,14 +3255,18 @@ $("ireset").addEventListener("click", () => {
 });
 
 // Counts this page load once and shows the site's last-24-hour traffic.
+let visitText = "";
+// Visitor counts are the owner's own analytics: shown only to the signed-in owner.
+function showVisits() { $("visits").textContent = auth.admin ? visitText : ""; }
 async function countVisit() {
   let id = load("ict-visitor");
   if (!id) { id = Math.random().toString(36).slice(2) + Date.now().toString(36); store("ict-visitor", id); }
   try {
     const v = await api("rpc/record_visit", { method: "POST", body: JSON.stringify({ p_visitor: id }) });
     const n = (x) => Number(x).toLocaleString("en-IN");
-    $("visits").textContent = `Last 24 hours: ${n(v.visitors)} visitor${v.visitors === 1 ? "" : "s"} · ${n(v.page_views)} visit${v.page_views === 1 ? "" : "s"}`
+    visitText = `Last 24 hours: ${n(v.visitors)} visitor${v.visitors === 1 ? "" : "s"} · ${n(v.page_views)} visit${v.page_views === 1 ? "" : "s"}`
       + (v.total_visitors ? ` · All time: ${n(v.total_visitors)} visitor${v.total_visitors === 1 ? "" : "s"} · ${n(v.total_views)} visit${v.total_views === 1 ? "" : "s"} since ${dmy(v.since)}` : "");
+    showVisits();
   } catch {}
 }
 
@@ -3563,6 +3571,7 @@ function sourcesUi() {
   if (h && h.hidden && state.tab === "health") setTab("overview");
 }
 function adminUi() {
+  showVisits();
   const b = document.querySelector('nav.tabs button[data-tab="users"]');
   if (b) b.hidden = !auth.admin;
   sourcesUi();
