@@ -692,11 +692,6 @@ html.lenis,html.lenis body{height:auto}
 .a-x{position:fixed;top:12px;right:14px;z-index:2;min-height:44px;padding:0 14px;border-radius:22px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
 .a-mlogo{display:none;margin-bottom:24px}
 @media(max-width:860px){.auth{grid-template-columns:1fr}.a-brand{display:none}.a-form{align-items:flex-start;padding:64px 22px 40px}.a-mlogo{display:flex}}
-/* Lock marks on the tabs that need a sign-in */
-body.anon nav.tabs button:not([data-tab="overview"]):not([data-tab="health"]){position:relative}
-body.anon nav.tabs button:not([data-tab="overview"]):not([data-tab="health"])::after{content:"🔒";position:absolute;top:1px;right:5px;font-size:9px;opacity:.8}
-body.anon .gnav button:not([data-g="home"]){position:relative}
-body.anon .gnav button:not([data-g="home"])::after{content:"🔒";position:absolute;top:2px;right:14px;font-size:10px}
 .a-brand{overflow:auto;gap:22px}
 #a-pitch{display:flex;flex-direction:column;gap:20px}
 .a-kick{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:8px}
@@ -735,6 +730,9 @@ body.anon .gnav button:not([data-g="home"])::after{content:"🔒";position:absol
 .us-user{display:block;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);color:var(--ink);font:inherit;padding:10px 4px;cursor:pointer;min-height:44px}.us-user:hover{background:var(--chip)}.us-prow:hover{background:var(--chip)}.us-prow td{white-space:nowrap;vertical-align:top}.us-user small{display:block;color:var(--muted)}
 /* Board columns: solid panel, no blur (avoids a vertical seam on tall columns). */
 :root:root:root .bcol{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:var(--panel)!important}
+/* Header text: readable size and contrast; one clear sign-in button */
+:root:root:root .maker,:root:root:root .hstatus .sub{font-size:.8125rem!important;opacity:.9!important;color:var(--muted)}
+.reset.signin{margin-top:6px;padding:7px 14px}
 </style>
 <script src="vendor/lenis.min.js" defer></script>
 </head>
@@ -769,7 +767,7 @@ body.anon .gnav button:not([data-g="home"])::after{content:"🔒";position:absol
     </div>
     <div>
       <div class="htools">
-        <input type="search" id="gq" title="Press / to search" placeholder="Search investors, companies, FPIs, GIFT funds…" aria-label="Search everything" autocomplete="off" aria-controls="gdrop">
+        <input type="search" id="gq" title="Press / to search" placeholder="Search firms, FPIs, deals…" aria-label="Search everything" autocomplete="off" aria-controls="gdrop">
         <div id="gdrop" role="listbox" hidden></div>
         <button class="ib" id="theme" type="button" aria-label="Switch light or dark" title="Light or dark">&#9788;</button>
       </div>
@@ -841,9 +839,9 @@ body.anon .gnav button:not([data-g="home"])::after{content:"🔒";position:absol
     <p class="dsrc" data-src="review,nsdl_flows,nsdl_fpi_list" data-what="Sources: news reports, NSE, NSDL and DPIIT. Each section shows its own source and update time" style="margin:-4px 0 14px"></p>
     <p class="dsrc" id="fx-home" style="margin:-6px 0 14px" hidden></p>
     <div class="ovgrid">
-      <div class="ovc"><div class="ovh"><div><h3>Latest FPI flow</h3><div class="sub" id="ov-flow-sub">NSDL</div></div><button class="link" data-go="flows">Flows ↗</button></div><div class="flowwrap"><div id="ov-flow"></div><div class="fchart" id="ov-fpibars"></div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Biggest deals this week</h3><div class="sub">Largest agreed or completed deals, last 7 days</div></div><button class="link" data-go="feed">Feed ↗</button></div><div id="ov-deals"></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Latest stories</h3><div class="sub">Updated every 3 hours</div></div><button class="link" data-go="feed">All stories</button></div><div id="ov-stories"></div></div>
+      <div class="ovc"><div class="ovh"><div><h3>Latest FPI flow</h3><div class="sub" id="ov-flow-sub">NSDL</div></div><button class="link" data-go="flows">Flows ↗</button></div><div class="flowwrap"><div id="ov-flow"></div><div class="fchart" id="ov-fpibars"></div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>New FPI registrations</h3><div class="sub">Latest additions to the NSDL register</div></div><button class="link" data-go="directory">FPIs ↗</button></div><div id="ov-regs"><div class="sub">Loading…</div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Funding and deal news</h3><div class="sub">Startup media and global coverage</div></div><button class="link" data-go="markets">Markets ↗</button></div><div id="ov-news"><div class="sub">Loading…</div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>SEBI filings</h3><div class="sub">Latest takeover and public issue filings</div></div><button class="link" data-go="markets">Markets ↗</button></div><div id="ov-sebi"><div class="sub">Loading…</div></div></div>
@@ -2685,7 +2683,7 @@ const searchBox = () => isDir() ? (dir.view === "fpi" ? "dq" : "iq2") : state.ta
 const SEARCH_HINT = { investors: "Search investors, funds or companies…", directory: "Search FPI names or registration numbers…", directory_ifsca: "Search GIFT IFSC entities or funds…" };
 function syncSearch() {
   const k = state.tab === "gift" ? "directory_ifsca" : state.tab;
-  $("gq").placeholder = innerWidth < 700 ? "Search firms, FPIs, deals…" : SEARCH_HINT[k] || "Search investors, companies or headlines…";
+  $("gq").placeholder = SEARCH_HINT[k] || "Search firms, FPIs, deals…";
   $("gq").value = $(searchBox()).value;
 }
 $("gq").addEventListener("input", () => {
@@ -2848,6 +2846,7 @@ function renderOverview() {
         <div class="m30bar"><i style="width:${x.cr / top * 100}%;background:${color(x.g.types[0])}"></i></div><div class="m30v">${x.cr ? bothH(x.cr) : "–"}</div></div>`).join("")}
       <p class="note" style="margin:8px 0 0">Sum of amounts for agreed or completed capital deals only: plans, pledges, talks and business-presence news are left out. Many deals disclose no amount.</p></div>
     <div>${busiest.map((r, i) => `<div class="ovrow"><span class="rank">${i + 1}</span><div style="min-width:0"><div class="t">${esc(r.name)}</div><div class="meta" style="margin-top:4px">${[...r.types].map(tg).join("")}</div></div><span class="side">${r.n} stor${r.n === 1 ? "y" : "ies"}${r.cr ? `<br>${fmtCr(r.cr)}` : ""}</span></div>`).join("") || `<div class="sub">No named investors in the last 30 days.</div>`}</div></div>`;
+  document.querySelectorAll("#ov-tiles .ftile, #ov-cross .ftile").forEach((t) => { t.hidden = t.querySelector(".n")?.textContent.trim() === "–"; });
   newSinceLastVisit();
   renderTakeaways(); renderFollowing(); renderBreakdown();
 }
@@ -3339,7 +3338,7 @@ function authUi() {
   document.body.classList.toggle("anon", !auth.session);
   const a = $("acct");
   if (a) {
-    a.innerHTML = auth.session ? `Signed in${who ? ` as <b>${esc(who)}</b>` : ""} · <button class="link" id="acct-act" type="button">My activity</button> · <button class="link" id="acct-priv" type="button">Privacy</button> · <button class="link" id="acct-out" type="button">Sign out</button>` : `<button class="link" id="acct-in" type="button">Sign in to open every tab</button>`;
+    a.innerHTML = auth.session ? `Signed in${who ? ` as <b>${esc(who)}</b>` : ""} · <button class="link" id="acct-act" type="button">My activity</button> · <button class="link" id="acct-priv" type="button">Privacy</button> · <button class="link" id="acct-out" type="button">Sign out</button>` : `<button class="reset signin" id="acct-in" type="button">Sign in to open every tab</button>`;
     const out = $("acct-out"), inn = $("acct-in"), act = $("acct-act"), pv = $("acct-priv");
     if (act) act.onclick = () => { auth.prevScreen = null; openAuth("activity"); };
     if (pv) pv.onclick = () => { auth.prevScreen = null; openAuth("privacy"); };
@@ -3410,7 +3409,7 @@ const A_PERKS = [
   ["investors", "Investor profiles", "One page per firm: its deals, holdings and sources."],
   ["network", "Network map", "See which firms invest together and how any two are linked."],
   ["flows", "FPI and FDI flows", "Daily, monthly and yearly since 1992-93, in US$ with ₹ in brackets."],
-  ["markets", "Exchange data", "FII/FPI activity, bulk and block deals, debt holdings and sector assets."],
+  ["markets", "Markets", "FII/FPI activity, bulk and block deals, debt holdings and sector assets."],
   ["directory", "FPI register", "Every SEBI-registered FPI, with assets held by country and sector."],
   ["gift", "GIFT City directory", "Every entity IFSCA regulates there, with contact details."],
 ];
@@ -4294,9 +4293,9 @@ async function openEntity(kind, ref) {
 var gnav = { open: null };
 const GNAV = [
   { id: "home", label: "Home", icon: "overview", views: [["overview", "Home", "Latest numbers and stories"]] },
-  { id: "deals", label: "Deals", icon: "feed", views: [["feed", "Stories", "Investments, exits, fund launches and moves"], ["investors", "Investors", "Foreign investors, one profile each"], ["network", "Network", "Which firms appear together on deals"]] },
+  { id: "deals", label: "Feed", icon: "feed", views: [["feed", "Feed", "Investments, exits, fund launches and moves"], ["investors", "Investors", "Foreign investors, one profile each"], ["network", "Network", "Which firms appear together on deals"]] },
   { id: "markets", label: "Markets", icon: "flows", views: [["flows", "Flows", "FPI and FDI money flows"], ["markets", "Exchange data", "FII/FPI activity, deals, debt and sectors"]] },
-  { id: "registers", label: "Registers", icon: "directory", views: [["directory", "FPIs", "Every registered FPI, assets held by country and sector"], ["gift", "GIFT City", "Every entity IFSCA regulates at GIFT IFSC"]] },
+  { id: "registers", label: "FPIs", icon: "directory", views: [["directory", "FPIs", "Every registered FPI, assets held by country and sector"], ["gift", "GIFT City", "Every entity IFSCA regulates at GIFT IFSC"]] },
 ];
 function gnavViews(g) {
   const v = g.views.slice();
