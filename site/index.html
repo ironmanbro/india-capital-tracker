@@ -2749,7 +2749,7 @@ async function loadOverviewCross() {
   ovX = true;
   try {
     const [deals, ctry, counts] = await Promise.all([
-      api("feed_records?select=key,data&dataset=in.(nse_deals,bse_deals)&limit=2000"),
+      apiAll("feed_records?select=key,data&dataset=in.(nse_deals,bse_deals)"),
       api("feed_records?select=data&dataset=eq.nsdl&key=eq.fpi_auc_country_top10&limit=1"),
       api("fpi_country_counts?select=country,n"),
     ]);
@@ -2909,6 +2909,16 @@ const nfmt = (n) => Number(n || 0).toLocaleString("en-IN");
 // PostgREST filter text: drop characters that have meaning in its syntax.
 const term = (s) => s.trim().replace(/[,()"*\\:]/g, " ").replace(/\s+/g, " ");
 
+// All rows of a large table, a page at a time (the API caps one response); stable order so pages do not overlap.
+async function apiAll(path) {
+  const out = [];
+  for (let o = 0; o < 100000; o += 1000) {
+    const rows = await api(`${path}${path.includes("?") ? "&" : "?"}order=key&limit=1000&offset=${o}`);
+    out.push(...rows);
+    if (rows.length < 1000) break;
+  }
+  return out;
+}
 async function apiPage(path) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { headers: { apikey: KEY, Prefer: "count=exact" } });
   if (!res.ok) throw new Error((await res.json().catch(() => ({}))).message || res.statusText);
@@ -3644,11 +3654,12 @@ async function openMarkets() {
   const body = $("mk-body");
   try {
     const [rows, cci, rbi] = await Promise.all([
-      api("feed_records?select=dataset,key,as_of,data&dataset=in.(fii_dii,nse_deals,bse_deals,fpi_debt_summary,fpi_far_gsec,fpi_general_gsec,fpi_sector)&limit=20000&order=dataset"),
+      api("feed_records?select=dataset,key,as_of,data&dataset=in.(fii_dii,fpi_debt_summary,fpi_far_gsec,fpi_general_gsec,fpi_sector)&limit=20000&order=dataset"),
       api("feed_records?select=key,as_of,data&dataset=eq.cci&order=as_of.desc.nullslast&limit=25").catch(() => []),
       api("feed_records?select=key,as_of,data&dataset=eq.rbi_reserves&order=as_of.desc.nullslast&limit=1").catch(() => []),
     ]);
     mk.cci = cci; mk.rbi = rbi;
+    rows.push(...await apiAll("feed_records?select=dataset,key,as_of,data&dataset=in.(nse_deals,bse_deals)").catch(() => []));
     for (const r of rows) (mk.data[r.dataset] ||= []).push(r);
     mk.loaded = true;
     await renderMarkets();
@@ -3667,14 +3678,15 @@ async function renderMarkets() {
     ...(mk.data.nse_deals || []).filter((r) => /^(BULK|BLOCK)_DEALS\|/.test(r.key)).map((r) => ({ ...r.data, exchange: "NSE", kind: r.key.startsWith("BULK") ? "bulk" : "block" })),
     ...(mk.data.bse_deals || []).map((r) => r.data),
   ].filter((r) => mkForeign(r.clientName)).sort((a, b) => dt(b.date) - dt(a.date) || (mkNum(b.qty) * mkNum(b.watp)) - (mkNum(a.qty) * mkNum(a.watp)));
-  deals.splice(0, deals.length, ...mkOnce(deals, mkTrade).slice(0, 100));
+  const dealTotal = (deals.splice(0, deals.length, ...mkOnce(deals, mkTrade)), deals.length);
+  deals.splice(mk.dealsN || 100);
   const reg = await xRegistry(deals.map((r) => r.clientName));
-  out.push(mkSec("Bulk and block deals", "Latest 100 on NSE and BSE with a foreign-looking client. Foreign is judged from the client name, so some foreign investors may be missing. Country and category come from the NSDL FPI register, and GIFT City shows clients IFSCA lists; both match on the exact name, so some show a dash. Names with a profile are links.",
+  out.push(mkSec("Bulk and block deals", `Latest ${deals.length} of ${nfmt(dealTotal)} on NSE and BSE since April 2025 with a foreign-looking client. Foreign is judged from the client name, so some foreign investors may be missing. Country and category come from the NSDL FPI register, and GIFT City shows clients IFSCA lists; both match on the exact name, so some show a dash. Names with a profile are links.`,
     mkTable(["Date", "Exchange", "Foreign investor", "Company invested in", "Country", "FPI category", "GIFT City", "Side", "Quantity", "Avg price", "Value"], deals.map((r) => {
       const f = reg.get(r.clientName);
       return [r.date, `${r.exchange || "NSE"} ${r.kind || ""}`.trim(), xFirm(r.clientName), r.name || r.symbol || "–", f.country ? SHORT_COUNTRY[f.country] || titleCase(f.country) : "–", f.cat ? `Cat ${f.cat}` : "–", f.gift ? "Yes" : "–",
         r.buySell || "–", mkFmt(r.qty), mkFmt(r.watp, 2), mkUsd(mkNum(r.qty) * mkNum(r.watp) / 1e7)];
-    }), 8)));
+    }), 8) + (deals.length < dealTotal ? `<p><button class="reset" id="mk-more" type="button">Show 200 more</button></p>` : "")));
   const who = (state.events || []).filter((e) => e.event_type === "entry" && e.investor && e.target && mkForeign(e.investor));
   who.splice(0, who.length, ...mkOnce(who, (e) => [e.investor, e.target, (e.published_at || e.fetched_at || "").slice(0, 10), e.amount_text].map((x) => String(x ?? "").toUpperCase()).join("|")).slice(0, 40));
   out.push(mkSec("Who invested in whom", "Latest investments from the news and exchange deals, newest first. Foreign investors only, judged from the name.",
@@ -3706,6 +3718,7 @@ async function renderMarkets() {
   out.push(mkSec("FPI equity by sector", "FPI equity assets under custody by sector, in US$ with ₹ crore in brackets (NSDL).", mkTable(["Sector", "Assets (US$)"], sec.map((r) => [r[0], mkUsd(r[1])]))));
   try { out.push(...xtMarkets(await loadExtra())); } catch {}
   $("mk-body").innerHTML = out.join("");
+  const more = $("mk-more"); if (more) more.onclick = () => { mk.dealsN = (mk.dealsN || 100) + 200; renderMarkets(); };
 }
 
 // ---------- Extra sources (SEBI, news, derivatives, pledges, DPIIT): one load, shown on Home, Markets, Flows, profiles and Sources ----------
@@ -4010,7 +4023,7 @@ document.addEventListener("click", (ev) => { if (!ev.target.closest(".htools")) 
 const xCache = {};
 async function dealsAll() {
   if (!xCache.deals) {
-    try { xCache.deals = (await api("feed_records?select=key,data&dataset=in.(nse_deals,bse_deals)&limit=2000")).filter((r) => /^((BULK|BLOCK)_DEALS|BSE_(BULK|BLOCK))\|/.test(r.key)).map((r) => r.data); xCache.deals = mkOnce(xCache.deals, mkTrade); }
+    try { xCache.deals = (await apiAll("feed_records?select=key,data&dataset=in.(nse_deals,bse_deals)")).filter((r) => /^((BULK|BLOCK)_DEALS|BSE_(BULK|BLOCK))\|/.test(r.key)).map((r) => r.data); xCache.deals = mkOnce(xCache.deals, mkTrade); }
     catch { xCache.deals = []; }
   }
   return xCache.deals;
