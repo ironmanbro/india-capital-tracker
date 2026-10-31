@@ -119,6 +119,8 @@ th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);font-
 th{color:var(--muted);font-weight:600;font-size:12px}
 td.num{font-variant-numeric:tabular-nums;text-align:right}
 .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.skip{position:absolute;left:8px;top:-60px;z-index:1000;padding:10px 16px;border-radius:8px;background:var(--accent);color:var(--accent-ink);font-weight:600;text-decoration:none}.skip:focus{top:8px}
+#main:focus{outline:none}
 :where(a,button,input,select,textarea,summary,[tabindex]):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media (max-width:700px){#gq{min-height:44px}.ib,#acct-in,#toast-b{min-height:44px;min-width:44px}.ovh button.link,.backbtn,[data-gloss-open],.a-lnk{min-height:44px;min-width:44px;padding:0 10px}.a-eye{min-height:44px}}
 @media (min-width:2000px){.wrap{max-width:1600px!important;margin-left:calc(92px + (100vw - 92px - 1600px) / 2)!important}}
@@ -555,7 +557,7 @@ abbr.term{text-decoration:underline dotted;text-underline-offset:3px;cursor:help
 @media (prefers-reduced-motion:reduce){:root:not([data-theme="light"]) .irow,:root:not([data-theme="light"]) .reset{transition:none}
 :root:not([data-theme="light"]) .irow:hover{transform:none}}
 /* Daylight look (light theme only): white cards with soft shadows, frosted glass on the floating layers. */
-:root[data-theme="light"]{--bg:#f5f5f7;--panel:#fff;--ink:#1d1d1f;--muted:#6e6e73;--line:rgba(0,0,0,.08);--chip:rgba(0,0,0,.05);
+:root[data-theme="light"]{--bg:#f5f5f7;--panel:#fff;--ink:#1d1d1f;--muted:#5c5c61;--line:rgba(0,0,0,.08);--chip:rgba(0,0,0,.05);
   --accent:#0071e3;--accent-ink:#fff;--entry:#0071e3;--in:#0071e3;--out:#e8590c;--good:#1d9a4b;--bad:#d70015;
   --glass:linear-gradient(180deg,#fff,#fff);--shadow:0 2px 6px rgba(0,0,0,.04),0 16px 40px rgba(0,0,0,.07);
   --page:linear-gradient(180deg,#fbfbfd 0,#f5f5f7 420px),#f5f5f7;color-scheme:light}
@@ -740,6 +742,7 @@ html.lenis,html.lenis body{height:auto}
 <script src="vendor/lenis.min.js" defer></script>
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
 <div class="welcome" id="welcome" data-lenis-prevent role="dialog" aria-modal="true" aria-labelledby="welcome-title" hidden>
   <div class="box">
     <div class="eyebrow">Welcome</div>
@@ -760,7 +763,7 @@ html.lenis,html.lenis body{height:auto}
     <button class="enter" id="welcome-enter">I understand, enter the tracker</button>
   </div>
 </div>
-<div class="wrap">
+<div class="wrap" role="main" id="main" tabindex="-1">
   <header>
     <div>
       <div class="eyebrow">Indian Capital Tracker</div>
@@ -1053,7 +1056,7 @@ html.lenis,html.lenis body{height:auto}
     <div class="fcard" style="margin-top:16px">
       <div class="fhead"><div><h3>Add a shareholding pattern</h3>
         <div class="sub">Download shareholding-pattern XBRL files from NSE or BSE in your browser, then choose them here (one or many). It is read on this device; nothing is saved until you press Save.</div></div></div>
-      <input type="file" id="shp-file" accept=".xml,.xbrl,text/xml" multiple style="margin-top:10px"> <span class="sub">You can choose many files at once.</span>
+      <input type="file" id="shp-file" aria-label="Choose shareholding-pattern XBRL files" accept=".xml,.xbrl,text/xml" multiple style="margin-top:10px"> <span class="sub">You can choose many files at once.</span>
       <div id="shp-out"></div>
     </div>
     <div id="xt-sources" style="margin-top:16px"></div>
