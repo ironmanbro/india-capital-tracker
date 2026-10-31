@@ -103,6 +103,13 @@ def collect(directory):
         out["nse_deals"] = {}
         for r, k, as_of in deals(json.load(open(p))):
             out["nse_deals"][k] = {"dataset": "nse_deals", "key": k, "as_of": as_of, "data": r, "loaded_at": now}
+    # FII/DII history (fii_history.py), same shape and keys as the daily file.
+    p = os.path.join(directory, "history", "fii_dii_history.json")
+    if os.path.exists(p):
+        out.setdefault("fii_dii", {})
+        for r in json.load(open(p)):
+            k = f"{r['date']}|{r['category']}"
+            out["fii_dii"][k] = {"dataset": "fii_dii", "key": k, "as_of": r["date"], "data": r, "loaded_at": now}
     # Backfill from April 2025 (history.py): the same shape as the daily file, so the same keys collapse any overlap.
     p = os.path.join(directory, "history", "bulk_block_deals_history.json")
     if os.path.exists(p):
