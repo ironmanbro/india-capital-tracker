@@ -103,6 +103,12 @@ def collect(directory):
         out["nse_deals"] = {}
         for r, k, as_of in deals(json.load(open(p))):
             out["nse_deals"][k] = {"dataset": "nse_deals", "key": k, "as_of": as_of, "data": r, "loaded_at": now}
+    # Backfill from April 2025 (history.py): the same shape as the daily file, so the same keys collapse any overlap.
+    p = os.path.join(directory, "history", "bulk_block_deals_history.json")
+    if os.path.exists(p):
+        out.setdefault("nse_deals", {})
+        for r, k, as_of in deals(json.load(open(p))):
+            out["nse_deals"][k] = {"dataset": "nse_deals", "key": k, "as_of": iso_date(as_of) or as_of, "data": r, "loaded_at": now}
     # BSE bulk and block deals (bse_deals.py, or bse_offline.py from a downloaded file), in the NSE field names.
     bse = {}
     for kind in ("bulk", "block"):
@@ -232,8 +238,14 @@ def main(argv):
         if "--dry-run" in argv or not (url and key):
             continue
         post(url, key, "feed_records", "dataset,key", recs)
-    f = os.path.join(directory, "bulk_block_deals.json")
-    evs = deal_events(json.load(open(f))) if os.path.exists(f) else []
+    evs = []
+    for f in (os.path.join(directory, "bulk_block_deals.json"), os.path.join(directory, "history", "bulk_block_deals_history.json")):
+        evs += deal_events(json.load(open(f))) if os.path.exists(f) else []
+    mh = os.path.join(directory, "history", "fpi_monthly_history.json")
+    if os.path.exists(mh) and "--dry-run" not in argv and url and key:
+        monthly = [{**r, "fetched_at": datetime.now(timezone.utc).isoformat()} for r in json.load(open(mh))]
+        print(f"fpi_monthly backfill: {len(monthly)} rows")
+        post(url, key, "fpi_monthly", "month,segment", monthly)
     evs += bse_events(data.get("bse_deals", []))
     if evs:
         print(f"events (foreign bulk/block, NSE and BSE): {len(evs)}")
