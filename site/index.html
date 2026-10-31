@@ -733,6 +733,8 @@ body.anon .gnav button:not([data-g="home"])::after{content:"🔒";position:absol
 .us-bar{height:6px;border-radius:3px;background:var(--chip);overflow:hidden;margin-top:3px}.us-bar i{display:block;height:100%;background:var(--accent)}
 .us-row{padding:7px 0;border-top:1px solid var(--line);font-size:13px}.us-row .n{float:right;color:var(--muted)}
 .us-user{display:block;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);color:var(--ink);font:inherit;padding:10px 4px;cursor:pointer;min-height:44px}.us-user:hover{background:var(--chip)}.us-user small{display:block;color:var(--muted)}
+/* Board columns: solid panel, no blur (avoids a vertical seam on tall columns). */
+:root:root:root .bcol{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:var(--panel)!important}
 </style>
 <script src="vendor/lenis.min.js" defer></script>
 </head>
