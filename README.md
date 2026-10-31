@@ -10,7 +10,7 @@ Built by [Kishan Singhania](https://www.linkedin.com/in/kishansinghania/).
 | Folder | What it is |
 |---|---|
 | `site/` | The public website. Cloudflare publishes this folder on every push to `main` (see `wrangler.jsonc`). |
-| `supabase/functions/ingest/` | The collector that runs every 30 minutes: Google News searches and NSE bulk/block deal files. |
+| `supabase/functions/ingest/` | The collector that runs every hour: Google News searches and NSE bulk/block deal files. |
 | `claude-dashboard/` | The private dashboard page. |
 
 ## Deploying
