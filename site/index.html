@@ -3914,7 +3914,6 @@ function mbBuild(key, name, kind, enr, note, fa) {
     <div class="wide mbact"><button class="reset" type="submit">Save notes</button><span class="sub" id="mb-msg">Private: only you can see these.</span></div></form>` : `<p class="note">Sign in to keep private notes and contacts for this investor.</p>`;
   const html = `<div class="fcard mb"><div class="fhead"><div><h3>Meeting brief</h3><div class="sub">Everything on one screen before you meet ${esc(name)}</div></div>
       <div style="display:flex;gap:8px"><button class="reset" id="mb-copy" type="button">Copy brief</button></div></div>
-    <div class="mbcov"><div class="mbbar"><i style="width:${pct}%"></i></div><span class="sub">Profile ${pct}% complete${missing.length ? ` · still missing: ${missing.join(", ")}` : ""}</span></div>
     ${eFacts(facts)}
     ${ownerForm}
     <div class="mbcols"><div><h4>Talking points</h4><ul>${li(pts.map(esc))}</ul></div>
