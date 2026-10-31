@@ -692,11 +692,6 @@ html.lenis,html.lenis body{height:auto}
 .a-x{position:fixed;top:12px;right:14px;z-index:2;min-height:44px;padding:0 14px;border-radius:22px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
 .a-mlogo{display:none;margin-bottom:24px}
 @media(max-width:860px){.auth{grid-template-columns:1fr}.a-brand{display:none}.a-form{align-items:flex-start;padding:64px 22px 40px}.a-mlogo{display:flex}}
-/* Lock marks on the tabs that need a sign-in */
-body.anon nav.tabs button:not([data-tab="overview"]):not([data-tab="health"]){position:relative}
-body.anon nav.tabs button:not([data-tab="overview"]):not([data-tab="health"])::after{content:"🔒";position:absolute;top:1px;right:5px;font-size:9px;opacity:.8}
-body.anon .gnav button:not([data-g="home"]){position:relative}
-body.anon .gnav button:not([data-g="home"])::after{content:"🔒";position:absolute;top:2px;right:14px;font-size:10px}
 .a-brand{overflow:auto;gap:22px}
 #a-pitch{display:flex;flex-direction:column;gap:20px}
 .a-kick{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:8px}
@@ -732,7 +727,12 @@ body.anon .gnav button:not([data-g="home"])::after{content:"🔒";position:absol
 .us-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-top:12px}
 .us-bar{height:6px;border-radius:3px;background:var(--chip);overflow:hidden;margin-top:3px}.us-bar i{display:block;height:100%;background:var(--accent)}
 .us-row{padding:7px 0;border-top:1px solid var(--line);font-size:13px}.us-row .n{float:right;color:var(--muted)}
-.us-user{display:block;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);color:var(--ink);font:inherit;padding:10px 4px;cursor:pointer;min-height:44px}.us-user:hover{background:var(--chip)}.us-user small{display:block;color:var(--muted)}
+.us-user{display:block;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);color:var(--ink);font:inherit;padding:10px 4px;cursor:pointer;min-height:44px}.us-user:hover{background:var(--chip)}.us-prow:hover{background:var(--chip)}.us-prow td{white-space:nowrap;vertical-align:top}.us-user small{display:block;color:var(--muted)}
+/* Board columns: solid panel, no blur (avoids a vertical seam on tall columns). */
+:root:root:root .bcol{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:var(--panel)!important}
+/* Header text: readable size and contrast; one clear sign-in button */
+:root:root:root .maker,:root:root:root .hstatus .sub{font-size:.8125rem!important;opacity:.9!important;color:var(--muted)}
+.reset.signin{margin-top:6px;padding:7px 14px}
 </style>
 <script src="vendor/lenis.min.js" defer></script>
 </head>
@@ -767,7 +767,7 @@ body.anon .gnav button:not([data-g="home"])::after{content:"🔒";position:absol
     </div>
     <div>
       <div class="htools">
-        <input type="search" id="gq" title="Press / to search" placeholder="Search investors, companies, FPIs, GIFT funds…" aria-label="Search everything" autocomplete="off" aria-controls="gdrop">
+        <input type="search" id="gq" title="Press / to search" placeholder="Search firms, FPIs, deals…" aria-label="Search everything" autocomplete="off" aria-controls="gdrop">
         <div id="gdrop" role="listbox" hidden></div>
         <button class="ib" id="theme" type="button" aria-label="Switch light or dark" title="Light or dark">&#9788;</button>
       </div>
@@ -836,12 +836,12 @@ body.anon .gnav button:not([data-g="home"])::after{content:"🔒";position:absol
     <p class="takeaway" id="ov-take"></p>
     <div class="ftiles" id="ov-tiles"></div>
     <div class="ftiles" id="ov-cross"></div>
-    <p class="dsrc" data-src="review,nsdl_flows,nsdl_fpi_list" data-what="Sources: news checked by the review step, NSE, NSDL and DPIIT. Each section shows its own source and update time" style="margin:-4px 0 14px"></p>
+    <p class="dsrc" data-src="review,nsdl_flows,nsdl_fpi_list" data-what="Sources: news reports, NSE, NSDL and DPIIT. Each section shows its own source and update time" style="margin:-4px 0 14px"></p>
     <p class="dsrc" id="fx-home" style="margin:-6px 0 14px" hidden></p>
     <div class="ovgrid">
-      <div class="ovc"><div class="ovh"><div><h3>Latest FPI flow</h3><div class="sub" id="ov-flow-sub">NSDL</div></div><button class="link" data-go="flows">Flows ↗</button></div><div class="flowwrap"><div id="ov-flow"></div><div class="fchart" id="ov-fpibars"></div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Biggest deals this week</h3><div class="sub">Largest agreed or completed deals, last 7 days</div></div><button class="link" data-go="feed">Feed ↗</button></div><div id="ov-deals"></div></div>
-      <div class="ovc"><div class="ovh"><div><h3>Latest stories</h3><div class="sub">Checked and added every 3 hours</div></div><button class="link" data-go="feed">All stories</button></div><div id="ov-stories"></div></div>
+      <div class="ovc"><div class="ovh"><div><h3>Latest stories</h3><div class="sub">Updated every 3 hours</div></div><button class="link" data-go="feed">All stories</button></div><div id="ov-stories"></div></div>
+      <div class="ovc"><div class="ovh"><div><h3>Latest FPI flow</h3><div class="sub" id="ov-flow-sub">NSDL</div></div><button class="link" data-go="flows">Flows ↗</button></div><div class="flowwrap"><div id="ov-flow"></div><div class="fchart" id="ov-fpibars"></div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>New FPI registrations</h3><div class="sub">Latest additions to the NSDL register</div></div><button class="link" data-go="directory">FPIs ↗</button></div><div id="ov-regs"><div class="sub">Loading…</div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Funding and deal news</h3><div class="sub">Startup media and global coverage</div></div><button class="link" data-go="markets">Markets ↗</button></div><div id="ov-news"><div class="sub">Loading…</div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>SEBI filings</h3><div class="sub">Latest takeover and public issue filings</div></div><button class="link" data-go="markets">Markets ↗</button></div><div id="ov-sebi"><div class="sub">Loading…</div></div></div>
@@ -852,7 +852,7 @@ body.anon .gnav button:not([data-g="home"])::after{content:"🔒";position:absol
   </section>
 
   <section id="tab-feed" hidden>
-    <p class="dsrc" data-src="review,news,nse_bulk" data-what="News via Google News, checked by the review step; NSE bulk/block deals of ₹25 cr or more" style="margin:0 0 10px"></p>
+    <p class="dsrc" data-src="review,news,nse_bulk" data-what="News via Google News; NSE bulk/block deals of ₹25 cr or more" style="margin:0 0 10px"></p>
     <div class="fbar"><div class="seg" role="group" aria-label="Feed layout" id="fview"><button data-v="board" aria-pressed="true">Board</button><button data-v="list" aria-pressed="false">List</button></div></div>
     <div id="fnote-slot"></div>
     <div class="board" id="board"></div>
@@ -1044,7 +1044,8 @@ body.anon .gnav button:not([data-g="home"])::after{content:"🔒";position:absol
   </section>
 
   <section id="tab-health" hidden>
-    <div class="scroll"><table id="runs"></table></div>
+    <div id="ops-top"></div>
+    <details style="margin-top:12px"><summary class="sub" style="cursor:pointer">Latest run per source, with plain-language notes</summary><div class="scroll"><table id="runs"></table></div></details>
     <p class="note">"Items read" is how many headlines or rows the source returned; "Added" is how many were new. For the review step, "Items read" is headlines checked and "Added" is stories kept.</p>
     <div class="fcard" style="margin-top:16px">
       <div class="fhead"><div><h3>Add a shareholding pattern</h3>
@@ -1053,6 +1054,7 @@ body.anon .gnav button:not([data-g="home"])::after{content:"🔒";position:absol
       <div id="shp-out"></div>
     </div>
     <div id="xt-sources" style="margin-top:16px"></div>
+    <div id="ops-more" style="margin-top:16px"></div>
     <div id="mb-queue" style="margin-top:16px"></div>
   </section>
   <p class="note">New stories are checked and added every 3 hours.</p>
@@ -1061,7 +1063,6 @@ body.anon .gnav button:not([data-g="home"])::after{content:"🔒";position:absol
   <footer class="byline">
     <div><strong>Built by Kishan Singhania</strong> ·
       <a href="https://www.linkedin.com/in/kishansinghania/" target="_blank" rel="noopener">LinkedIn</a> ·
-      <a href="mailto:Kishansinghania18@gmail.com">Kishansinghania18@gmail.com</a> ·
       <button class="link" type="button" data-gloss-open>Jargon explained</button></div>
     <div class="sub" id="fx-foot"></div>
     <div class="sub">A personal project tracking foreign capital flowing into and out of India. Sources: Google News and NSE; stories may contain errors, so check the original article. Not affiliated with any employer. Not investment advice.</div>
@@ -2606,7 +2607,14 @@ document.querySelectorAll("#nhops button").forEach((b) => b.onclick = () => {
 });
 
 function setTab(t) {
-  if (!authAllowed(t)) { auth.next = t; t = "overview"; if (!auth.session) setTimeout(() => openAuth("signin"), 0); }
+  // Going to Home drops the country, sector and story filters, so the address goes back to plain "/".
+  if (t === "overview" && state.urlReady && authAllowed(t) && (state.country || state.sector || state.story)) { state.country = state.sector = state.story = null; setTimeout(() => { try { render(); } catch {} syncUrl(); }, 0); }
+  if (!authAllowed(t)) {
+    auth.next = t;
+    const lbl = (document.querySelector(`nav.tabs button[data-tab="${t}"]`)?.innerText || "").trim();
+    if (!auth.session) auth.notice = lbl ? `Sign in to open ${lbl}.` : "Sign in to open this section.";
+    t = "overview"; if (!auth.session) setTimeout(() => openAuth("signin"), 0);
+  }
   const was = state.tab;
   state.tab = t;
   document.querySelectorAll("nav.tabs button").forEach((b) => b.setAttribute("aria-selected", b.dataset.tab === t));
@@ -2626,7 +2634,7 @@ function setTab(t) {
   if (t === "flows") { renderFlows(); renderFpiHistory(); }
   if (t === "users") renderUsers();
   if (t === "markets") openMarkets();
-  if (t === "health") mbQueue();
+  if (t === "health") { mbQueue(); renderOps(); }
   if (t === "directory" || t === "gift") { dir.view = t === "gift" ? "ifsca" : "fpi"; openDirectory(); }
   if (t === "investors" && state.events?.length) renderInvestors();
   if (t === "network") renderNetwork();
@@ -2656,7 +2664,10 @@ function setTitle() {
   const t = state.tab;
   if (t === "overview") {
     const h = +new Date().toLocaleString("en-GB", { timeZone: "Asia/Kolkata", hour: "numeric", hour12: false });
-    $("ptitle").textContent = h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+    // Signed-in people are greeted by first name: "Welcome" on their first visit, "Welcome back" after that.
+    const usr = auth.session && auth.session.user, nm = String((usr && usr.user_metadata && usr.user_metadata.name) || "").trim().split(/\s+/)[0];
+    const first = usr && usr.created_at && usr.last_sign_in_at && Math.abs(new Date(usr.last_sign_in_at) - new Date(usr.created_at)) < 12e4;
+    $("ptitle").textContent = nm ? (first ? `Welcome, ${nm}` : `Welcome back, ${nm}`) : h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
     const day = new Date().toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata", weekday: "long", day: "numeric", month: "long" });
     const wk = state.events.filter((e) => Date.now() - new Date(e.published_at || e.fetched_at) < 7 * 864e5).length;
     $("psub").textContent = `${day} · ${wk} stor${wk === 1 ? "y" : "ies"} in the last 7 days · foreign capital into and out of India`;
@@ -2677,7 +2688,7 @@ const searchBox = () => isDir() ? (dir.view === "fpi" ? "dq" : "iq2") : state.ta
 const SEARCH_HINT = { investors: "Search investors, funds or companies…", directory: "Search FPI names or registration numbers…", directory_ifsca: "Search GIFT IFSC entities or funds…" };
 function syncSearch() {
   const k = state.tab === "gift" ? "directory_ifsca" : state.tab;
-  $("gq").placeholder = innerWidth < 700 ? "Search firms, FPIs, deals…" : SEARCH_HINT[k] || "Search investors, companies or headlines…";
+  $("gq").placeholder = SEARCH_HINT[k] || "Search firms, FPIs, deals…";
   $("gq").value = $(searchBox()).value;
 }
 $("gq").addEventListener("input", () => {
@@ -2840,6 +2851,7 @@ function renderOverview() {
         <div class="m30bar"><i style="width:${x.cr / top * 100}%;background:${color(x.g.types[0])}"></i></div><div class="m30v">${x.cr ? bothH(x.cr) : "–"}</div></div>`).join("")}
       <p class="note" style="margin:8px 0 0">Sum of amounts for agreed or completed capital deals only: plans, pledges, talks and business-presence news are left out. Many deals disclose no amount.</p></div>
     <div>${busiest.map((r, i) => `<div class="ovrow"><span class="rank">${i + 1}</span><div style="min-width:0"><div class="t">${esc(r.name)}</div><div class="meta" style="margin-top:4px">${[...r.types].map(tg).join("")}</div></div><span class="side">${r.n} stor${r.n === 1 ? "y" : "ies"}${r.cr ? `<br>${fmtCr(r.cr)}` : ""}</span></div>`).join("") || `<div class="sub">No named investors in the last 30 days.</div>`}</div></div>`;
+  document.querySelectorAll("#ov-tiles .ftile, #ov-cross .ftile").forEach((t) => { t.hidden = t.querySelector(".n")?.textContent.trim() === "–"; });
   newSinceLastVisit();
   renderTakeaways(); renderFollowing(); renderBreakdown();
 }
@@ -3249,14 +3261,18 @@ $("ireset").addEventListener("click", () => {
 });
 
 // Counts this page load once and shows the site's last-24-hour traffic.
+let visitText = "";
+// Visitor counts are the owner's own analytics: shown only to the signed-in owner.
+function showVisits() { $("visits").textContent = auth.admin ? visitText : ""; }
 async function countVisit() {
   let id = load("ict-visitor");
   if (!id) { id = Math.random().toString(36).slice(2) + Date.now().toString(36); store("ict-visitor", id); }
   try {
     const v = await api("rpc/record_visit", { method: "POST", body: JSON.stringify({ p_visitor: id }) });
     const n = (x) => Number(x).toLocaleString("en-IN");
-    $("visits").textContent = `Last 24 hours: ${n(v.visitors)} visitor${v.visitors === 1 ? "" : "s"} · ${n(v.page_views)} visit${v.page_views === 1 ? "" : "s"}`
+    visitText = `Last 24 hours: ${n(v.visitors)} visitor${v.visitors === 1 ? "" : "s"} · ${n(v.page_views)} visit${v.page_views === 1 ? "" : "s"}`
       + (v.total_visitors ? ` · All time: ${n(v.total_visitors)} visitor${v.total_visitors === 1 ? "" : "s"} · ${n(v.total_views)} visit${v.total_views === 1 ? "" : "s"} since ${dmy(v.since)}` : "");
+    showVisits();
   } catch {}
 }
 
@@ -3310,7 +3326,7 @@ function authBoot() {
     authStore({ access_token: h.get("access_token"), refresh_token: h.get("refresh_token"), expires_in: +h.get("expires_in") || 3600 });
     if (h.get("type") === "recovery") auth.recovery = true;
     history.replaceState(null, "", location.pathname + location.search);
-    authCall("/user", { method: "GET", token: auth.session.access_token }).then((u) => { auth.session.user = u; store(AUTH_KEY, JSON.stringify(auth.session)); authUi(); }).catch(() => {});
+    authCall("/user", { method: "GET", token: auth.session.access_token }).then(async (u) => { auth.session.user = u; store(AUTH_KEY, JSON.stringify(auth.session)); if (!auth.recovery) await authApplyPending(); authUi(); if (!auth.recovery) authAskName(); }).catch(() => {});
   } else if (h.get("error_description")) {
     auth.notice = (h.get("error_description") || "").replace(/\+/g, " ") + " Request a new link below.";
     history.replaceState(null, "", location.pathname + location.search);
@@ -3320,6 +3336,7 @@ function authBoot() {
   authUi(); authAdmin();
   if (auth.recovery) setTimeout(() => openAuth("reset"), 0);
   else if (auth.notice) setTimeout(() => openAuth("signin"), 0);
+  else authAskName();
 }
 // The account line under the header, the lock marks on the tabs, and the phone bar.
 function authUi() {
@@ -3327,7 +3344,7 @@ function authUi() {
   document.body.classList.toggle("anon", !auth.session);
   const a = $("acct");
   if (a) {
-    a.innerHTML = auth.session ? `Signed in${who ? ` as <b>${esc(who)}</b>` : ""} · <button class="link" id="acct-act" type="button">My activity</button> · <button class="link" id="acct-priv" type="button">Privacy</button> · <button class="link" id="acct-out" type="button">Sign out</button>` : `<button class="link" id="acct-in" type="button">Sign in to open every tab</button>`;
+    a.innerHTML = auth.session ? `Signed in${who ? ` as <b>${esc(who)}</b>` : ""} · <button class="link" id="acct-act" type="button">My activity</button> · <button class="link" id="acct-priv" type="button">Privacy</button> · <button class="link" id="acct-out" type="button">Sign out</button>` : `<button class="reset signin" id="acct-in" type="button">Sign in to open every tab</button>`;
     const out = $("acct-out"), inn = $("acct-in"), act = $("acct-act"), pv = $("acct-priv");
     if (act) act.onclick = () => { auth.prevScreen = null; openAuth("activity"); };
     if (pv) pv.onclick = () => { auth.prevScreen = null; openAuth("privacy"); };
@@ -3335,6 +3352,7 @@ function authUi() {
     if (inn) inn.onclick = () => { auth.next = null; openAuth("signin"); };
   }
   try { drawGnav(); } catch {}
+  try { setTitle(); } catch {}
 }
 async function authOut() {
   const t = auth.session && auth.session.access_token;
@@ -3357,15 +3375,18 @@ const A_SCREENS = {
     <div class="a-foot">New here? <button class="a-lnk" data-as="signup">Create an account</button></div>${aPerksMobile()}`,
   signup: () => `<h1 id="auth-title">Create your account</h1><p class="a-sub">Free. Takes under a minute.</p>
     <form novalidate data-do="signup">
-      <label for="a-nm">Full name</label><input id="a-nm" type="text" placeholder="Priya Sharma" autocomplete="name"><div class="a-err" data-e="a-nm" role="alert"></div>
+      <label for="a-nm">Full name</label><input id="a-nm" type="text" placeholder="Kishan Singhania" autocomplete="name"><div class="a-err" data-e="a-nm" role="alert"></div>
       ${A_EMAIL}
       <label for="a-pw">Password</label><div class="a-field"><input id="a-pw" type="password" placeholder="At least 8 characters" autocomplete="new-password">${A_EYE}</div>
       <div class="a-meter" id="a-meter" aria-hidden="true"><i></i><i></i><i></i><i></i></div><div class="a-sub" id="a-mtxt" style="margin:6px 0 0;font-size:12px">Use 8+ characters; mix letters and numbers.</div><div class="a-err" data-e="a-pw" role="alert"></div>
       <label class="a-chk"><input type="checkbox" id="a-agree"> <span>I agree that Indian Capital Tracker records the pages I open and what I search while signed in, as set out in the <button type="button" class="a-lnk" data-as="privacy">privacy notice</button>.</span></label><div class="a-err" data-e="a-agree" role="alert"></div>
       <button class="a-btn" type="submit">Create account</button></form>
     <div class="a-foot">Already have an account? <button class="a-lnk" data-as="signin">Sign in</button></div>${aPerksMobile()}`,
-  magic: () => `<h1 id="auth-title">Sign in with a link</h1><p class="a-sub">For accounts you already have. We'll email you a link; open it on this device and you're in. No password needed.</p>
-    <form novalidate data-do="magic">${A_EMAIL}<button class="a-btn" type="submit">Email me the link</button></form>
+  name: () => `<h1 id="auth-title">What should we call you?</h1><p class="a-sub">Your name can be different from your email. We keep it so the site owner knows who is using the tracker.</p>
+    <form novalidate data-do="name"><label for="a-nm">Full name</label><input id="a-nm" type="text" placeholder="Kishan Singhania" autocomplete="name"><div class="a-err" data-e="a-nm" role="alert"></div>
+      <button class="a-btn" type="submit">Continue</button></form>`,
+  magic: () => `<h1 id="auth-title">Sign in with a link</h1><p class="a-sub">For accounts you already have. Tell us your name, and we'll email you a link; open it on this device and you're in. No password needed.</p>
+    <form novalidate data-do="magic"><label for="a-nm">Full name</label><input id="a-nm" type="text" placeholder="Kishan Singhania" autocomplete="name" value="${esc(load("ict-name") || "")}"><div class="a-err" data-e="a-nm" role="alert"></div>${A_EMAIL}<button class="a-btn" type="submit">Email me the link</button></form>
     <div class="a-foot"><button class="a-lnk" data-as="signin">← Back to sign in</button></div>`,
   forgot: () => `<h1 id="auth-title">Reset your password</h1><p class="a-sub">Enter your email and we'll send a link to choose a new one.</p>
     <form novalidate data-do="forgot">${A_EMAIL}<button class="a-btn" type="submit">Send reset link</button></form>
@@ -3398,7 +3419,7 @@ const A_PERKS = [
   ["investors", "Investor profiles", "One page per firm: its deals, holdings and sources."],
   ["network", "Network map", "See which firms invest together and how any two are linked."],
   ["flows", "FPI and FDI flows", "Daily, monthly and yearly since 1992-93, in US$ with ₹ in brackets."],
-  ["markets", "Exchange data", "FII/FPI activity, bulk and block deals, debt holdings and sector assets."],
+  ["markets", "Markets", "FII/FPI activity, bulk and block deals, debt holdings and sector assets."],
   ["directory", "FPI register", "Every SEBI-registered FPI, with assets held by country and sector."],
   ["gift", "GIFT City directory", "Every entity IFSCA regulates there, with contact details."],
 ];
@@ -3482,10 +3503,20 @@ function authSend(kind, email) {
   if (kind === "recover") return authCall("/recover", { body: { email }, query: `?redirect_to=${authBack()}` });
   return authCall("/otp", { body: { email, create_user: false }, query: `?redirect_to=${authBack()}` });
 }
+// Anyone signed in without a saved name is asked for it once, whichever way they signed in (password, email link, Google).
+// A name typed on the email-link screen is saved to the account once the link is opened on this device.
+async function authApplyPending() {
+  const n = load("ict-pending-name");
+  if (!n || !auth.session) return false;
+  try { const u = await authCall("/user", { method: "PUT", token: auth.session.access_token, body: { data: { name: n } } }); auth.session.user = u; store(AUTH_KEY, JSON.stringify(auth.session)); store("ict-pending-name"); return true; } catch { return false; }
+}
+const authNeedsName = () => !!(auth.session && auth.session.user && !String((auth.session.user.user_metadata || {}).name || "").trim());
+function authAskName() { if (authNeedsName()) setTimeout(() => openAuth("name"), 0); }
 function authDone() {
   closeAuth(); authUi(); track("signin", "auth", null); authAdmin();
   const t = auth.next; auth.next = null;
   if (t && t !== state.tab) setTab(t); else if (location.hash.startsWith("#firm/")) route();
+  authAskName();
 }
 async function authSubmit(f, data) {
   const kind = f.dataset.do, val = (id) => (f.querySelector("#" + id) || {}).value || "", em = val("a-em").trim();
@@ -3498,14 +3529,19 @@ async function authSubmit(f, data) {
   if (!ok) return;
   const btn = f.querySelector(".a-btn"), label = btn.textContent;
   btn.disabled = true; btn.innerHTML = '<span class="a-spin"></span> Please wait…';
-  const fail = (er) => { btn.disabled = false; btn.textContent = label; const id = f.querySelector("#a-pw") && kind !== "magic" && kind !== "forgot" ? "a-pw" : "a-em"; aErr(f, id, er.message); };
+  const fail = (er) => { btn.disabled = false; btn.textContent = label; const id = kind === "name" ? "a-nm" : f.querySelector("#a-pw") && kind !== "magic" && kind !== "forgot" ? "a-pw" : "a-em"; aErr(f, id, er.message); };
   try {
     if (kind === "signin") { authStore(await authCall("/token", { query: "?grant_type=password", body: { email: em, password: val("a-pw") } })); authDone(); }
     else if (kind === "signup") {
       const r = await authCall("/signup", { query: `?redirect_to=${authBack()}`, body: { email: em, password: val("a-pw"), data: { name: val("a-nm").trim(), consent_at: new Date().toISOString(), consent_version: "2026-10" } } });
       if (r.access_token) { authStore(r); authDone(); } else authScreen("sent", { kind: "confirm", email: em });
     }
-    else if (kind === "magic") { await authSend("magic", em); authScreen("sent", { kind: "magic", email: em }); }
+    else if (kind === "name") {
+      const u = await authCall("/user", { method: "PUT", token: auth.session.access_token, body: { data: { name: val("a-nm").trim() } } });
+      auth.session.user = u; store(AUTH_KEY, JSON.stringify(auth.session));
+      closeAuth(); authUi(); const t = auth.next; auth.next = null; if (t && t !== state.tab) setTab(t);
+    }
+    else if (kind === "magic") { store("ict-name", val("a-nm").trim()); store("ict-pending-name", val("a-nm").trim()); await authSend("magic", em); authScreen("sent", { kind: "magic", email: em }); }
     else if (kind === "forgot") { await authSend("recover", em); authScreen("sent", { kind: "recover", email: em }); }
     else if (kind === "reset") { const u = await authCall("/user", { method: "PUT", token: auth.session.access_token, body: { password: val("a-pw") } }); auth.session.user = u; store(AUTH_KEY, JSON.stringify(auth.session)); authDone(); }
   } catch (er) { fail(er); }
@@ -3561,6 +3597,7 @@ function sourcesUi() {
   if (h && h.hidden && state.tab === "health") setTab("overview");
 }
 function adminUi() {
+  showVisits();
   const b = document.querySelector('nav.tabs button[data-tab="users"]');
   if (b) b.hidden = !auth.admin;
   sourcesUi();
@@ -3568,37 +3605,161 @@ function adminUi() {
   if (!auth.admin && state.tab === "users") setTab("overview");
 }
 const usRpc = (fn, body) => authRest(`rpc/${fn}`, { method: "POST", body });
-let usDays = 30;
+// ---------- Users tab (owner): people, sessions, behaviour ----------
+let usDays = 30, usQ = "", usSort = { k: "last_seen", d: -1 }, usSel = null, usKind = "", usData = null;
+const istParts = (iso) => { const d = new Date(iso), f = (o) => d.toLocaleString("en-GB", { timeZone: "Asia/Kolkata", ...o }); return { h: +f({ hour: "2-digit", hour12: false }) % 24, dow: f({ weekday: "short" }), day: new Date(d.getTime() + 330 * 6e4).toISOString().slice(0, 10) }; };
+const usDur = (ms) => ms < 6e4 ? "<1 min" : ms < 36e5 ? `${Math.round(ms / 6e4)} min` : `${(ms / 36e5).toFixed(1)} h`;
+const usCsv = (name, head, rows) => { const q = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`, a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([[head, ...rows].map((r) => r.map(q).join(",")).join("\n")], { type: "text/csv" })); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); };
+// Per-person numbers from their recorded actions inside the chosen period.
+function usPerson(u, rows) {
+  const since = Date.now() - usDays * 864e5, r = rows.filter((x) => new Date(x.at) >= since).sort((a, b) => new Date(a.at) - new Date(b.at));
+  const o = { sessions: 0, time: 0, days: new Set(), pages: new Map(), kinds: new Map(), devices: new Map(), searches: 0, opens: 0, n: r.length, first: r[0]?.at, last: r[r.length - 1]?.at };
+  let start = null, prev = null;
+  r.forEach((x) => {
+    const t = +new Date(x.at);
+    if (prev === null || t - prev > 30 * 6e4) { if (start !== null) o.time += prev - start; o.sessions++; start = t; }
+    prev = t; o.days.add(istParts(x.at).day);
+    o.pages.set(x.page, (o.pages.get(x.page) || 0) + 1); o.kinds.set(x.kind, (o.kinds.get(x.kind) || 0) + 1); o.devices.set(x.device || "?", (o.devices.get(x.device || "?") || 0) + 1);
+    if (/search/i.test(x.kind)) o.searches++; if (/open/i.test(x.kind)) o.opens++;
+  });
+  if (start !== null) o.time += prev - start;
+  const top = (m) => [...m].sort((a, b) => b[1] - a[1])[0]?.[0] || "–";
+  o.topPage = top(o.pages); o.topDevice = top(o.devices); o.distinct = o.pages.size;
+  const age = (Date.now() - new Date(u.created_at)) / 864e5, seen = u.last_seen ? (Date.now() - new Date(u.last_seen)) / 864e5 : null;
+  o.status = !u.events ? "Never active" : age < 7 ? "New" : seen !== null && seen <= 7 ? "Active" : seen !== null && seen <= 30 ? "Cooling" : "Dormant";
+  return o;
+}
 async function renderUsers() {
   const box = $("us-body");
   if (!auth.admin) { box.innerHTML = `<p class="note">This view is for the site owner.</p>`; return; }
   box.innerHTML = `<p class="note">Loading…</p>`;
   try {
     const [sm, users] = await Promise.all([usRpc("activity_summary", { days: usDays }), usRpc("activity_users", {})]);
-    const bars = (rows, key, label) => rows.length ? rows.map((r) => `<div class="us-row"><span class="n">${nfmt(r.n)}</span>${esc(label ? label(r) : r[key])}<div class="us-bar"><i style="width:${(r.n / rows[0].n * 100).toFixed(0)}%"></i></div></div>`).join("") : `<div class="note">Nothing yet.</div>`;
-    box.innerHTML = `<div class="fhead" style="margin-bottom:8px"><p class="sub" style="margin:0;max-width:640px">Who signs in and what they open. Only you can see this. People can see and delete their own rows from "My activity".</p>
-      <div class="seg" id="us-days" role="group" aria-label="Period">${[7, 30, 90, 365].map((d) => `<button data-d="${d}" aria-pressed="${d === usDays}">${d === 365 ? "1 year" : d + " days"}</button>`).join("")}</div></div>
-      <div class="ftiles">${tile("Registered users", nfmt(sm.users_total), "All accounts", 0)}${tile(`Active, last ${usDays} days`, nfmt(sm.users_active), "Opened at least one page", 0)}${tile("Things recorded", nfmt(sm.events), `In the last ${usDays} days`, 0)}</div>
-      <div class="fcard" style="margin-top:12px"><div class="fhead"><div><h3>Activity per day</h3><div class="sub">All recorded actions, India time</div></div></div><div class="fchart" id="us-chart"></div></div>
-      <div class="us-grid">
-        <div class="fcard"><h3>Tabs opened</h3>${bars(sm.per_page, "page")}</div>
-        <div class="fcard"><h3>Devices</h3>${bars(sm.devices, "device")}</div>
-        <div class="fcard"><h3>Firms and profiles opened</h3>${bars(sm.top_open, "detail")}</div>
-        <div class="fcard"><h3>What people search for</h3>${bars(sm.top_search, "detail")}</div></div>
-      <div class="fcard" style="margin-top:12px"><h3>People</h3><div class="sub" style="margin-bottom:6px">Tap a person for their timeline.</div>
-        ${users.map((u) => `<button class="us-user" data-u="${esc(u.id)}"><b>${esc(u.name || u.email)}</b> <span style="color:var(--muted)">${esc(u.name ? u.email : "")}</span><small>Joined ${esc((u.created_at || "").slice(0, 10))} · last sign-in ${u.last_sign_in_at ? esc(actWhen(u.last_sign_in_at)) : "never"} · ${nfmt(u.events)} actions${u.last_seen ? ` · last seen ${esc(actWhen(u.last_seen))}` : ""}</small></button>`).join("")}
-        <div id="us-line" style="margin-top:10px"></div></div>`;
-    document.querySelectorAll("#us-days button").forEach((b) => b.onclick = () => { usDays = +b.dataset.d; renderUsers(); });
-    const per = sm.per_day || [];
-    barChart($("us-chart"), per.map((d) => ({ ...d, v: d.n })), { height: 200, label: (p) => p.day.slice(5), axis: (v) => String(Math.round(v)), line: { kind: "cum", name: "Running total", full: (v) => String(Math.round(v)) }, tip: (p) => `<b>${esc(p.day)}</b><div class="row"><span>Actions</span><span>${nfmt(p.n)}</span></div>` });
-    box.querySelectorAll(".us-user").forEach((b) => b.onclick = async () => {
-      const line = $("us-line"); line.innerHTML = `<div class="note">Loading…</div>`;
-      try {
-        const rows = await usRpc("activity_timeline", { uid: b.dataset.u, lim: 200 });
-        line.innerHTML = rows.length ? `<div class="fcard" style="background:var(--chip)"><b>Timeline</b> (latest ${rows.length})${rows.map((r) => `<div class="us-row"><span class="n">${esc(actWhen(r.at))} · ${esc(r.device || "")}</span>${esc(r.kind)} · ${esc(r.page)}${r.detail ? ` · <span style="color:var(--muted)">${esc(r.detail)}</span>` : ""}</div>`).join("")}</div>` : `<div class="note">Nothing recorded for this person.</div>`;
-      } catch (e) { line.innerHTML = `<div class="note">${esc(e.message)}</div>`; }
-    });
+    const tl = new Map(await Promise.all(users.slice(0, 80).map((u) => usRpc("activity_timeline", { uid: u.id, lim: 1000 }).then((r) => [u.id, r]).catch(() => [u.id, []]))));
+    usData = { sm, users, tl, per: new Map(users.map((u) => [u.id, usPerson(u, tl.get(u.id) || [])])) };
+    drawUsers();
   } catch (e) { box.innerHTML = `<p class="note">Could not load: ${esc(e.message)}</p>`; }
+}
+function drawUsers() {
+  const box = $("us-body"), { sm, users, tl, per } = usData, P = [...per.values()], now = Date.now();
+  const bars = (rows, label) => rows.length ? rows.map((r) => `<div class="us-row"><span class="n">${nfmt(r.n)}</span>${esc(label(r))}<div class="us-bar"><i style="width:${(r.n / rows[0].n * 100).toFixed(0)}%"></i></div></div>`).join("") : `<div class="note">Nothing yet.</div>`;
+  const all = users.flatMap((u) => (tl.get(u.id) || []).map((x) => ({ ...x, uid: u.id }))).filter((x) => now - new Date(x.at) < usDays * 864e5);
+  const tally = (f, order) => { const m = new Map(); all.forEach((x) => { const k = f(x); m.set(k, (m.get(k) || 0) + 1); }); return (order || [...m.keys()]).map((k) => ({ k, n: m.get(k) || 0 })); };
+  const hours = tally((x) => istParts(x.at).h, [...Array(24).keys()]), dows = tally((x) => istParts(x.at).dow, ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]);
+  const kinds = tally((x) => x.kind).sort((a, b) => b.n - a.n);
+  const dau = (d) => new Set(all.filter((x) => now - new Date(x.at) < d * 864e5).map((x) => x.uid)).size;
+  const sessions = P.reduce((a, p) => a + p.sessions, 0), time = P.reduce((a, p) => a + p.time, 0), activeP = P.filter((p) => p.n);
+  const newU = users.filter((u) => now - new Date(u.created_at) < usDays * 864e5).length, never = users.filter((u) => !u.events).length;
+  const returning = activeP.filter((p) => p.days.size > 1).length, signedNoSeen = users.filter((u) => u.last_sign_in_at && !u.last_seen).length;
+  const perDay = new Map((sm.per_day || []).map((d) => [d.day, d.n])), signups = new Map(), dauDay = new Map();
+  users.forEach((u) => { const d = (u.created_at || "").slice(0, 10); signups.set(d, (signups.get(d) || 0) + 1); });
+  all.forEach((x) => { const d = istParts(x.at).day, s = dauDay.get(d) || new Set(); s.add(x.uid); dauDay.set(d, s); });
+  const q = usQ.trim().toLowerCase(), cols = [["name", "Person"], ["status", "Status"], ["created_at", "Joined"], ["last_sign_in_at", "Last sign-in"], ["last_seen", "Last seen"], ["events", "Actions (all time)"], ["n", "Actions (period)"], ["sessions", "Sessions"], ["time", "Time on site"], ["days", "Active days"], ["distinct", "Tabs used"], ["topPage", "Top tab"], ["searches", "Searches"], ["opens", "Profiles opened"], ["topDevice", "Device"]];
+  const val = (u, k) => { const p = per.get(u.id); return k in p ? (k === "days" ? p.days.size : p[k]) : k === "name" ? (u.name || u.email || "") : u[k]; };
+  const rows = users.filter((u) => !q || `${u.name || ""} ${u.email || ""}`.toLowerCase().includes(q)).sort((a, b) => { const x = val(a, usSort.k), y = val(b, usSort.k); return (x == null ? -1 : y == null ? 1 : typeof x === "number" ? x - y : String(x).localeCompare(String(y))) * usSort.d; });
+  const cell = (u, k) => { const p = per.get(u.id); return k === "name" ? `<b>${esc(u.name || u.email)}</b>${u.name ? `<div class="sub">${esc(u.email)}</div>` : ""}` : k === "created_at" ? esc((u.created_at || "").slice(0, 10)) : k === "last_sign_in_at" || k === "last_seen" ? (u[k] ? `${esc(actWhen(u[k]))}<div class="sub">${ago(u[k])}</div>` : "–") : k === "time" ? usDur(p.time) : k === "days" ? p.days.size : k === "events" ? nfmt(u.events) : k === "status" ? `<span class="tg">${p.status}</span>` : esc(k in p ? p[k] : u[k]); };
+  const sel = usSel && users.find((u) => u.id === usSel);
+  box.innerHTML = `<div class="fhead" style="margin-bottom:8px"><p class="sub" style="margin:0;max-width:640px">Who signs in and what they open. Only you can see this. People can see and delete their own rows from "My activity". Per-person figures use each person's latest 1,000 actions.</p>
+      <div class="seg" id="us-days" role="group" aria-label="Period">${[7, 30, 90, 365].map((d) => `<button data-d="${d}" aria-pressed="${d === usDays}">${d === 365 ? "1 year" : d + " days"}</button>`).join("")}</div></div>
+    <div class="ftiles">${tile("Registered users", nfmt(sm.users_total), `${newU} joined in the period`, 0)}${tile(`Active, last ${usDays} days`, nfmt(sm.users_active), `${users.length ? Math.round(sm.users_active / sm.users_total * 100) : 0}% of all accounts`, 0)}${tile("Things recorded", nfmt(sm.events), `${activeP.length ? (sm.events / Math.max(sm.users_active, 1)).toFixed(1) : 0} per active person`, 0)}
+      ${tile("Active today / week / month", `${dau(1)} · ${dau(7)} · ${dau(30)}`, "Distinct people, last 1 / 7 / 30 days", 0)}${tile("Sessions", nfmt(sessions), `${activeP.length ? (sessions / activeP.length).toFixed(1) : 0} per active person (30-min gap = new visit)`, 0)}${tile("Avg time per session", sessions ? usDur(time / sessions) : "–", `${usDur(time)} in total`, 0)}
+      ${tile("Came back on another day", nfmt(returning), `${activeP.length ? Math.round(returning / activeP.length * 100) : 0}% of active people`, 0)}${tile("Never opened a page", nfmt(never), `${signedNoSeen} signed in but left no record`, 0)}${tile("Signed in, last 7 days", nfmt(users.filter((u) => u.last_sign_in_at && now - new Date(u.last_sign_in_at) < 7 * 864e5).length), "By last sign-in time", 0)}</div>
+    <div class="us-grid" style="margin-top:12px"><div class="fcard"><div class="fhead"><div><h3>Actions per day</h3><div class="sub">All recorded actions, India time</div></div></div><div class="fchart" id="us-chart"></div></div>
+      <div class="fcard"><div class="fhead"><div><h3>Active people per day</h3><div class="sub">Distinct people who did anything</div></div></div><div class="fchart" id="us-dau"></div></div>
+      <div class="fcard"><div class="fhead"><div><h3>New sign-ups per day</h3><div class="sub">By account creation date</div></div></div><div class="fchart" id="us-new"></div></div></div>
+    <div class="us-grid">
+      <div class="fcard"><h3>Tabs opened</h3>${bars(sm.per_page, (r) => r.page)}</div>
+      <div class="fcard"><h3>Devices</h3>${bars(sm.devices, (r) => r.device)}</div>
+      <div class="fcard"><h3>Firms and profiles opened</h3>${bars(sm.top_open, (r) => r.detail)}</div>
+      <div class="fcard"><h3>What people search for</h3>${bars(sm.top_search, (r) => r.detail)}</div>
+      <div class="fcard"><h3>Action types</h3>${bars(kinds.map((x) => ({ n: x.n, k: x.k })), (r) => r.k)}</div>
+      <div class="fcard"><h3>Time of day (India time)</h3>${bars(hours.filter((x) => x.n).map((x) => ({ n: x.n, k: x.k })), (r) => `${String(r.k).padStart(2, "0")}:00`)}</div>
+      <div class="fcard"><h3>Day of week</h3>${bars(dows.map((x) => ({ n: x.n, k: x.k })).sort((a, b) => b.n - a.n).filter((x) => x.n), (r) => r.k)}</div>
+      <div class="fcard"><h3>People by status</h3>${bars(["New", "Active", "Cooling", "Dormant", "Never active"].map((s) => ({ n: P.filter((p) => p.status === s).length, k: s })).filter((x) => x.n).sort((a, b) => b.n - a.n), (r) => r.k)}</div></div>
+    <div class="fcard" style="margin-top:12px"><div class="fhead"><div><h3>People (${rows.length})</h3><div class="sub">Click a heading to sort, a person for their timeline. Click again to close it.</div></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><input type="search" id="us-q" placeholder="Search name or email" aria-label="Search people" value="${esc(usQ)}"><button class="reset" id="us-csv" type="button">Download CSV</button></div></div>
+      <div class="ftable-wrap"><div class="scroll"><table class="ftable" style="min-width:1250px"><thead><tr>${cols.map(([k, l]) => `<th${["events", "n", "sessions", "time", "days", "distinct", "searches", "opens"].includes(k) ? ' class="num"' : ""}><button class="link" data-sort="${k}" aria-label="Sort by ${esc(l)}">${esc(l)}${usSort.k === k ? (usSort.d > 0 ? " ▲" : " ▼") : ""}</button></th>`).join("")}</tr></thead>
+        <tbody>${rows.map((u) => `<tr class="us-prow" data-u="${esc(u.id)}" tabindex="0" role="button" aria-expanded="${u.id === usSel}" style="cursor:pointer${u.id === usSel ? ";background:var(--chip)" : ""}">${cols.map(([k]) => `<td${["events", "n", "sessions", "time", "days", "distinct", "searches", "opens"].includes(k) ? ' class="num"' : ""}>${cell(u, k)}</td>`).join("")}</tr>`).join("") || `<tr><td colspan="${cols.length}" class="note">Nobody matches.</td></tr>`}</tbody></table></div></div>
+      <div id="us-line" style="margin-top:10px"></div></div>`;
+  document.querySelectorAll("#us-days button").forEach((b) => b.onclick = () => { usDays = +b.dataset.d; renderUsers(); });
+  const chart = (id, m, days) => { const pts = []; for (let i = days - 1; i >= 0; i--) { const d = new Date(now - i * 864e5 + 330 * 6e4).toISOString().slice(0, 10); pts.push({ day: d, v: m(d) }); } barChart($(id), pts, { height: 160, label: (p) => p.day.slice(5), axis: (v) => String(Math.round(v)), line: { kind: "cum", name: "Running total", full: (v) => String(Math.round(v)) }, tip: (p) => `<b>${esc(p.day)}</b><div class="row"><span>Count</span><span>${nfmt(p.v)}</span></div>` }); };
+  const span = Math.min(usDays, 90);
+  chart("us-chart", (d) => perDay.get(d) || 0, span); chart("us-dau", (d) => dauDay.get(d)?.size || 0, span); chart("us-new", (d) => signups.get(d) || 0, span);
+  $("us-q").oninput = (e) => { usQ = e.target.value; drawUsers(); const i = $("us-q"); i.focus(); i.setSelectionRange(usQ.length, usQ.length); };
+  box.querySelectorAll("[data-sort]").forEach((b) => b.onclick = () => { usSort = { k: b.dataset.sort, d: usSort.k === b.dataset.sort ? -usSort.d : -1 }; drawUsers(); });
+  $("us-csv").onclick = () => usCsv("people.csv", cols.map((c) => c[1]), rows.map((u) => cols.map(([k]) => { const v = val(u, k); return k === "time" ? usDur(v) : v; })));
+  const open = (u) => { usSel = usSel === u ? null : u; usKind = ""; drawUsers(); };
+  box.querySelectorAll(".us-prow").forEach((r) => { r.onclick = () => open(r.dataset.u); r.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(r.dataset.u); } }; });
+  if (sel) {
+    const all2 = tl.get(sel.id) || [], kinds2 = [...new Set(all2.map((x) => x.kind))], list = all2.filter((x) => !usKind || x.kind === usKind), p = per.get(sel.id);
+    $("us-line").innerHTML = `<div class="fcard" style="background:var(--chip)"><div class="fhead"><div><b>${esc(sel.name || sel.email)}</b> <span class="sub">timeline, latest ${all2.length}${p.n ? ` · first in period ${esc(actWhen(p.first))}, last ${esc(actWhen(p.last))}` : ""}</span></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><select id="us-kind" aria-label="Filter by action type"><option value="">All action types</option>${kinds2.map((k) => `<option${k === usKind ? " selected" : ""}>${esc(k)}</option>`).join("")}</select><button class="reset" id="us-tcsv" type="button">Download CSV</button><button class="reset" id="us-close" type="button">Close</button></div></div>
+      <div style="max-height:440px;overflow:auto" data-lenis-prevent>${list.length ? list.map((r) => `<div class="us-row"><span class="n">${esc(actWhen(r.at))} · ${esc(r.device || "")}</span>${esc(r.kind)} · ${esc(r.page)}${r.detail ? ` · <span style="color:var(--muted)">${esc(r.detail)}</span>` : ""}</div>`).join("") : `<div class="note">No actions recorded.</div>`}</div></div>`;
+    $("us-close").onclick = () => open(sel.id); $("us-kind").onchange = (e) => { usKind = e.target.value; drawUsers(); };
+    $("us-tcsv").onclick = () => usCsv(`timeline-${sel.email || sel.id}.csv`, ["When", "Device", "Action", "Tab", "Detail"], list.map((r) => [r.at, r.device, r.kind, r.page, r.detail]));
+    $("us-line").scrollIntoView({ block: "nearest" });
+  }
+}
+
+// ---------- Sources tab (owner): collector health, run log and data quality ----------
+// Expected minutes between runs, used to flag a source that has gone quiet.
+const OPS_EVERY = { news: 30, review: 180, nse_bulk: 1440, nse_block: 1440, nsdl_flows: 720, nsdl_fpi_list: 1440, ifsca_directory: 1440, dpiit_fdi: 43200 };
+let opsRuns = [], opsF = { source: "", status: "", n: 50 };
+const opsDur = (r) => r.started_at && r.finished_at ? Math.max(0, new Date(r.finished_at) - new Date(r.started_at)) : null;
+const opsFmtDur = (ms) => ms == null ? "–" : ms < 1000 ? `${ms} ms` : ms < 6e4 ? `${(ms / 1000).toFixed(1)} s` : `${(ms / 6e4).toFixed(1)} min`;
+async function renderOps() {
+  if (!$("ops-top")) return;
+  try { opsRuns = await api("runs?select=*&order=started_at.desc&limit=1000"); } catch { opsRuns = state.runs || []; }
+  drawOps();
+}
+function drawOps() {
+  const now = Date.now(), ev = state.events || [], H = 36e5, D = 864e5, pct = (a, b) => b ? Math.round(a / b * 100) + "%" : "–";
+  const known = opsRuns.filter((r) => SOURCES[r.source]), r24 = known.filter((r) => now - new Date(r.started_at) < D);
+  const by = new Map(); known.forEach((r) => { (by.get(r.source) || by.set(r.source, []).get(r.source)).push(r); });
+  const srcs = Object.keys(SOURCES).filter((k) => by.has(k)), health = srcs.map((k) => {
+    const rs = by.get(k), last = rs[0], okRuns = rs.filter((r) => r.ok), lastOk = okRuns[0], every = OPS_EVERY[k];
+    const since = lastOk ? (now - new Date(lastOk.finished_at || lastOk.started_at)) / 6e4 : Infinity;
+    return { k, rs, last, lastOk, every, overdue: every ? since > every * 2.5 : false, rate: rs.length ? okRuns.length / rs.length : 0, avgMs: (() => { const d = rs.map(opsDur).filter((x) => x != null); return d.length ? d.reduce((a, b) => a + b, 0) / d.length : null; })(), read: rs.reduce((a, r) => a + (r.items_found || 0), 0), added: rs.reduce((a, r) => a + (r.items_new || 0), 0) };
+  });
+  const bad = health.filter((h) => !h.last.ok || h.overdue).length, added24 = r24.reduce((a, r) => a + (r.items_new || 0), 0);
+  const fetched = (e) => new Date(e.fetched_at || e.published_at), newest = ev.length ? Math.max(...ev.map((e) => +fetched(e))) : null;
+  const amt = ev.filter((e) => typeof amountCr === "function" && amountCr(e)).length, withP = ev.filter((e) => (e.parties && e.parties.length) || e.investor).length;
+  const firm = ev.filter((e) => FIRM.has(e.deal_stage)).length, ctry = ev.filter((e) => e.investor_country).length, a7 = ev.filter((e) => now - fetched(e) < 7 * D).length, a24 = ev.filter((e) => now - fetched(e) < D).length;
+  $("ops-top").innerHTML = `<div class="ftiles">${tile("Sources needing attention", `${bad} of ${health.length}`, bad ? "Failed last run or gone quiet" : "All sources healthy", 0)}${tile("Runs, last 24 hours", nfmt(r24.length), `${r24.filter((r) => !r.ok).length} failed · ${pct(r24.filter((r) => r.ok).length, r24.length)} succeeded`, 0)}${tile("Added, last 24 hours", nfmt(added24), `${nfmt(known.filter((r) => now - new Date(r.started_at) < 7 * D).reduce((a, r) => a + (r.items_new || 0), 0))} in 7 days`, 0)}
+    ${tile("Newest story saved", newest ? ago(new Date(newest).toISOString()) : "–", newest ? istTime(new Date(newest).toISOString()) : "", 0)}${tile("Stories in total", nfmt(ev.length), `${nfmt(a24)} saved in 24 h · ${nfmt(a7)} in 7 days`, 0)}${tile("With an amount", pct(amt, ev.length), `${nfmt(amt)} stories`, 0)}
+    ${tile("With a named investor", pct(withP, ev.length), `${nfmt(withP)} stories`, 0)}${tile("Agreed or completed", pct(firm, ev.length), `${nfmt(firm)} stories`, 0)}${tile("With investor country", pct(ctry, ev.length), `${nfmt(ctry)} stories`, 0)}</div>
+    <h2 class="fsec">Every source</h2><p class="note">Last ${nfmt(known.length)} runs. "Quiet" means no successful run for over 2.5 times its normal gap.</p>` +
+    mkTable(["Source", "Status", "Last run", "Last success", "Normal gap", "Runs", "Success", "Avg time", "Read (all)", "Added (all)", "Last error", "Recent runs"], health.map((h) => [
+      { h: `<strong>${esc(SOURCES[h.k][0])}</strong>` },
+      { h: `<span class="${h.last.ok && !h.overdue ? "ok" : "fail"}">${h.overdue ? "Quiet" : h.last.ok ? "Working" : "Failing"}</span>` },
+      h.last.finished_at ? `${istTime(h.last.finished_at)} (${ago(h.last.finished_at)})` : "–",
+      h.lastOk ? ago(h.lastOk.finished_at || h.lastOk.started_at) : "never",
+      h.every ? (h.every >= 1440 ? `${Math.round(h.every / 1440)} d` : h.every >= 60 ? `${h.every / 60} h` : `${h.every} min`) : "one-off",
+      nfmt(h.rs.length), `${Math.round(h.rate * 100)}%`, opsFmtDur(h.avgMs), nfmt(h.read), nfmt(h.added),
+      { h: `<span class="sub">${esc((h.rs.find((r) => r.error) || {}).error || "").slice(0, 140) || "–"}</span>` },
+      { h: `<span title="Newest first">${h.rs.slice(0, 20).map((r) => `<span style="color:var(--${r.ok ? "good" : "bad"})" aria-label="${r.ok ? "ok" : "failed"}">${r.ok ? "●" : "✕"}</span>`).join("")}</span>` }]), 1);
+  const log = known.filter((r) => (!opsF.source || r.source === opsF.source) && (!opsF.status || (opsF.status === "ok" ? r.ok : !r.ok)));
+  const cnt = (f) => { const m = new Map(); ev.forEach((e) => { const k = f(e); m.set(k, (m.get(k) || 0) + 1); }); return [...m].sort((a, b) => b[1] - a[1]); };
+  const top = (arr, n) => arr.slice(0, n).map(([k, c]) => `<div class="us-row"><span class="n">${nfmt(c)}</span>${esc(k || "Unknown")}<div class="us-bar"><i style="width:${(c / arr[0][1] * 100).toFixed(0)}%"></i></div></div>`).join("") || `<div class="note">Nothing yet.</div>`;
+  const day = (e) => dayStr(fetched(e)), perDay = new Map(); ev.forEach((e) => perDay.set(day(e), (perDay.get(day(e)) || 0) + 1));
+  $("ops-more").innerHTML = `<h2 class="fsec">Run log</h2><div class="filters"><select id="ops-src" aria-label="Source"><option value="">All sources</option>${srcs.map((k) => `<option value="${k}"${opsF.source === k ? " selected" : ""}>${esc(SOURCES[k][0])}</option>`).join("")}</select>
+      <select id="ops-st" aria-label="Status"><option value="">All results</option><option value="ok"${opsF.status === "ok" ? " selected" : ""}>Succeeded</option><option value="bad"${opsF.status === "bad" ? " selected" : ""}>Failed</option></select>
+      <button class="reset" id="ops-csv" type="button">Download CSV</button></div>` +
+    mkTable(["Started", "Source", "Took", "Result", "Read", "Added", "Error"], log.slice(0, opsF.n).map((r) => [istTime(r.started_at), SOURCES[r.source][0], opsFmtDur(opsDur(r)), { h: `<span class="${r.ok ? "ok" : "fail"}">${r.ok ? "Succeeded" : "Failed"}</span>` }, r.items_found ?? "–", r.items_new ?? "–", { h: `<span class="sub">${esc(r.error || "").slice(0, 160) || "–"}</span>` }]), 2) +
+    (log.length > opsF.n ? `<div style="text-align:center;margin-top:8px"><button class="reset" id="ops-more-btn" type="button">Show more (${log.length - opsF.n} left)</button></div>` : "") +
+    `<h2 class="fsec">Data quality</h2><div class="us-grid"><div class="fcard"><h3>Stories by publisher</h3>${top(cnt((e) => e.source_name || e.source), 12)}</div>
+      <div class="fcard"><h3>Stories by category</h3>${top(cnt((e) => (e.event_types || [e.event_type]).join(" + ")), 8)}</div>
+      <div class="fcard"><h3>Stories by deal stage</h3>${top(cnt((e) => e.deal_stage || "No stage"), 8)}</div>
+      <div class="fcard"><h3>Stories by collector</h3>${top(cnt((e) => e.source), 8)}</div>
+      <div class="fcard"><h3>Investor countries</h3>${top(cnt((e) => e.investor_country).filter(([k]) => k), 10)}</div>
+      <div class="fcard"><h3>Investor types</h3>${top(cnt((e) => e.investor_type).filter(([k]) => k), 8)}</div></div>
+    <div class="fcard" style="margin-top:12px"><div class="fhead"><div><h3>Stories saved per day</h3><div class="sub">Last 45 days, by when the collector saved them</div></div></div><div class="fchart" id="ops-chart"></div></div>`;
+  const pts = []; for (let i = 44; i >= 0; i--) { const d = dayStr(new Date(now - i * D)); pts.push({ day: d, v: perDay.get(d) || 0 }); }
+  barChart($("ops-chart"), pts, { height: 170, label: (p) => p.day.slice(5), axis: (v) => String(Math.round(v)), line: { kind: "cum", name: "Running total", full: (v) => String(Math.round(v)) }, tip: (p) => `<b>${esc(p.day)}</b><div class="row"><span>Stories</span><span>${nfmt(p.v)}</span></div>` });
+  $("ops-src").onchange = (e) => { opsF.source = e.target.value; opsF.n = 50; drawOps(); };
+  $("ops-st").onchange = (e) => { opsF.status = e.target.value; opsF.n = 50; drawOps(); };
+  const mb2 = $("ops-more-btn"); if (mb2) mb2.onclick = () => { opsF.n += 100; drawOps(); };
+  $("ops-csv").onclick = () => usCsv("runs.csv", ["Started", "Finished", "Source", "Ok", "Read", "Added", "Error"], log.map((r) => [r.started_at, r.finished_at, r.source, r.ok, r.items_found, r.items_new, r.error]));
 }
 
 state.prevVisit = load("ict-last-visit");
@@ -3912,7 +4073,6 @@ function mbBuild(key, name, kind, enr, note, fa) {
     <div class="wide mbact"><button class="reset" type="submit">Save notes</button><span class="sub" id="mb-msg">Private: only you can see these.</span></div></form>` : `<p class="note">Sign in to keep private notes and contacts for this investor.</p>`;
   const html = `<div class="fcard mb"><div class="fhead"><div><h3>Meeting brief</h3><div class="sub">Everything on one screen before you meet ${esc(name)}</div></div>
       <div style="display:flex;gap:8px"><button class="reset" id="mb-copy" type="button">Copy brief</button></div></div>
-    <div class="mbcov"><div class="mbbar"><i style="width:${pct}%"></i></div><span class="sub">Profile ${pct}% complete${missing.length ? ` · still missing: ${missing.join(", ")}` : ""}</span></div>
     ${eFacts(facts)}
     ${ownerForm}
     <div class="mbcols"><div><h4>Talking points</h4><ul>${li(pts.map(esc))}</ul></div>
@@ -4158,9 +4318,9 @@ async function openEntity(kind, ref) {
 var gnav = { open: null };
 const GNAV = [
   { id: "home", label: "Home", icon: "overview", views: [["overview", "Home", "Latest numbers and stories"]] },
-  { id: "deals", label: "Deals", icon: "feed", views: [["feed", "Stories", "Investments, exits, fund launches and moves"], ["investors", "Investors", "Foreign investors, one profile each"], ["network", "Network", "Which firms appear together on deals"]] },
+  { id: "deals", label: "Feed", icon: "feed", views: [["feed", "Feed", "Investments, exits, fund launches and moves"], ["investors", "Investors", "Foreign investors, one profile each"], ["network", "Network", "Which firms appear together on deals"]] },
   { id: "markets", label: "Markets", icon: "flows", views: [["flows", "Flows", "FPI and FDI money flows"], ["markets", "Exchange data", "FII/FPI activity, deals, debt and sectors"]] },
-  { id: "registers", label: "Registers", icon: "directory", views: [["directory", "FPIs", "Every registered FPI, assets held by country and sector"], ["gift", "GIFT City", "Every entity IFSCA regulates at GIFT IFSC"]] },
+  { id: "registers", label: "FPIs", icon: "directory", views: [["directory", "FPIs", "Every registered FPI, assets held by country and sector"], ["gift", "GIFT City", "Every entity IFSCA regulates at GIFT IFSC"]] },
 ];
 function gnavViews(g) {
   const v = g.views.slice();
@@ -4246,6 +4406,68 @@ document.querySelectorAll("#fhseg button").forEach((b) => b.onclick = () => {
 
 xtInit();
 
+</script>
+<script>
+// Count-up on headline figures: once, when first scrolled into view. Exact original text is restored at the end.
+(() => {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) return;
+  const SEL = ".kpi .n, .ftile .n, .m30v, .fcard .n, .ovc .big, .ovc .n", NUM = /\d[\d,]*(?:\.\d+)?/g, seen = new Set();
+  const skip = (t) => /\d\s*[–\-\/:]\s*\d|\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\b|\b(19|20)\d\d\b/i.test(t) || !/\d/.test(t);
+  const keyOf = (el) => (el.parentElement && (el.parentElement.querySelector(".l") || {}).textContent || "") + "|" + el.textContent;
+  const io = new IntersectionObserver((list) => list.forEach((en) => {
+    if (!en.isIntersecting) return;
+    const el = en.target; io.unobserve(el);
+    const k = keyOf(el), text = el.textContent;
+    if (seen.has(k) || skip(text)) { seen.add(k); return; }
+    seen.add(k);
+    const nodes = [], w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    for (let n; (n = w.nextNode());) if (NUM.test(n.nodeValue)) { NUM.lastIndex = 0; nodes.push([n, n.nodeValue]); } else NUM.lastIndex = 0;
+    const t0 = performance.now(), D = 900;
+    const frame = (now) => {
+      const p = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - p, 3);
+      nodes.forEach(([n, orig]) => { n.nodeValue = orig.replace(NUM, (m) => {
+        const dec = (m.split(".")[1] || "").length, v = parseFloat(m.replace(/,/g, "")) * e;
+        const s = v.toFixed(dec); return m.includes(",") ? Number(s).toLocaleString("en-IN", { minimumFractionDigits: dec, maximumFractionDigits: dec }) : s; }); });
+      if (p < 1 && el.isConnected) requestAnimationFrame(frame); else nodes.forEach(([n, orig]) => { n.nodeValue = orig; });
+    };
+    requestAnimationFrame(frame);
+  }), { threshold: .4 });
+  const scan = (root) => root.querySelectorAll && root.querySelectorAll(SEL).forEach((el) => io.observe(el));
+  new MutationObserver((ms) => ms.forEach((m) => m.addedNodes.forEach((n) => n.nodeType === 1 && (n.matches(SEL) ? io.observe(n) : scan(n))))).observe(document.body, { childList: true, subtree: true });
+  scan(document);
+})();
+</script>
+<script>
+// Charts draw in once, when first scrolled into view: bars grow, lines draw, progress bars fill. Same data re-rendered does not replay.
+(() => {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window) || !Element.prototype.animate) return;
+  const SVG = "svg:has(path.bar), svg:has(polyline), svg[preserveAspectRatio=none]:has(rect)", FILL = ".m30bar i, .us-bar i", seen = new Set();
+  const hash = (s) => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return h; };
+  const opt = (delay) => ({ duration: 700, delay, easing: "cubic-bezier(0,0,.2,1)" });
+  const play = (el) => {
+    if (el.matches(FILL)) { el.style.transformOrigin = "left"; el.animate({ transform: ["scaleX(0)", "scaleX(1)"] }, opt(0)); return; }
+    el.querySelectorAll("path.bar, rect:not(.hit)").forEach((b, i) => {
+      const down = /--out/.test(b.getAttribute("fill") || "");
+      b.style.transformBox = "fill-box"; b.style.transformOrigin = el.matches("[preserveAspectRatio=none]") ? "center" : down ? "top" : "bottom";
+      b.animate({ transform: ["scaleY(0)", "scaleY(1)"] }, opt(Math.min(i * 12, 300)));
+    });
+    el.querySelectorAll("polyline").forEach((l) => {
+      l.setAttribute("pathLength", "1");
+      l.animate({ strokeDasharray: ["1 1", "1 1"], strokeDashoffset: [1, 0] }, opt(0));
+    });
+    el.querySelectorAll("path[fill-opacity], circle").forEach((a) => a.animate({ opacity: [0, 1] }, opt(350)));
+  };
+  const io = new IntersectionObserver((list) => list.forEach((en) => {
+    if (!en.isIntersecting) return;
+    const el = en.target; io.unobserve(el);
+    const k = el.matches(FILL) ? null : (el.getAttribute("aria-label") || "") + "|" + hash(el.innerHTML);
+    if (k) { if (seen.has(k)) return; seen.add(k); }
+    play(el);
+  }), { threshold: .3 });
+  const scan = (root) => root.querySelectorAll && root.querySelectorAll(SVG + ", " + FILL).forEach((el) => io.observe(el));
+  new MutationObserver((ms) => ms.forEach((m) => m.addedNodes.forEach((n) => n.nodeType === 1 && ((n.matches(SVG + ", " + FILL) ? io.observe(n) : 0), scan(n))))).observe(document.body, { childList: true, subtree: true });
+  scan(document);
+})();
 </script>
 </body>
 </html>
