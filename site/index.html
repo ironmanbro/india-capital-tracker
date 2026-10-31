@@ -3373,7 +3373,7 @@ const A_SCREENS = {
     <div class="a-foot">New here? <button class="a-lnk" data-as="signup">Create an account</button></div>${aPerksMobile()}`,
   signup: () => `<h1 id="auth-title">Create your account</h1><p class="a-sub">Free. Takes under a minute.</p>
     <form novalidate data-do="signup">
-      <label for="a-nm">Full name</label><input id="a-nm" type="text" placeholder="Priya Sharma" autocomplete="name"><div class="a-err" data-e="a-nm" role="alert"></div>
+      <label for="a-nm">Full name</label><input id="a-nm" type="text" placeholder="Kishan Singhania" autocomplete="name"><div class="a-err" data-e="a-nm" role="alert"></div>
       ${A_EMAIL}
       <label for="a-pw">Password</label><div class="a-field"><input id="a-pw" type="password" placeholder="At least 8 characters" autocomplete="new-password">${A_EYE}</div>
       <div class="a-meter" id="a-meter" aria-hidden="true"><i></i><i></i><i></i><i></i></div><div class="a-sub" id="a-mtxt" style="margin:6px 0 0;font-size:12px">Use 8+ characters; mix letters and numbers.</div><div class="a-err" data-e="a-pw" role="alert"></div>
@@ -3381,10 +3381,10 @@ const A_SCREENS = {
       <button class="a-btn" type="submit">Create account</button></form>
     <div class="a-foot">Already have an account? <button class="a-lnk" data-as="signin">Sign in</button></div>${aPerksMobile()}`,
   name: () => `<h1 id="auth-title">What should we call you?</h1><p class="a-sub">Your name can be different from your email. We keep it so the site owner knows who is using the tracker.</p>
-    <form novalidate data-do="name"><label for="a-nm">Full name</label><input id="a-nm" type="text" placeholder="Priya Sharma" autocomplete="name"><div class="a-err" data-e="a-nm" role="alert"></div>
+    <form novalidate data-do="name"><label for="a-nm">Full name</label><input id="a-nm" type="text" placeholder="Kishan Singhania" autocomplete="name"><div class="a-err" data-e="a-nm" role="alert"></div>
       <button class="a-btn" type="submit">Continue</button></form>`,
   magic: () => `<h1 id="auth-title">Sign in with a link</h1><p class="a-sub">For accounts you already have. Tell us your name, and we'll email you a link; open it on this device and you're in. No password needed.</p>
-    <form novalidate data-do="magic"><label for="a-nm">Full name</label><input id="a-nm" type="text" placeholder="Priya Sharma" autocomplete="name" value="${esc(load("ict-name") || "")}"><div class="a-err" data-e="a-nm" role="alert"></div>${A_EMAIL}<button class="a-btn" type="submit">Email me the link</button></form>
+    <form novalidate data-do="magic"><label for="a-nm">Full name</label><input id="a-nm" type="text" placeholder="Kishan Singhania" autocomplete="name" value="${esc(load("ict-name") || "")}"><div class="a-err" data-e="a-nm" role="alert"></div>${A_EMAIL}<button class="a-btn" type="submit">Email me the link</button></form>
     <div class="a-foot"><button class="a-lnk" data-as="signin">← Back to sign in</button></div>`,
   forgot: () => `<h1 id="auth-title">Reset your password</h1><p class="a-sub">Enter your email and we'll send a link to choose a new one.</p>
     <form novalidate data-do="forgot">${A_EMAIL}<button class="a-btn" type="submit">Send reset link</button></form>
