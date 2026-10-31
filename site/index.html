@@ -398,6 +398,7 @@ header .eyebrow{color:var(--muted);font-size:12px;font-weight:700;letter-spacing
 @media (max-width:700px){.totop{right:14px;bottom:92px}}
 .stg{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;color:var(--sc);background:color-mix(in srgb,var(--sc) 14%,transparent);white-space:nowrap}
 .stg.pres{--sc:#c08bf5}
+.stg.prom{--sc:#e08a4b}
 .dsrc{color:var(--muted);font-size:11.5px;margin:10px 0 0;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .dsrc::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--good)}
 .dsrc.stale::before{background:#e3b341}
@@ -869,7 +870,7 @@ body.anon .gnav button:not([data-g="home"])::after{content:"🔒";position:absol
       <select id="icat" aria-label="Category">
         <option value="">All categories</option>
         <option value="entry">Investments into India</option>
-        <option value="exit">Exits from India</option>
+        <option value="exit">Sales and exits</option>
         <option value="fund_launch">Fund launches</option>
         <option value="relocation">Jurisdiction moves</option>
       </select>
@@ -1072,7 +1073,7 @@ const KEY = "sb_publishable_zSo8W_FfT_fZEcfMWoumOw_Yv9mmVWB";
 
 const TYPES = {
   entry:       "Investment into India",
-  exit:        "Exit from India",
+  exit:        "Sale or exit",
   fund_launch: "Fund launch",
   relocation:  "Jurisdiction move",
 };
@@ -1080,11 +1081,21 @@ const TYPES = {
 const STAGES = { completed: ["Completed", "#3ccf98"], agreed: ["Agreed", "#6f95ff"], talks: ["In talks", "#e3b341"], plan: ["Plan or pledge", "#9aa4b2"] };
 const FIRM = new Set(["agreed", "completed"]);
 const stageTag = (e) => e.deal_stage ? `<span class="stg" style="--sc:${STAGES[e.deal_stage][1]}" title="Deal stage as last reported">${STAGES[e.deal_stage][0]}</span>` : "";
+// A sale by a company's own holding vehicle (same name as the company, or flagged as promoter) is a promoter selling down, not a foreign investor leaving.
+const GENERIC_WORD = /^(THE|INDIA|INDIAN|PRIVATE|LIMITED|LTD|PVT|HOLDINGS?|INVESTMENTS?|CAPITAL|FUND|GROUP|GLOBAL|ASIA|INTERNATIONAL)$/;
+const nameWords = (n) => String(n || "").toUpperCase().replace(/[^A-Z0-9 ]+/g, " ").split(/\s+/).filter((w) => w.length >= 3 && !GENERIC_WORD.test(w));
+const isPromoterSale = (e) => {
+  if (e.event_type !== "exit" || !/^(nse|bse)_/.test(e.source || "")) return false;
+  if (/promoter/i.test(e.raw?.remarks || "")) return true;
+  const t = nameWords(e.target), c = new Set(nameWords(e.investor));
+  return t.length > 0 && t.every((w) => c.has(w)); // every distinctive word of the company's name is in the seller's name
+};
+const promTag = (e) => isPromoterSale(e) ? `<span class="stg prom" title="Possible promoter sale: the seller's name matches the company, so this is likely the owner selling down, not a foreign investor leaving. Judged from the name, so it can be wrong.">Possible promoter</span>` : "";
 const presTag = (e) => e.flow_kind === "presence" ? `<span class="stg pres" title="A company setting up, expanding or closing its own operations, not an investment in an Indian business">Business presence</span>` : "";
 const KPI_GROUPS = [
   { label: "All stories", types: [] },
   { label: "Investments into India", types: ["entry"] },
-  { label: "Exits from India", types: ["exit"] },
+  { label: "Sales and exits", types: ["exit"] },
   // Both are rare, so they share a box: offshore/GIFT City fund launches and funds moving jurisdiction.
   { label: "Fund launches & moves", types: ["fund_launch", "relocation"] },
 ];
@@ -1276,7 +1287,7 @@ function renderFeed() {
     ].filter(Boolean).join("&nbsp;· ");
     return `<article class="card">
       <div>
-        <div class="meta">${isNew(e) ? `<span class="newtag">New</span>` : ""}${[...e.event_types].sort((a, b) => Object.keys(TYPES).indexOf(a) - Object.keys(TYPES).indexOf(b)).map((t) => `<span class="badge" style="--dotc:${color(t)}">${TYPES[t] || t}</span>`).join("")}${stageTag(e)}${presTag(e)}</div>
+        <div class="meta">${isNew(e) ? `<span class="newtag">New</span>` : ""}${[...e.event_types].sort((a, b) => Object.keys(TYPES).indexOf(a) - Object.keys(TYPES).indexOf(b)).map((t) => `<span class="badge" style="--dotc:${color(t)}">${TYPES[t] || t}</span>`).join("")}${stageTag(e)}${presTag(e)}${promTag(e)}</div>
         <div style="margin:4px 0"><a class="title" href="${safeUrl(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a></div>
         <div class="meta">${bits}&nbsp;· <button class="link sharebtn" type="button" data-share="${esc(e.id)}">Copy link</button></div>
       </div>
@@ -2846,7 +2857,7 @@ function renderBoard() {
     const card = (e) => {
       const who = e.parties.length ? e.parties[0].name : e.investor, own = e.event_types.find((x) => g.types.includes(x));
       const kind = g.types.length > 1 ? `<span class="tg"><i style="background:${color(own)}"></i>${TYPES[own]}</span>` : "";
-      return `<div class="bk"><div class="meta">${isNew(e) ? `<span class="newtag">New</span>` : ""}${kind}${stageTag(e)}${presTag(e)}${who ? `<span class="tg"><i style="background:${color(own)}"></i>${esc(who).slice(0, 26)}</span>` : ""}${amountCr(e) ? `<span class="amtflag">${esc(money(e).split(" (")[0])}</span>` : ""}</div>
+      return `<div class="bk"><div class="meta">${isNew(e) ? `<span class="newtag">New</span>` : ""}${kind}${stageTag(e)}${presTag(e)}${promTag(e)}${who ? `<span class="tg"><i style="background:${color(own)}"></i>${esc(who).slice(0, 26)}</span>` : ""}${amountCr(e) ? `<span class="amtflag">${esc(money(e).split(" (")[0])}</span>` : ""}</div>
         <a class="t" href="${safeUrl(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a><div class="m">${ago(e.published_at || e.fetched_at)} · ${esc(e.source_name || e.source)}${e.reports > 1 ? ` · ${e.reports} reports` : ""} · <button class="link sharebtn" type="button" data-share="${esc(e.id)}">Copy link</button></div></div>`;
     };
     return `<div class="bcol"><div class="bcolh"><span class="tg" style="background:none;padding:0"><i style="background:${color(t)}"></i></span>${g.label}<span class="c">${list.length}</span></div>
