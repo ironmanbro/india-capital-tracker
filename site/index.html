@@ -2756,6 +2756,7 @@ async function loadOverviewCross() {
     const out = [];
     const val = (r) => mkNum(r.qty) * mkNum(r.watp) / 1e7;
     const buys = deals.filter((r) => /^((BULK|BLOCK)_DEALS|BSE_(BULK|BLOCK))\|/.test(r.key)).map((r) => r.data)
+      .filter((r, i, a) => a.findIndex((x) => mkTrade(x) === mkTrade(r)) === i)
       .filter((r) => mkForeign(r.clientName) && /^b/i.test(r.buySell || "") && !isNaN(val(r)));
     const day = buys.map((r) => r.date).sort((a, b) => new Date(b) - new Date(a))[0];
     const top = buys.filter((r) => r.date === day).sort((a, b) => val(b) - val(a))[0];
@@ -3603,6 +3604,9 @@ setInterval(refresh, 5 * 60 * 1000);
 // ---------- Markets: data from the daily collector job (table feed_records) ----------
 const mk = { loaded: false, data: {} };
 const mkNum = (v) => { const n = parseFloat(String(v ?? "").replace(/,/g, "")); return isNaN(n) ? null : n; };
+// NSE lists some trades in both the bulk and the block file, and the same story can be saved twice: keep one row per trade.
+const mkOnce = (rows, key) => { const seen = new Set(); return rows.filter((r) => { const k = key(r); return seen.has(k) ? false : (seen.add(k), true); }); };
+const mkTrade = (r) => [r.date, r.symbol || r.code, r.clientName, r.buySell, r.qty].map((x) => String(x ?? "").trim().toUpperCase()).join("|");
 const mkFmt = (v, d = 0) => { const n = mkNum(v); return n === null ? "–" : n.toLocaleString("en-IN", { maximumFractionDigits: d }); };
 const mkTable = (head, rows, nText = 1) => rows.length
   ? `<div class="ftable-wrap"><div class="scroll"><table class="ftable"><thead><tr>${head.map((h, i) => `<th${i >= nText ? ' class="num"' : ""}>${esc(h)}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c, i) => `<td${i >= nText ? ' class="num"' : ""}>${c && typeof c === "object" ? c.h : esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>`
@@ -3662,7 +3666,8 @@ async function renderMarkets() {
   const deals = [
     ...(mk.data.nse_deals || []).filter((r) => /^(BULK|BLOCK)_DEALS\|/.test(r.key)).map((r) => ({ ...r.data, exchange: "NSE", kind: r.key.startsWith("BULK") ? "bulk" : "block" })),
     ...(mk.data.bse_deals || []).map((r) => r.data),
-  ].filter((r) => mkForeign(r.clientName)).sort((a, b) => dt(b.date) - dt(a.date) || (mkNum(b.qty) * mkNum(b.watp)) - (mkNum(a.qty) * mkNum(a.watp))).slice(0, 100);
+  ].filter((r) => mkForeign(r.clientName)).sort((a, b) => dt(b.date) - dt(a.date) || (mkNum(b.qty) * mkNum(b.watp)) - (mkNum(a.qty) * mkNum(a.watp)));
+  deals.splice(0, deals.length, ...mkOnce(deals, mkTrade).slice(0, 100));
   const reg = await xRegistry(deals.map((r) => r.clientName));
   out.push(mkSec("Bulk and block deals", "Latest 100 on NSE and BSE with a foreign-looking client. Foreign is judged from the client name, so some foreign investors may be missing. Country and category come from the NSDL FPI register, and GIFT City shows clients IFSCA lists; both match on the exact name, so some show a dash. Names with a profile are links.",
     mkTable(["Date", "Exchange", "Foreign investor", "Company invested in", "Country", "FPI category", "GIFT City", "Side", "Quantity", "Avg price", "Value"], deals.map((r) => {
@@ -3670,7 +3675,8 @@ async function renderMarkets() {
       return [r.date, `${r.exchange || "NSE"} ${r.kind || ""}`.trim(), xFirm(r.clientName), r.name || r.symbol || "–", f.country ? SHORT_COUNTRY[f.country] || titleCase(f.country) : "–", f.cat ? `Cat ${f.cat}` : "–", f.gift ? "Yes" : "–",
         r.buySell || "–", mkFmt(r.qty), mkFmt(r.watp, 2), mkUsd(mkNum(r.qty) * mkNum(r.watp) / 1e7)];
     }), 8)));
-  const who = (state.events || []).filter((e) => e.event_type === "entry" && e.investor && e.target && mkForeign(e.investor)).slice(0, 40);
+  const who = (state.events || []).filter((e) => e.event_type === "entry" && e.investor && e.target && mkForeign(e.investor));
+  who.splice(0, who.length, ...mkOnce(who, (e) => [e.investor, e.target, (e.published_at || e.fetched_at || "").slice(0, 10), e.amount_text].map((x) => String(x ?? "").toUpperCase()).join("|")).slice(0, 40));
   out.push(mkSec("Who invested in whom", "Latest investments from the news and exchange deals, newest first. Foreign investors only, judged from the name.",
     mkTable(["Foreign investor", "Company invested in", "Amount", "Date"], who.map((e) =>
       [xFirm(e.investor), e.target, e.amount_text || "–", (e.published_at || e.fetched_at || "").slice(0, 10)]), 2)));
@@ -4004,7 +4010,7 @@ document.addEventListener("click", (ev) => { if (!ev.target.closest(".htools")) 
 const xCache = {};
 async function dealsAll() {
   if (!xCache.deals) {
-    try { xCache.deals = (await api("feed_records?select=key,data&dataset=in.(nse_deals,bse_deals)&limit=2000")).filter((r) => /^((BULK|BLOCK)_DEALS|BSE_(BULK|BLOCK))\|/.test(r.key)).map((r) => r.data); }
+    try { xCache.deals = (await api("feed_records?select=key,data&dataset=in.(nse_deals,bse_deals)&limit=2000")).filter((r) => /^((BULK|BLOCK)_DEALS|BSE_(BULK|BLOCK))\|/.test(r.key)).map((r) => r.data); xCache.deals = mkOnce(xCache.deals, mkTrade); }
     catch { xCache.deals = []; }
   }
   return xCache.deals;
