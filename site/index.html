@@ -686,6 +686,7 @@ html.lenis,html.lenis body{height:auto}
 .a-lnk{color:var(--accent);background:none;border:0;font:inherit;cursor:pointer;padding:0;font-weight:600}
 .a-btn{width:100%;min-height:48px;border:0;border-radius:12px;background:var(--accent);color:#fff;font:inherit;font-size:16px;font-weight:700;cursor:pointer;margin-top:18px;display:flex;align-items:center;justify-content:center;gap:10px}
 .a-btn:active{transform:scale(.98)}.a-btn[disabled]{opacity:.7;cursor:progress}
+.a-social{display:grid;gap:0}.a-social .a-btn.ghost{margin-top:8px}
 .a-btn.ghost{background:var(--chip);border:1px solid var(--line);color:var(--ink);margin-top:10px;font-weight:600}
 .a-spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:aspin .7s linear infinite}
 @keyframes aspin{to{transform:rotate(360deg)}}
@@ -3342,6 +3343,27 @@ async function authRefresh() {
   try { authStore(await authCall("/token", { query: "?grant_type=refresh_token", body: { refresh_token: auth.session.refresh_token } })); return true; }
   catch { authClear(); authUi(); if (!authAllowed(state.tab)) setTab("overview"); return false; }
 }
+// Google, LinkedIn and Apple sign-in: shown only for the providers switched on in Supabase (Authentication, Providers).
+const SOCIAL = [["google", "Google"], ["linkedin_oidc", "LinkedIn"], ["apple", "Apple"]];
+async function authLoadProviders() {
+  try {
+    const ext = (await (await fetch(`${SUPABASE_URL}/auth/v1/settings`, { headers: { apikey: KEY } })).json()).external || {};
+    auth.providers = Object.fromEntries(SOCIAL.map(([k]) => [k, ext[k] === true]));
+  } catch { auth.providers = {}; }
+}
+const aSocial = () => SOCIAL.some(([k]) => auth.providers?.[k]) ? `<div class="a-or">or continue with</div><div class="a-social">${SOCIAL.filter(([k]) => auth.providers[k]).map(([k, n]) => `<button class="a-btn ghost" type="button" data-social="${k}">${n}</button>`).join("")}</div>
+    <p class="a-sub" style="font-size:12px;margin-top:8px">By continuing you agree to the privacy notice: we record the pages you open and what you search while signed in.</p>` : "";
+// After a social sign-in: record consent and take the name the provider shared.
+async function authSocialFinish(u) {
+  let flag = false;
+  try { flag = sessionStorage.getItem("ict-social") === "1"; sessionStorage.removeItem("ict-social"); } catch {}
+  if (!flag) return u;
+  const m = u.user_metadata || {}, data = {};
+  if (!m.consent_at) { data.consent_at = new Date().toISOString(); data.consent_version = "2026-10"; }
+  if (!String(m.name || "").trim() && (m.full_name || m.preferred_username)) data.name = m.full_name || m.preferred_username;
+  if (!Object.keys(data).length) return u;
+  try { return await authCall("/user", { method: "PUT", token: auth.session.access_token, body: { data } }); } catch { return u; }
+}
 // Runs once at start: restore a saved session, or take the one an email link brings in the address (#access_token=…).
 function authBoot() {
   const h = new URLSearchParams(location.hash.replace(/^#/, ""));
@@ -3349,13 +3371,14 @@ function authBoot() {
     authStore({ access_token: h.get("access_token"), refresh_token: h.get("refresh_token"), expires_in: +h.get("expires_in") || 3600 });
     if (h.get("type") === "recovery") auth.recovery = true;
     history.replaceState(null, "", location.pathname + location.search);
-    authCall("/user", { method: "GET", token: auth.session.access_token }).then(async (u) => { auth.session.user = u; store(AUTH_KEY, JSON.stringify(auth.session)); if (!auth.recovery) await authApplyPending(); authUi(); if (!auth.recovery) authAskName(); }).catch(() => {});
+    authCall("/user", { method: "GET", token: auth.session.access_token }).then(async (u) => { u = await authSocialFinish(u); auth.session.user = u; store(AUTH_KEY, JSON.stringify(auth.session)); if (!auth.recovery) await authApplyPending(); authUi(); if (!auth.recovery) authAskName(); }).catch(() => {});
   } else if (h.get("error_description")) {
     auth.notice = (h.get("error_description") || "").replace(/\+/g, " ") + " Request a new link below.";
     history.replaceState(null, "", location.pathname + location.search);
   } else {
     try { const saved = JSON.parse(load(AUTH_KEY) || "null"); if (saved && saved.access_token) { auth.session = saved; if (saved.expires_at * 1000 < Date.now() + 10000) authRefresh(); else authStore(saved); } } catch {}
   }
+  authLoadProviders();
   authUi(); authAdmin();
   if (auth.recovery) setTimeout(() => openAuth("reset"), 0);
   else if (auth.notice) setTimeout(() => openAuth("signin"), 0);
@@ -3395,6 +3418,7 @@ const A_SCREENS = {
       <button class="a-btn" type="submit">Sign in</button></form>
     <div class="a-or">or</div>
     <button class="a-btn ghost" type="button" data-as="magic">✉︎ Email me a sign-in link</button>
+    ${aSocial()}
     <div class="a-foot">New here? <button class="a-lnk" data-as="signup">Create an account</button></div>${aPerksMobile()}`,
   signup: () => `<h1 id="auth-title">Create your account</h1><p class="a-sub">Free. Takes under a minute.</p>
     <form novalidate data-do="signup">
@@ -3404,6 +3428,7 @@ const A_SCREENS = {
       <div class="a-meter" id="a-meter" aria-hidden="true"><i></i><i></i><i></i><i></i></div><div class="a-sub" id="a-mtxt" style="margin:6px 0 0;font-size:12px">Use 8+ characters; mix letters and numbers.</div><div class="a-err" data-e="a-pw" role="alert"></div>
       <label class="a-chk"><input type="checkbox" id="a-agree"> <span>I agree that Indian Capital Tracker records the pages I open and what I search while signed in, as set out in the <button type="button" class="a-lnk" data-as="privacy">privacy notice</button>.</span></label><div class="a-err" data-e="a-agree" role="alert"></div>
       <button class="a-btn" type="submit">Create account</button></form>
+    ${aSocial()}
     <div class="a-foot">Already have an account? <button class="a-lnk" data-as="signin">Sign in</button></div>${aPerksMobile()}`,
   name: () => `<h1 id="auth-title">What should we call you?</h1><p class="a-sub">Your name can be different from your email. We keep it so the site owner knows who is using the tracker.</p>
     <form novalidate data-do="name"><label for="a-nm">Full name</label><input id="a-nm" type="text" placeholder="Kishan Singhania" autocomplete="name"><div class="a-err" data-e="a-nm" role="alert"></div>
@@ -3501,6 +3526,12 @@ function authScreen(name, data = {}) {
   const card = $("a-card");
   card.innerHTML = `<div class="a-logo a-mlogo"><i>ICT</i> Indian Capital Tracker</div>` + A_SCREENS[name](data);
   card.querySelectorAll("[data-as]").forEach((b) => b.onclick = () => { auth.notice = ""; auth.prevScreen = name; authScreen(b.dataset.as, data); });
+  card.querySelectorAll("[data-social]").forEach((b) => b.onclick = () => {
+    const ag = card.querySelector("#a-agree");
+    if (ag && !ag.checked) { const e = card.querySelector('[data-e="a-agree"]'); if (e) e.textContent = "Please tick this to continue."; return; }
+    try { sessionStorage.setItem("ict-social", "1"); } catch {}
+    location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=${b.dataset.social}&redirect_to=${authBack()}`;
+  });
   card.querySelectorAll("[data-back]").forEach((b) => b.onclick = () => { if (auth.prevScreen && !auth.session) authScreen(auth.prevScreen); else closeAuth(); });
   if (name === "activity") authActivity();
   card.querySelectorAll("[data-eye]").forEach((b) => b.onclick = () => { const i = b.parentElement.querySelector("input"), show = i.type === "password"; i.type = show ? "text" : "password"; b.textContent = show ? "Hide" : "Show"; b.setAttribute("aria-label", show ? "Hide password" : "Show password"); });
