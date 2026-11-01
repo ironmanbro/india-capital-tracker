@@ -2264,18 +2264,21 @@ $("shp-file").addEventListener("change", async () => {
 // ---------- What changed: this month so far against the same point last month ----------
 const monthName = (y, m) => new Date(y, m, 1).toLocaleString("en-GB", { month: "long" });
 function dealsLine() {
-  const now = new Date(), y = now.getFullYear(), m = now.getMonth(), day = now.getDate();
+  // In the first days of a month a month-to-date count says little, so report the last full month against the one before it.
+  const now = new Date(), day = now.getDate(), early = day < 8, y = now.getFullYear(), m = now.getMonth() - (early ? 1 : 0);
+  const lastDay = (yy, mm) => new Date(yy, mm + 1, 0).getDate();
   const cap = state.events.filter((e) => (e.flow_kind || "capital") === "capital");
   const span = (a, b) => cap.filter((e) => { const t = when(e); return t >= a && t <= b; });
   const cnt = (rows, t) => rows.filter((e) => e.event_types.includes(t)).length;
   // Same rule as "The last 30 days": agreed or completed investments with an amount, leaving out outsized pledges.
   const val = (rows) => rows.filter((e) => e.event_types.includes("entry") && FIRM.has(e.deal_stage))
     .reduce((a, e) => { const x = amountCr(e); return a + (x && x.usd <= 10000 ? x.cr : 0); }, 0);
-  const cur = span(new Date(y, m, 1), now);
-  const prev = span(new Date(y, m - 1, 1), new Date(y, m - 1, Math.min(day, new Date(y, m, 0).getDate()), 23, 59, 59));
+  const cur = early ? span(new Date(y, m, 1), new Date(y, m, lastDay(y, m), 23, 59, 59)) : span(new Date(y, m, 1), now);
+  const prev = span(new Date(y, m - 1, 1), new Date(y, m - 1, early ? lastDay(y, m - 1) : Math.min(day, lastDay(y, m - 1)), 23, 59, 59));
   const ci = cnt(cur, "entry"), ce = cnt(cur, "exit"), pi = cnt(prev, "entry"), pe = cnt(prev, "exit"), v = val(cur);
   const vs = ci > pi ? "up from" : ci < pi ? "down from" : "level with";
-  return `So far in ${monthName(y, m)}: <b>${ci} investment${ci === 1 ? "" : "s"}</b> into India${v ? ` (${bothT(v)} agreed or completed)` : ""} and <b>${ce} exit${ce === 1 ? "" : "s"}</b>, ${vs} ${pi} investment${pi === 1 ? "" : "s"} and ${pe} exit${pe === 1 ? "" : "s"} by this date in ${monthName(y, m - 1)}.`;
+  const sx = (n) => `sale${n === 1 ? "" : "s"} or exit${n === 1 ? "" : "s"}`;
+  return `${early ? "In" : "So far in"} ${monthName(y, m)}: <b>${ci} investment${ci === 1 ? "" : "s"}</b> into India${v ? ` (${bothT(v)} agreed or completed)` : ""} and <b>${ce} ${sx(ce)}</b>, ${vs} ${pi} investment${pi === 1 ? "" : "s"} and ${pe} ${sx(pe)} ${early ? "in" : "by this date in"} ${monthName(y, m - 1)}.`;
 }
 function fpiLine() {
   const d = flows.daily;
@@ -2284,10 +2287,12 @@ function fpiLine() {
   const p = new Date(`${ym}-01T00:00:00`); p.setMonth(p.getMonth() - 1);
   const pym = dayStr(p).slice(0, 7), mn = (s) => monthName(+s.slice(0, 4), +s.slice(5, 7) - 1);
   const cur = d.filter((x) => x.day.startsWith(ym)).reduce((a, x) => a + x.Total, 0);
-  const before = d.filter((x) => x.day.startsWith(pym) && x.day.slice(8) <= dd);
+  // Once the data's month is over, it is a full month: compare it with the whole month before, not "so far".
+  const done = ym < dayStr(new Date()).slice(0, 7);
+  const before = d.filter((x) => x.day.startsWith(pym) && (done || x.day.slice(8) <= dd));
   const amt = (n) => bothT(Math.abs(n));
-  let t = `FPIs <b>${cur < 0 ? "have taken out" : "have put in"} ${amt(cur)}</b> so far in ${mn(ym)} (to ${toDMY(last.day)})`;
-  if (before.length) { const b = before.reduce((a, x) => a + x.Total, 0); t += `, against ${b < 0 ? "an outflow" : "an inflow"} of ${amt(b)} by the same date in ${mn(pym)}`; }
+  let t = `FPIs <b>${cur < 0 ? "have taken out" : "have put in"} ${amt(cur)}</b> ${done ? "in" : "so far in"} ${mn(ym)} (to ${toDMY(last.day)})`;
+  if (before.length) { const b = before.reduce((a, x) => a + x.Total, 0); t += `, against ${b < 0 ? "an outflow" : "an inflow"} of ${amt(b)} ${done ? "in" : "by the same date in"} ${mn(pym)}`; }
   return `${t}.`;
 }
 function renderTakeaways() {
@@ -3428,7 +3433,7 @@ const A_SCREENS = {
     ${auth.notice ? `<div class="a-note" role="alert">${esc(auth.notice)}</div>` : ""}
     <div class="a-opts">
       ${auth.providers?.linkedin_oidc !== false ? `<button class="a-btn a-li" type="button" data-social="linkedin_oidc">Continue with LinkedIn</button>` : ""}
-      <button class="a-btn ghost a-opt" type="button" data-as="magic"><b>Email me a sign-in link</b><small>For an account you already have. No password needed.</small></button>
+      <button class="a-btn ghost a-opt" type="button" data-as="magic"><b>Email me a sign-in link</b><small>New or returning. No password needed.</small></button>
       <button class="a-btn ghost a-opt" type="button" data-as="signin"><b>Sign in with email and password</b><small>The usual way, for an account you already have.</small></button>
       <div class="a-or">new here?</div>
       <button class="a-btn ghost a-opt" type="button" data-as="signup"><b>Create account</b><small>Free. Takes under a minute.</small></button>
@@ -3453,8 +3458,10 @@ const A_SCREENS = {
   name: () => `<h1 id="auth-title">What should we call you?</h1><p class="a-sub">Your name can be different from your email. We keep it so the site owner knows who is using the tracker.</p>
     <form novalidate data-do="name"><label for="a-nm">Full name</label><input id="a-nm" type="text" placeholder="Kishan Singhania" autocomplete="name"><div class="a-err" data-e="a-nm" role="alert"></div>
       <button class="a-btn" type="submit">Continue</button></form>`,
-  magic: () => `${aBack}<h1 id="auth-title">Sign in with a link</h1><p class="a-sub">For accounts you already have. Tell us your name, and we'll email you a link; open it on this device and you're in. No password needed.</p>
-    <form novalidate data-do="magic"><label for="a-nm">Full name</label><input id="a-nm" type="text" placeholder="Kishan Singhania" autocomplete="name" value="${esc(load("ict-name") || "")}"><div class="a-err" data-e="a-nm" role="alert"></div>${A_EMAIL}<button class="a-btn" type="submit">Email me the link</button></form>
+  magic: () => `${aBack}<h1 id="auth-title">Sign in with a link</h1><p class="a-sub">New or returning. Tell us your name and email and we'll send you a link; open it on this device and you're in. If you are new, your account is created the first time. No password needed.</p>
+    <form novalidate data-do="magic"><label for="a-nm">Full name</label><input id="a-nm" type="text" placeholder="Kishan Singhania" autocomplete="name" value="${esc(load("ict-name") || "")}"><div class="a-err" data-e="a-nm" role="alert"></div>${A_EMAIL}
+      <label class="a-chk"><input type="checkbox" id="a-agree"> <span>I agree that Indian Capital Tracker records the pages I open and what I search while signed in, as set out in the <button type="button" class="a-lnk" data-as="privacy">privacy notice</button>.</span></label><div class="a-err" data-e="a-agree" role="alert"></div>
+      <button class="a-btn" type="submit">Email me the link</button></form>
     <div class="a-foot"><button class="a-lnk" data-as="signin">← Back to sign in</button></div>`,
   forgot: () => `<h1 id="auth-title">Reset your password</h1><p class="a-sub">Enter your email and we'll send a link to choose a new one.</p>
     <form novalidate data-do="forgot">${A_EMAIL}<button class="a-btn" type="submit">Send reset link</button></form>
@@ -3573,9 +3580,9 @@ function authScreen(name, data = {}) {
   setTimeout(() => { const first = card.querySelector("input:not([type=hidden])") || card.querySelector(".a-btn"); first && first.focus(); }, 50);
 }
 function aErr(f, id, msg) { const e = f.querySelector(`[data-e="${id}"]`), i = f.querySelector("#" + id); if (e) e.textContent = msg || ""; if (i) { i.classList.toggle("bad", !!msg); if (msg) i.setAttribute("aria-invalid", "true"); else i.removeAttribute("aria-invalid"); } return !msg; }
-function authSend(kind, email) {
+function authSend(kind, email, data) {
   if (kind === "recover") return authCall("/recover", { body: { email }, query: `?redirect_to=${authBack()}` });
-  return authCall("/otp", { body: { email, create_user: false }, query: `?redirect_to=${authBack()}` });
+  return authCall("/otp", { body: { email, create_user: true, data }, query: `?redirect_to=${authBack()}` });
 }
 // Anyone signed in without a saved name is asked for it once, whichever way they signed in (password, email link, Google).
 // A name typed on the email-link screen is saved to the account once the link is opened on this device.
@@ -3615,7 +3622,7 @@ async function authSubmit(f, data) {
       auth.session.user = u; store(AUTH_KEY, JSON.stringify(auth.session));
       closeAuth(); authUi(); const t = auth.next; auth.next = null; if (t && t !== state.tab) setTab(t);
     }
-    else if (kind === "magic") { store("ict-name", val("a-nm").trim()); store("ict-pending-name", val("a-nm").trim()); await authSend("magic", em); authScreen("sent", { kind: "magic", email: em }); }
+    else if (kind === "magic") { store("ict-name", val("a-nm").trim()); store("ict-pending-name", val("a-nm").trim()); await authSend("magic", em, { name: val("a-nm").trim(), consent_at: new Date().toISOString(), consent_version: "2026-10" }); authScreen("sent", { kind: "magic", email: em }); }
     else if (kind === "forgot") { await authSend("recover", em); authScreen("sent", { kind: "recover", email: em }); }
     else if (kind === "reset") { const u = await authCall("/user", { method: "PUT", token: auth.session.access_token, body: { password: val("a-pw") } }); auth.session.user = u; store(AUTH_KEY, JSON.stringify(auth.session)); authDone(); }
   } catch (er) { fail(er); }
