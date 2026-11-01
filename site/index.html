@@ -686,7 +686,12 @@ html.lenis,html.lenis body{height:auto}
 .a-lnk{color:var(--accent);background:none;border:0;font:inherit;cursor:pointer;padding:0;font-weight:600}
 .a-btn{width:100%;min-height:48px;border:0;border-radius:12px;background:var(--accent);color:#fff;font:inherit;font-size:16px;font-weight:700;cursor:pointer;margin-top:18px;display:flex;align-items:center;justify-content:center;gap:10px}
 .a-btn:active{transform:scale(.98)}.a-btn[disabled]{opacity:.7;cursor:progress}
-.a-social{display:grid;gap:0}.a-social .a-btn.ghost{margin-top:8px}
+.a-social{display:grid;gap:0}.a-social .a-opts{display:grid;gap:10px}.a-opts .a-btn{margin-top:0}
+.a-li{background:#0a66c2;color:#fff;border:0;min-height:52px}.a-li:hover{background:#0b5cad}
+.a-opt{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;min-height:60px;padding:10px 16px}.a-opt b{font-weight:700;font-size:15px}.a-opt small{font-size:12px;font-weight:400;color:var(--muted);line-height:1.35}
+.a-back{display:block;margin:0 0 14px;font-size:13px}
+@media (max-width:700px){.a-sub .a-lnk{min-height:0!important;min-width:0!important;padding:0!important;display:inline}.a-back{min-height:44px;display:flex;align-items:center}}
+.a-btn.ghost{margin-top:8px}
 .a-btn.ghost{background:var(--chip);border:1px solid var(--line);color:var(--ink);margin-top:10px;font-weight:600}
 .a-spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:aspin .7s linear infinite}
 @keyframes aspin{to{transform:rotate(360deg)}}
@@ -2637,7 +2642,7 @@ function setTab(t) {
     auth.next = t;
     const lbl = (document.querySelector(`nav.tabs button[data-tab="${t}"]`)?.innerText || "").trim();
     if (!auth.session) auth.notice = lbl ? `Sign in to open ${lbl}.` : "Sign in to open this section.";
-    t = "overview"; if (!auth.session) setTimeout(() => openAuth("signin"), 0);
+    t = "overview"; if (!auth.session) setTimeout(() => openAuth("choose"), 0);
   }
   const was = state.tab;
   state.tab = t;
@@ -3381,7 +3386,7 @@ function authBoot() {
   authLoadProviders();
   authUi(); authAdmin();
   if (auth.recovery) setTimeout(() => openAuth("reset"), 0);
-  else if (auth.notice) setTimeout(() => openAuth("signin"), 0);
+  else if (auth.notice) setTimeout(() => openAuth("choose"), 0);
   else authAskName();
 }
 // The account line under the header, the lock marks on the tabs, and the phone bar.
@@ -3395,7 +3400,7 @@ function authUi() {
     if (act) act.onclick = () => { auth.prevScreen = null; openAuth("activity"); };
     if (pv) pv.onclick = () => { auth.prevScreen = null; openAuth("privacy"); };
     if (out) out.onclick = authOut;
-    if (inn) inn.onclick = () => { auth.next = null; openAuth("signin"); };
+    if (inn) inn.onclick = () => { auth.next = null; openAuth("choose"); };
   }
   try { drawGnav(); } catch {}
   try { setTitle(); } catch {}
@@ -3409,18 +3414,26 @@ async function authOut() {
 
 const A_EYE = `<button type="button" class="a-eye" data-eye aria-label="Show password">Show</button>`;
 const A_EMAIL = `<label for="a-em">Email</label><input id="a-em" type="email" placeholder="you@company.com" autocomplete="email" inputmode="email"><div class="a-err" data-e="a-em" role="alert"></div>`;
+const aBack = `<button type="button" class="a-lnk a-back" data-as="choose">← All sign-in options</button>`;
 const A_SCREENS = {
-  signin: () => `<h1 id="auth-title">Welcome back</h1><p class="a-sub">Sign in to open Feed, Investors, Network, Flows, Markets, FPIs and GIFT City.</p>
+  choose: () => `<h1 id="auth-title">Sign in or create an account</h1><p class="a-sub">Home is open to everyone. The rest of the tracker needs an account. Choose how you'd like to continue.</p>
+    ${auth.notice ? `<div class="a-note" role="alert">${esc(auth.notice)}</div>` : ""}
+    <div class="a-opts">
+      ${auth.providers?.linkedin_oidc !== false ? `<button class="a-btn a-li" type="button" data-social="linkedin_oidc">Continue with LinkedIn</button>` : ""}
+      <button class="a-btn ghost a-opt" type="button" data-as="magic"><b>Email me a sign-in link</b><small>For an account you already have. No password needed.</small></button>
+      <button class="a-btn ghost a-opt" type="button" data-as="signin"><b>Sign in with email and password</b><small>The usual way, for an account you already have.</small></button>
+      <div class="a-or">new here?</div>
+      <button class="a-btn ghost a-opt" type="button" data-as="signup"><b>Create account</b><small>Free. Takes under a minute.</small></button>
+    </div>
+    <p class="a-sub" style="font-size:12px;margin-top:14px">By continuing you agree to the <button type="button" class="a-lnk" data-as="privacy">privacy notice</button>: we record the pages you open and what you search while signed in.</p>${aPerksMobile()}`,
+  signin: () => `${aBack}<h1 id="auth-title">Sign in with email and password</h1><p class="a-sub">Sign in to open Feed, Investors, Network, Flows, Markets, FPIs and GIFT City.</p>
     ${auth.notice ? `<div class="a-note" role="alert">${esc(auth.notice)}</div>` : ""}
     <form novalidate data-do="signin">${A_EMAIL}
       <label for="a-pw">Password</label><div class="a-field"><input id="a-pw" type="password" placeholder="Your password" autocomplete="current-password">${A_EYE}</div><div class="a-err" data-e="a-pw" role="alert"></div>
       <div class="a-row"><button type="button" class="a-lnk" data-as="forgot">Forgot password?</button></div>
       <button class="a-btn" type="submit">Sign in</button></form>
-    <div class="a-or">or</div>
-    <button class="a-btn ghost" type="button" data-as="magic">✉︎ Email me a sign-in link</button>
-    ${aSocial()}
     <div class="a-foot">New here? <button class="a-lnk" data-as="signup">Create an account</button></div>${aPerksMobile()}`,
-  signup: () => `<h1 id="auth-title">Create your account</h1><p class="a-sub">Free. Takes under a minute.</p>
+  signup: () => `${aBack}<h1 id="auth-title">Create your account</h1><p class="a-sub">Free. Takes under a minute.</p>
     <form novalidate data-do="signup">
       <label for="a-nm">Full name</label><input id="a-nm" type="text" placeholder="Kishan Singhania" autocomplete="name"><div class="a-err" data-e="a-nm" role="alert"></div>
       ${A_EMAIL}
@@ -3428,12 +3441,11 @@ const A_SCREENS = {
       <div class="a-meter" id="a-meter" aria-hidden="true"><i></i><i></i><i></i><i></i></div><div class="a-sub" id="a-mtxt" style="margin:6px 0 0;font-size:12px">Use 8+ characters; mix letters and numbers.</div><div class="a-err" data-e="a-pw" role="alert"></div>
       <label class="a-chk"><input type="checkbox" id="a-agree"> <span>I agree that Indian Capital Tracker records the pages I open and what I search while signed in, as set out in the <button type="button" class="a-lnk" data-as="privacy">privacy notice</button>.</span></label><div class="a-err" data-e="a-agree" role="alert"></div>
       <button class="a-btn" type="submit">Create account</button></form>
-    ${aSocial()}
     <div class="a-foot">Already have an account? <button class="a-lnk" data-as="signin">Sign in</button></div>${aPerksMobile()}`,
   name: () => `<h1 id="auth-title">What should we call you?</h1><p class="a-sub">Your name can be different from your email. We keep it so the site owner knows who is using the tracker.</p>
     <form novalidate data-do="name"><label for="a-nm">Full name</label><input id="a-nm" type="text" placeholder="Kishan Singhania" autocomplete="name"><div class="a-err" data-e="a-nm" role="alert"></div>
       <button class="a-btn" type="submit">Continue</button></form>`,
-  magic: () => `<h1 id="auth-title">Sign in with a link</h1><p class="a-sub">For accounts you already have. Tell us your name, and we'll email you a link; open it on this device and you're in. No password needed.</p>
+  magic: () => `${aBack}<h1 id="auth-title">Sign in with a link</h1><p class="a-sub">For accounts you already have. Tell us your name, and we'll email you a link; open it on this device and you're in. No password needed.</p>
     <form novalidate data-do="magic"><label for="a-nm">Full name</label><input id="a-nm" type="text" placeholder="Kishan Singhania" autocomplete="name" value="${esc(load("ict-name") || "")}"><div class="a-err" data-e="a-nm" role="alert"></div>${A_EMAIL}<button class="a-btn" type="submit">Email me the link</button></form>
     <div class="a-foot"><button class="a-lnk" data-as="signin">← Back to sign in</button></div>`,
   forgot: () => `<h1 id="auth-title">Reset your password</h1><p class="a-sub">Enter your email and we'll send a link to choose a new one.</p>
@@ -3493,7 +3505,7 @@ function authPitch() {
     <div class="a-free"><b>Home stays free</b> for everyone: today's FPI flow, the biggest deals this week and the latest stories.</div>`;
 }
 const aPerksMobile = () => `<details class="a-mperks"><summary>What you get when you sign in</summary><ul class="a-perks">${aPerkList()}</ul></details>`;
-function openAuth(screen = "signin", data = {}) {
+function openAuth(screen = "choose", data = {}) {
   let box = $("auth");
   if (!box) {
     document.body.insertAdjacentHTML("beforeend", `<div class="auth" id="auth" role="dialog" aria-modal="true" aria-labelledby="auth-title" hidden>
