@@ -2264,18 +2264,21 @@ $("shp-file").addEventListener("change", async () => {
 // ---------- What changed: this month so far against the same point last month ----------
 const monthName = (y, m) => new Date(y, m, 1).toLocaleString("en-GB", { month: "long" });
 function dealsLine() {
-  const now = new Date(), y = now.getFullYear(), m = now.getMonth(), day = now.getDate();
+  // In the first days of a month a month-to-date count says little, so report the last full month against the one before it.
+  const now = new Date(), day = now.getDate(), early = day < 8, y = now.getFullYear(), m = now.getMonth() - (early ? 1 : 0);
+  const lastDay = (yy, mm) => new Date(yy, mm + 1, 0).getDate();
   const cap = state.events.filter((e) => (e.flow_kind || "capital") === "capital");
   const span = (a, b) => cap.filter((e) => { const t = when(e); return t >= a && t <= b; });
   const cnt = (rows, t) => rows.filter((e) => e.event_types.includes(t)).length;
   // Same rule as "The last 30 days": agreed or completed investments with an amount, leaving out outsized pledges.
   const val = (rows) => rows.filter((e) => e.event_types.includes("entry") && FIRM.has(e.deal_stage))
     .reduce((a, e) => { const x = amountCr(e); return a + (x && x.usd <= 10000 ? x.cr : 0); }, 0);
-  const cur = span(new Date(y, m, 1), now);
-  const prev = span(new Date(y, m - 1, 1), new Date(y, m - 1, Math.min(day, new Date(y, m, 0).getDate()), 23, 59, 59));
+  const cur = early ? span(new Date(y, m, 1), new Date(y, m, lastDay(y, m), 23, 59, 59)) : span(new Date(y, m, 1), now);
+  const prev = span(new Date(y, m - 1, 1), new Date(y, m - 1, early ? lastDay(y, m - 1) : Math.min(day, lastDay(y, m - 1)), 23, 59, 59));
   const ci = cnt(cur, "entry"), ce = cnt(cur, "exit"), pi = cnt(prev, "entry"), pe = cnt(prev, "exit"), v = val(cur);
   const vs = ci > pi ? "up from" : ci < pi ? "down from" : "level with";
-  return `So far in ${monthName(y, m)}: <b>${ci} investment${ci === 1 ? "" : "s"}</b> into India${v ? ` (${bothT(v)} agreed or completed)` : ""} and <b>${ce} exit${ce === 1 ? "" : "s"}</b>, ${vs} ${pi} investment${pi === 1 ? "" : "s"} and ${pe} exit${pe === 1 ? "" : "s"} by this date in ${monthName(y, m - 1)}.`;
+  const sx = (n) => `sale${n === 1 ? "" : "s"} or exit${n === 1 ? "" : "s"}`;
+  return `${early ? "In" : "So far in"} ${monthName(y, m)}: <b>${ci} investment${ci === 1 ? "" : "s"}</b> into India${v ? ` (${bothT(v)} agreed or completed)` : ""} and <b>${ce} ${sx(ce)}</b>, ${vs} ${pi} investment${pi === 1 ? "" : "s"} and ${pe} ${sx(pe)} ${early ? "in" : "by this date in"} ${monthName(y, m - 1)}.`;
 }
 function fpiLine() {
   const d = flows.daily;
@@ -2284,10 +2287,12 @@ function fpiLine() {
   const p = new Date(`${ym}-01T00:00:00`); p.setMonth(p.getMonth() - 1);
   const pym = dayStr(p).slice(0, 7), mn = (s) => monthName(+s.slice(0, 4), +s.slice(5, 7) - 1);
   const cur = d.filter((x) => x.day.startsWith(ym)).reduce((a, x) => a + x.Total, 0);
-  const before = d.filter((x) => x.day.startsWith(pym) && x.day.slice(8) <= dd);
+  // Once the data's month is over, it is a full month: compare it with the whole month before, not "so far".
+  const done = ym < dayStr(new Date()).slice(0, 7);
+  const before = d.filter((x) => x.day.startsWith(pym) && (done || x.day.slice(8) <= dd));
   const amt = (n) => bothT(Math.abs(n));
-  let t = `FPIs <b>${cur < 0 ? "have taken out" : "have put in"} ${amt(cur)}</b> so far in ${mn(ym)} (to ${toDMY(last.day)})`;
-  if (before.length) { const b = before.reduce((a, x) => a + x.Total, 0); t += `, against ${b < 0 ? "an outflow" : "an inflow"} of ${amt(b)} by the same date in ${mn(pym)}`; }
+  let t = `FPIs <b>${cur < 0 ? "have taken out" : "have put in"} ${amt(cur)}</b> ${done ? "in" : "so far in"} ${mn(ym)} (to ${toDMY(last.day)})`;
+  if (before.length) { const b = before.reduce((a, x) => a + x.Total, 0); t += `, against ${b < 0 ? "an outflow" : "an inflow"} of ${amt(b)} ${done ? "in" : "by the same date in"} ${mn(pym)}`; }
   return `${t}.`;
 }
 function renderTakeaways() {
