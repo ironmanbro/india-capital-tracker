@@ -338,6 +338,12 @@ header .eyebrow{color:var(--muted);font-size:12px;font-weight:700;letter-spacing
 .seg button{border-radius:999px;background:none}
 .seg button[aria-pressed="true"]{background:var(--panel);box-shadow:0 1px 4px rgba(0,0,0,.25)}
 /* Overview */
+.lockbox,.ovbanner{display:none}
+body.anon .ovc.gated>:not(.ovh):not(.lockbox),body.anon .ovc.gated .ovh .link,body.anon #ov-cross{display:none}
+body.anon .ovc.gated .lockbox{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:14px 0 6px}
+.lockbox span{color:var(--muted);font-size:13px}
+body.anon .ovbanner{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 14px;padding:12px 16px;border:1px solid var(--line);border-radius:12px;background:var(--chip)}
+.ovbanner span{color:var(--muted)}
 .ovgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .ovc{padding:18px 20px;min-width:0}
 .ovc svg{max-width:100%;height:auto}
@@ -850,16 +856,17 @@ html.lenis,html.lenis body{height:auto}
     <div class="ftiles" id="ov-cross"></div>
     <p class="dsrc" data-src="review,nsdl_flows,nsdl_fpi_list" data-what="Sources: news reports, NSE, NSDL and DPIIT. Each section shows its own source and update time" style="margin:-4px 0 14px"></p>
     <p class="dsrc" id="fx-home" style="margin:-6px 0 14px" hidden></p>
+    <div class="ovbanner"><div><b>Sign in to see everything on Home.</b> <span>Free. No subscription, just a login.</span></div><button class="reset" type="button" data-login>Sign in</button></div>
     <div class="ovgrid">
       <div class="ovc"><div class="ovh"><div><h3>Biggest deals this week</h3><div class="sub">Largest agreed or completed deals, last 7 days</div></div><button class="link" data-go="feed">Feed ↗</button></div><div id="ov-deals"></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Latest stories</h3><div class="sub">News collected every hour, reviewed every 3 hours</div></div><button class="link" data-go="feed">All stories</button></div><div id="ov-stories"></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Latest FPI flow</h3><div class="sub" id="ov-flow-sub">NSDL</div></div><button class="link" data-go="flows">Flows ↗</button></div><div class="flowwrap"><div id="ov-flow"></div><div class="fchart" id="ov-fpibars"></div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>New FPI registrations</h3><div class="sub">Latest additions to the NSDL register</div></div><button class="link" data-go="directory">FPIs ↗</button></div><div id="ov-regs"><div class="sub">Loading…</div></div></div>
-      <div class="ovc"><div class="ovh"><div><h3>Funding and deal news</h3><div class="sub">Startup media and global coverage</div></div><button class="link" data-go="markets">Markets ↗</button></div><div id="ov-news"><div class="sub">Loading…</div></div></div>
-      <div class="ovc"><div class="ovh"><div><h3>SEBI filings</h3><div class="sub">Latest takeover and public issue filings</div></div><button class="link" data-go="markets">Markets ↗</button></div><div id="ov-sebi"><div class="sub">Loading…</div></div></div>
-      <div class="ovc"><div class="ovh"><div><h3>Following</h3><div class="sub">Firms you follow, on this device</div></div></div><div id="ov-follow"></div></div>
-      <div class="ovc"><div class="ovh"><div><h3>Where the money comes from</h3><div class="sub">Capital deals in the last 90 days. Tap a row to see them</div></div></div><div id="ov-break"></div></div>
-      <div class="ovc span2"><div class="ovh"><div><h3>The last 30 days</h3><div class="sub">Reported deal value by category, and the most active investors</div></div><button class="link" data-go="investors">Investors ↗</button></div><div id="ov-week"></div></div>
+      <div class="ovc gated"><div class="ovh"><div><h3>Funding and deal news</h3><div class="sub">Startup media and global coverage</div></div><button class="link" data-go="markets">Markets ↗</button></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-news"><div class="sub">Loading…</div></div></div>
+      <div class="ovc gated"><div class="ovh"><div><h3>SEBI filings</h3><div class="sub">Latest takeover and public issue filings</div></div><button class="link" data-go="markets">Markets ↗</button></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-sebi"><div class="sub">Loading…</div></div></div>
+      <div class="ovc gated"><div class="ovh"><div><h3>Following</h3><div class="sub">Firms you follow, on this device</div></div></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-follow"></div></div>
+      <div class="ovc gated"><div class="ovh"><div><h3>Where the money comes from</h3><div class="sub">Capital deals in the last 90 days. Tap a row to see them</div></div></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-break"></div></div>
+      <div class="ovc span2 gated"><div class="ovh"><div><h3>The last 30 days</h3><div class="sub">Reported deal value by category, and the most active investors</div></div><button class="link" data-go="investors">Investors ↗</button></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-week"></div></div>
     </div>
   </section>
 
@@ -2473,6 +2480,7 @@ function route() {
   else if (state.tab === "firm") setTab("network");
 }
 addEventListener("hashchange", route);
+document.addEventListener("click", (ev) => { if (ev.target.closest("[data-login]")) { auth.next = null; openAuth("choose"); } });
 
 $("nsel").addEventListener("change", () => {
   if ($("nsel").value) { net.center = $("nsel").value; net.edge = null; net.view = "one"; renderNetwork(); }
