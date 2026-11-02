@@ -3330,8 +3330,10 @@ function showWelcome() {
 
 // ---------- Sign-in (Supabase Auth). Only Home is open to everyone; every other tab asks you to sign in. ----------
 var auth = { session: null, next: null, timer: null, notice: "", recovery: false };
+// Login is optional for now. Set LOGIN_REQUIRED to true to lock every tab but Home again.
+const LOGIN_REQUIRED = false;
 const OPEN_TABS = ["overview"];
-function authAllowed(t) { if (t === "users") return !!auth.admin; if (t === "health") return !!auth.admin || !!load("ict-owner"); return OPEN_TABS.includes(t) || !!auth.session; }
+function authAllowed(t) { if (t === "users") return !!auth.admin; if (t === "health") return !!auth.admin || !!load("ict-owner"); return !LOGIN_REQUIRED || OPEN_TABS.includes(t) || !!auth.session; }
 const AUTH_KEY = "ict-auth";
 function authMsg(j) {
   const c = j.error_code || j.code || "", m = j.msg || j.message || j.error_description || j.error || "";
@@ -3405,10 +3407,10 @@ function authBoot() {
 // The account line under the header, the lock marks on the tabs, and the phone bar.
 function authUi() {
   const u = auth.session && auth.session.user, who = u && ((u.user_metadata && u.user_metadata.name) || u.email);
-  document.body.classList.toggle("anon", !auth.session);
+  document.body.classList.toggle("anon", LOGIN_REQUIRED && !auth.session);
   const a = $("acct");
   if (a) {
-    a.innerHTML = auth.session ? `Signed in${who ? ` as <b>${esc(who)}</b>` : ""} · <button class="link" id="acct-act" type="button">My activity</button> · <button class="link" id="acct-priv" type="button">Privacy</button> · <button class="link" id="acct-out" type="button">Sign out</button>` : `<button class="reset signin" id="acct-in" type="button">Sign in to open every tab</button>`;
+    a.innerHTML = auth.session ? `Signed in${who ? ` as <b>${esc(who)}</b>` : ""} · <button class="link" id="acct-act" type="button">My activity</button> · <button class="link" id="acct-priv" type="button">Privacy</button> · <button class="link" id="acct-out" type="button">Sign out</button>` : `<button class="reset signin" id="acct-in" type="button">Sign in</button>`;
     const out = $("acct-out"), inn = $("acct-in"), act = $("acct-act"), pv = $("acct-priv");
     if (act) act.onclick = () => { auth.prevScreen = null; openAuth("activity"); };
     if (pv) pv.onclick = () => { auth.prevScreen = null; openAuth("privacy"); };
@@ -3429,7 +3431,7 @@ const A_EYE = `<button type="button" class="a-eye" data-eye aria-label="Show pas
 const A_EMAIL = `<label for="a-em">Email</label><input id="a-em" type="email" placeholder="you@company.com" autocomplete="email" inputmode="email"><div class="a-err" data-e="a-em" role="alert"></div>`;
 const aBack = `<button type="button" class="a-lnk a-back" data-as="choose">← All sign-in options</button>`;
 const A_SCREENS = {
-  choose: () => `<h1 id="auth-title">Sign in or create an account</h1><p class="a-sub">Home is open to everyone. The rest of the tracker needs an account. Choose how you'd like to continue.</p>
+  choose: () => `<h1 id="auth-title">Sign in or create an account</h1><p class="a-sub">You don't need an account to browse. An account lets you keep private notes and contacts on investors and follow firms. Choose how you'd like to continue.</p>
     ${auth.notice ? `<div class="a-note" role="alert">${esc(auth.notice)}</div>` : ""}
     <div class="a-opts">
       ${auth.providers?.linkedin_oidc !== false ? `<button class="a-btn a-li" type="button" data-social="linkedin_oidc">Continue with LinkedIn</button>` : ""}
@@ -3439,7 +3441,7 @@ const A_SCREENS = {
       <button class="a-btn ghost a-opt" type="button" data-as="signup"><b>Create account</b><small>Free. Takes under a minute.</small></button>
     </div>
     <p class="a-sub" style="font-size:12px;margin-top:14px">By continuing you agree to the <button type="button" class="a-lnk" data-as="privacy">privacy notice</button>: we record the pages you open and what you search while signed in.</p>${aPerksMobile()}`,
-  signin: () => `${aBack}<h1 id="auth-title">Sign in with email and password</h1><p class="a-sub">Sign in to open Feed, Investors, Network, Flows, Markets, FPIs and GIFT City.</p>
+  signin: () => `${aBack}<h1 id="auth-title">Sign in with email and password</h1><p class="a-sub">Sign in to keep private notes and contacts on investors.</p>
     ${auth.notice ? `<div class="a-note" role="alert">${esc(auth.notice)}</div>` : ""}
     <form novalidate data-do="signin">${A_EMAIL}
       <label for="a-pw">Password</label><div class="a-field"><input id="a-pw" type="password" placeholder="Your password" autocomplete="current-password">${A_EYE}</div><div class="a-err" data-e="a-pw" role="alert"></div>
@@ -3515,7 +3517,7 @@ function aPreview() {
 function authPitch() {
   const n = (state.events || []).length;
   return `<div><h2>See where foreign money is moving in India.</h2>
-    <p>Investments, exits, FPI flows and fund launches in one place${n ? `, with ${n.toLocaleString("en-IN")} stories tracked` : ""}. Sign in free to open everything.</p></div>
+    <p>Investments, exits, FPI flows and fund launches in one place${n ? `, with ${n.toLocaleString("en-IN")} stories tracked` : ""}. Sign in free to keep private notes on investors.</p></div>
     <ul class="a-perks">${aPerkList()}</ul>${aPreview()}
     <div class="a-free"><b>Home stays free</b> for everyone: today's FPI flow, the biggest deals this week and the latest stories.</div>`;
 }
@@ -3846,8 +3848,6 @@ function drawOps() {
 state.prevVisit = load("ict-last-visit");
 authBoot();
 setTab("overview");
-applyUrl();
-route();
 refresh();
 loadHoldings();
 loadOverviewRegs();
@@ -4486,6 +4486,9 @@ document.querySelectorAll("#fhseg button").forEach((b) => b.onclick = () => {
 });
 
 xtInit();
+// Deep links (?tab=markets, #firm/...) run last, once every part of the page code above has been defined.
+applyUrl();
+route();
 
 </script>
 <script>
