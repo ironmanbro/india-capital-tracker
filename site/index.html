@@ -338,6 +338,8 @@ header .eyebrow{color:var(--muted);font-size:12px;font-weight:600;letter-spacing
 .seg button{border-radius:999px;background:none}
 .seg button[aria-pressed="true"]{background:var(--panel);box-shadow:0 1px 4px rgba(0,0,0,.25)}
 /* Overview */
+.sm{display:none}
+@media (max-width:700px){.lg{display:none}.sm{display:inline}}
 .lockbox,.ovbanner{display:none}
 body.anon .ovc.gated>:not(.ovh):not(.lockbox),body.anon .ovc.gated .ovh .link,body.anon #ov-cross{display:none}
 body.anon .ovc.gated .lockbox{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:14px 0 6px}
@@ -761,7 +763,7 @@ html.lenis,html.lenis body{height:auto}
     <h3>Before you continue</h3>
     <ul>
       <li>This is a <strong>personal project</strong>. It is not affiliated with, or endorsed by, any employer or financial institution.</li>
-      <li>Stories come from <strong>public sources</strong> (Google News and NSE). They may be incomplete, out of date or wrong. Always check the original article.</li>
+      <li>Stories come from <strong>public sources</strong> (news reports, NSE, NSDL, SEBI, RBI and DPIIT). They may be incomplete, out of date or wrong. Always check the original article.</li>
       <li>Nothing here is <strong>investment, legal or tax advice</strong>, or a recommendation to buy or sell anything.</li>
       <li>Headlines and links belong to their publishers.</li>
     </ul>
@@ -929,7 +931,7 @@ html.lenis,html.lenis body{height:auto}
       <button class="reset" id="pgo" type="button">Find the link</button>
     </div>
     </details>
-    <p class="sub" style="margin:0 0 10px">A line means two firms appeared in the same deal story; it is not an ownership record. A dashed line is a stake of 1% or more from a company's shareholding filing. Click a firm to highlight its neighbours, then open its links and stories.</p>
+    <p class="sub" style="margin:0 0 10px"><span class="lg">A line means two firms appeared in the same deal story; it is not an ownership record. A dashed line is a stake of 1% or more from a company's shareholding filing. Click a firm to highlight its neighbours, then open its links and stories.</span><span class="sm">A line joins two firms in the same deal story (not an ownership record). Dashed means a stake of 1% or more. Tap a firm for its links.</span></p>
     <div class="netwrap">
       <div class="netsvg" id="net-graph"></div>
       <aside class="netpanel" id="net-panel" aria-live="polite"></aside>
@@ -994,7 +996,7 @@ html.lenis,html.lenis body{height:auto}
       <div class="flegend" id="dlegend1"></div>
       <div class="hbars" id="dcountry"></div>
       <p class="dsrc" data-src="dpiit_fdi" data-what="DPIIT quarterly FDI fact sheet" data-edition="1"></p>
-      <p class="note" style="margin-top:10px">The ten largest source countries since 2000, ordered by the latest year. Much of the money routed through Singapore and Mauritius comes from funds based elsewhere.</p>
+      <p class="note" style="margin-top:10px"><span class="lg">The ten largest source countries since 2000, ordered by the latest year. Much of the money routed through Singapore and Mauritius comes from funds based elsewhere.</span><span class="sm">Ten largest source countries since 2000, by latest year. Money routed through Singapore and Mauritius often comes from funds based elsewhere.</span></p>
     </div>
     <div class="fcard">
       <div class="fhead"><div><h3>Where FDI goes</h3><div class="sub" id="dwhere-sub">FDI equity inflow · US$</div></div>
@@ -1010,7 +1012,7 @@ html.lenis,html.lenis body{height:auto}
       <div class="fhead"><div><h3>FDI into India over 26 years<span class="era hist">Historical · official</span></h3><div class="sub" id="dannual-sub">Total FDI inflow by financial year · US$ million</div></div></div>
       <div class="fchart" id="dannual"></div>
       <p class="dsrc" data-src="dpiit_fdi" data-what="DPIIT quarterly FDI fact sheet" data-edition="1"></p>
-      <p class="note" style="margin-top:8px">Total FDI = equity + re-invested earnings + other capital, on the international definition DPIIT uses. The latest year is provisional and may be revised.</p>
+      <p class="note" style="margin-top:8px"><span class="lg">Total FDI = equity + re-invested earnings + other capital, on the international definition DPIIT uses. The latest year is provisional and may be revised.</span><span class="sm">Total FDI = equity + re-invested earnings + other capital. The latest year is provisional.</span></p>
     </div>
     <h2 class="fsec">FDI reports from DPIIT</h2>
     <p class="note">Latest FDI newsletters and fact sheets published by DPIIT, with the original PDFs.</p>
@@ -1019,7 +1021,7 @@ html.lenis,html.lenis body{height:auto}
   </section>
 
   <section id="tab-markets" hidden>
-    <p class="sub" style="margin:0 0 12px">Daily exchange and NSDL data: FII/FPI activity, bulk and block deals with foreign investors, FPI debt holdings and sector allocations. Loaded by the daily data job.</p>
+    <p class="sub" style="margin:0 0 12px"><span class="lg">Daily exchange and NSDL data: FII/FPI activity, bulk and block deals with foreign investors, FPI debt holdings and sector allocations. Loaded by the daily data job.</span><span class="sm">Daily FII/FPI activity, foreign bulk and block deals, FPI debt and sector holdings.</span></p>
     <div id="mk-body"><p class="note">Loading…</p></div>
   </section>
 
@@ -1077,7 +1079,7 @@ html.lenis,html.lenis body{height:auto}
       <a href="https://www.linkedin.com/in/kishansinghania/" target="_blank" rel="noopener">LinkedIn</a> ·
       <button class="link" type="button" data-gloss-open>Jargon explained</button></div>
     <div class="sub" id="fx-foot"></div>
-    <div class="sub">A personal project tracking foreign capital flowing into and out of India. Sources: Google News and NSE; stories may contain errors, so check the original article. Not affiliated with any employer. Not investment advice.</div>
+    <div class="sub"><span class="lg">A personal project tracking foreign capital flowing into and out of India. Sources include news reports, NSE, NSDL, SEBI, RBI and DPIIT. Stories may contain errors, so check the original article. Not affiliated with any employer. Not investment advice.</span><span class="sm">A personal project tracking foreign capital into and out of India. News stories can be wrong: check the original. Not affiliated with any employer. Not investment advice.</span></div>
   </footer>
 </div>
 
@@ -1732,8 +1734,8 @@ function renderDpiit() {
   const w = hbars($("dwhere"), $("dlegend2"), flows.dseg);
   $("dwhere-sub").textContent = `FDI equity inflow by ${flows.dseg === "state" ? "state" : "sector"} · US$ · FY ${w.cur}${w.prev ? ` vs FY ${w.prev}` : ""}`;
   $("dwhere-note").textContent = flows.dseg === "state"
-    ? "The ten states with the most FDI equity since October 2019, when state-wise data began, ordered by the latest year."
-    : "The ten sectors with the most FDI equity since 2000, ordered by the latest year. Services covers banking, insurance, outsourcing, R&D and similar.";
+    ? "Ten states with the most FDI equity since October 2019, when state data began, by latest year."
+    : "Ten sectors with the most FDI equity since 2000, by latest year. Services covers banking, insurance, outsourcing, R&D and similar.";
   const yrs = [...new Set(flows.dpiit.filter((r) => r.kind === "annual").map((r) => r.fy))].sort();
   const av = (fy, name) => flows.dpiit.find((r) => r.kind === "annual" && r.fy === fy && r.name === name)?.usd_m ?? 0;
   const pts = yrs.map((fy, i) => ({ fy, v: av(fy, "Total FDI"), eq: av(fy, "Equity"), prev: i ? av(yrs[i - 1], "Total FDI") : null, partial: i === yrs.length - 1 }));
@@ -3422,9 +3424,10 @@ async function authOut() {
 
 const A_EYE = `<button type="button" class="a-eye" data-eye aria-label="Show password">Show</button>`;
 const A_EMAIL = `<label for="a-em">Email</label><input id="a-em" type="email" placeholder="you@company.com" autocomplete="email" inputmode="email"><div class="a-err" data-e="a-em" role="alert"></div>`;
+const lg = (full, short) => `<span class="lg">${full}</span><span class="sm">${short}</span>`;
 const aBack = `<button type="button" class="a-lnk a-back" data-as="choose">← All sign-in options</button>`;
 const A_SCREENS = {
-  choose: () => `<h1 id="auth-title">Sign in or create an account</h1><p class="a-sub">You don't need an account to browse. An account lets you keep private notes and contacts on investors and follow firms. Choose how you'd like to continue.</p>
+  choose: () => `<h1 id="auth-title">Sign in or create an account</h1><p class="a-sub">${lg("You don't need an account to browse. An account lets you keep private notes and contacts on investors and follow firms.", "No account needed to browse. An account adds private investor notes.")}</p>
     ${auth.notice ? `<div class="a-note" role="alert">${esc(auth.notice)}</div>` : ""}
     <div class="a-opts">
       ${auth.providers?.linkedin_oidc !== false ? `<button class="a-btn a-li" type="button" data-social="linkedin_oidc">Continue with LinkedIn</button>` : ""}
@@ -3453,7 +3456,7 @@ const A_SCREENS = {
   name: () => `<h1 id="auth-title">What should we call you?</h1><p class="a-sub">Your name can be different from your email. We keep it so the site owner knows who is using the tracker.</p>
     <form novalidate data-do="name"><label for="a-nm">Full name</label><input id="a-nm" type="text" placeholder="Kishan Singhania" autocomplete="name"><div class="a-err" data-e="a-nm" role="alert"></div>
       <button class="a-btn" type="submit">Continue</button></form>`,
-  magic: () => `${aBack}<h1 id="auth-title">Sign in with a link</h1><p class="a-sub">New or returning. Tell us your name and email and we'll send you a link; open it on this device and you're in. If you are new, your account is created the first time. No password needed.</p>
+  magic: () => `${aBack}<h1 id="auth-title">Sign in with a link</h1><p class="a-sub">${lg("New or returning: enter your name and email and we'll send a link. Open it on this device to sign in. A new account is created the first time. No password needed.", "We'll email you a link. New accounts are created the first time. No password.")}</p>
     <form novalidate data-do="magic"><label for="a-nm">Full name</label><input id="a-nm" type="text" placeholder="Kishan Singhania" autocomplete="name" value="${esc(load("ict-name") || "")}"><div class="a-err" data-e="a-nm" role="alert"></div>${A_EMAIL}
       <label class="a-chk"><input type="checkbox" id="a-agree"> <span>I agree that Indian Capital Tracker records the pages I open and what I search while signed in, as set out in the <button type="button" class="a-lnk" data-as="privacy">privacy notice</button>.</span></label><div class="a-err" data-e="a-agree" role="alert"></div>
       <button class="a-btn" type="submit">Email me the link</button></form>
@@ -3884,7 +3887,8 @@ async function xRegistry(names) {
   }
   return { get: (n) => out.get(key(n)) || {} };
 }
-const mkSec = (title, note, body) => `<h2 class="fsec">${esc(title)}</h2><p class="note">${esc(note)}</p>${body}`;
+const lgsm = (a) => Array.isArray(a) ? `<span class="lg">${esc(a[0])}</span><span class="sm">${esc(a[1])}</span>` : esc(a);
+const mkSec = (title, note, body) => `<h2 class="fsec">${esc(title)}</h2><p class="note">${lgsm(note)}</p>${body}`;
 
 async function openMarkets() {
   if (mk.loaded) return;
@@ -3980,7 +3984,7 @@ function xtMarkets(X) {
   const days = [...new Set(oi.map((r) => r.date))].sort().reverse();
   if (days.length) {
     const day = days[0], at = (rows, d, c) => rows.find((r) => r.date === d && r["Client Type"] === c);
-    out.push(mkSec(`Derivatives positions by investor type, ${day}`, "Open contracts on NSE futures and options by who holds them. Net is long minus short. FII means foreign institutional investors.",
+    out.push(mkSec(`Derivatives positions by investor type, ${day}`, ["Open contracts on NSE futures and options by who holds them. Net is long minus short. FII means foreign institutional investors.", "NSE futures and options positions by holder. Net is long minus short."],
       mkTable(["Investor type", "Index futures net", "Stock futures net", "Index call options net", "Index put options net", "Total long", "Total short"],
         ["FII", "DII", "Pro", "Client"].map((c) => { const r = at(oi, day, c); return r ? [c, mkFmt(xtNet(r, "Future Index Long", "Future Index Short")), mkFmt(xtNet(r, "Future Stock Long", "Future Stock Short")),
           mkFmt(xtNet(r, "Option Index Call Long", "Option Index Call Short")), mkFmt(xtNet(r, "Option Index Put Long", "Option Index Put Short")), mkFmt(r["Total Long Contracts"]), mkFmt(r["Total Short Contracts"])] : null; }).filter(Boolean)) +
@@ -3990,7 +3994,7 @@ function xtMarkets(X) {
   }
   const pl = (X["exchange/nse_pledged_shares"]?.data || []).map((r) => ({ n: r.comName, own: mkNum(r.percPromoterHolding), co: mkNum(r.percSharesPledged), of: mkNum(r.totPromoterHolding) > 0 ? mkNum(r.numSharesPledged) / mkNum(r.totPromoterHolding) * 100 : null, d: r.shp }))
     .filter((r) => r.of != null && r.of > 0 && r.own > 0).sort((a, b) => b.of - a.of).slice(0, 25);
-  if (pl.length) out.push(mkSec("Most-pledged promoter holdings", "Listed companies whose promoters have pledged the largest share of their own holding as loan collateral, from the latest quarterly disclosure. A high figure is a risk signal for lenders and investors.",
+  if (pl.length) out.push(mkSec("Most-pledged promoter holdings", ["Listed companies whose promoters have pledged the largest share of their own holding as loan collateral, from the latest quarterly disclosure. A high figure is a risk signal for lenders and investors.", "Promoters with the largest share of their holding pledged as loan collateral. A high figure is a risk signal."],
     mkTable(["Company", "Promoter holding (%)", "Pledged, share of promoter holding (%)", "Pledged, share of company (%)", "Disclosure as of"], pl.map((r) => [xFirm(r.n), mkFmt(r.own, 1), mkFmt(r.of, 1), mkFmt(r.co, 2), r.d || "–"]), 4) +
     xtSrc("NSE pledged shares disclosures", "https://www.nseindia.com/companies-listing/corporate-filings-pledged-data", X["exchange/nse_pledged_shares"])));
   const sebi = (k, title, note, n) => { const l = xtSebi(X, k).slice(0, n); if (l.length) out.push(mkSec(title, note, mkTable(["Date", "Filing", "Foreign link"], l.map((r) => [xtD(r.t), xtA(r.url, r.title), r.foreign_hint ? "Title suggests" : "–"]), 2) + xtSrc("SEBI", "https://www.sebi.gov.in/", X[`sebi/${k}`]))); };
@@ -3999,13 +4003,13 @@ function xtMarkets(X) {
   sebi("public_issues", "SEBI public issue filings", "Draft and final offer documents for IPOs and other issues, newest first." + hint, 25);
   sebi("enforcement_orders", "SEBI enforcement orders", "Orders passed by SEBI, newest first. An order is not proof of wrongdoing by every name in the title.", 15);
   const ann = (X.nse_announcements?.data || []).slice(0, 40);
-  if (ann.length) out.push(mkSec("Exchange announcements", "Open offers, preferential issues, QIPs, warrants and foreign-investor filings that listed companies posted on NSE in the last 30 days. Picked by keyword, so open the filing to read it.",
+  if (ann.length) out.push(mkSec("Exchange announcements", ["Open offers, preferential issues, QIPs, warrants and foreign-investor filings that listed companies posted on NSE in the last 30 days. Picked by keyword, so open the filing to read it.", "Open offers, placements and foreign-investor filings on NSE in the last 30 days. Picked by keyword: open the filing to read it."],
     mkTable(["Date", "Company", "Subject", "Filing"], ann.map((r) => [String(r.date || "").slice(0, 10), xFirm(r.company || r.symbol), r.subject || "–", xtA(r.file, "Open")]), 3) + xtSrc("NSE corporate announcements", "https://www.nseindia.com/companies-listing/corporate-filings-announcements", X.nse_announcements)));
   const pib = (X.pib_releases?.data || []).slice(0, 15);
   if (pib.length) out.push(mkSec("Government releases", "Press Information Bureau releases that mention foreign investment, FDI policy or GIFT City.",
     mkTable(["Release", "Date"], pib.map((r) => [xtA(r.link, r.title), r.published || "–"]), 1) + xtSrc("PIB", "https://pib.gov.in/", X.pib_releases)));
   const news = xtNews(X).slice(0, 30);
-  if (news.length) out.push(mkSec("Funding and deal news", "Headlines from Indian startup media and global news coverage, newest first. These are reports, not verified facts, so open the source.",
+  if (news.length) out.push(mkSec("Funding and deal news", ["Headlines from Indian startup media and global news coverage, newest first. These are reports, not verified facts, so open the source.", "Startup and global headlines, newest first. Reports, not verified facts: open the source."],
     mkTable(["Headline", "Source", "Date"], news.map((r) => [xtA(r.url, r.title), r.src, xtD(r.t)]), 1) + xtSrc("Entrackr, Inc42, YourStory, ET Startups, PR Newswire and GDELT", "https://www.gdeltproject.org/", X.startup_funding_news)));
   return out;
 }
