@@ -17,7 +17,17 @@ import { dedupe } from "./dedupe.ts";
 
 const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 const API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
-const MODEL = Deno.env.get("CLASSIFIER_MODEL") ?? "claude-opus-5-5";
+const MODEL = Deno.env.get("CLASSIFIER_MODEL") ?? "claude-haiku-5-5";
+// Rules label everything for free. The LLM only sees stories the rules found an event in but could not name an investor for,
+// and never more than LLM_DAILY_CAP stories per UTC day.
+const LLM_DAILY_CAP = Number(Deno.env.get("LLM_DAILY_CAP") ?? 300);
+
+async function llmLeftToday() {
+  const start = new Date();
+  start.setUTCHours(0, 0, 0, 0);
+  const { count } = await db.from("events").select("id", { count: "exact", head: true }).gte("llm_at", start.toISOString());
+  return Math.max(0, LLM_DAILY_CAP - (count ?? 0));
+}
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36";
 const TIME_BUDGET_MS = 120_000;
 
@@ -131,6 +141,7 @@ function toEvent(r: NewsRow, c: Classified, classifier: string) {
     priority: c.priority,
     confidence: c.confidence,
     classifier,
+    llm_at: classifier === "llm" ? new Date().toISOString() : null,
     query_tag: r.query_tag,
   };
 }
@@ -144,17 +155,19 @@ async function runNews(time: string, deadline: number, runSource = "news", paral
   // Rules first, so every item gets stored even if the LLM step runs out of time.
   const events = fresh.map((r) => toEvent(r, classifyRules(r), "rules"));
 
-  if (API_KEY && fresh.length) {
-    const client = new Anthropic({ apiKey: API_KEY });
+  const llmQueue = fresh.filter((r, i) => events[i].event_type !== "irrelevant" && !events[i].investor)
+    .slice(0, API_KEY ? await llmLeftToday() : 0);
+  if (llmQueue.length) {
+    const client = new Anthropic({ apiKey: API_KEY! });
     const batches: NewsRow[][] = [];
-    for (let i = 0; i < fresh.length; i += 25) batches.push(fresh.slice(i, i + 25));
+    for (let i = 0; i < llmQueue.length; i += 25) batches.push(llmQueue.slice(i, i + 25));
     await pool(batches, 4, async (batch) => {
       if (Date.now() > deadline) return;
       try {
         const res = await classifyLLM(client, MODEL, batch);
         res?.forEach((c, key) => {
           const idx = events.findIndex((e) => e.dedup_key === key);
-          const row = fresh.find((r) => r.key === key)!;
+          const row = llmQueue.find((r) => r.key === key)!;
           if (idx >= 0) events[idx] = toEvent(row, c, "llm");
         });
       } catch (e) {
@@ -177,10 +190,12 @@ async function runNews(time: string, deadline: number, runSource = "news", paral
 // Upgrade rule-classified news to LLM classification (runs when an API key exists).
 async function reclassify(deadline: number) {
   if (!API_KEY) return { skipped: "no ANTHROPIC_API_KEY" };
+  const left = await llmLeftToday();
+  if (left <= 0) return { skipped: "daily LLM cap reached" };
   const { data } = await db.from("events")
     .select("dedup_key,title,summary,source_name,query_tag,url,published_at")
-    .eq("source", "news").eq("classifier", "rules")
-    .order("fetched_at", { ascending: false }).limit(150);
+    .eq("source", "news").eq("classifier", "rules").is("investor", null).neq("event_type", "irrelevant")
+    .order("fetched_at", { ascending: false }).limit(Math.min(150, left));
   if (!data?.length) return { updated: 0 };
   const client = new Anthropic({ apiKey: API_KEY });
   const rows: NewsRow[] = data.map((d) => ({ ...d, key: d.dedup_key, summary: d.summary ?? "" }));
