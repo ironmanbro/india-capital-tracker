@@ -979,6 +979,64 @@ nav.tabs button:focus-visible,.subtabs button:focus-visible{outline-offset:-2px}
   .link.sharebtn{padding:10px 4px}
   .ftable td{padding-top:10px;padding-bottom:10px}
 }
+
+/* ===================== Motion & materials ===================== */
+/* Springs as CSS easing. --spring is critically damped (damping 1.0): settles with no overshoot, for anything that
+   simply opens or closes. --spring-bounce (damping 0.8) is only for a sheet released with momentum.
+   CSS transitions retarget from the element's current value, so every overlay can be reversed mid-flight. */
+:root{
+  --spring:linear(0, .0592, .185, .3279, .4638, .5821, .68, .7584, .8195, .8664, .9018, .9283, .948, .9624, .9729, .9806, .9861, .9901, .993, .995, .9965, .9975, .9982, .9988, 1);
+  --spring-bounce:linear(0, .0418, .1411, .2674, .4003, .527, .64, .7361, .8146, .8763, .9232, .9574, .9814, .9973, 1.0072, 1.0125, 1.0148, 1.0151, 1.014, 1.0123, 1.0104, 1.0084, 1.0065, 1.0049, 1.0035, 1.0024, 1.0016, 1.001, 1);
+  --t-spring:420ms;
+  --material:color-mix(in srgb,var(--panel) 78%,transparent);
+  --material-edge:rgba(255,255,255,.10);
+}
+:root[data-theme="light"]{--material:rgba(255,255,255,.78);--material-edge:rgba(255,255,255,.9)}
+
+/* 1. Instant response: feedback on press, no tap delay, no waiting on long transitions. */
+html{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+button,.reset,select,summary,.link,.kpi,.card,.bk,.ovrow,.ftable tbody tr,nav.tabs button,.gnav button,.subtabs button,.tfseg button,.cmdk-it{
+  transition-property:transform,background-color,border-color,color,box-shadow,opacity;transition-duration:90ms;transition-timing-function:ease-out}
+:is(button,.reset,nav.tabs button,.gnav button,.subtabs button,.tfseg button,.kpi):active{transform:scale(.97);transition-duration:0ms}
+:is(.card,.bk,.ovrow.scard):active{transform:scale(.99)!important;transition-duration:0ms}
+.ftable tbody tr:active td{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.toast{transition:transform var(--t-spring) var(--spring),opacity 200ms ease-out}
+
+/* 2. Overlays open and close on the spring, and reverse from wherever they are if toggled again. */
+.cmdk,.welcome{transition:opacity 220ms ease-out,display 220ms allow-discrete,overlay 220ms allow-discrete;opacity:1;animation:none}
+.cmdk[hidden],.welcome[hidden]{display:none;opacity:0}
+.cmdk-box,.welcome .box{transition:transform var(--t-spring) var(--spring),opacity 200ms ease-out;transform:none;opacity:1;transform-origin:50% 0}
+@starting-style{.cmdk:not([hidden]),.welcome:not([hidden]){opacity:0}.cmdk:not([hidden]) .cmdk-box{transform:translateY(-8px) scale(.97);opacity:0}.welcome:not([hidden]) .box{transform:translateY(14px) scale(.97);opacity:0}}
+@media (max-width:700px){
+  #gscrim{transition:opacity 260ms ease-out,visibility 260ms}
+  #gsheet{transition:transform var(--t-spring) var(--spring),opacity 180ms ease-out,visibility var(--t-spring);transform:translateY(calc(100% + 96px));opacity:1;touch-action:none;will-change:transform}
+  .gopen #gsheet{transform:translateY(var(--drag,0px))}
+  #gsheet.dragging{transition:none}
+  #gsheet.fling{transition:transform var(--t-spring) var(--spring-bounce),visibility var(--t-spring)}
+  #gsheet::before{content:"";display:block;width:36px;height:4px;border-radius:2px;background:var(--line-2,var(--line));margin:2px auto 6px}
+}
+
+/* 3. Scrolling regions keep their own momentum and don't drag the page behind them. */
+.ftable-wrap,.scroll,.cmdk-list,#gsheet,.welcome .box,.netpanel,.fchart{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.ftable-wrap,.scroll{scroll-behavior:auto}
+.fchart svg,.netsvg svg{touch-action:pan-y}
+
+/* 4. Materials: floating layers are frosted glass with a bright top edge, heavier blur for bigger surfaces. */
+:root:not(#x) :is(#ftip,.cmdk-box,.netpanel,#gsheet,.gnav,.toast,.welcome .box){
+  background:var(--material)!important;-webkit-backdrop-filter:blur(12px) saturate(160%)!important;backdrop-filter:blur(12px) saturate(160%)!important;
+  border:1px solid var(--line)!important;box-shadow:inset 0 1px 0 var(--material-edge),0 18px 48px -12px rgba(0,0,0,.55)!important}
+:root:not(#x) :is(.cmdk-box,.welcome .box,#gsheet){-webkit-backdrop-filter:blur(24px) saturate(170%)!important;backdrop-filter:blur(24px) saturate(170%)!important}
+.welcome{background:rgba(5,8,14,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+
+@media (prefers-reduced-motion:reduce){
+  :root{--t-spring:160ms;--spring:ease-out;--spring-bounce:ease-out}
+  :is(button,.reset,.kpi,.card,.bk,.ovrow.scard):active{transform:none!important}
+  @starting-style{.cmdk:not([hidden]) .cmdk-box,.welcome:not([hidden]) .box{transform:none}}
+}
+@media (prefers-reduced-transparency:reduce){
+  :root:not(#x) :is(#ftip,.cmdk-box,.netpanel,#gsheet,.gnav,.toast,.welcome .box){background:var(--panel)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+}
+@media (prefers-contrast:more){:root:not(#x) :is(#ftip,.cmdk-box,.netpanel,#gsheet,.gnav){background:var(--panel)!important;border-color:var(--ink)!important}}
 </style>
 <script src="vendor/lenis.min.js" defer></script>
 </head>
@@ -4908,6 +4966,47 @@ function hl(text, q) {
   const i = String(text).toLowerCase().indexOf(q);
   return i < 0 ? t : `${esc(text.slice(0, i))}<mark>${esc(text.slice(i, i + q.length))}</mark>${esc(text.slice(i + q.length))}`;
 }
+// ---------- Phone section sheet: drag to dismiss ----------
+// The sheet follows the thumb 1:1 from where it was grabbed. On release, the gesture's velocity is projected
+// forward (Apple's scroll-deceleration formula); if the projected point is past a third of the sheet, it closes,
+// otherwise it springs back, with a little bounce because the thumb carried momentum.
+(function sheetDrag() {
+  const sheet = $("gsheet");
+  if (!sheet) return;
+  let start = null, hist = [];
+  const project = (v, d = 0.998) => (v / 1000) * d / (1 - d);
+  sheet.addEventListener("pointerdown", (e) => {
+    if (e.pointerType === "mouse" || e.target.closest("button") && sheet.scrollHeight > sheet.clientHeight) return;
+    start = { y: e.clientY, id: e.pointerId }; hist = [[e.timeStamp, 0]];
+  });
+  sheet.addEventListener("pointermove", (e) => {
+    if (!start || e.pointerId !== start.id) return;
+    const dy = e.clientY - start.y;
+    // A 6px threshold keeps taps on the list items working as taps.
+    if (!sheet.classList.contains("dragging")) { if (Math.abs(dy) < 6) return; sheet.classList.add("dragging"); try { sheet.setPointerCapture(e.pointerId); } catch {} }
+    // Pulling up past the resting point resists progressively instead of stopping hard.
+    const y = dy > 0 ? dy : -(-dy * 120 * 0.55) / (120 + 0.55 * -dy);
+    sheet.style.setProperty("--drag", `${y}px`);
+    hist.push([e.timeStamp, dy]); if (hist.length > 5) hist.shift();
+  });
+  const end = (e) => {
+    if (!start || e.pointerId !== start.id) return;
+    const dragging = sheet.classList.contains("dragging");
+    start = null;
+    if (!dragging) return;
+    const [[t0, y0], [t1, y1]] = [hist[0], hist[hist.length - 1]];
+    const v = t1 > t0 ? (y1 - y0) / (t1 - t0) * 1000 : 0; // px per second
+    const cur = parseFloat(sheet.style.getPropertyValue("--drag")) || 0;
+    sheet.classList.remove("dragging");
+    sheet.classList.toggle("fling", Math.abs(v) > 300);
+    if (cur + project(v) > sheet.offsetHeight / 3) { gnav.open = null; drawGnav(); }
+    sheet.style.setProperty("--drag", "0px");
+    setTimeout(() => sheet.classList.remove("fling"), 500);
+  };
+  sheet.addEventListener("pointerup", end);
+  sheet.addEventListener("pointercancel", end);
+})();
+
 const cmdk = new CommandPalette();
 $("cmdk-open").onclick = () => cmdk.open();
 
