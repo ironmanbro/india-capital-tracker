@@ -1190,7 +1190,8 @@ async function refresh() {
     mergeFirms();
     state.runs = runs;
     state.latest = Object.fromEntries(latest.map((r) => [r.source, r.finished_at]));
-    state.lastReview = reviewed[0]?.finished_at || null;
+    // Show the newest collection run, not the (rarely run) review pass.
+    state.lastReview = Object.values(state.latest).reduce((a, t) => (!a || new Date(t) > new Date(a) ? t : a), null);
     await loadFlows();
     render();
   } catch (e) {
