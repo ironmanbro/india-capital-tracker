@@ -905,6 +905,26 @@ body.cmdk-on{overflow:hidden}
 .ovgrid{grid-template-columns:repeat(auto-fill,minmax(min(100%,460px),1fr));gap:12px}
 .ftiles{gap:10px}
 .ovc{padding:14px 16px}
+
+/* ---------- Loading, empty and status states ---------- */
+.skl{display:grid;gap:8px;padding:4px 0}
+.skl i{display:block;height:48px;border-radius:var(--r);background:rgba(30,41,59,.4);animation:skpulse 1.4s ease-in-out infinite}
+.skl i:nth-child(2){animation-delay:.15s;width:92%}.skl i:nth-child(3){animation-delay:.3s;width:78%}
+:root[data-theme="light"] .skl i{background:#E6EBF2}
+.skl-inline{display:inline-block;width:140px;height:10px;border-radius:4px;background:rgba(148,163,184,.18);animation:skpulse 1.4s ease-in-out infinite;vertical-align:middle}
+@media (prefers-reduced-motion:reduce){.skl i,.skl-inline{animation:none}}
+.nores{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:28px 16px;border:1px dashed var(--line-2,var(--line));border-radius:var(--r-lg);background:var(--panel);color:var(--muted)}
+.nores svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;opacity:.8}
+.nores p{margin:0;max-width:44ch;font-size:13px}
+/* Network side panel floats over the graph as an elevated card. */
+:root:not(#x) .netpanel{background:rgba(15,23,42,.9)!important;-webkit-backdrop-filter:blur(16px)!important;backdrop-filter:blur(16px)!important;
+  border:1px solid rgba(51,65,85,.5)!important;border-radius:12px!important;box-shadow:0 25px 50px -12px rgba(0,0,0,.6)!important}
+:root[data-theme="light"]:not(#x) .netpanel{background:rgba(255,255,255,.92)!important;border-color:#D5DCE6!important;box-shadow:0 20px 40px -12px rgba(15,23,42,.18)!important}
+/* Upload status badges. */
+.stbadge{display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 8px;border-radius:999px;font:600 11px/1 var(--font-mono);white-space:nowrap;vertical-align:middle;
+  color:var(--sc);background:color-mix(in srgb,var(--sc) 15%,transparent);border:1px solid color-mix(in srgb,var(--sc) 30%,transparent)}
+.stbadge.ok{--sc:var(--sig-in)}.stbadge.warn{--sc:var(--sig-wait)}.stbadge.bad{--sc:var(--sig-out)}.stbadge.run{--sc:var(--accent)}
+.shpbad{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--panel)}
 </style>
 <script src="vendor/lenis.min.js" defer></script>
 </head>
@@ -945,7 +965,7 @@ body.cmdk-on{overflow:hidden}
         <button class="cmdk-btn" id="cmdk-open" type="button" aria-label="Quick search (Ctrl or Cmd + K)" title="Quick search investors, firms or deals"><span>Quick search</span><kbd>⌘K</kbd></button>
         <button class="ib" id="theme" type="button" aria-label="Switch light or dark" title="Light or dark">&#9788;</button>
       </div>
-      <div class="hstatus"><div class="sub" id="updated">Loading…</div><div class="sub" id="visits"></div><div class="sub" id="acct"></div></div>
+      <div class="hstatus"><div class="sub" id="updated"><span class="skl-inline" aria-label="Loading"></span></div><div class="sub" id="visits"></div><div class="sub" id="acct"></div></div>
     </div>
   </header>
   <button class="totop" id="totop" type="button" aria-label="Back to top" title="Back to top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
@@ -1018,9 +1038,9 @@ body.cmdk-on{overflow:hidden}
       <div class="ovc"><div class="ovh"><div><h3>Biggest deals this week</h3><div class="sub">Largest agreed or completed deals, last 7 days</div></div><button class="link" data-go="feed">Feed ↗</button></div><div id="ov-deals"><!--skel--></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Latest stories</h3><div class="sub">News collected every hour, reviewed every 3 hours</div></div><button class="link" data-go="feed">All stories</button></div><div id="ov-stories"><!--skel--></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Latest FPI flow</h3><div class="sub" id="ov-flow-sub">NSDL</div></div><button class="link" data-go="flows">Flows ↗</button></div><div class="flowwrap"><div id="ov-flow"></div><div class="fchart" id="ov-fpibars"></div></div></div>
-      <div class="ovc"><div class="ovh"><div><h3>New FPI registrations</h3><div class="sub">Latest additions to the NSDL register</div></div><button class="link" data-go="directory">FPIs ↗</button></div><div id="ov-regs"><div class="sub">Loading…</div></div></div>
-      <div class="ovc gated"><div class="ovh"><div><h3>Funding and deal news</h3><div class="sub">Startup media and global coverage</div></div><button class="link" data-go="markets">Markets ↗</button></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-news"><div class="sub">Loading…</div></div></div>
-      <div class="ovc gated"><div class="ovh"><div><h3>SEBI filings</h3><div class="sub">Latest takeover and public issue filings</div></div><button class="link" data-go="markets">Markets ↗</button></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-sebi"><div class="sub">Loading…</div></div></div>
+      <div class="ovc"><div class="ovh"><div><h3>New FPI registrations</h3><div class="sub">Latest additions to the NSDL register</div></div><button class="link" data-go="directory">FPIs ↗</button></div><div id="ov-regs"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
+      <div class="ovc gated"><div class="ovh"><div><h3>Funding and deal news</h3><div class="sub">Startup media and global coverage</div></div><button class="link" data-go="markets">Markets ↗</button></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-news"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
+      <div class="ovc gated"><div class="ovh"><div><h3>SEBI filings</h3><div class="sub">Latest takeover and public issue filings</div></div><button class="link" data-go="markets">Markets ↗</button></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-sebi"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
       <div class="ovc gated"><div class="ovh"><div><h3>Following</h3><div class="sub">Firms you follow, on this device</div></div></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-follow"></div></div>
       <div class="ovc gated"><div class="ovh"><div><h3>Where the money comes from</h3><div class="sub">Capital deals in the last 90 days. Tap a row to see them</div></div></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-break"></div></div>
       <div class="ovc span2 gated"><div class="ovh"><div><h3>The last 30 days</h3><div class="sub">Reported deal value by category, and the most active investors</div></div><button class="link" data-go="investors">Investors ↗</button></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-week"></div></div>
@@ -1179,21 +1199,21 @@ body.cmdk-on{overflow:hidden}
     </div>
     <h2 class="fsec">FDI reports from DPIIT</h2>
     <p class="note">Latest FDI newsletters and fact sheets published by DPIIT, with the original PDFs.</p>
-    <div id="dpiit-pubs"><p class="note">Loading…</p></div>
+    <div id="dpiit-pubs"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div>
     <div class="ftip" id="ftip" hidden></div>
   </section>
 
   <section id="tab-odi" hidden>
     <p class="sub" style="margin:0 0 12px"><span class="lg">Money Indian companies commit to joint ventures (JV) and wholly owned subsidiaries (WOS) abroad: equity, loans and guarantees. Monthly from RBI's Overseas Direct Investment data, in US$.</span><span class="sm">Indian companies investing abroad, monthly from RBI (US$).</span></p>
-    <div id="odi-body"><p class="note">Loading…</p></div>
+    <div id="odi-body"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div>
   </section>
 
   <section id="tab-markets" hidden>
     <p class="sub" style="margin:0 0 12px"><span class="lg">Daily exchange and NSDL data: FII/FPI activity, bulk and block deals with foreign investors, FPI debt holdings and sector allocations. Loaded by the daily data job.</span><span class="sm">Daily FII/FPI activity, foreign bulk and block deals, FPI debt and sector holdings.</span></p>
-    <div id="mk-body"><p class="note">Loading…</p></div>
+    <div id="mk-body"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div>
   </section>
 
-  <section id="tab-users" hidden><div id="us-body"><p class="note">Loading…</p></div></section>
+  <section id="tab-users" hidden><div id="us-body"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></section>
 
   <section id="tab-entity" hidden><div id="entity-body"></div></section>
 
@@ -1492,10 +1512,13 @@ const srcTag = (e) => { const [l, k] = srcOf(e); return `<span class="src-tag" t
 // Placeholder cards shown while stories load, laid out like the real ones.
 const skelCards = (n = 3) => Array.from({ length: n }, () => `<div class="skel" aria-hidden="true"><div class="sk-row"><span class="skb pill" style="width:84px"></span><span class="skb pill" style="width:56px"></span></div><span class="skb line" style="width:92%"></span><span class="skb line" style="width:68%"></span><div class="sk-row"><span class="skb pill" style="width:60px"></span><span class="skb pill" style="width:110px"></span></div></div>`).join("") + `<span class="sr-only">Loading stories</span>`;
 
+// No-results card: a search icon over a short message.
+const noRows = (msg) => `<div class="nores" role="status"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5M8.5 11h5"/></svg><p>${msg}</p></div>`;
+
 function renderFeed() {
   const rows = filtered();
   $("fnote-slot").innerHTML = feedNotice();
-  if (!rows.length) { $("feed").innerHTML = `<div class="empty">Nothing matches these filters. Try other dates or press Reset.</div>`; return; }
+  if (!rows.length) { $("feed").innerHTML = noRows("No stories match the selected filters. Try other dates or press Reset."); return; }
   $("feed").innerHTML = rows.slice(0, 400).map((e) => {
     const who = e.parties.length
       ? `<span>${e.parties.map((p) => `<strong>${esc(p.name)}</strong>${p.role && p.role !== "other" ? ` (${esc(p.role)})` : ""}`).join(", ")}</span>`
@@ -2109,6 +2132,9 @@ function ensureNet() {
   }
 }
 
+// The graph's layout differs on phones; redraw when the window crosses widths.
+let netW = innerWidth;
+addEventListener("resize", () => { if (innerWidth === netW) return; netW = innerWidth; clearTimeout(net.rt); net.rt = setTimeout(() => { if (state.tab === "network") renderNetwork(); else if (state.tab === "firm") renderFirm(); }, 200); });
 function renderNetwork() {
   if (!state.events?.length) return;
   document.querySelectorAll("#nhops button").forEach((x) => x.setAttribute("aria-pressed", +x.dataset.h === net.hops));
@@ -2119,7 +2145,7 @@ function renderNetwork() {
   if (net.view === "all") return renderAllFirms();
   if (net.view === "path") return renderPath();
   const { nodes, adj } = net.g, c = nodes.get(net.center);
-  if (!c) { $("net-graph").innerHTML = `<div class="empty">No linked firms yet.</div>`; $("net-panel").innerHTML = ""; return; }
+  if (!c) { $("net-graph").innerHTML = noRows("No linked firms match the selected filters."); $("net-panel").innerHTML = ""; return; }
   // First ring: the centre's direct links, strongest first. Second ring: a few of each one's own links.
   const w = edgeW;
   const nb = new Map([...(adj.get(c.key) || new Map())].filter(([k]) => kindOk(nodes.get(k))));
@@ -2243,7 +2269,7 @@ function renderFirm() {
   if (!state.events?.length) { box.innerHTML = skelCards(3); return; }
   ensureNet();
   const n = net.g.nodes.get(net.firm);
-  if (!n) { box.innerHTML = `<div class="empty">No firm by that name in the stories.</div>`; return; }
+  if (!n) { box.innerHTML = noRows("No firm by that name appears in the stories. Try part of the name."); return; }
   const list = [...n.stories], cats = {}, priv = list.filter((e) => ROUND.test(e.title)), rest = list.filter((e) => !ROUND.test(e.title));
   let buy = 0, sell = 0, target = 0, big = null, first = null, last = null;
   list.forEach((e) => {
@@ -2424,7 +2450,7 @@ function parseShp(text) {
 $("shp-file").addEventListener("change", async () => {
   const files = [...$("shp-file").files], out = $("shp-out");
   if (!files.length) return;
-  out.innerHTML = `<div class="sub" style="margin:10px 0">Reading ${files.length} file${files.length === 1 ? "" : "s"}…</div>`;
+  out.innerHTML = `<p style="margin:10px 0"><span class="stbadge run">Reading ${files.length} file${files.length === 1 ? "" : "s"}…</span></p>`;
   if (state.events.length) ensureNet();
   const items = [];
   for (const f of files) {
@@ -2440,8 +2466,8 @@ $("shp-file").addEventListener("change", async () => {
   const ok = items.filter((x) => x.p?.rows.length);
   out.innerHTML = `<p class="sub" style="margin:10px 0">${ok.length} of ${files.length} file${files.length === 1 ? "" : "s"} have named holders of 1% or more. Foreign holders are ticked. Check names and stakes against the filings before saving.</p>` +
     items.map((x, n) => !x.p?.rows.length
-      ? `<div class="empty" style="margin:6px 0;padding:10px">${esc(x.f.name)}: ${esc(x.err || "no named holders with 1% or more.")}</div>`
-      : `<details class="shpf" data-n="${n}" ${items.length <= 3 ? "open" : ""}><summary><b>${esc(x.p.company || x.f.name)}</b> · quarter ending ${esc(x.p.period_end || "?")} · <span class="shpc">${x.p.rows.filter((r) => r.foreign).length}</span> of ${x.p.rows.length} ticked <span class="sub">(${esc(x.f.name)})</span></summary>
+      ? `<div class="shpbad"><span class="stbadge ${x.err ? "bad" : "warn"}">${x.err ? "✕ Invalid XBRL file" : "! No holders ≥1%"}</span> <b>${esc(x.f.name)}</b> <span class="sub">${esc(x.err || "Read fine, but no named holders with 1% or more.")}</span></div>`
+      : `<details class="shpf" data-n="${n}" ${items.length <= 3 ? "open" : ""}><summary><span class="stbadge ok">✓ Parsed ${/nse/i.test(x.f.name) ? "NSE" : /bse/i.test(x.f.name) ? "BSE" : ""} XBRL</span> <b>${esc(x.p.company || x.f.name)}</b> · quarter ending ${esc(x.p.period_end || "?")} · <span class="shpc">${x.p.rows.filter((r) => r.foreign).length}</span> of ${x.p.rows.length} ticked <span class="sub">(${esc(x.f.name)})</span></summary>
         <div class="filters" style="margin:10px 0">
           <label>Company <input type="text" class="shp-co" value="${esc(x.p.company)}" style="width:16em"></label>
           <label>Symbol <input type="text" class="shp-sym" value="${esc(x.p.symbol)}" style="width:7em"></label>
@@ -3430,14 +3456,14 @@ $("leads-csv").addEventListener("click", async () => {
 });
 
 async function runDirSearch(reset) {
-  if (reset) { dir.shown = 0; $("dir-list").innerHTML = `<div class="empty">Loading…</div>`; }
+  if (reset) { dir.shown = 0; $("dir-list").innerHTML = `<div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div>`; }
   const seq = ++dir.seq;
   try {
     const { rows, total } = await apiPage(dirPath());
     if (seq !== dir.seq) return; // a newer search has started
     if (dir.view !== "fpi") { const hit = await fpiMatches(rows.map((r) => r.name)); if (seq !== dir.seq) return; dir.fpiHit = new Map([...(reset ? [] : dir.fpiHit || []), ...hit]); }
     const html = rows.map(dirRow).join("");
-    const none = `<div class="empty">Nothing matches. Try a shorter name or clear the filters.</div>`;
+    const none = noRows(dir.view === "ifsca" ? "No GIFT City entities match the selected filter criteria. Try a shorter name or clear the filters." : "No registered foreign entities match the selected filter criteria. Try a shorter name or clear the filters.");
     if (reset) $("dir-list").innerHTML = html ? dirTable(html) : none;
     else $("dir-tbody").insertAdjacentHTML("beforeend", html);
     dir.shown += rows.length;
@@ -3699,7 +3725,7 @@ const A_SCREENS = {
     <h3>How long</h3><p>Activity is deleted automatically after 12 months. Your account stays until you ask for it to be deleted.</p></div>
     <button class="a-btn ghost" type="button" data-back="1">← Back</button>`,
   activity: (d) => `<h1 id="auth-title">My activity</h1><p class="a-sub">Everything recorded about your visits while signed in. Only you and the site owner can see it.</p>
-    <div id="a-act" class="a-doc" style="max-height:44vh;overflow:auto">Loading…</div>
+    <div id="a-act" class="a-doc" style="max-height:44vh;overflow:auto"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="a-btn ghost" type="button" id="a-dl" style="flex:1">Download</button><button class="a-btn ghost" type="button" id="a-del" style="flex:1">Delete all</button></div>
     <button class="a-btn ghost" type="button" data-back="1">← Back</button>`,
   sent: (d) => `<div class="a-ok" aria-hidden="true">✉︎</div><h1 id="auth-title">Check your email</h1>
@@ -3932,7 +3958,7 @@ function usPerson(u, rows) {
 async function renderUsers() {
   const box = $("us-body");
   if (!auth.admin) { box.innerHTML = `<p class="note">This view is for the site owner.</p>`; return; }
-  box.innerHTML = `<p class="note">Loading…</p>`;
+  box.innerHTML = `<div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div>`;
   try {
     const [sm, users] = await Promise.all([usRpc("activity_summary", { days: usDays }), usRpc("activity_users", {})]);
     const tl = new Map(await Promise.all(users.slice(0, 80).map((u) => usRpc("activity_timeline", { uid: u.id, lim: 1000 }).then((r) => [u.id, r]).catch(() => [u.id, []]))));
@@ -4624,7 +4650,7 @@ async function openEntity(kind, ref) {
   setTab("entity");
   track("open", "entity", `${ref.name} (${kind})`);
   const box = $("entity-body");
-  box.innerHTML = `<div class="empty">Loading…</div>`;
+  box.innerHTML = `<div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div>`;
   try {
     const name = ref.name, n = gNorm(name);
     const deals = await dealsAll(), X = await loadExtra();
