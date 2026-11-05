@@ -26,7 +26,7 @@
 <meta name="twitter:description" content="Track foreign capital moving into and out of India: investments, exits, FPI and FDI flows, and offshore and GIFT City fund launches, in one place.">
 <meta name="twitter:image" content="https://india-capital-tracker.ironmanbro.workers.dev/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#0e0f12; --panel:#17191e; --ink:#eceef2; --muted:#8f97a5; --line:rgba(255,255,255,.08); --chip:rgba(255,255,255,.07);
@@ -747,6 +747,86 @@ html.lenis,html.lenis body{height:auto}
 /* Header text: readable size and contrast; one clear sign-in button */
 :root:root:root .maker,:root:root:root .hstatus .sub{font-size:.8125rem!important;opacity:.9!important;color:var(--muted)}
 .reset.signin{margin-top:6px;padding:7px 14px}
+
+/* ===================== Design system: institutional terminal ===================== */
+/* Tokens. Dark is the default; light keeps its own palette below with the same signal meanings. */
+:root{
+  --font-ui:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --r-sm:4px; --r:6px; --r-lg:8px;
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:20px;
+  --ring:0 0 0 2px rgba(59,130,246,.5);
+  --sig-in:#10B981; --sig-out:#EF4444; --sig-wait:#F59E0B;
+}
+:root:not([data-theme="light"]){
+  --bg:#0B0F17; --page:#0B0F17; --panel:#151C28; --panel-2:#1A2332; --glass:var(--panel);
+  --ink:#E6EAF2; --muted:#8A94A6; --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.14); --chip:rgba(255,255,255,.06);
+  --accent:#3B82F6; --accent-ink:#ffffff;
+  --entry:#10B981; --exit:#EF4444; --fund_launch:#06B6D4; --relocation:#8B5CF6; --outbound:#F59E0B; --other:#8A94A6;
+  --good:#10B981; --bad:#EF4444; --in:#10B981; --out:#EF4444;
+  --shadow:none;
+  --select-arrow:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238A94A6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+:root[data-theme="light"]{
+  --bg:#F6F8FB; --page:#F6F8FB; --panel:#FFFFFF; --panel-2:#F1F4F8; --line-2:#CBD3DE;
+  --accent:#2563EB; --entry:#059669; --exit:#DC2626; --fund_launch:#0891B2; --relocation:#7C3AED; --outbound:#D97706;
+  --good:#059669; --bad:#DC2626; --in:#059669; --out:#DC2626; --sig-wait:#D97706;
+  --select-arrow:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235f6b7a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+:root:not([data-theme="light"]) body,:root[data-theme="light"] body{font-family:var(--font-ui);font-size:14px;line-height:1.45;background:var(--bg);font-feature-settings:"cv11","ss01"}
+
+/* Numbers, amounts, dates and badges: monospace with fixed-width digits so columns and counters never shift. */
+td.num,th.num,.ftable td,.kpi .n,.amt,.amtflag,.badge,.stg,.pill,.newtag,.datef input,.freg,.when,time,
+.ftile .v,.fcard .v,.takeaway b,.tip .row span:last-child,.netsvg text,svg text{
+  font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-feature-settings:"tnum","zero" 0}
+.ftable td:not(.num){font-family:var(--font-ui)}
+
+/* Surfaces: flat panels, hairline borders, tight radii. */
+.kpi,.ftile,.fcard,.filterbar,.inv,.card,.drow,.ftable-wrap,.ovc,.bcol,.bk,.empty,.htools,nav.tabs,.takeaway{
+  background:var(--panel)!important;border:1px solid var(--line)!important;border-radius:var(--r-lg)!important;box-shadow:none!important;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+.card:hover,.inv:hover,.bk:hover,.kpi:hover,.ftile:hover{border-color:var(--line-2)!important;transform:none!important}
+
+:root:not(#x) :is(.kpi,.ftile,.fcard,.filterbar,.inv,.card,.drow,.ftable-wrap,.ovc,.bcol,.bk,.empty,.takeaway){border-radius:var(--r-lg)!important}
+:root:not(#x) #gq{background-color:transparent!important;border:0!important;box-shadow:none!important}
+/* Density. */
+.wrap{padding:16px 24px 48px}
+.kpi{padding:12px 14px}
+.kpi .n{font-size:24px;font-weight:600;letter-spacing:-.02em}
+.kpi .l,.kpi .s{font-size:12px}
+.kpis{gap:8px;margin-bottom:12px}
+.card,.bk{padding:10px 12px}
+.board{gap:10px}
+.filterbar{padding:8px!important;gap:6px}
+h2.fsec{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:22px 0 4px}
+.note,.sub{font-size:12.5px}
+.ftable th{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:7px 10px;background:var(--panel-2)}
+.ftable td{padding:6px 10px;font-size:12.5px;border-top:1px solid var(--line)}
+.ftable tbody tr:hover td{background:rgba(59,130,246,.06)}
+
+/* Form controls: one look for every select, input and button. */
+select,input[type="search"],input[type="text"],input[type="date"],input:not([type]){
+  font:500 13px/1.2 var(--font-ui);color:var(--ink);background-color:var(--panel-2);
+  border:1px solid var(--line);border-radius:var(--r);padding:7px 10px;height:32px;outline:none;
+  transition:border-color .15s ease,box-shadow .15s ease}
+:root:not(#x) select,:root:not(#x) .filterbar select,:root:not(#x) .filters select{-webkit-appearance:none!important;-moz-appearance:none!important;appearance:none!important;padding-right:30px!important;
+  background:var(--panel-2) var(--select-arrow) no-repeat right 10px center/12px!important;border-radius:var(--r)!important;cursor:pointer}
+:root:not(#x) input[type=search],:root:not(#x) input[type=text],:root:not(#x) input[type=date],:root:not(#x) .cal,:root:not(#x) .reset,:root:not(#x) .seg,:root:not(#x) .seg button,:root:not(#x) .filterbar button{border-radius:var(--r)!important;background-color:var(--panel-2)!important;border-color:var(--line)!important}
+select::-ms-expand{display:none}
+select:hover,input:hover{border-color:var(--line-2)}
+select:focus-visible,input:focus-visible,button:focus-visible{border-color:var(--accent);box-shadow:var(--ring);outline:none}
+select option,select optgroup{background-color:var(--panel);color:var(--ink)}
+.reset,.subtabs button,.ctog button{border-radius:var(--r)!important;font-size:12.5px}
+.subtabs button[aria-selected="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* Signal colours on deal stages and flows. */
+.stg{border-radius:var(--r-sm);font-size:11px;letter-spacing:.02em}
+.pos,.up{color:var(--sig-in)} .neg,.down{color:var(--sig-out)}
+
+/* Rail. */
+nav.tabs{border-radius:10px!important}
+nav.tabs button[aria-selected="true"]{background:rgba(59,130,246,.14);color:var(--ink);box-shadow:inset 2px 0 0 var(--accent)}
+nav.tabs .logo{border-radius:var(--r-lg);font-family:var(--font-mono)}
 </style>
 <script src="vendor/lenis.min.js" defer></script>
 </head>
@@ -1103,7 +1183,7 @@ const TYPES = {
   outbound:    "Indian investment abroad",
 };
 // How far a deal had got when it was last reported. Totals count only agreed or completed deals.
-const STAGES = { completed: ["Completed", "#3ccf98"], agreed: ["Agreed", "#6f95ff"], talks: ["In talks", "#e3b341"], plan: ["Plan or pledge", "#9aa4b2"] };
+const STAGES = { completed: ["Completed", "#10B981"], agreed: ["Agreed", "#3B82F6"], talks: ["In talks", "#F59E0B"], plan: ["Plan or pledge", "#9aa4b2"] };
 const FIRM = new Set(["agreed", "completed"]);
 const stageTag = (e) => e.deal_stage ? `<span class="stg" style="--sc:${STAGES[e.deal_stage][1]}" title="Deal stage as last reported">${STAGES[e.deal_stage][0]}</span>` : "";
 // A sale by a company's own holding vehicle (same name as the company, or flagged as promoter) is a promoter selling down, not a foreign investor leaving.
