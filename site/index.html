@@ -851,6 +851,21 @@ nav.tabs .logo{border-radius:var(--r-lg);font-family:var(--font-mono)}
 @keyframes skpulse{0%,100%{opacity:.55}50%{opacity:1}}
 @media (prefers-reduced-motion:reduce){.skel .skb{animation:none}.scard:hover{transform:none!important}}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* ---------- Charts ---------- */
+.fchart .xhair{stroke:var(--muted);stroke-width:1;stroke-dasharray:3 3;opacity:0;pointer-events:none;transition:opacity .12s ease}
+.fchart .xhair.on{opacity:.8}
+#ftip{font-family:var(--font-ui);background:color-mix(in srgb,var(--panel) 94%,transparent);border:1px solid var(--line-2,var(--line));border-radius:var(--r-lg);
+  box-shadow:0 10px 30px rgba(0,0,0,.35);padding:9px 11px;min-width:210px;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+#ftip .row{display:flex;justify-content:space-between;gap:16px;font-size:12px;padding:2px 0}
+#ftip .row span:first-child{color:var(--muted)}
+#ftip .row span:last-child{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-weight:600}
+/* Period buttons: a compact segment group with the active one lit. */
+.tfseg{display:inline-flex;gap:2px;padding:3px;border-radius:var(--r-lg);background:#0F172A;border:1px solid var(--line)}
+:root[data-theme="light"] .tfseg{background:#E9EEF5}
+.tfseg button{font:600 11.5px/1 var(--font-mono);letter-spacing:.03em;color:var(--muted);background:transparent;border:0;border-radius:var(--r);padding:7px 10px;cursor:pointer;transition:background .12s ease,color .12s ease}
+.tfseg button:hover{color:var(--ink)}
+.tfseg button[aria-pressed="true"]{background:var(--accent);color:#fff}
 </style>
 <script src="vendor/lenis.min.js" defer></script>
 </head>
@@ -1054,6 +1069,7 @@ nav.tabs .logo{border-radius:var(--r-lg);font-family:var(--font-mono)}
     <h2 class="fsec">FPI · foreign portfolio investment</h2>
     <p class="note">Shares and bonds bought and sold by foreign funds. Daily from NSDL, in US$ with ₹ crore in brackets.</p>
     <div class="filters fperiod" aria-label="FPI period">
+      <div class="tfseg" id="tfseg" role="group" aria-label="Period"><button type="button" data-v="30">30D</button><button type="button" data-v="90">90D</button><button type="button" data-v="ytd">YTD</button><button type="button" data-v="fy">FY</button><button type="button" data-v="all">All</button></div>
       <select id="fpreset" aria-label="Period">
         <option value="30">Last 30 days</option>
         <option value="90" selected>Last 3 months</option>
@@ -1791,9 +1807,15 @@ function barChart(el, points, opts) {
   if (showLine) {
     const cx = (i) => (L + i * step + step / 2).toFixed(1);
     const idx = lv.map((v, i) => [v, i]).filter(([v]) => v != null);
-    if (!both) g += `<path d="M${cx(idx[0][1])},${y2(0)}${idx.map(([v, i]) => `L${cx(i)},${y2(v).toFixed(1)}`).join("")}L${cx(idx[idx.length - 1][1])},${y2(0)}Z" fill="var(--accent)" fill-opacity=".1" stroke="none"/>`;
-    g += `<polyline fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="${idx.map(([v, i]) => `${cx(i)},${y2(v).toFixed(1)}`).join(" ")}"/>`;
-    if (points.length <= 40) idx.forEach(([v, i]) => { g += `<circle cx="${cx(i)}" cy="${y2(v).toFixed(1)}" r="2.6" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.6"/>`; });
+    // Running totals take the colour of where they ended (in or out); percentage lines stay the accent colour.
+    const lc = lineSpec.kind === "cum" ? `var(--${idx[idx.length - 1][0] >= 0 ? "in" : "out"})` : "var(--accent)";
+    const gid = `lg${(barChart.n = (barChart.n || 0) + 1)}`, base = Math.min(H - B, Math.max(T, y2(0)));
+    // Strongest at the line, fading toward the zero line: downward for a line above zero, upward below it.
+    const below = idx.reduce((a, [v]) => a + v, 0) < 0;
+    g = `<defs><linearGradient id="${gid}" x1="0" y1="${below ? 1 : 0}" x2="0" y2="${below ? 0 : 1}"><stop offset="0" stop-color="${lc}" stop-opacity=".22"/><stop offset="1" stop-color="${lc}" stop-opacity="0"/></linearGradient></defs>` + g;
+    g += `<path d="M${cx(idx[0][1])},${base}${idx.map(([v, i]) => `L${cx(i)},${y2(v).toFixed(1)}`).join("")}L${cx(idx[idx.length - 1][1])},${base}Z" fill="url(#${gid})" stroke="none"${both ? ' opacity=".7"' : ""}/>`;
+    g += `<polyline fill="none" stroke="${lc}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="${idx.map(([v, i]) => `${cx(i)},${y2(v).toFixed(1)}`).join(" ")}"/>`;
+    if (points.length <= 40) idx.forEach(([v, i]) => { g += `<circle cx="${cx(i)}" cy="${y2(v).toFixed(1)}" r="2.6" fill="var(--panel)" stroke="${lc}" stroke-width="1.6"/>`; });
   }
   // Line key and its latest value.
   const last = lv[lv.length - 1], lastLab = label(points[points.length - 1], points.length - 1) || "";
@@ -1801,6 +1823,7 @@ function barChart(el, points, opts) {
   const latest = lineSpec.kind === "cum" ? `${esc(lineSpec.name)} to ${esc(lastLab)}: <b>${lineSpec.full(last)}</b>` : last == null ? "" : `Latest ${esc(lastLab)} against the one before: <b style="color:var(--${last >= 0 ? "in" : "out"})">${fmtPct(last)}</b>`;
   // The switch lives inside the chart box, so it never becomes a cell of the card's own grid.
   const tog = canLine ? `<div class="seg ctog" role="group" aria-label="Chart type">${[["bar", "Bars"], ["line", "Line"], ["both", "Both"]].map(([m, l]) => `<button data-m="${m}" aria-pressed="${m === mode}">${l}</button>`).join("")}</div>` : "";
+  g += `<line class="xhair" x1="0" x2="0" y1="${T}" y2="${H - B}"/>`;
   el.innerHTML = tog + `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(el.dataset.title || "")}">${g}</svg>` + (canLine ? `<div class="fchg">${key}${latest}</div>` : "");
   el.querySelectorAll(".ctog button").forEach((b) => b.onclick = () => { el.dataset.mode = b.dataset.m; barChart(el, ...el._args); });
   // The tooltip sits in page coordinates just above the chosen column, so it scrolls with the chart.
@@ -1810,8 +1833,13 @@ function barChart(el, points, opts) {
     const show = () => {
       document.querySelectorAll(".fchart .hit.on").forEach((x) => x.classList.remove("on"));
       h.classList.add("on");
-      const hi = +h.dataset.i, lvv = lv[hi];
-      tipEl.innerHTML = tip(points[hi]) + (lvv == null ? "" : `<div class="row"><span>${esc(lineSpec.name)}</span><span style="color:var(--accent)">${lineSpec.full(lvv)}</span></div>`); tipEl.hidden = false;
+      const hi = +h.dataset.i, lvv = lv[hi], pv = points[hi].v, prev = points[hi - 1]?.v;
+      const xh = el.querySelector(".xhair"), xc = L + hi * step + step / 2;
+      xh.setAttribute("x1", xc); xh.setAttribute("x2", xc); xh.classList.add("on");
+      // Direction and change on the previous period, for every chart, under the chart's own rows.
+      const dir = `<div class="row"><span>Direction</span><span style="color:var(--${pv >= 0 ? "in" : "out"})">${pv >= 0 ? "▲ Net inflow" : "▼ Net outflow"}</span></div>`;
+      const chg = prev == null || lineSpec.kind !== "cum" ? "" : `<div class="row"><span>Change on previous</span><span>${fmtPct(pctChg(pv, prev))}</span></div>`;
+      tipEl.innerHTML = tip(points[hi]) + dir + chg + (lvv == null ? "" : `<div class="row"><span>${esc(lineSpec.name)}</span><span style="color:var(--${lineSpec.kind === "cum" ? (lvv >= 0 ? "in" : "out") : "accent"})">${lineSpec.full(lvv)}</span></div>`); tipEl.hidden = false;
       const r = h.getBoundingClientRect(), w = tipEl.offsetWidth, ht = tipEl.offsetHeight;
       const left = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, document.documentElement.clientWidth - w - 8));
       const top = r.top - ht - 6 >= 0 ? r.top - ht - 6 : r.top + 6;
@@ -1825,6 +1853,7 @@ function barChart(el, points, opts) {
 
 function hideTip() {
   $("ftip").hidden = true;
+  document.querySelectorAll(".fchart .xhair.on").forEach((x) => x.classList.remove("on"));
   document.querySelectorAll(".fchart .hit.on").forEach((x) => x.classList.remove("on"));
 }
 // Tapping anywhere outside a bar closes the tooltip.
@@ -1874,9 +1903,9 @@ function renderDpiit() {
   if (!flows.dpiit.length) { ["dcountry", "dwhere", "dannual"].forEach((id) => $(id).innerHTML = `<div class="empty">No DPIIT data yet.</div>`); return; }
   const ed = flows.dpiit[0].edition;
   $("dpiit-sub").textContent = `Long-term stakes in Indian companies. From DPIIT's quarterly FDI fact sheet, by financial year; data up to ${ed}.`;
-  const c = hbars($("dcountry"), $("dlegend1"), "country");
+  const c = hbars($("dcountry"), $("dlegend1"), "country") || {};
   $("dcountry-sub").textContent = `FDI equity inflow by source country · US$ · FY ${c.cur}${c.prev ? ` vs FY ${c.prev}` : ""}`;
-  const w = hbars($("dwhere"), $("dlegend2"), flows.dseg);
+  const w = hbars($("dwhere"), $("dlegend2"), flows.dseg) || {};
   $("dwhere-sub").textContent = `FDI equity inflow by ${flows.dseg === "state" ? "state" : "sector"} · US$ · FY ${w.cur}${w.prev ? ` vs FY ${w.prev}` : ""}`;
   $("dwhere-note").textContent = flows.dseg === "state"
     ? "Ten states with the most FDI equity since October 2019, when state data began, by latest year."
@@ -1914,6 +1943,10 @@ document.querySelectorAll("#fseg button").forEach((b) => b.onclick = () => {
   renderFlowCharts();
 });
 $("fpreset").addEventListener("change", renderFlows);
+// Quick period buttons: set the period list and redraw; the list still offers this month and custom dates.
+const syncTf = () => document.querySelectorAll("#tfseg button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.v === $("fpreset").value));
+document.querySelectorAll("#tfseg button").forEach((b) => b.onclick = () => { $("fpreset").value = b.dataset.v; $("fpreset").dispatchEvent(new Event("change")); });
+$("fpreset").addEventListener("change", syncTf); syncTf();
 ["ffrom", "fto"].forEach((id) => $(id).addEventListener("change", () => {
   if ($(id).value && !$(id).validity.valid) return;
   $("fpreset").value = "custom";
