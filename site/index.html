@@ -925,6 +925,38 @@ body.cmdk-on{overflow:hidden}
   color:var(--sc);background:color-mix(in srgb,var(--sc) 15%,transparent);border:1px solid color-mix(in srgb,var(--sc) 30%,transparent)}
 .stbadge.ok{--sc:var(--sig-in)}.stbadge.warn{--sc:var(--sig-wait)}.stbadge.bad{--sc:var(--sig-out)}.stbadge.run{--sc:var(--accent)}
 .shpbad{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--panel)}
+
+/* ===================== Mobile (768px and below) =====================
+   Everything for phones lives here; nothing above 768px is affected. */
+@media screen and (max-width:768px){
+  html,body{overflow-x:hidden}
+  .wrap{padding:12px 14px 96px}
+  /* Filters and toolbars stack, one control per row at full width. */
+  /* The story filter bar keeps its own fold-away behaviour; only its controls go full width. */
+  .filters:not([hidden]),.fperiod:not([hidden]),.netflt:not([hidden]),.netpath:not([hidden]){display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:8px!important}
+  .filters>*,.fperiod>*,.netflt>*,.netpath>*,.filterbar select{width:100%!important;max-width:100%!important;min-width:0!important}
+  :root:not(#x) select,:root:not(#x) input[type=search],:root:not(#x) input[type=text],:root:not(#x) input[type=date]{width:100%!important;max-width:100%!important;height:44px;font-size:16px}
+  .datef{align-items:center;gap:6px}.datef input[type=text]{flex:1}
+  .tfseg{display:flex;width:100%}.tfseg button{flex:1;min-height:40px}
+  .reset,.subtabs button,.ctog button,.seg button,.link.sharebtn{min-height:40px}
+  /* Card grids collapse to one column with roomier padding for thumbs. */
+  .ovgrid,.ftiles,.board,.netwrap,.mbcols,.mbform,.flowwrap,.kpis:not(.scroller){grid-template-columns:1fr!important}
+  .ovc,.ftile,.fcard,.card,.bk,.inv{padding:14px!important}
+  .ovrow.scard{flex-wrap:wrap}.ovrow.scard>.amt-tag{margin-left:0}
+  .scard:hover{transform:none!important}
+  /* Charts, maps and wide tables stay inside the screen. */
+  svg,canvas,img{max-width:100%;height:auto}
+  .fchart,.netsvg,.ftable-wrap,.scroll{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .ftable{min-width:520px}
+  .netpanel{max-height:none!important}
+  /* Type: page title and figures scale down a step; body text stays readable. */
+  h1,.ptitle{font-size:clamp(28px,8vw,40px)!important;line-height:1.1}
+  .kpi .n{font-size:22px}
+  .takeaway{font-size:14px}
+  /* Header tools wrap instead of squeezing. */
+  /* Phones have no ⌘K; the header search does the same job there. */
+  .cmdk-btn{display:none}
+}
 </style>
 <script src="vendor/lenis.min.js" defer></script>
 </head>
