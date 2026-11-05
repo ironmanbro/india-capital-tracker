@@ -755,7 +755,7 @@ html.lenis,html.lenis body{height:auto}
   --font-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   --r-sm:4px; --r:6px; --r-lg:8px;
   --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:20px;
-  --ring:0 0 0 2px rgba(59,130,246,.5);
+  --ring:0 0 0 2px rgba(59,130,246,.4);
   --sig-in:#10B981; --sig-out:#EF4444; --sig-wait:#F59E0B;
 }
 :root:not([data-theme="light"]){
@@ -810,7 +810,7 @@ select,input[type="search"],input[type="text"],input[type="date"],input:not([typ
   border:1px solid var(--line);border-radius:var(--r);padding:7px 10px;height:32px;outline:none;
   transition:border-color .15s ease,box-shadow .15s ease}
 :root:not(#x) select,:root:not(#x) .filterbar select,:root:not(#x) .filters select{-webkit-appearance:none!important;-moz-appearance:none!important;appearance:none!important;padding-right:30px!important;
-  background:var(--panel-2) var(--select-arrow) no-repeat right 10px center/12px!important;border-radius:var(--r)!important;cursor:pointer}
+  background:var(--select-bg,var(--panel)) var(--select-arrow) no-repeat right 10px center/12px!important;border-radius:var(--r)!important;cursor:pointer}
 :root:not(#x) input[type=search],:root:not(#x) input[type=text],:root:not(#x) input[type=date],:root:not(#x) .cal,:root:not(#x) .reset,:root:not(#x) .seg,:root:not(#x) .seg button,:root:not(#x) .filterbar button{border-radius:var(--r)!important;background-color:var(--panel-2)!important;border-color:var(--line)!important}
 select::-ms-expand{display:none}
 select:hover,input:hover{border-color:var(--line-2)}
@@ -871,7 +871,7 @@ nav.tabs .logo{border-radius:var(--r-lg);font-family:var(--font-mono)}
 .cmdk-btn{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 6px 0 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--panel-2);color:var(--muted);font:500 12.5px var(--font-ui);cursor:pointer;white-space:nowrap}
 .cmdk-btn:hover{border-color:var(--line-2);color:var(--ink)}
 .cmdk kbd,.cmdk-btn kbd{font:600 10.5px/1 var(--font-mono);padding:3px 5px;border-radius:4px;border:1px solid var(--line-2,var(--line));background:var(--chip);color:var(--muted)}
-.cmdk{position:fixed;inset:0;z-index:1000;display:flex;align-items:flex-start;justify-content:center;padding:12vh 16px 16px;background:rgba(0,0,0,.6);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);animation:cmdkIn .12s ease}
+.cmdk{position:fixed;inset:0;z-index:1000;display:flex;align-items:flex-start;justify-content:center;padding:12vh 16px 16px;background:rgba(0,0,0,.7);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);animation:cmdkIn .12s ease}
 .cmdk[hidden]{display:none}
 .cmdk-box{width:min(640px,100%);max-height:70vh;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line-2,var(--line));border-radius:12px;box-shadow:0 24px 60px rgba(0,0,0,.5);overflow:hidden}
 .cmdk-in{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
@@ -890,6 +890,21 @@ nav.tabs .logo{border-radius:var(--r-lg);font-family:var(--font-mono)}
 body.cmdk-on{overflow:hidden}
 @keyframes cmdkIn{from{opacity:0}to{opacity:1}}
 @media (max-width:700px){.cmdk-btn span{display:none}.cmdk{padding-top:8vh}}
+
+/* ---------- Final polish ---------- */
+/* Selects sit on the panel colour (#151C28 in dark) with a hairline border. */
+:root:not([data-theme="light"]){--select-bg:#151C28}
+:root:not(#x) select{border:1px solid rgba(255,255,255,.08)!important}
+:root[data-theme="light"]:not(#x) select{border-color:var(--line)!important}
+:root:not(#x) select:hover{border-color:var(--line-2)!important}
+:root:not(#x) select:focus-visible{border-color:var(--accent)!important;box-shadow:var(--ring)!important}
+/* Timestamps, percentages and other figures in card meta lines use the mono face too. */
+.card .meta>span:last-child,.bk .m,.ovrow .meta>span:last-child,.fchg b,.hval,.hval span,.ovc .side,.kpi .s{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:11.5px}
+.hval{font-size:inherit}
+/* Denser multi-column grids: Home panels fill wide screens three across; tiles pack tighter. */
+.ovgrid{grid-template-columns:repeat(auto-fill,minmax(min(100%,460px),1fr));gap:12px}
+.ftiles{gap:10px}
+.ovc{padding:14px 16px}
 </style>
 <script src="vendor/lenis.min.js" defer></script>
 </head>
