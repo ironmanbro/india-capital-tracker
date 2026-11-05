@@ -31,7 +31,7 @@
 :root{
   --bg:#0e0f12; --panel:#17191e; --ink:#eceef2; --muted:#8f97a5; --line:rgba(255,255,255,.08); --chip:rgba(255,255,255,.07);
   --accent:#6f95ff; --accent-ink:#0e0f12;
-  --relocation:#a98bff; --fund_launch:#3ccf98; --entry:#6f95ff; --exit:#f2894e; --other:#9aa4b2;
+  --relocation:#a98bff; --fund_launch:#3ccf98; --entry:#6f95ff; --exit:#f2894e; --outbound:#e3b341; --other:#9aa4b2;
   --good:#3ccf98; --bad:#f26d6d;
   --in:#5a82f0; --out:#d9682c;
   --glass:var(--panel);
@@ -42,7 +42,7 @@
 :root[data-theme="light"]{
   --bg:#f4f5f8; --panel:#ffffff; --ink:#14171c; --muted:#5f6b7a; --line:#e3e6eb; --chip:#eef1f5;
   --accent:#1f5eff; --accent-ink:#ffffff;
-  --relocation:#7a3cff; --fund_launch:#0a8a5f; --entry:#1f5eff; --exit:#c2410c; --other:#6b7280;
+  --relocation:#7a3cff; --fund_launch:#0a8a5f; --entry:#1f5eff; --exit:#c2410c; --outbound:#a16207; --other:#6b7280;
   --good:#0a8a5f; --bad:#b91c1c;
   --in:#1f5eff; --out:#c2410c;
   --glass:var(--panel);
@@ -393,7 +393,7 @@ body.anon .ovbanner{display:flex;align-items:center;justify-content:space-betwee
 .up{color:var(--good);font-size:12px;font-weight:600}.down{color:var(--bad);font-size:12px;font-weight:600}
 /* Feed board */
 .fbar{display:flex;justify-content:flex-end;margin:-4px 0 10px}
-.board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;align-items:start}
+.board{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;align-items:start}
 .bcol{padding:12px}
 .bcolh{display:flex;align-items:center;gap:8px;font-weight:600;padding:4px 6px 10px}
 .bcolh .c{color:var(--muted);background:var(--chip);border-radius:999px;padding:0 8px;font-size:12px}
@@ -837,6 +837,7 @@ html.lenis,html.lenis body{height:auto}
     <button role="tab" aria-selected="false" data-tab="investors"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20c-.5-2.5-2-4.2-4-5"/></svg>Investors</button>
     <button role="tab" aria-selected="false" data-tab="network"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="2.5"/><circle cx="5" cy="5" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="18" cy="19" r="2"/><path d="M6.5 6.5l3.7 3.7M17.3 7.3l-3.5 3.3M16.6 17.5l-2.8-3.6"/></svg>Network</button>
     <button role="tab" aria-selected="false" data-tab="flows"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Flows</button>
+    <button role="tab" aria-selected="false" data-tab="odi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9M12 3c-2.5 2.7-3.8 5.7-3.8 9s1.3 6.3 3.8 9"/><path d="M15 6l4-3m0 0v3.5m0-3.5h-3.5"/></svg>Outbound</button>
     <button role="tab" aria-selected="false" data-tab="markets"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l5-5 4 4 8-9"/><path d="M15 7h5v5"/></svg>Markets</button>
     <button role="tab" aria-selected="false" data-tab="directory"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M9 7h6"/></svg>FPIs</button>
     <button role="tab" aria-selected="false" data-tab="gift"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V9l8-5 8 5v12"/><path d="M9 21v-6h6v6M4 21h16"/></svg>GIFT City</button>
@@ -1020,6 +1021,11 @@ html.lenis,html.lenis body{height:auto}
     <div class="ftip" id="ftip" hidden></div>
   </section>
 
+  <section id="tab-odi" hidden>
+    <p class="sub" style="margin:0 0 12px"><span class="lg">Money Indian companies commit to joint ventures (JV) and wholly owned subsidiaries (WOS) abroad: equity, loans and guarantees. Monthly from RBI's Overseas Direct Investment data, in US$.</span><span class="sm">Indian companies investing abroad, monthly from RBI (US$).</span></p>
+    <div id="odi-body"><p class="note">Loading…</p></div>
+  </section>
+
   <section id="tab-markets" hidden>
     <p class="sub" style="margin:0 0 12px"><span class="lg">Daily exchange and NSDL data: FII/FPI activity, bulk and block deals with foreign investors, FPI debt holdings and sector allocations. Loaded by the daily data job.</span><span class="sm">Daily FII/FPI activity, foreign bulk and block deals, FPI debt and sector holdings.</span></p>
     <div id="mk-body"><p class="note">Loading…</p></div>
@@ -1092,6 +1098,7 @@ const TYPES = {
   exit:        "Sale or exit",
   fund_launch: "Fund launch",
   relocation:  "Jurisdiction move",
+  outbound:    "Indian investment abroad",
 };
 // How far a deal had got when it was last reported. Totals count only agreed or completed deals.
 const STAGES = { completed: ["Completed", "#3ccf98"], agreed: ["Agreed", "#6f95ff"], talks: ["In talks", "#e3b341"], plan: ["Plan or pledge", "#9aa4b2"] };
@@ -1114,6 +1121,7 @@ const KPI_GROUPS = [
   { label: "Sales and exits", types: ["exit"] },
   // Both are rare, so they share a box: offshore/GIFT City fund launches and funds moving jurisdiction.
   { label: "Fund launches & moves", types: ["fund_launch", "relocation"] },
+  { label: "Indian investment abroad", types: ["outbound"] },
 ];
 
 const state = { events: [], types: new Set(), tab: "overview" };
@@ -1977,7 +1985,7 @@ $("nq").addEventListener("change", () => {
 // ---------- Firm profile (#firm/<key>), opened from the Network tab ----------
 // A story about a private (unlisted) funding round: seed, Series A-H, growth, bridge or pre-IPO.
 const ROUND = /\b(pre-?seed|seed|series [a-h]|pre-series [a-c]|bridge|growth (?:round|capital)|funding round|pre-ipo|venture debt)\b/i;
-const CAT_WORDS = { entry: ["investment", "investments"], exit: ["exit", "exits"], fund_launch: ["fund launch", "fund launches"], relocation: ["move", "moves"] };
+const CAT_WORDS = { entry: ["investment", "investments"], exit: ["exit", "exits"], fund_launch: ["fund launch", "fund launches"], relocation: ["move", "moves"], outbound: ["outbound investment", "outbound investments"] };
 // A small map of one firm and the firms it is linked to: the strongest links around it, and the links among those.
 // Shown on every profile. Click a firm to open its own profile. Same input, same picture.
 function egoMap(key, el) {
@@ -2657,7 +2665,7 @@ function setTab(t) {
   state.tab = t;
   document.querySelectorAll("nav.tabs button").forEach((b) => b.setAttribute("aria-selected", b.dataset.tab === t));
   const secId = t === "gift" ? "directory" : t;
-  ["overview", "feed", "investors", "network", "firm", "flows", "markets", "directory", "entity", "users", "health"].forEach((x) => $(`tab-${x}`).hidden = x !== secId);
+  ["overview", "feed", "investors", "network", "firm", "flows", "odi", "markets", "directory", "entity", "users", "health"].forEach((x) => $(`tab-${x}`).hidden = x !== secId);
   if (was === "firm" && t !== "firm" && location.hash.startsWith("#firm/")) history.replaceState(null, "", location.pathname + location.search);
   // Fade the section in when it changes.
   const sec = $(`tab-${secId}`); sec.classList.remove("enter"); void sec.offsetWidth; sec.classList.add("enter");
@@ -2672,6 +2680,7 @@ function setTab(t) {
   if (t === "flows") { renderFlows(); renderFpiHistory(); }
   if (t === "users") renderUsers();
   if (t === "markets") openMarkets();
+  if (t === "odi") openOdi();
   if (t === "health") { mbQueue(); renderOps(); }
   if (t === "directory" || t === "gift") { dir.view = t === "gift" ? "ifsca" : "fpi"; openDirectory(); }
   if (t === "investors" && state.events?.length) renderInvestors();
@@ -2694,6 +2703,7 @@ const TITLES = {
   entity: ["Profile", "Everything the site holds on one name"],
   users: ["Users", "Who signs in and what they open (owner only)"],
   flows: ["Flows", "FPI money in and out each day, and where FDI comes from"],
+  odi: ["Outbound", "Indian companies investing abroad (RBI overseas direct investment)"],
   directory: ["FPIs", "Every SEBI-registered foreign portfolio investor, and how much they hold by sector"],
   gift: ["GIFT City", "Every entity IFSCA regulates at GIFT IFSC: fund managers, schemes, banks and more"],
   health: ["Sources", "When each source last ran"],
@@ -3890,6 +3900,54 @@ async function xRegistry(names) {
 }
 const lgsm = (a) => Array.isArray(a) ? `<span class="lg">${esc(a[0])}</span><span class="sm">${esc(a[1])}</span>` : esc(a);
 const mkSec = (title, note, body) => `<h2 class="fsec">${esc(title)}</h2><p class="note">${lgsm(note)}</p>${body}`;
+
+// ---------- Outbound (ODI) ----------
+const odi = { loaded: false, rows: [], months: [], month: null, q: "", country: "" };
+async function openOdi() {
+  if (odi.loaded) return renderOdi();
+  try {
+    odi.months = await api("odi_monthly?select=*&order=month");
+    odi.month = odi.months.at(-1)?.month || null;
+    odi.loaded = true;
+    await renderOdi();
+  } catch (e) { $("odi-body").innerHTML = `<p class="note">Could not load outbound data: ${esc(e.message)}</p>`; }
+}
+async function renderOdi() {
+  const body = $("odi-body"), m = odi.months.find((x) => x.month === odi.month);
+  if (!m) { body.innerHTML = `<p class="note">No data yet.</p>`; return; }
+  if (odi.rowsFor !== odi.month) { odi.rows = await apiAll(`odi_deals?select=*&month=eq.${odi.month}&order=total.desc`); odi.rowsFor = odi.month; }
+  const ml = (d) => monLabel(d.slice(0, 7));
+  const prev = odi.months[odi.months.indexOf(m) - 1];
+  const chg = prev && prev.total ? Math.round((m.total / prev.total - 1) * 100) : null;
+  const byC = new Map();
+  for (const r of odi.rows) { const c = byC.get(r.country) || { n: 0, v: 0 }; c.n++; c.v += +r.total; byC.set(r.country, c); }
+  const countries = [...byC].sort((a, b) => b[1].v - a[1].v);
+  const q = odi.q.toUpperCase();
+  const list = odi.rows.filter((r) => (!odi.country || r.country === odi.country) && (!q || `${r.indian_party || ""} ${r.jv_name} ${r.activity}`.toUpperCase().includes(q)));
+  const who = (r) => r.indian_party ? titleCase(r.indian_party) : { h: `<span class="ftype">Individual</span>` };
+  const src = `<p class="dsrc">Source: <a href="${esc(m.source_url)}" target="_blank" rel="noopener">RBI, Overseas Direct Investment for ${esc(ml(m.month))}</a>${m.released_on ? ` · released ${esc(m.released_on)}` : ""} · amounts are financial commitments reported by banks, provisional.</p>`;
+  body.innerHTML = `
+    <div class="filters fperiod"><select id="odi-month" aria-label="Month">${odi.months.slice().reverse().map((x) => `<option value="${x.month}"${x.month === odi.month ? " selected" : ""}>${esc(ml(x.month))}</option>`).join("")}</select></div>
+    <p class="takeaway">In ${esc(ml(m.month))}, Indian companies committed <b>${fmtUsd(+m.total)}</b> abroad across ${nfmt(m.deals)} investments${chg == null ? "" : `, ${chg >= 0 ? "up" : "down"} ${Math.abs(chg)}% on ${esc(ml(prev.month))}`}. Equity ${fmtUsd(+m.equity)}, loans ${fmtUsd(+m.loan)}, guarantees ${fmtUsd(+m.guarantee)}.</p>
+    ${mkSec("Each month", "Total financial commitment (equity + loans + guarantees), US$.", `<div class="fchart" id="odi-chart"></div>`)}
+    ${mkSec("Top destinations", `Where the money went in ${ml(m.month)}. Click a country to filter the list below.`, mkTable(["Country", "Investments", "Amount", "Share"], countries.slice(0, 12).map(([c, x]) => [{ h: `<button class="link" type="button" data-odic="${esc(c)}">${esc(titleCase(c))}</button>` }, nfmt(x.n), fmtUsd(x.v), `${Math.round(x.v / m.total * 100)}%`])))}
+    ${mkSec("Every investment", `${nfmt(list.length)} of ${nfmt(odi.rows.length)} in ${ml(m.month)}, largest first. Names of individual investors are not shown.`, `
+      <div class="filters"><input id="odi-q" type="search" placeholder="Search company, overseas entity or activity" value="${esc(odi.q)}" aria-label="Search outbound investments">
+      <select id="odi-c" aria-label="Country"><option value="">All countries</option>${countries.map(([c]) => `<option${c === odi.country ? " selected" : ""} value="${esc(c)}">${esc(titleCase(c))}</option>`).join("")}</select></div>
+      ${mkTable(["Indian company", "Overseas entity", "JV / WOS", "Country", "Activity", "Equity", "Loan", "Guarantee", "Total"], list.slice(0, odi.n || 100).map((r) => [who(r), titleCase(r.jv_name), r.jv_type || "–", titleCase(r.country), titleCase(r.activity), fmtUsd(+r.equity), fmtUsd(+r.loan), fmtUsd(+r.guarantee), fmtUsd(+r.total)]), 5)}
+      ${list.length > (odi.n || 100) ? `<p><button class="reset" id="odi-more" type="button">Show 200 more</button></p>` : ""}`)}
+    ${src}`;
+  barChart($("odi-chart"), odi.months.map((x) => ({ ...x, v: +x.total })), {
+    axis: (v) => v === 0 ? "0" : fmtUsd(v),
+    label: (p) => MON[+p.month.slice(5, 7) - 1],
+    tip: (p) => `<b>${esc(ml(p.month))}</b><div class="row"><span>Equity</span><span>${fmtUsd(+p.equity)}</span></div><div class="row"><span>Loans</span><span>${fmtUsd(+p.loan)}</span></div><div class="row"><span>Guarantees</span><span>${fmtUsd(+p.guarantee)}</span></div><div class="row"><span>Total</span><span>${fmtUsd(+p.total)}</span></div>`,
+  });
+  $("odi-month").onchange = (e) => { odi.month = e.target.value; odi.country = ""; odi.n = 0; renderOdi(); };
+  $("odi-c").onchange = (e) => { odi.country = e.target.value; odi.n = 0; renderOdi(); };
+  let t; $("odi-q").oninput = (e) => { clearTimeout(t); t = setTimeout(() => { odi.q = e.target.value.trim(); odi.n = 0; renderOdi().then(() => { const i = $("odi-q"); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }); }, 300); };
+  body.querySelectorAll("[data-odic]").forEach((b) => b.onclick = () => { odi.country = b.dataset.odic; odi.n = 0; renderOdi().then(() => $("odi-c").scrollIntoView({ behavior: "smooth", block: "center" })); });
+  if ($("odi-more")) $("odi-more").onclick = () => { odi.n = (odi.n || 100) + 200; renderOdi(); };
+}
 
 async function openMarkets() {
   if (mk.loaded) return;

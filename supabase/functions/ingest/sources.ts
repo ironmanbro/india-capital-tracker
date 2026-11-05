@@ -57,6 +57,11 @@ export const NEWS_QUERIES: NewsQuery[] = [
   // --- More launch / move coverage ---
   { tag: "fund", q: `"GIFT City" fund "India" launch OR registers OR licence`, edition: "US" },
   { tag: "relocation", q: `fund "India" redomicile OR relocate OR "shift base"`, edition: "US" },
+
+  // --- Outbound: Indian companies investing abroad ---
+  { tag: "outbound", q: `"overseas direct investment" India`, edition: "IN" },
+  { tag: "outbound", q: `Indian company acquires "UK-based" OR "US-based" OR "Germany-based" firm`, edition: "IN" },
+  { tag: "outbound", q: `Indian firm "overseas subsidiary" OR "overseas acquisition" invest`, edition: "IN" },
 ];
 
 // `time` is a Google News time operator: "when:1d", or "after:2026-04-01 before:2026-04-08" for history.

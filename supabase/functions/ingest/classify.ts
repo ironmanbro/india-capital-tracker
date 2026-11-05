@@ -35,11 +35,14 @@ export type Classified = {
 //   fund_launch- a fund set up outside India (offshore or GIFT City) that will invest in India,
 //                its registration, licence or fund close
 //   relocation - a fund that invests in India moving jurisdiction (either direction)
+//   outbound   - an Indian company investing abroad (overseas direct investment: acquisitions,
+//                subsidiaries, joint ventures and stakes outside India)
 export const PRIORITY: Record<string, number> = {
   relocation: 5,
   fund_launch: 4,
   entry: 3,
   exit: 2,
+  outbound: 2,
   irrelevant: 0,
 };
 
@@ -53,6 +56,8 @@ const INR_PER_USD = 88; // approximate; only used to rank deal size
 const RULES: [string, RegExp][] = [
   ["relocation", /(relocat|re-?domicil|redomicil|migrat.{0,30}fund|(shift|mov)(e|es|ed|ing|s)? .{0,50}(fund|base|operations|hq|headquarters).{0,50}(to|from) (gift|ifsc|abu dhabi|adgm|dubai|difc|singapore|mauritius|cayman|luxembourg|ireland)|(to|from) gift city.{0,40}(relocat|shift|mov)|gift city.{0,40}(relocat|shift|mov))/],
   ["fund_launch", /(launch(es|ed)? .{0,40}fund|unveil(s|ed)? .{0,40}fund|floats? .{0,30}fund|india[- ]focused fund|new .{0,20}india fund|files? for .{0,30}etf|final close|first close|second close|hard cap|closes? .{0,40}fund at|fpi licen[cs]e|fpi registration|regist(ers|ered|ration) as (an )?fpi|ifsca (nod|approval|licen|registration|certificate)|fund management entity|fme licen|sets? up .{0,30}(fund|office|entity) .{0,30}(gift|ifsc|india))/],
+  // Checked before entry and exit: "Indian firm acquires UK-based company" would otherwise read as foreign money into India.
+  ["outbound", /(overseas direct investment|outward (fdi|direct investment|investment)|\bodi\b.{0,40}(rbi|overseas|outward|abroad)|(invest(s|ed|ing|ment)?|expan(d|ds|sion)|acquisition) .{0,40}(abroad|overseas)|overseas (acquisition|subsidiary|arm|unit|jv|joint venture|expansion)|acquir(es|ed|ing|e) .{0,40}\b(us|u\.s\.|uk|german|french|dutch|italian|spanish|swiss|japanese|australian|canadian|american|british|european|african|singapore|uae|dubai|middle east)[- ]based|(sets? up|incorporat(es|ed)|forms?|launch(es|ed)?) .{0,30}(subsidiary|joint venture|jv|arm|unit) (in|at) (the )?(us|usa|uk|uae|dubai|abu dhabi|singapore|netherlands|germany|japan|australia|canada|mauritius|saudi|africa|europe|vietnam|indonesia))/],
   ["exit", /(\bexit(s|ed|ing)?\b|quits? india|(shuts?|shutting|closes?|closing|winds?|winding) (down )?(its )?(india|indian) (operations|business|unit|arm|stores|plant)|closing all .{0,30}(stores|outlets|branches)|pulls? out of india|\bsells?\b|\bsold\b|offload|divest|\bpares\b|\btrims\b|cuts? stake|stake sale|offer for sale|\bofs\b|wind(s|ing)? down|winding up|liquidat|shut(s|ting)? down .{0,30}fund|delist.{0,30}etf)/],
   ["entry", /(invest(s|ed|ing)? (in|into|over|up to|about|around|\$|rs|₹|usd|inr)|investment (in|into|of)|(million|billion|bn|crore|cr) investment|acquir|\bbuys?\b|\bbought\b|picks? up|stake in|takes? .{0,20}stake|raises? stake|anchor|\bqip\b|\bbacks\b|leads? .{0,30}round|funding round|infus|plans? to invest|to invest|earmark|commit(s|ted)? .{0,30}india|set to (invest|deploy|enter))/],
 ];
@@ -103,12 +108,14 @@ export function classifyRules(item: RawItem): Classified {
     }
   }
   // Sports and entertainment headlines reuse words like "exits India" and "series".
-  if (/(cricket|t20|\bodi\b|test series|squad|\bipl\b|innings|wicket|tournament|world cup|box office)/.test(text)) type = "irrelevant";
+  if (!/overseas direct investment|outward (fdi|direct)/.test(text) && /(cricket|t20|\bodi\b|test series|squad|\bipl\b|innings|wicket|tournament|world cup|box office)/.test(text)) type = "irrelevant";
   const foreign = FOREIGN_HINT.test(text);
   const domestic = DOMESTIC.test(text) && !/gift city|\bifsc/.test(text);
   if ((type === "entry" || type === "exit") && (!foreign || domestic)) type = "irrelevant";
   if (type === "fund_launch" && (!LAUNCH_SCOPE.test(text) || domestic || (DOMESTIC_FUND.test(text) && !/gift city|\bifsc/.test(text)))) type = "irrelevant";
   if (type === "relocation" && !/fund|asset manager|investment manager|aif|fpi/.test(text)) type = "irrelevant";
+  // Outbound needs an Indian investor: aggregate RBI ODI figures count, a foreign firm's overseas move does not.
+  if (type === "outbound" && !/(indian|india inc|india-based|mumbai-based|bengaluru-based|delhi-based|\bltd\b|limited|tata|reliance|adani|infosys|wipro|\btcs\b|mahindra|hcl|bharti|jsw|vedanta|aditya birla|sun pharma|cipla|lupin|dr\.? reddy|overseas direct investment|outward (fdi|direct))/.test(text)) type = "irrelevant";
 
   // Two-sided stories: a stake sold *to* someone is also that buyer's investment, and so on.
   const types = type === "irrelevant" ? [] : [type];
@@ -160,19 +167,20 @@ export function classifyRules(item: RawItem): Classified {
 
 const SYSTEM = `You filter and classify news for a business-development team at an Indian global custodian bank. They onboard foreign investors (FPIs, foreign PE/VC funds, sovereign and pension funds) and GIFT City (IFSC) funds that invest in India, and use this feed to find firms to contact.
 
-Keep an item (relevant=true) ONLY if it is clearly one of these four:
+Keep an item (relevant=true) ONLY if it is clearly one of these five:
 - entry: a foreign or offshore investor puts money into India: buys a stake in an Indian company, anchors or subscribes to an Indian IPO/QIP/block deal, leads or joins a funding round in an Indian company, acquires an Indian business or asset, or announces a concrete commitment/plan to invest a stated amount in India.
 - exit: a foreign or offshore investor exits an investment in an Indian company, in full or in part (block deal sale, OFS, secondary sale, stake reduction), even if it keeps other Indian investments; a foreign company closes, sells or winds down its Indian operations or business (e.g. a foreign retailer shutting its Indian stores); or a fund that invests in India is liquidated, wound down, merged away or delisted, or a foreign fund manager closes its India operations.
 - fund_launch: a fund or investment vehicle set up OUTSIDE India that will invest in India: India-focused funds, ETFs or UCITS launched abroad, offshore feeder funds, GIFT City (IFSC) fund launches (GIFT City counts as offshore), new FPI registrations of foreign funds, IFSCA fund-management licences, and first/final closes of such offshore funds ("final close" means fundraising completed, NOT shutting down). Funds domiciled in India (SEBI-registered AIFs, onshore private equity / venture / credit funds, mutual fund schemes) are NOT fund_launch: set relevant=false for them.
 - relocation: a fund or fund manager that invests in India changes jurisdiction or domicile, in either direction (e.g. Dubai/DIFC/ADGM, Singapore, Mauritius or Cayman to GIFT City, or GIFT City to Abu Dhabi), including restructuring into feeders.
+- outbound: an Indian company or group invests abroad (overseas direct investment): acquires a foreign company or stake, sets up or funds an overseas subsidiary, joint venture or plant, or announces a concrete plan to invest a stated amount outside India; also RBI's monthly overseas direct investment (ODI) figures. For outbound, investor = the Indian company, investor_country = "India", target = the overseas company or asset, and summary names the country.
 
-Set relevant=false for everything else, including: domestic-only activity (an Indian mutual fund, Indian promoter or Indian investor buying or selling Indian stocks; Indian mutual fund NFOs and new retail mutual fund schemes; IPO subscription and GMP coverage without a named foreign investor); aggregate FPI flow figures or market commentary; investments outside India; Indian companies investing abroad; policy news without a named investor or fund; opinion and explainers. When in doubt, set relevant=false.
+Set relevant=false for everything else, including: domestic-only activity (an Indian mutual fund, Indian promoter or Indian investor buying or selling Indian stocks; Indian mutual fund NFOs and new retail mutual fund schemes; IPO subscription and GMP coverage without a named foreign investor); aggregate FPI flow figures or market commentary; investments outside India by non-Indian companies; policy news without a named investor or fund; opinion and explainers. When in doubt, set relevant=false.
 
 priority (1-5) for kept items, as a lead for a custodian:
 5 = relocation, or a new FPI/IFSCA registration
 4 = offshore or GIFT City fund launch or fund close for India; a foreign investor's first investment in India
 3 = any other foreign investment into India
-2 = exit or wind-down
+2 = exit or wind-down, or outbound investment by an Indian company
 
 Extract names exactly as written. investor = the foreign investor / fund / fund manager (not the Indian target). investor_type one of: fpi, pe_vc, sovereign, pension, strategic, asset_manager, hedge_fund, family_office, bank, other. investor_country = its home country if stated or well known. origin_jurisdiction only for relocation: write it as "From -> To" (e.g. "DIFC -> GIFT City"). target = the Indian company or asset. amount_usd_m = deal or fund size in USD millions if stated (1 crore = 10,000,000 INR; use ${INR_PER_USD} INR/USD). summary = one plain sentence, max 25 words, saying who did what in India.`;
 
@@ -190,7 +198,7 @@ const SCHEMA = {
           relevant: { type: "boolean" },
           event_type: {
             type: "string",
-            enum: ["entry", "exit", "fund_launch", "relocation"],
+            enum: ["entry", "exit", "fund_launch", "relocation", "outbound"],
           },
           investor: nullable("string"),
           investor_type: nullable("string"),

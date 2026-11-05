@@ -9,7 +9,7 @@ import Anthropic from "npm:@anthropic-ai/sdk";
 // deno-lint-ignore no-explicit-any
 type Db = any;
 
-const IN_SCOPE = ["entry", "exit", "fund_launch", "relocation"];
+const IN_SCOPE = ["entry", "exit", "fund_launch", "relocation", "outbound"];
 const WINDOW_DAYS = 5;
 const COLS = "id,title,summary,source_name,event_type,published_at,fetched_at,duplicate_of";
 
