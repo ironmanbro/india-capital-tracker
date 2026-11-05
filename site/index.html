@@ -307,7 +307,9 @@ select option,select optgroup{background-color:var(--panel);color:var(--ink)}
 input[type=search]::-webkit-search-cancel-button{filter:invert(.6)}
 input:-webkit-autofill{-webkit-box-shadow:0 0 0 40px var(--panel) inset;-webkit-text-fill-color:var(--ink)}
 nav.tabs{position:fixed;left:14px;top:18px;bottom:18px;width:66px;flex-direction:column;align-items:center;gap:8px;border:1px solid var(--line);border-radius:22px;background:var(--glass),var(--panel);box-shadow:var(--shadow);padding:12px 0;margin:0;z-index:20}
-nav.tabs .logo{width:40px;height:40px;border-radius:12px;background:var(--accent);color:var(--accent-ink);p0;font-size:12px;margin-bottom:10px}
+.subtabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}.subtabs button{font:inherit;font-size:13px;padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer}.subtabs button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+@media (max-width:700px){.subtabs{display:none}}
+nav.tabs .logo{width:40px;height:40px;border-radius:12px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:800;letter-spacing:.02em;font-size:12px;margin-bottom:10px}
 nav.tabs button{width:52px;border:0;border-radius:14px;padding:8px 0 6px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-size:12px;font-weight:600}
 nav.tabs button svg{width:19px;height:19px}
 nav.tabs button:hover{color:var(--ink);background:var(--chip)}
@@ -4456,7 +4458,7 @@ var gnav = { open: null };
 const GNAV = [
   { id: "home", label: "Home", icon: "overview", views: [["overview", "Home", "Latest numbers and stories"]] },
   { id: "deals", label: "Feed", icon: "feed", views: [["feed", "Feed", "Investments, exits, fund launches and moves"], ["investors", "Investors", "Foreign investors, one profile each"], ["network", "Network", "Which firms appear together on deals"]] },
-  { id: "markets", label: "Markets", icon: "flows", views: [["flows", "Flows", "FPI and FDI money flows"], ["markets", "Exchange data", "FII/FPI activity, deals, debt and sectors"]] },
+  { id: "markets", label: "Markets", icon: "flows", views: [["flows", "Flows", "FPI and FDI money flows"], ["odi", "Outbound", "Indian companies investing abroad"], ["markets", "Exchange data", "FII/FPI activity, deals, debt and sectors"]] },
   { id: "registers", label: "FPIs", icon: "directory", views: [["directory", "FPIs", "Every registered FPI, assets held by country and sector"], ["gift", "GIFT City", "Every entity IFSCA regulates at GIFT IFSC"]] },
 ];
 function gnavViews(g) {
@@ -4489,6 +4491,21 @@ function drawGnav() {
   $("gsheet").innerHTML = og ? `<h4>${og.label}</h4>` + gnavViews(og).map((v) => `<button type="button" role="menuitem" data-t="${v[0]}" class="${state.tab === v[0] ? "on" : ""}">${v[1]}<small>${v[2]}</small></button>`).join("") : "";
   $("gsheet").querySelectorAll("button").forEach((b) => b.onclick = () => { gnav.open = null; setTab(b.dataset.t); toTop(); });
   document.body.classList.toggle("gopen", !!og);
+  // Desktop rail: one button per group (its first view), and a strip of the group's views above the section.
+  const grp = GNAV.find((g) => g.id === cur);
+  document.querySelectorAll("nav.tabs button[data-tab]").forEach((b) => {
+    const g = GNAV.find((x) => gnavViews(x).some((v) => v[0] === b.dataset.tab));
+    if (!g) return;
+    const lead = gnavViews(g)[0][0] === b.dataset.tab;
+    if (!lead) b.hidden = true;
+    else { b.setAttribute("aria-selected", g === grp); b.lastChild.textContent = g.label; }
+  });
+  let strip = $("subtabs");
+  if (!strip) { document.querySelector("section#tab-overview").insertAdjacentHTML("beforebegin", '<div class="subtabs" id="subtabs" role="tablist" aria-label="Views"></div>'); strip = $("subtabs"); }
+  const views = grp ? gnavViews(grp) : [];
+  strip.hidden = views.length < 2;
+  strip.innerHTML = views.map((v) => `<button type="button" role="tab" data-t="${v[0]}" aria-selected="${state.tab === v[0]}">${v[1]}</button>`).join("");
+  strip.querySelectorAll("button").forEach((b) => b.onclick = () => setTab(b.dataset.t));
 }
 drawGnav();
 
