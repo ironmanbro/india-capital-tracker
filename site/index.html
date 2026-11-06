@@ -4349,6 +4349,12 @@ async function renderMarkets() {
   const dt = (x) => safeDate(x || 0).getTime() || 0;
   const out = [];
   const fii = d("fii_dii").filter((r) => !/^dii$/i.test(r.category)).sort((a, b) => dt(b.date) - dt(a.date)).slice(0, 20);
+  // Daily net flow per day, FII and DII side by side; the last 30 trading days, oldest first.
+  const byDay = new Map();
+  d("fii_dii").forEach((r) => { const e = byDay.get(r.date) || { day: r.date, v: 0, dii: 0 }; e[/^dii$/i.test(r.category) ? "dii" : "v"] = mkNum(r.netValue) || 0; byDay.set(r.date, e); });
+  const flowPts = [...byDay.values()].sort((a, b) => dt(a.day) - dt(b.day)).slice(-30);
+  out.push(mkSec("Daily FII and DII net flows", "Net buying (above zero) or selling (below) in the NSE cash market each day, in ₹ crore. The line is the running total over the last 30 trading days.",
+    `<div class="fchart" id="mk-fii-chart"></div>`));
   out.push(mkSec("FII / FPI activity", "Daily foreign investor buying and selling in the cash market, in US$ with ₹ crore in brackets (NSE).",
     mkTable(["Date · category", "Buy", "Sell", "Net"], fii.map((r) => [`${r.date} · ${r.category}`, mkUsd(mkNum(r.buyValue)), mkUsd(mkNum(r.sellValue)), mkUsd(mkNum(r.netValue))]))));
   const deals = [
@@ -4395,6 +4401,7 @@ async function renderMarkets() {
   out.push(mkSec("FPI equity by sector", "FPI equity assets under custody by sector, in US$ with ₹ crore in brackets (NSDL).", mkTable(["Sector", "Assets (US$)"], sec.map((r) => [r[0], mkUsd(r[1])]))));
   try { out.push(...xtMarkets(await loadExtra())); } catch {}
   $("mk-body").innerHTML = out.join("");
+  barChart($("mk-fii-chart"), flowPts, { height: 200, label: (p) => p.day.slice(0, 6), axis: (v) => fmtCr(v), line: { kind: "cum", name: "30-day running total", full: (v) => fmtCr(v) }, tip: (p) => `<b>${esc(p.day)}</b><div class="row"><span>FII/FPI net</span><span>${fmtCr(p.v)}</span></div><div class="row"><span>DII net</span><span>${fmtCr(p.dii)}</span></div>` });
   const more = $("mk-more"); if (more) more.onclick = () => { mk.dealsN = (mk.dealsN || 100) + 200; renderMarkets(); };
 }
 
