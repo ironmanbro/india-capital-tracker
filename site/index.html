@@ -29,14 +29,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#0e0f12; --panel:#17191e; --ink:#eceef2; --muted:#8f97a5; --line:rgba(255,255,255,.08); --chip:rgba(255,255,255,.07);
+  --bg:#000; --panel:#181818; --ink:#eceef2; --muted:#8f97a5; --line:rgba(255,255,255,.08); --chip:#272727;
   --accent:#6f95ff; --accent-ink:#0e0f12;
   --relocation:#a98bff; --fund_launch:#3ccf98; --entry:#6f95ff; --exit:#f2894e; --outbound:#e3b341; --other:#9aa4b2;
   --good:#3ccf98; --bad:#f26d6d;
   --in:#5a82f0; --out:#d9682c;
   --glass:var(--panel);
   --shadow:0 10px 30px rgba(0,0,0,.28);
-  --page:#0e0f12;
+  --page:#000;
   color-scheme:dark;
 }
 :root[data-theme="light"]{
@@ -504,7 +504,7 @@ abbr.term{text-decoration:underline dotted;text-underline-offset:3px;cursor:help
   .fbar{display:none}
 }
 /* Midnight look (dark theme only): solid content cards, frosted glass on the floating layers, quieter header, rem type, fallbacks for reduced transparency and more contrast. */
-:root:not([data-theme="light"]){--bg:#000;--panel:#0c0c0e;--ink:#f5f5f7;--muted:#8e8e93;--line:rgba(255,255,255,.08);--chip:rgba(255,255,255,.07);
+:root:not([data-theme="light"]){--bg:#000;--panel:#181818;--ink:#f5f5f7;--muted:#8e8e93;--line:rgba(255,255,255,.08);--chip:#272727;
   --accent:#2997ff;--accent-ink:#000;--entry:#2997ff;--in:#2997ff;--out:#ff9f0a;--good:#30d158;--bad:#ff453a;
   --glass:var(--panel);--shadow:0 16px 40px rgba(0,0,0,.45);
   --page:#000}
