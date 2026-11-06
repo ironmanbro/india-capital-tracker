@@ -637,7 +637,7 @@ html.lenis,html.lenis body{height:auto}
 .gnav,#gscrim,#gsheet{display:none}
 @media (max-width:700px){
   nav.tabs{display:none!important}
-  .gnav{display:grid;grid-template-columns:repeat(4,1fr);position:fixed;left:10px;right:10px;bottom:10px;z-index:40;border-radius:20px;padding:6px;background:var(--panel);border:1px solid var(--line);box-shadow:0 8px 30px rgba(0,0,0,.35)}
+  .gnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:10px;right:10px;bottom:10px;z-index:40;border-radius:20px;padding:6px;background:var(--panel);border:1px solid var(--line);box-shadow:0 8px 30px rgba(0,0,0,.35)}
   .gnav button{background:none;border:0;border-radius:14px;color:var(--muted);font:inherit;font-size:12px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 2px 5px;min-height:48px;cursor:pointer}
   .gnav button svg{width:21px;height:21px}
   .gnav button.on{background:var(--chip);color:var(--ink)}
@@ -1062,6 +1062,8 @@ button,.reset,select,summary,.link,.kpi,.card,.bk,.ovrow,.ftable tbody tr,nav.ta
 @media (max-width:767px){.op-copy .op-l1,.op-copy .op-l2{font-size:24px;line-height:32px}.op-copy{top:38%}}
 @keyframes op-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.opener{display:none}}
+.stack-h{display:none}
+body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-weight:600;margin:40px 0 8px;padding-top:24px;border-top:1px solid var(--line)}
 </style>
 <script src="vendor/lenis.min.js" defer></script>
 </head>
@@ -1214,6 +1216,7 @@ button,.reset,select,summary,.link,.kpi,.card,.bk,.ovrow,.ftable tbody tr,nav.ta
       <button type="button" data-v="news" aria-pressed="false">In the news</button>
       <button type="button" data-v="holders" aria-pressed="false">Filed holders</button>
     </div>
+    <p class="sub" style="margin:0 0 12px"><button type="button" class="link" data-go="directory">Browse every SEBI-registered FPI →</button></p>
     <div class="filters">
       <input type="search" id="iq" placeholder="Find an investor, fund or company…" aria-label="Find an investor">
       <select id="icat" aria-label="Category">
@@ -1357,11 +1360,13 @@ button,.reset,select,summary,.link,.kpi,.card,.bk,.ovrow,.ftable tbody tr,nav.ta
   </section>
 
   <section id="tab-odi" hidden>
+    <h2 class="stack-h">Indian investment abroad</h2>
     <p class="sub" style="margin:0 0 12px"><span class="lg">Money Indian companies commit to joint ventures (JV) and wholly owned subsidiaries (WOS) abroad: equity, loans and guarantees. Monthly from RBI's Overseas Direct Investment data, in US$.</span><span class="sm">Indian companies investing abroad, monthly from RBI (US$).</span></p>
     <div id="odi-body"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div>
   </section>
 
   <section id="tab-markets" hidden>
+    <h2 class="stack-h">Exchange data</h2>
     <p class="sub" style="margin:0 0 12px"><span class="lg">Daily exchange and NSDL data: FII/FPI activity, bulk and block deals with foreign investors, FPI debt holdings and sector allocations.</span><span class="sm">Daily FII/FPI activity, foreign bulk and block deals, FPI debt and sector holdings.</span></p>
     <div id="mk-body"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div>
   </section>
@@ -3075,6 +3080,10 @@ function setTab(t) {
   document.querySelectorAll("nav.tabs button").forEach((b) => b.setAttribute("aria-selected", b.dataset.tab === t));
   const secId = t === "gift" ? "directory" : t;
   ["overview", "feed", "investors", "network", "firm", "flows", "odi", "markets", "directory", "entity", "users", "health"].forEach((x) => $(`tab-${x}`).hidden = x !== secId);
+  // Flows shows Outbound and Exchange data below it, so the tab is one page with no sub-tabs.
+  const stack = t === "flows";
+  document.body.classList.toggle("flows-stack", stack);
+  if (stack) { $("tab-odi").hidden = false; $("tab-markets").hidden = false; }
   if (was === "firm" && t !== "firm" && location.hash.startsWith("#firm/")) history.replaceState(null, "", location.pathname + location.search);
   // Fade the section in when it changes.
   const sec = $(`tab-${secId}`); sec.classList.remove("enter"); void sec.offsetWidth; sec.classList.add("enter");
@@ -3086,7 +3095,7 @@ function setTab(t) {
   if (t === "directory" || t === "gift") dir.view = t === "gift" ? "ifsca" : "fpi";
   setTitle();
   if (typeof syncSearch === "function") syncSearch();
-  if (t === "flows") { renderFlows(); renderFpiHistory(); }
+  if (t === "flows") { renderFlows(); renderFpiHistory(); openOdi(); openMarkets(); }
   if (t === "users") renderUsers();
   if (t === "markets") openMarkets();
   if (t === "odi") openOdi();
@@ -3106,7 +3115,7 @@ document.querySelectorAll("[data-go]").forEach((b) => b.onclick = () => { setTab
 
 // ---------- Page titles ----------
 const TITLES = {
-  feed: ["Feed", "Investments, exits, fund launches and jurisdiction moves"],
+  feed: ["Deals", "Investments, exits, fund launches and jurisdiction moves"],
   investors: ["Investors", "Foreign investors from the news and from shareholding filings, one profile each"],
   network: ["Network", "Which firms appear together on the same deals"],
   firm: ["Profile", "One firm's deals, links and sources"],
@@ -3114,6 +3123,7 @@ const TITLES = {
   users: ["Users", "Who signs in and what they open (owner only)"],
   flows: ["Flows", "FPI money in and out each day, and where FDI comes from"],
   odi: ["Outbound", "Indian companies investing abroad (RBI overseas direct investment)"],
+  markets: ["Exchange data", "FII/FPI activity, foreign bulk and block deals, FPI debt and sector holdings"],
   directory: ["FPIs", "Every SEBI-registered foreign portfolio investor, and how much they hold by sector"],
   gift: ["GIFT City", "Every entity IFSCA regulates at GIFT IFSC: fund managers, schemes, banks and more"],
   health: ["Sources", "When each source last ran"],
@@ -4937,12 +4947,15 @@ async function openEntity(kind, ref) {
 // ---------- Phone navigation: four buttons; the merged ones open a sheet of views ----------
 // Wide screens keep the full tab row (the CSS hides it only below 700px).
 var gnav = { open: null };
+// Five tabs, one page each. "also" lists pages a tab owns (they highlight it) without showing them as sub-tabs.
 const GNAV = [
   { id: "home", label: "Home", icon: "overview", views: [["overview", "Home", "Latest numbers and stories"]] },
-  { id: "deals", label: "Feed", icon: "feed", views: [["feed", "Feed", "Investments, exits, fund launches and moves"], ["investors", "Investors", "Foreign investors, one profile each"], ["network", "Network", "Which firms appear together on deals"]] },
-  { id: "markets", label: "Markets", icon: "flows", views: [["flows", "Flows", "FPI and FDI money flows"], ["odi", "Outbound", "Indian companies investing abroad"], ["markets", "Exchange data", "FII/FPI activity, deals, debt and sectors"]] },
-  { id: "registers", label: "FPIs", icon: "directory", views: [["directory", "FPIs", "Every registered FPI, assets held by country and sector"], ["gift", "GIFT City", "Every entity IFSCA regulates at GIFT IFSC"]] },
+  { id: "deals", label: "Deals", icon: "feed", views: [["feed", "Deals", "Investments, exits, fund launches and moves"]] },
+  { id: "investors", label: "Investors", icon: "investors", views: [["investors", "Investors", "Foreign investors, one profile each"]], also: ["network", "directory", "firm", "entity"] },
+  { id: "flows", label: "Flows", icon: "flows", views: [["flows", "Flows", "FPI flows, outbound investment and exchange data"]], also: ["odi", "markets"] },
+  { id: "gift", label: "GIFT City", icon: "gift", views: [["gift", "GIFT City", "Every entity IFSCA regulates at GIFT IFSC"]] },
 ];
+const gnavOwner = (t) => GNAV.find((g) => gnavViews(g).some((v) => v[0] === t) || (g.also || []).includes(t));
 function gnavViews(g) {
   const v = g.views.slice();
   // The Sources tab shows for the owner only.
@@ -4958,7 +4971,7 @@ function drawGnav() {
     $("gscrim").onclick = () => { gnav.open = null; drawGnav(); };
     bar = $("gnav");
   }
-  const cur = (GNAV.find((g) => gnavViews(g).some((v) => v[0] === state.tab)) || (state.tab === "firm" ? GNAV[1] : null))?.id;
+  const cur = gnavOwner(state.tab)?.id;
   bar.innerHTML = GNAV.map((g) => {
     const svg = document.querySelector(`nav.tabs button[data-tab="${g.icon}"] svg`)?.outerHTML || "";
     const multi = gnavViews(g).length > 1;
@@ -4976,7 +4989,7 @@ function drawGnav() {
   // Desktop rail: one button per group (its first view), and a strip of the group's views above the section.
   const grp = GNAV.find((g) => g.id === cur);
   document.querySelectorAll("nav.tabs button[data-tab]").forEach((b) => {
-    const g = GNAV.find((x) => gnavViews(x).some((v) => v[0] === b.dataset.tab));
+    const g = gnavOwner(b.dataset.tab);
     if (!g) return;
     const lead = gnavViews(g)[0][0] === b.dataset.tab;
     if (!lead) b.hidden = true;
