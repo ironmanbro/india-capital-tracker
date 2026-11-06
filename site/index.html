@@ -5234,12 +5234,13 @@ route();
 })();
 </script>
 <script>
-// Opener: globe with beams into India. Shown once per browser; skipped for reduced motion.
+// Opener: globe with beams into India. Shown again 4 hours after it was last closed; skipped for reduced motion.
 (function () {
   const op = document.getElementById("opener");
   if (!op) return;
   let seen = false, reduce = false;
-  try { seen = localStorage.getItem("ict-opener-seen") === "1"; } catch {}
+  const EVERY_MS = 4 * 60 * 60 * 1000;
+  try { const last = +localStorage.getItem("ict-opener-last") || 0; seen = Date.now() - last < EVERY_MS; } catch {}
   try { reduce = matchMedia("(prefers-reduced-motion: reduce)").matches; } catch {}
   if (seen || reduce) { op.remove(); return; }
 
@@ -5343,7 +5344,7 @@ route();
   function dismiss() {
     if (done) return;
     done = true;
-    try { localStorage.setItem("ict-opener-seen", "1"); } catch {}
+    try { localStorage.setItem("ict-opener-last", String(Date.now())); localStorage.removeItem("ict-opener-seen"); } catch {}
     op.classList.add("out");
     setTimeout(() => { cancelAnimationFrame(raf); op.remove(); }, 750);
   }
