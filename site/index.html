@@ -1047,18 +1047,19 @@ button,.reset,select,summary,.link,.kpi,.card,.bk,.ovrow,.ftable tbody tr,nav.ta
 .op-ticker{position:absolute;left:0;right:0;top:max(16px,env(safe-area-inset-top));height:24px;overflow:hidden;white-space:nowrap;
   font:500 12px/24px ui-monospace,Menlo,Consolas,monospace;color:#8e8e93;opacity:.35;padding-left:16px}
 .op-skip{position:absolute;right:16px;top:max(52px,calc(env(safe-area-inset-top) + 40px));background:none;border:0;color:#8e8e93;font:500 14px/20px Geist,system-ui,sans-serif;padding:8px;cursor:pointer}
-.op-copy{position:absolute;left:24px;right:24px;top:50%;transform:translateY(-50%)}
+.op-copy{position:absolute;left:24px;right:24px;top:50%;transform:translateY(-50%);max-width:680px}
 .op-copy div{text-wrap:balance;font-size:30px;line-height:36px;font-weight:600;letter-spacing:-.01em;margin:0 0 12px;opacity:0;animation:op-in .6s cubic-bezier(0.22,1,0.36,1) forwards}
 .op-l1{animation-delay:.2s!important}
 .op-l2{animation-delay:.7s!important;color:#8e8e93}
 .op-copy .op-l3{animation-delay:1.2s;font-size:20px;line-height:28px;font-weight:500;color:#8e8e93;margin-top:4px}
-.op-copy .op-src{text-wrap:pretty;animation-delay:2.4s;font-size:12px;line-height:16px;font-weight:400;color:#636366;margin-top:20px;letter-spacing:0}
+.op-copy .op-src{text-wrap:pretty;animation-delay:2.2s;font-size:12px;line-height:16px;font-weight:400;color:#636366;margin-top:20px;letter-spacing:0}
 .op-copy .op-stat{font-size:14px;line-height:20px;font-weight:500;color:#8e8e93;margin:0;min-height:20px;letter-spacing:0}
 .op-copy .op-s1{margin-top:24px;animation-delay:1.7s}
-.op-copy .op-s2{margin-top:16px;animation-delay:2.2s}
 .op-stat b{display:block;font-size:24px;line-height:32px;color:#fff;font-weight:600;margin-top:4px}
 .op-enter{position:absolute;left:24px;right:24px;bottom:max(64px,calc(env(safe-area-inset-bottom) + 48px));height:52px;border:0;border-radius:14px;
   background:#f5f5f7;color:#000;font:600 16px/24px Geist,system-ui,sans-serif;cursor:pointer}
+@media (min-width:768px){.op-copy{left:64px}.op-enter{left:64px;right:auto;width:320px}.op-copy .op-src{max-width:520px}}
+@media (max-width:767px){.op-copy .op-l1,.op-copy .op-l2{font-size:24px;line-height:32px}.op-copy{top:38%}}
 @keyframes op-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.opener{display:none}}
 </style>
@@ -1071,10 +1072,9 @@ button,.reset,select,summary,.link,.kpi,.card,.bk,.ovrow,.ftable tbody tr,nav.ta
   <button class="op-skip" id="op-skip" type="button">Skip</button>
   <div class="op-copy">
     <div class="op-l1">1.48 billion people.</div>
-    <div class="op-l2">A $4.06 trillion economy.</div>
+    <div class="op-l2">A $4.06&nbsp;trillion economy.</div>
     <div class="op-l3">Foreign money moving in and out of it, tracked.</div>
     <div class="op-stat op-s1" id="op-fpi"></div>
-    <div class="op-stat op-s2" id="op-fii"></div>
     <div class="op-src">Population and GDP: IMF World Economic Outlook, October 2026 (2026 estimates). Map: Natural Earth, India point of view.</div>
   </div>
   <button class="op-enter" id="op-enter" type="button">Enter the tracker</button>
@@ -5263,7 +5263,8 @@ route();
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     W = op.clientWidth; H = op.clientHeight;
     cv.width = W * dpr; cv.height = H * dpr; cx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    R = Math.min(W * 0.72, H * 0.5); GX = W / 2; GY = H * 0.66;
+    if (W >= 768) { R = Math.min(W * 0.36, H * 0.52); GX = W * 0.68; GY = H * 0.56; }
+    else { R = Math.min(W * 0.8, H * 0.5); GX = W * 0.42; GY = H * 0.8; }
   }
 
   function draw() {
@@ -5301,39 +5302,18 @@ route();
     t++; raf = requestAnimationFrame(draw);
   }
 
-  // Real figures only: NSDL's daily FPI flow first, then NSE's FII/DII cash-market flow.
-  const cr = (n) => fmtCr(Math.abs(n));
-  const fill = (id, label, text) => {
-    const el = document.getElementById(id); if (!el) return;
-    const b = document.createElement("b"); b.textContent = text;
-    el.textContent = ""; el.append(label, b);
-  };
+  // Live figure: NSDL's latest daily FPI net flow. Nothing is shown if it does not load.
   async function figures() {
-    const tick = [];
-    const [fpiRows, fiiRows] = await Promise.all([
-      api("fpi_flows?select=day,segment,route,net_cr&route=eq.Total&order=day.desc&limit=1").catch(() => []),
-      api("feed_records?select=data,as_of&dataset=eq.fii_dii&limit=200").catch(() => []),
-    ]);
-    const fpi = fpiRows[0];
-    if (fpi && fpi.net_cr != null) {
+    try {
+      const rows = await api("fpi_flows?select=day,net_cr&route=eq.Total&order=day.desc&limit=1");
+      const fpi = rows[0];
+      if (!fpi || fpi.net_cr == null) return;
       const n = +fpi.net_cr, day = safeDate(fpi.day).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
-      fill("op-fpi", "Foreign portfolio investors (NSDL), " + day, (n >= 0 ? "Net inflow " : "Net outflow ") + cr(n));
-      tick.push("FPI net " + n.toFixed(0) + " cr (" + day + ")");
-    }
-    const latest = new Map();
-    fiiRows.forEach((r) => {
-      const d = r.data || {}, at = safeDate(d.date || r.as_of).getTime() || 0, net = parseFloat(String(d.netValue ?? "").replace(/,/g, ""));
-      if (!d.category || isNaN(net)) return;
-      const cur = latest.get(d.category);
-      if (!cur || at > cur.at) latest.set(d.category, { at, net, date: new Date(at).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) });
-    });
-    const fii = latest.get("FII/FPI"), dii = latest.get("DII");
-    if (fii) {
-      fill("op-fii", "FII and DII in the cash market (NSE), " + fii.date,
-        "FII " + (fii.net >= 0 ? "+" : "−") + cr(fii.net) + (dii ? " · DII " + (dii.net >= 0 ? "+" : "−") + cr(dii.net) : ""));
-      tick.push("FII net " + fii.net.toFixed(0) + " cr" + (dii ? " · DII net " + dii.net.toFixed(0) + " cr" : "") + " (" + fii.date + ")");
-    }
-    if (tick.length) document.getElementById("op-ticker").textContent = tick.join("   ·   ");
+      const el = document.getElementById("op-fpi"), b = document.createElement("b");
+      b.textContent = (n >= 0 ? "Net inflow " : "Net outflow ") + fmtCr(Math.abs(n));
+      el.textContent = ""; el.append("Foreign portfolio investors (NSDL), " + day, b);
+      document.getElementById("op-ticker").textContent = "FPI net flow " + (n >= 0 ? "+" : "−") + fmtCr(Math.abs(n)) + "   ·   NSDL   ·   " + day;
+    } catch {}
   }
 
   function dismiss() {
@@ -5346,7 +5326,7 @@ route();
 
   size(); window.addEventListener("resize", size);
   draw(); figures();
-  timer = setTimeout(dismiss, 4200);
+  timer = setTimeout(dismiss, 3800);
   op.addEventListener("click", dismiss);
   document.addEventListener("keydown", dismiss, { once: true });
 })();
