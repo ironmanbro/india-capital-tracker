@@ -1,4 +1,6 @@
-"""Backfill from April 2025: NSE bulk/block deals with foreign-looking clients, and NSDL FPI monthly net investment by calendar year.
+"""Recent NSE bulk/block deals with foreign-looking clients, and NSDL FPI monthly net investment by calendar year.
+By default only the last 45 days are fetched: earlier deals are already in feed_records and the loader only upserts.
+Set HISTORY_FROM=2025-04-01 for a full backfill.
 Output: data/history/bulk_block_deals_history.json and data/history/fpi_monthly_history.json (loaded by pipeline/load_feeds.py)."""
 import os, re, sys, json, time, datetime as dt, requests
 from bs4 import BeautifulSoup
@@ -7,7 +9,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."
 from load_feeds import FOREIGN, DOMESTIC  # same foreign-name test as the live feed
 import nsdl_all
 
-START = dt.date.fromisoformat(os.environ.get("HISTORY_FROM", "2025-04-01"))
+START = dt.date.fromisoformat(os.environ["HISTORY_FROM"]) if os.environ.get("HISTORY_FROM") else dt.date.today() - dt.timedelta(days=45)
 os.makedirs("data/history", exist_ok=True)
 bad = []
 

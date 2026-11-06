@@ -9,9 +9,15 @@ SCRIPTS = ["final.py", "tracker.py", "ipo.py", "fpi_final.py", "sector.py", "nsd
            "fx.py", "announcements.py", "pib.py", "history.py"]
 
 failed = []
+PER_SCRIPT_SECONDS = 600  # one slow or blocked site must not hold up the rest
+
 for s in SCRIPTS:
     print(f"\n=== {s} ===", flush=True)
-    if subprocess.run([sys.executable, s]).returncode != 0:
+    try:
+        if subprocess.run([sys.executable, s], timeout=PER_SCRIPT_SECONDS).returncode != 0:
+            failed.append(s)
+    except subprocess.TimeoutExpired:
+        print(f"TIMED OUT after {PER_SCRIPT_SECONDS}s: {s}", flush=True)
         failed.append(s)
     time.sleep(2)
 
