@@ -4355,27 +4355,6 @@ async function renderMarkets() {
   const flowPts = [...byDay.values()].sort((a, b) => dt(a.day) - dt(b.day)).slice(-30);
   out.push(mkSec("Daily FII and DII net flows", "Net buying (above zero) or selling (below) in the NSE cash market each day, in ₹ crore. The line is the running total over the last 30 trading days.",
     `<div class="fchart" id="mk-fii-chart"></div>`));
-  // Foreign holders whose stake moved between a company's last two filings. Holders under 1% are not in the table,
-  // so a holder that drops out of it is shown as "Dropped below 1%".
-  const byCo = new Map();
-  (state.holdings || []).forEach((h) => { const m = byCo.get(h.company) || new Map(); const p = m.get(h.period_end) || new Map(); p.set(h.holder, h); m.set(h.period_end, p); byCo.set(h.company, m); });
-  const moves = [];
-  byCo.forEach((periods, company) => {
-    const [latest, prev] = [...periods.keys()].sort().reverse();
-    if (!prev) return;
-    const now = periods.get(latest), before = periods.get(prev);
-    for (const holder of new Set([...now.keys(), ...before.keys()])) {
-      const a = now.get(holder)?.pct ?? 0, b = before.get(holder)?.pct ?? 0;
-      if (Math.abs(a - b) < 0.01) continue;
-      const read = !before.has(holder) ? "New stake" : !now.has(holder) ? "Dropped below 1%" : a > b ? "Bought" : "Sold";
-      moves.push({ company, holder, from: b, to: a, change: a - b, read, period: latest, prev });
-    }
-  });
-  moves.sort((x, y) => Math.abs(y.change) - Math.abs(x.change));
-  const shPeriod = moves[0]?.period;
-  out.push(mkSec("Foreign holders: who bought or sold", `Stake changes between each company's last two shareholding filings${shPeriod ? `; latest filing is for the quarter ending ${shPeriod}` : ""}. Biggest moves first. Only holders with 1% or more are recorded, so a drop may mean a stake below 1%.`,
-    moves.length ? mkTable(["Company", "Holder", "Before", "Now", "Change (pts)", "Read"], moves.slice(0, 60).map((m) => [m.company, xFirm(m.holder), `${mkFmt(m.from, 2)}%`, `${mkFmt(m.to, 2)}%`, `${m.change > 0 ? "+" : ""}${mkFmt(m.change, 2)}`, m.read]), 10)
-      : `<div class="empty">No stake changes between the last two filings yet.</div>`));
   out.push(mkSec("FII / FPI activity", "Daily foreign investor buying and selling in the cash market, in US$ with ₹ crore in brackets (NSE).",
     mkTable(["Date · category", "Buy", "Sell", "Net"], fii.map((r) => [`${r.date} · ${r.category}`, mkUsd(mkNum(r.buyValue)), mkUsd(mkNum(r.sellValue)), mkUsd(mkNum(r.netValue))]))));
   const deals = [
