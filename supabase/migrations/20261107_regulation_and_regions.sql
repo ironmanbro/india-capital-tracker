@@ -4,3 +4,6 @@
 -- * apply_review: accepts "regulation" and "outbound" (outbound-only no longer saved as exit), writes the regulation fields
 -- * review_queue: includes sebi/rbi sources and region; recent_stories include regulation
 -- * stories view: regulation columns + official-document link (reg_doc_url, reg_doc_title)
+-- * review_queue_backlog_last: SEBI/RBI documents older than 7 days are reviewed after news and recent documents
+-- * pg_cron job 22 "regs-archive-daily" (01:35 UTC = 07:05 IST): POST regs?archive=1 (listing-page backup for the RSS feeds)
+-- * one-off history: POST regs?archive=1&months=12
