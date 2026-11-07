@@ -17,7 +17,12 @@ const FEEDS = [
   { source: "rbi", regulator: "RBI", url: "https://www.rbi.org.in/pressreleases_rss.xml" },
 ];
 
-// The scope: an item must name one of these to be kept.
+// Rule-making documents are all kept and the review decides scope: many that bind FPIs/FDI never name them in the title
+// (custodian, DDP, KYC, beneficial-ownership, settlement, derivatives, FEMA amendments). Enforcement orders are never kept.
+const RULE_DOCS = /\b(circular|master circular|master direction|regulations?,? 20\d\d|\(amendment\)|amendment regulations|notification|consultation paper|press note|a\.\s?p\.\s?\(dir series\)|fema|foreign exchange management|framework|guidelines|directions?)\b/i;
+const ORDERS = /\b(order|adjudicat|settlement order|recovery|show cause|exemption order|in the matter of|interim|confirmatory|penalty|appeal|section 35a|sahakar\w*|co-operative bank|variable rate (reverse )?repo)\b/i;
+const MORE_TERMS = /\b(custodian|designated depository|\bddps?\b|beneficial owner|kyc|offshore derivative|p-?notes?|\bnri|\boci\b|external commercial borrow|\becb\b|fully accessible route|voluntary retention route|sectoral cap|foreign investment|non-resident|cross-border|\blrs\b|liberalised remittance)/i;
+export const inScope = (t: string, blob: string) => !ORDERS.test(t) && (RULE_DOCS.test(t) || REG_TERMS.test(blob) || MORE_TERMS.test(blob));
 export const REG_TERMS = /\b(fpis?|foreign portfolio|fvcis?|foreign venture|fdi|foreign direct investment|ndi rules|non-debt instruments|odi|overseas investment|overseas direct investment|press note|gift city|gift-city|ifsc|international financial services cent|investment limits?|foreign liabilities and assets|direct investment entit|a\.\s?p\.\s?\(dir series\)|foreign exchange management \((non-debt|overseas))/i;
 
 const INSTRUMENTS: [string, RegExp][] = [
@@ -52,7 +57,7 @@ export function parseRegs(xml: string, feed: (typeof FEEDS)[number]) {
     const title = text(tag(it, "title")), summary = text(tag(it, "description")).slice(0, 600);
     const url = decode(tag(it, "link")).trim(), pub = new Date(text(tag(it, "pubDate")));
     const blob = `${title} ${summary}`;
-    if (!title || !url || !REG_TERMS.test(blob)) return null;
+    if (!title || !url || !inScope(title, blob)) return null;
     return {
       dedup_key: `${feed.source}:${url}`, title_key: `${feed.source}:${url}`, source: feed.source, source_name: feed.regulator,
       url, title, summary: summary || null, published_at: isNaN(+pub) ? null : pub.toISOString(),
