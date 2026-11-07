@@ -31,7 +31,7 @@
 :root{
   --bg:#000; --panel:#181818; --ink:#eceef2; --muted:#8f97a5; --line:rgba(255,255,255,.08); --chip:#272727;
   --accent:#6f95ff; --accent-ink:#0e0f12;
-  --relocation:#a98bff; --fund_launch:#3ccf98; --entry:#6f95ff; --exit:#f2894e; --outbound:#e3b341; --other:#9aa4b2;
+  --relocation:#a98bff; --fund_launch:#3ccf98; --entry:#6f95ff; --exit:#f2894e; --outbound:#e3b341; --regulation:#EC4899; --other:#9aa4b2;
   --good:#3ccf98; --bad:#f26d6d;
   --in:#5a82f0; --out:#d9682c;
   --glass:var(--panel);
@@ -42,7 +42,7 @@
 :root[data-theme="light"]{
   --bg:#f4f5f8; --panel:#ffffff; --ink:#14171c; --muted:#5f6b7a; --line:#e3e6eb; --chip:#eef1f5;
   --accent:#1f5eff; --accent-ink:#ffffff;
-  --relocation:#7a3cff; --fund_launch:#0a8a5f; --entry:#1f5eff; --exit:#c2410c; --outbound:#a16207; --other:#6b7280;
+  --relocation:#7a3cff; --fund_launch:#0a8a5f; --entry:#1f5eff; --exit:#c2410c; --outbound:#a16207; --regulation:#BE185D; --other:#6b7280;
   --good:#0a8a5f; --bad:#b91c1c;
   --in:#1f5eff; --out:#c2410c;
   --glass:var(--panel);
@@ -637,7 +637,7 @@ html.lenis,html.lenis body{height:auto}
 .gnav,#gscrim,#gsheet{display:none}
 @media (max-width:700px){
   nav.tabs{display:none!important}
-  .gnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:10px;right:10px;bottom:10px;z-index:40;border-radius:20px;padding:6px;background:var(--panel);border:1px solid var(--line);box-shadow:0 8px 30px rgba(0,0,0,.35)}
+  .gnav{display:grid;grid-template-columns:repeat(6,1fr);position:fixed;left:10px;right:10px;bottom:10px;z-index:40;border-radius:20px;padding:6px;background:var(--panel);border:1px solid var(--line);box-shadow:0 8px 30px rgba(0,0,0,.35)}
   .gnav button{background:none;border:0;border-radius:14px;color:var(--muted);font:inherit;font-size:12px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 2px 5px;min-height:48px;cursor:pointer}
   .gnav button svg{width:21px;height:21px}
   .gnav button.on{background:var(--chip);color:var(--ink)}
@@ -761,14 +761,14 @@ html.lenis,html.lenis body{height:auto}
   --bg:#0B0F17; --page:#0B0F17; --panel:#151C28; --panel-2:#1A2332; --glass:var(--panel);
   --ink:#E6EAF2; --muted:#8A94A6; --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.14); --chip:rgba(255,255,255,.06);
   --accent:#3B82F6; --accent-ink:#ffffff;
-  --entry:#10B981; --exit:#EF4444; --fund_launch:#06B6D4; --relocation:#8B5CF6; --outbound:#F59E0B; --other:#8A94A6;
+  --entry:#10B981; --exit:#EF4444; --fund_launch:#06B6D4; --relocation:#8B5CF6; --outbound:#F59E0B; --regulation:#EC4899; --other:#8A94A6;
   --good:#10B981; --bad:#EF4444; --in:#10B981; --out:#EF4444;
   --shadow:none;
   --select-arrow:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238A94A6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
 }
 :root[data-theme="light"]{
   --bg:#F6F8FB; --page:#F6F8FB; --panel:#FFFFFF; --panel-2:#F1F4F8; --line-2:#CBD3DE;
-  --accent:#2563EB; --entry:#059669; --exit:#DC2626; --fund_launch:#0891B2; --relocation:#7C3AED; --outbound:#D97706;
+  --accent:#2563EB; --entry:#059669; --exit:#DC2626; --fund_launch:#0891B2; --relocation:#7C3AED; --outbound:#D97706; --regulation:#BE185D;
   --good:#059669; --bad:#DC2626; --in:#059669; --out:#DC2626; --sig-wait:#D97706;
   --select-arrow:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235f6b7a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
 }
@@ -957,6 +957,8 @@ body.cmdk-on{overflow:hidden}
   .cmdk-btn{display:none}
 }
 
+/* Regulation cards stack: tags, title, summary, link. */
+.regcard{display:block!important}
 /* Names that open a firm's profile. */
 a.flink{color:inherit;text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--accent) 45%,transparent);text-underline-offset:3px}
 a.flink:hover{color:var(--accent);text-decoration-color:var(--accent)}
@@ -1143,6 +1145,16 @@ body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-wei
         <option value="">All sources</option>
         <option value="news">News</option>
         <option value="nse">NSE bulk/block deals</option>
+        <option value="reg">SEBI and RBI documents</option>
+      </select>
+      <select id="region" aria-label="Source region">
+        <option value="">All regions</option>
+        <option value="gulf">Gulf</option>
+        <option value="japan">Japan</option>
+        <option value="korea">Korea</option>
+        <option value="singapore">Singapore</option>
+        <option value="hubs">Fund hubs</option>
+        <option value="global">Overseas rules</option>
       </select>
       <select id="stage" aria-label="Deal stage">
         <option value="">Any stage</option>
@@ -1172,6 +1184,7 @@ body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-wei
     <button role="tab" aria-selected="false" data-tab="investors"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20c-.5-2.5-2-4.2-4-5"/></svg>Investors</button>
     <button role="tab" aria-selected="false" data-tab="network"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="2.5"/><circle cx="5" cy="5" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="18" cy="19" r="2"/><path d="M6.5 6.5l3.7 3.7M17.3 7.3l-3.5 3.3M16.6 17.5l-2.8-3.6"/></svg>Network</button>
     <button role="tab" aria-selected="false" data-tab="flows"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Flows</button>
+    <button role="tab" aria-selected="false" data-tab="regulation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M7 21h10M5 7h14"/><path d="M5 7l-3 7a3 3 0 0 0 6 0zM19 7l-3 7a3 3 0 0 0 6 0z"/></svg>Regulation</button>
     <button role="tab" aria-selected="false" data-tab="odi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9M12 3c-2.5 2.7-3.8 5.7-3.8 9s1.3 6.3 3.8 9"/><path d="M15 6l4-3m0 0v3.5m0-3.5h-3.5"/></svg>Outbound</button>
     <button role="tab" aria-selected="false" data-tab="markets"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l5-5 4 4 8-9"/><path d="M15 7h5v5"/></svg>Markets</button>
     <button role="tab" aria-selected="false" data-tab="directory"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M9 7h6"/></svg>FPIs</button>
@@ -1192,6 +1205,7 @@ body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-wei
       <div class="ovc"><div class="ovh"><div><h3>Biggest deals this week</h3><div class="sub">Largest agreed or completed deals, last 7 days</div></div><button class="link" data-go="feed">Feed ↗</button></div><div id="ov-deals"><!--skel--></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Latest stories</h3><div class="sub">News collected hourly, reviewed daily at 9am IST</div></div><button class="link" data-go="feed">All stories</button></div><div id="ov-stories"><!--skel--></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Indian investment abroad</h3><div class="sub">RBI overseas direct investment, latest month</div></div><button class="link" data-go="odi">Outbound ↗</button></div><div id="ov-odi"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
+      <div class="ovc"><div class="ovh"><div><h3>What changed this month</h3><div class="sub">SEBI and RBI rules for foreign investment</div></div><button class="link" data-go="regulation">Regulation ↗</button></div><div id="ov-regchg"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Latest FPI flow</h3><div class="sub" id="ov-flow-sub">NSDL</div></div><button class="link" data-go="flows">Flows ↗</button></div><div class="flowwrap"><div id="ov-flow"></div><div class="fchart" id="ov-fpibars"></div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>New FPI registrations</h3><div class="sub">Latest additions to the NSDL register</div></div><button class="link" data-go="directory">FPIs ↗</button></div><div id="ov-regs"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
       <div class="ovc gated"><div class="ovh"><div><h3>Funding and deal news</h3><div class="sub">Startup media and global coverage</div></div><button class="link" data-go="markets">Markets ↗</button></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-news"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
@@ -1359,6 +1373,11 @@ body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-wei
     <div class="ftip" id="ftip" role="tooltip" hidden></div>
   </section>
 
+  <section id="tab-regulation" hidden>
+    <p class="sub" style="margin:0 0 12px"><span class="lg">SEBI and RBI documents that change the rules for foreign investment: FPI, FVCI, FDI, ODI and GIFT City. Summaries state only what changed, for whom and from when; always read the official document.</span><span class="sm">SEBI and RBI rule changes for foreign investment. Read the official document.</span></p>
+    <div id="reg-body"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div>
+  </section>
+
   <section id="tab-odi" hidden>
     <h2 class="stack-h">Indian investment abroad</h2>
     <p class="sub" style="margin:0 0 12px"><span class="lg">Money Indian companies commit to joint ventures (JV) and wholly owned subsidiaries (WOS) abroad: equity, loans and guarantees. Monthly from RBI's Overseas Direct Investment data, in US$.</span><span class="sm">Indian companies investing abroad, monthly from RBI (US$).</span></p>
@@ -1439,6 +1458,7 @@ const TYPES = {
   fund_launch: "Fund launch",
   relocation:  "Jurisdiction move",
   outbound:    "Indian investment abroad",
+  regulation:  "Regulation",
 };
 // How far a deal had got when it was last reported. Totals count only agreed or completed deals.
 const STAGES = { completed: ["Completed", "#10B981"], agreed: ["Agreed", "#3B82F6"], talks: ["In talks", "#F59E0B"], plan: ["Plan or pledge", "#9aa4b2"] };
@@ -1462,6 +1482,7 @@ const KPI_GROUPS = [
   // Both are rare, so they share a box: offshore/GIFT City fund launches and funds moving jurisdiction.
   { label: "Fund launches & moves", types: ["fund_launch", "relocation"] },
   { label: "Indian investment abroad", types: ["outbound"] },
+  { label: "Regulation", types: ["regulation"] },
 ];
 
 const state = { events: [], types: new Set(), tab: "overview" };
@@ -1531,7 +1552,7 @@ const usdAxis = (v) => v === 0 ? "0" : `${v < 0 ? "−" : ""}${fmtUsd(Math.abs(v
 // All stories are loaded once; every filter is applied in the page so the tiles, chips,
 // feed and investor list always describe the same set.
 async function refresh() {
-  const cols = "id,source,source_name,url,title,summary,published_at,fetched_at,event_type,investor,investor_type,investor_country,origin_jurisdiction,target,amount_usd_m,amount_text,priority,classifier,reports,event_types,parties,deal_stage,flow_kind";
+  const cols = "id,source,source_name,url,title,summary,published_at,fetched_at,event_type,investor,investor_type,investor_country,origin_jurisdiction,target,amount_usd_m,amount_text,priority,classifier,reports,event_types,parties,deal_stage,flow_kind,region,regulator,instruments,doc_type,issued_on,effective_on,reg_doc_url,reg_doc_title";
   try {
     const [events, runs, latest, reviewed] = await Promise.all([
       api(`stories?select=${cols}&order=published_at.desc.nullslast&limit=10000`),
@@ -1584,7 +1605,7 @@ function applyPreset() {
 function base() {
   if (state.story) return state.events.filter((e) => String(e.id) === state.story);
   const q = $("q").value.trim().toLowerCase();
-  const src = $("source").value, stage = $("stage").value, flow = $("flow").value;
+  const src = $("source").value, stage = $("stage").value, flow = $("flow").value, region = $("region").value;
   const v = $("preset").value;
   const from = v !== "all" && $("from").value ? new Date(`${$("from").value}T00:00:00`) : null;
   const to = v !== "all" && $("to").value ? new Date(`${$("to").value}T23:59:59.999`) : null;
@@ -1592,7 +1613,8 @@ function base() {
   return state.events.filter((e) => {
     const t = when(e);
     return (!sinceHours || t >= sinceHours) && (sinceHours || ((!from || t >= from) && (!to || t <= to))) &&
-      (!src || (src === "news" ? e.source === "news" : e.source.startsWith("nse"))) &&
+      (!src || (src === "news" ? e.source === "news" : src === "reg" ? e.source === "sebi" || e.source === "rbi" : e.source.startsWith("nse"))) &&
+      (!region || e.region === region) &&
       (!stage || (stage === "firm" ? FIRM.has(e.deal_stage) : e.deal_stage === stage)) && (!flow || (e.flow_kind || "capital") === flow) &&
       (!state.country || countryOf(e) === state.country) && (!state.sector || sectorOf(e) === state.sector) &&
       (!q || [e.title, e.investor, e.target, e.summary, e.source_name, ...e.parties.map((p) => p.name)].some((x) => x && x.toLowerCase().includes(q)));
@@ -1642,8 +1664,51 @@ function renderKpis() {
   const shown = filtered().length;
   $("kpi-note").textContent = `${shown === state.events.length ? `${fmt(shown)} stories` : `Showing ${fmt(shown)} of ${fmt(state.events.length)} stories`}. Tap a box to filter. Counts follow the filters above; a deal reported by several outlets counts once. Data from ${firstMonth()} to date.`;
   // On phones the filters fold away behind one button that shows how many are in use.
-  const active = [$("preset").value !== "all", !!$("source").value, !!$("stage").value, $("flow").value !== "capital"].filter(Boolean).length;
+  const active = [$("preset").value !== "all", !!$("source").value, !!$("region").value, !!$("stage").value, $("flow").value !== "capital"].filter(Boolean).length;
   $("ftoggle").textContent = active ? `Filters (${active})` : "Filters";
+}
+
+// ---------- Regulation (SEBI and RBI documents on foreign investment) ----------
+const REGIONS = { gulf: "Gulf", japan: "Japan", korea: "Korea", singapore: "Singapore", hubs: "Fund hubs", global: "Overseas rules" };
+const regionTag = (e) => e.region && REGIONS[e.region] ? `<span class="src-tag" title="From a foreign source">${esc(REGIONS[e.region])}</span>` : "";
+const DOC_TYPES = { circular: "Circular", notification: "Notification", "consultation paper": "Consultation paper", "press note": "Press note", "master direction": "Master direction", other: "Other" };
+// Regulator, document type, instruments and dates for a regulation item.
+const regMeta = (e) => [
+  `<span class="tpill" style="--tc:var(--regulation)">${esc(e.regulator || "Regulator")}</span>`,
+  e.doc_type ? `<span class="src-tag">${esc(DOC_TYPES[e.doc_type] || e.doc_type)}</span>` : "",
+  ...(e.instruments || []).map((i) => `<span class="src-tag">${esc(i)}</span>`),
+  e.issued_on ? `<span class="src-tag">Issued ${esc(toDMY(e.issued_on))}</span>` : "",
+  e.effective_on ? `<span class="src-tag">Effective ${esc(toDMY(e.effective_on))}</span>` : "",
+].join("");
+const regDocLink = (e) => e.reg_doc_url ? `<a class="src-tag" href="${safeUrl(e.reg_doc_url)}" target="_blank" rel="noopener" title="${esc(e.reg_doc_title || "Official document")}">Official document ↗</a>` : "";
+const regs = { regulator: "", instrument: "", doc: "" };
+function renderRegs() {
+  const box = $("reg-body");
+  if (!state.events?.length) { box.innerHTML = skelCards(3); return; }
+  const all = state.events.filter((e) => e.event_type === "regulation");
+  const list = all.filter((e) => (!regs.regulator || e.regulator === regs.regulator) && (!regs.instrument || (e.instruments || []).includes(regs.instrument)) && (!regs.doc || e.doc_type === regs.doc))
+    .sort((a, b) => String(b.issued_on || b.published_at || "").localeCompare(String(a.issued_on || a.published_at || "")));
+  const sel = (id, label, cur, opts) => `<select id="${id}" aria-label="${label}"><option value="">${label}: all</option>${opts.map(([v, l]) => `<option value="${esc(v)}"${v === cur ? " selected" : ""}>${esc(l)}</option>`).join("")}</select>`;
+  box.innerHTML = `<div class="filters">${sel("reg-r", "Regulator", regs.regulator, [["SEBI", "SEBI"], ["RBI", "RBI"]])}${sel("reg-i", "Instrument", regs.instrument, ["FPI", "FDI", "FVCI", "ODI", "GIFT City"].map((x) => [x, x]))}${sel("reg-d", "Document", regs.doc, Object.entries(DOC_TYPES))}</div>` +
+    (list.length ? list.map((e) => `<article class="card scard regcard"><div class="meta">${regMeta(e)}</div>
+      <div style="margin:6px 0 4px"><a class="title" href="${safeUrl(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a></div>
+      ${e.summary ? `<div class="summary">${esc(e.summary)}</div>` : ""}
+      <div class="scard-foot"><a class="src-tag" href="${safeUrl(e.url)}" target="_blank" rel="noopener">Official document ↗</a></div></article>`).join("")
+      : noRows(all.length ? "No documents match these filters." : "No regulatory updates yet. SEBI and RBI documents on FPI, FVCI, FDI, ODI and GIFT City appear here after the daily review."));
+  [["reg-r", "regulator"], ["reg-i", "instrument"], ["reg-d", "doc"]].forEach(([id, k]) => { $(id).onchange = (ev) => { regs[k] = ev.target.value; renderRegs(); }; });
+}
+// Home: regulatory changes issued this calendar month (the last 30 days early in a month).
+function renderOvRegChanges() {
+  const box = $("ov-regchg");
+  if (!box || !state.events?.length) return;
+  const now = new Date(), month = now.toISOString().slice(0, 7), since = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);
+  const d = (e) => String(e.issued_on || (e.published_at || "").slice(0, 10));
+  const all = state.events.filter((e) => e.event_type === "regulation");
+  let rows = all.filter((e) => d(e).startsWith(month)), label = "this month";
+  if (rows.length < 2) { rows = all.filter((e) => d(e) >= since); label = "in the last 30 days"; }
+  rows.sort((a, b) => d(b).localeCompare(d(a)));
+  box.innerHTML = rows.length ? rows.slice(0, 4).map((e) => `<div class="ovrow"><span class="stripe" style="background:var(--regulation)"></span><div style="min-width:0"><div class="t"><a href="${safeUrl(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a></div><div class="meta" style="margin-top:5px">${regMeta(e)}</div></div></div>`).join("") + (rows.length > 4 ? `<div class="sub">${rows.length - 4} more ${label}.</div>` : "")
+    : `<div class="sub">No SEBI or RBI changes to foreign-investment rules ${label}.</div>`;
 }
 
 // ---------- Story card components (shared by Feed, the board and Home) ----------
@@ -1711,7 +1776,8 @@ function renderFeed() {
         <div class="meta">${bits}&nbsp;· <button class="link sharebtn" type="button" data-share="${esc(e.id)}">Copy link</button></div>
       </div>
       ${e.summary && e.classifier !== "rules" ? `<div class="summary">${esc(e.summary)}</div>` : ""}
-      <div class="scard-foot">${amtTag(e)}${srcTag(e)}</div>
+      ${e.event_type === "regulation" ? `<div class="meta" style="margin-top:6px">${regMeta(e)}</div>` : ""}
+      <div class="scard-foot">${amtTag(e)}${srcTag(e)}${regionTag(e)}${regDocLink(e)}</div>
     </article>`;
   }).join("");
 }
@@ -2392,7 +2458,7 @@ $("nq").addEventListener("change", () => {
 // ---------- Firm profile (#firm/<key>), opened from the Network tab ----------
 // A story about a private (unlisted) funding round: seed, Series A-H, growth, bridge or pre-IPO.
 const ROUND = /\b(pre-?seed|seed|series [a-h]|pre-series [a-c]|bridge|growth (?:round|capital)|funding round|pre-ipo|venture debt)\b/i;
-const CAT_WORDS = { entry: ["investment", "investments"], exit: ["exit", "exits"], fund_launch: ["fund launch", "fund launches"], relocation: ["move", "moves"], outbound: ["outbound investment", "outbound investments"] };
+const CAT_WORDS = { entry: ["investment", "investments"], exit: ["exit", "exits"], fund_launch: ["fund launch", "fund launches"], relocation: ["move", "moves"], outbound: ["outbound investment", "outbound investments"], regulation: ["regulatory update", "regulatory updates"] };
 // A small map of one firm and the firms it is linked to: the strongest links around it, and the links among those.
 // Shown on every profile. Click a firm to open its own profile. Same input, same picture.
 function egoMap(key, el) {
@@ -2778,7 +2844,7 @@ $("ov-break").addEventListener("click", (ev) => {
 });
 
 // ---------- Shareable links: the address keeps the tab and filters ----------
-const URL_FIELDS = ["q", "preset", "from", "to", "source", "stage", "flow"], URL_DEFAULT = { preset: "all", flow: "capital" };
+const URL_FIELDS = ["q", "preset", "from", "to", "source", "region", "stage", "flow"], URL_DEFAULT = { preset: "all", flow: "capital" };
 function syncUrl() {
   if (!state.urlReady) return;
   const p = new URLSearchParams();
@@ -3079,7 +3145,7 @@ function setTab(t) {
   state.tab = t;
   document.querySelectorAll("nav.tabs button").forEach((b) => b.setAttribute("aria-selected", b.dataset.tab === t));
   const secId = t === "gift" ? "directory" : t;
-  ["overview", "feed", "investors", "network", "firm", "flows", "odi", "markets", "directory", "entity", "users", "health"].forEach((x) => $(`tab-${x}`).hidden = x !== secId);
+  ["overview", "feed", "investors", "network", "firm", "flows", "odi", "regulation", "markets", "directory", "entity", "users", "health"].forEach((x) => $(`tab-${x}`).hidden = x !== secId);
   // Flows shows Outbound and Exchange data below it, so the tab is one page with no sub-tabs.
   const stack = t === "flows";
   document.body.classList.toggle("flows-stack", stack);
@@ -3099,6 +3165,7 @@ function setTab(t) {
   if (t === "users") renderUsers();
   if (t === "markets") openMarkets();
   if (t === "odi") openOdi();
+  if (t === "regulation") renderRegs();
   if (t === "health") { mbQueue(); renderOps(); }
   if (t === "directory" || t === "gift") { dir.view = t === "gift" ? "ifsca" : "fpi"; openDirectory(); }
   if (t === "investors" && state.events?.length) renderInvestors();
@@ -3123,6 +3190,7 @@ const TITLES = {
   users: ["Users", "Who signs in and what they open (owner only)"],
   flows: ["Flows", "FPI money in and out each day, and where FDI comes from"],
   odi: ["Outbound", "Indian companies investing abroad (RBI overseas direct investment)"],
+  regulation: ["Regulation", "SEBI and RBI rule changes for foreign investment"],
   markets: ["Exchange data", "FII/FPI activity, foreign bulk and block deals, FPI debt and sector holdings"],
   directory: ["FPIs", "Every SEBI-registered foreign portfolio investor, and how much they hold by sector"],
   gift: ["GIFT City", "Every entity IFSCA regulates at GIFT IFSC: fund managers, schemes, banks and more"],
@@ -3254,6 +3322,7 @@ async function loadOverviewCross() {
   } catch { ovX = null; }
 }
 function renderOverview() {
+  renderOvRegChanges();
   if (!odi.ovLoaded) { odi.ovLoaded = true; loadOvOdi(); }
   if (!$("tab-overview") || !state.events.length) return;
   loadOverviewCross();
@@ -3690,7 +3759,7 @@ async function checkOwner() {
   $("leads-csv").hidden = !dir.ownerKey;
 }
 checkOwner();
-["q", "source", "stage", "flow"].forEach((id) => $(id).addEventListener("input", render));
+["q", "source", "region", "stage", "flow"].forEach((id) => $(id).addEventListener("input", render));
 $("preset").addEventListener("change", () => { applyPreset(); render(); });
 ["from", "to"].forEach((id) => $(id).addEventListener("change", () => {
   if ($(id).value && !$(id).validity.valid) return;
@@ -3721,7 +3790,7 @@ $("ftoggle").addEventListener("click", () => {
   $("ftoggle").setAttribute("aria-expanded", open);
 });
 $("reset").addEventListener("click", () => {
-  $("q").value = ""; $("iq").value = ""; $("icat").value = ""; $("itype").value = ""; $("isort").value = "active"; $("source").value = ""; $("stage").value = ""; $("flow").value = "capital";
+  $("q").value = ""; $("iq").value = ""; $("icat").value = ""; $("itype").value = ""; $("isort").value = "active"; $("source").value = ""; $("region").value = ""; $("stage").value = ""; $("flow").value = "capital";
   $("preset").value = "all"; applyPreset(); state.types.clear(); state.country = state.sector = state.story = null; setTab("feed"); render();
 });
 $("to").max = $("from").max = $("fto").max = $("ffrom").max = dayStr(new Date());
@@ -4953,6 +5022,7 @@ const GNAV = [
   { id: "deals", label: "Deals", icon: "feed", views: [["feed", "Deals", "Investments, exits, fund launches and moves"]] },
   { id: "investors", label: "Investors", icon: "investors", views: [["investors", "Investors", "Foreign investors, one profile each"]], also: ["network", "directory", "firm", "entity"] },
   { id: "flows", label: "Flows", icon: "flows", views: [["flows", "Flows", "FPI flows, outbound investment and exchange data"]], also: ["odi", "markets"] },
+  { id: "regulation", label: "Regulation", icon: "regulation", views: [["regulation", "Regulation", "SEBI and RBI rule changes for foreign investment"]] },
   { id: "gift", label: "GIFT City", icon: "gift", views: [["gift", "GIFT City", "Every entity IFSCA regulates at GIFT IFSC"]] },
 ];
 const gnavOwner = (t) => GNAV.find((g) => gnavViews(g).some((v) => v[0] === t) || (g.also || []).includes(t));

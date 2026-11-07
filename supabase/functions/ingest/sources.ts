@@ -1,7 +1,9 @@
 // What we search for. Each query becomes one Google News RSS feed.
 // `tag` is stored with the event so you can see which search found it.
 
-export type NewsQuery = { tag: string; q: string; edition: "IN" | "US" };
+// `region` marks searches and feeds aimed at investors from one part of the world; their items must pass the
+// India filter below before they are stored, and keep the region tag so the Feed can filter by it.
+export type NewsQuery = { tag: string; q: string; edition: "IN" | "US"; region?: string };
 
 export const NEWS_QUERIES: NewsQuery[] = [
   // --- Entries: foreign money coming into India ---
@@ -62,7 +64,27 @@ export const NEWS_QUERIES: NewsQuery[] = [
   { tag: "outbound", q: `"overseas direct investment" India`, edition: "IN" },
   { tag: "outbound", q: `Indian company acquires "UK-based" OR "US-based" OR "Germany-based" firm`, edition: "IN" },
   { tag: "outbound", q: `Indian firm "overseas subsidiary" OR "overseas acquisition" invest`, edition: "IN" },
+
+  // --- Foreign investors and hubs: each query names India, and items keep a region tag ---
+  { tag: "foreign", region: "gulf", q: `ADIA OR Mubadala OR "Public Investment Fund" OR "Qatar Investment Authority" OR "Kuwait Investment Authority" OR ADQ India`, edition: "IN" },
+  { tag: "foreign", region: "japan", q: `MUFG OR SMBC OR Mizuho OR "Japanese investor" India stake OR invest`, edition: "IN" },
+  { tag: "foreign", region: "korea", q: `site:kedglobal.com India`, edition: "US" },
+  { tag: "foreign", region: "singapore", q: `GIC OR Temasek OR "Singapore fund" India stake OR invest`, edition: "IN" },
+  { tag: "foreign", region: "hubs", q: `"GIFT City" Mauritius OR Singapore OR DIFC OR ADGM fund domicile OR relocate`, edition: "IN" },
+  { tag: "foreign", region: "global", q: `India funds AIFMD OR NISA OR "US tax" OR "tax treaty" foreign investors`, edition: "US" },
 ];
+
+// Direct RSS from foreign outlets: general feeds, so only items that pass the India filter are kept.
+export const RSS_FEEDS = [
+  { name: "Nikkei Asia", region: "japan", url: "https://asia.nikkei.com/rss/feed/nar" },
+  { name: "The Edge Singapore", region: "singapore", url: "https://www.theedgesingapore.com/rss.xml" },
+  { name: "The National", region: "gulf", url: "https://www.thenationalnews.com/arc/outboundfeeds/rss/?outputType=xml" },
+];
+
+// Foreign-source items must be about India AND about money moving: off-topic global stories never reach review.
+const INDIA_WORDS = /\b(india|indian|indias|gift city|gift ifsc|ifsc|sensex|nifty|mumbai|bengaluru|bangalore|new delhi|rupee|reliance|tata|adani|infosys|hdfc|icici)\b/i;
+const CAPITAL_WORDS = /(invest|stake|fund|acqui|deal|\bipo\b|capital|bond|equit|sovereign|allocat|inflow|outflow|exposure|portfolio|\bfpis?\b|\bfdi\b|aifmd|\bnisa\b|\btax\b|treaty|domicil|relocat|\bbuys?\b|\bsells?\b|\bexits?\b|listing|lender|loan)/i;
+export const indiaCapital = (text: string) => INDIA_WORDS.test(text) && CAPITAL_WORDS.test(text);
 
 // `time` is a Google News time operator: "when:1d", or "after:2026-04-01 before:2026-04-08" for history.
 export function googleNewsUrl(q: NewsQuery, time: string) {

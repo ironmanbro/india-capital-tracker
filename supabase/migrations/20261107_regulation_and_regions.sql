@@ -1,0 +1,6 @@
+-- Applied directly via the Supabase API on 2026-11-07 (migrations "regulation_and_regions" and
+-- "stories_regulation_columns"). Recorded here for reference:
+-- * events: region, regulator, instruments text[], doc_type, issued_on, effective_on, reg_doc_id (+ index events_regulation)
+-- * apply_review: accepts "regulation" and "outbound" (outbound-only no longer saved as exit), writes the regulation fields
+-- * review_queue: includes sebi/rbi sources and region; recent_stories include regulation
+-- * stories view: regulation columns + official-document link (reg_doc_url, reg_doc_title)

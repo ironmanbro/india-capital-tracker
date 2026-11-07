@@ -10,7 +10,7 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import Anthropic from "npm:@anthropic-ai/sdk";
-import { googleNewsUrl, NEWS_QUERIES, NSE_FILES, SHP_FEED, type NewsQuery } from "./sources.ts";
+import { googleNewsUrl, indiaCapital, NEWS_QUERIES, NSE_FILES, RSS_FEEDS, SHP_FEED, type NewsQuery } from "./sources.ts";
 import { parseFeed, parseShp } from "./shp.ts";
 import { classifyLLM, classifyRules, PRIORITY, type Classified, type RawItem } from "./classify.ts";
 import { dedupe } from "./dedupe.ts";
@@ -31,7 +31,7 @@ async function llmLeftToday() {
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36";
 const TIME_BUDGET_MS = 120_000;
 
-type NewsRow = RawItem & { url: string; published_at: string | null };
+type NewsRow = RawItem & { url: string; published_at: string | null; region?: string | null; via?: string };
 
 // ---------- helpers ----------
 
@@ -73,19 +73,48 @@ async function existingKeys(keys: string[]): Promise<Set<string>> {
 
 // ---------- news ----------
 
-async function fetchNews(time: string, parallel = 6): Promise<{ rows: NewsRow[]; errors: string[] }> {
+// Google News refuses bursts (HTTP 503), so searches go two at a time with a short gap, and a refused one
+// waits longer before its single retry. Google also refuses some server addresses outright: after three
+// refusals in a run, the remaining searches go to Bing News instead (same queries, same time window).
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+// qft: past 24 hours, newest first (without it Bing returns months-old articles).
+const bingUrl = (q: NewsQuery) => `https://www.bing.com/news/search?q=${encodeURIComponent(q.q)}&format=rss&mkt=${q.edition === "IN" ? "en-IN" : "en-US"}&qft=${encodeURIComponent('interval="7"+sortbydate="1"')}`;
+// "when:1d" / "when:12h" -> the oldest publish time to keep; history windows (after:/before:) are not sent to Bing.
+const windowStart = (time: string) => { const m = /when:(\d+)([hd])/.exec(time); return m ? Date.now() - +m[1] * (m[2] === "h" ? 36e5 : 864e5) : null; };
+function parseBing(xml: string, q: NewsQuery, since: number): NewsRow[] {
+  return [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)].map((m): NewsRow | null => {
+    const title = stripTags(tag(m[1], "title")), pub = new Date(stripTags(tag(m[1], "pubDate")));
+    if (!title || isNaN(+pub) || +pub < since) return null;
+    const link = decode(tag(m[1], "link")).trim(), real = /[?&]url=([^&]+)/.exec(link)?.[1];
+    return { key: "news:" + normKey(title), title, summary: stripTags(tag(m[1], "description")).slice(0, 400),
+      source_name: stripTags(tag(m[1], "News:Source")) || "Bing News", query_tag: q.tag,
+      url: real ? decodeURIComponent(real) : link, published_at: pub.toISOString(), region: q.region ?? null, via: "bing" };
+  // Bing matches loosely (e.g. "ADIA" also hits Portuguese "adia"), so foreign searches must pass the India filter.
+  }).filter((r): r is NewsRow => r !== null && (!r.region || indiaCapital(`${r.title} ${r.summary}`)));
+}
+async function fetchNews(time: string, parallel = 2): Promise<{ rows: NewsRow[]; errors: string[] }> {
   const errors: string[] = [];
   // Each request has its own time limit, and searches not started within the budget are skipped,
   // so a slow Google response cannot push the whole run past the function's time limit.
   const stopAt = Date.now() + 90_000;
   const get = (q: NewsQuery) => fetch(googleNewsUrl(q, time), { headers: { "user-agent": UA }, signal: AbortSignal.timeout(15_000) });
+  const since = windowStart(time);
+  let refused = 0;
   const results = await pool(NEWS_QUERIES, parallel, async (q) => {
     if (Date.now() > stopAt) { errors.push(`${q.tag}/${q.edition} "${q.q}": skipped (time budget)`); return []; }
+    if (refused >= 3 && since !== null) {
+      try {
+        const res = await fetch(bingUrl(q), { headers: { "user-agent": UA }, signal: AbortSignal.timeout(15_000) });
+        if (!res.ok) throw new Error(`Bing HTTP ${res.status}`);
+        return parseBing(await res.text(), q, since);
+      } catch (e) { errors.push(`bing ${q.tag}/${q.edition} "${q.q}": ${(e as Error).message}`); return []; }
+    }
     try {
-      // One retry after a pause when Google News is briefly refusing requests.
+      await sleep(600 + Math.random() * 600);
       let res = await get(q);
       if (res.status === 503 || res.status === 429) {
-        await new Promise((r) => setTimeout(r, 4000));
+        if (++refused >= 3 && since !== null) return parseBing(await (await fetch(bingUrl(q), { headers: { "user-agent": UA }, signal: AbortSignal.timeout(15_000) })).text(), q, since);
+        await sleep(8000 + Math.random() * 4000);
         res = await get(q);
       }
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -105,6 +134,7 @@ async function fetchNews(time: string, parallel = 6): Promise<{ rows: NewsRow[];
           query_tag: q.tag,
           url: decode(tag(m[1], "link")).trim(),
           published_at: pub ? new Date(pub).toISOString() : null,
+          region: q.region ?? null,
         };
       }).filter((r): r is NewsRow => r !== null);
     } catch (e) {
@@ -112,8 +142,20 @@ async function fetchNews(time: string, parallel = 6): Promise<{ rows: NewsRow[];
       return [];
     }
   });
+  const feeds = await Promise.all(RSS_FEEDS.map(async (f): Promise<NewsRow[]> => {
+    try {
+      const res = await fetch(f.url, { headers: { "user-agent": UA }, signal: AbortSignal.timeout(20_000) });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const xml = await res.text();
+      return [...xml.matchAll(/<item[^>]*>([\s\S]*?)<\/item>/g)].map((m) => {
+        const title = stripTags(tag(m[1], "title")), summary = stripTags(tag(m[1], "description")).slice(0, 400), pub = tag(m[1], "pubDate");
+        return { key: "news:" + normKey(title), title, summary, source_name: f.name, query_tag: "foreign", region: f.region,
+          url: decode(tag(m[1], "link")).trim(), published_at: pub && !isNaN(+new Date(pub)) ? new Date(pub).toISOString() : null };
+      }).filter((r) => r.title && indiaCapital(`${r.title} ${r.summary}`));
+    } catch (e) { errors.push(`feed ${f.name}: ${(e as Error).message}`); return []; }
+  }));
   const byKey = new Map<string, NewsRow>();
-  results.flat().forEach((r) => { if (!byKey.has(r.key)) byKey.set(r.key, r); });
+  [...results.flat(), ...feeds.flat()].forEach((r) => { if (!byKey.has(r.key)) byKey.set(r.key, r); });
   return { rows: [...byKey.values()], errors };
 }
 
@@ -143,19 +185,25 @@ function toEvent(r: NewsRow, c: Classified, classifier: string) {
     classifier,
     llm_at: classifier === "llm" ? new Date().toISOString() : null,
     query_tag: r.query_tag,
+    region: r.region ?? null,
   };
 }
 
-async function runNews(time: string, deadline: number, runSource = "news", parallel = 6) {
+async function runNews(time: string, deadline: number, runSource = "news", parallel = 2) {
   const started = new Date();
   const { rows, errors } = await fetchNews(time, parallel);
   const seen = await existingKeys(rows.map((r) => r.key));
   const fresh = rows.filter((r) => !seen.has(r.key));
 
-  // Rules first, so every item gets stored even if the LLM step runs out of time.
-  const events = fresh.map((r) => toEvent(r, classifyRules(r), "rules"));
+  // Rules first, so every item gets stored even if the LLM step runs out of time. Foreign-source items have
+  // already been narrowed to India (the targeted searches by their query, the general RSS feeds by indiaCapital),
+  // and the rules miss many foreign names, so the review decides on them.
+  // Bing matches loosely, so its results are stored only when the rules find an India deal in them (foreign-source
+  // ones have already passed the India filter); otherwise the review queue would fill with unrelated news.
+  const events = fresh.map((r) => toEvent(r, classifyRules(r), "rules"))
+    .filter((e, i) => fresh[i].via !== "bing" || e.event_type !== "irrelevant" || !!fresh[i].region);
 
-  const llmQueue = fresh.filter((r, i) => events[i].event_type !== "irrelevant" && !events[i].investor)
+  const llmQueue = fresh.filter((r) => events.some((e) => e.dedup_key === r.key && e.event_type !== "irrelevant" && !e.investor))
     .slice(0, API_KEY ? await llmLeftToday() : 0);
   if (llmQueue.length) {
     const client = new Anthropic({ apiKey: API_KEY! });
@@ -183,7 +231,7 @@ async function runNews(time: string, deadline: number, runSource = "news", paral
     if (error) errors.push(`db: ${error.message}`);
     inserted += count ?? 0;
   }
-  await logRun(runSource, started, errors.length < NEWS_QUERIES.length / 2, rows.length, inserted, errors.join(" | ") || undefined);
+  await logRun(runSource, started, rows.length > 0 || errors.length < NEWS_QUERIES.length / 2, rows.length, inserted, errors.join(" | ") || undefined);
   return { found: rows.length, fresh: fresh.length, inserted, errors };
 }
 
@@ -395,7 +443,7 @@ async function backfillWeek() {
   const end = new Date(start.getTime() + 7 * 864e5);
   const day = (d: Date) => d.toISOString().slice(0, 10);
   const deadline = Date.now() + TIME_BUDGET_MS;
-  const news = await runNews(`after:${day(start)} before:${day(end)}`, deadline, "news_backfill", 3);
+  const news = await runNews(`after:${day(start)} before:${day(end)}`, deadline, "news_backfill", 2);
   const client = API_KEY ? new Anthropic({ apiKey: API_KEY }) : null;
   const stories = await dedupe(db, client, MODEL, deadline);
   // Google News sometimes refuses bursts of requests (HTTP 503). A week where most searches
