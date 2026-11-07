@@ -14,14 +14,14 @@ const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SE
 // RBI's server rejects requests carrying a browser user-agent header, so these are fetched plainly.
 const FEEDS = [
   { source: "sebi", regulator: "SEBI", url: "https://www.sebi.gov.in/sebirss.xml" },
-  { source: "rbi", regulator: "RBI", url: "https://www.rbi.org.in/notifications_rss.xml" },
+  { source: "rbi", regulator: "RBI", url: "https://www.rbi.org.in/notifications_rss.xml", ruleList: true },
   { source: "rbi", regulator: "RBI", url: "https://www.rbi.org.in/pressreleases_rss.xml" },
 ];
 
 // Rule-making documents are all kept and the review decides scope: many that bind FPIs/FDI never name them in the title
 // (custodian, DDP, KYC, beneficial-ownership, settlement, derivatives, FEMA amendments). Enforcement orders are never kept.
 const RULE_DOCS = /\b(circular|master circular|master direction|regulations?,? 20\d\d|\(amendment\)|amendment regulations|notification|consultation paper|press note|a\.\s?p\.\s?\(dir series\)|fema|foreign exchange management|framework|guidelines|directions?)\b/i;
-const ORDERS = /\b(order|adjudicat|settlement order|recovery|show cause|exemption order|in the matter of|interim|confirmatory|penalty|appeal|section 35a|sahakar\w*|co-operative bank|variable rate (reverse )?repo)\b/i;
+const ORDERS = /\b(order|adjudicat|settlement order|recovery|show cause|exemption order|in the matter of|interim|confirmatory|penalty|appeal|section 35a|sahakar\w*|co-operative bank|variable rate (reverse )?repo|uapa|sanctions list|lead bank)\b/i;
 const MORE_TERMS = /\b(custodian|designated depository|\bddps?\b|beneficial owner|kyc|offshore derivative|p-?notes?|\bnri|\boci\b|external commercial borrow|\becb\b|fully accessible route|voluntary retention route|sectoral cap|foreign investment|non-resident|cross-border|\blrs\b|liberalised remittance)/i;
 export const inScope = (t: string, blob: string) => !ORDERS.test(t) && (RULE_DOCS.test(t) || REG_TERMS.test(blob) || MORE_TERMS.test(blob));
 export const REG_TERMS = /\b(fpis?|foreign portfolio|fvcis?|foreign venture|fdi|foreign direct investment|ndi rules|non-debt instruments|odi|overseas investment|overseas direct investment|press note|gift city|gift-city|ifsc|international financial services cent|investment limits?|foreign liabilities and assets|direct investment entit|a\.\s?p\.\s?\(dir series\)|foreign exchange management \((non-debt|overseas))/i;
@@ -53,9 +53,10 @@ async function logRun(source: string, started: Date, ok: boolean, found: number,
     ok, items_found: found, items_new: added, error: error?.slice(0, 500) ?? null });
 }
 
-function toRow(feed: { source: string; regulator: string }, title: string, url: string, summary: string, pub: Date) {
+// `ruleList`: the item comes from a list that holds only rule-making documents, so only orders are excluded.
+function toRow(feed: { source: string; regulator: string }, title: string, url: string, summary: string, pub: Date, ruleList = false) {
   const blob = `${title} ${summary}`;
-  if (!title || !url || !inScope(title, blob)) return null;
+  if (!title || !url || (ruleList ? ORDERS.test(title) : !inScope(title, blob))) return null;
   return {
     dedup_key: `${feed.source}:${url}`, title_key: `${feed.source}:${url}`, source: feed.source, source_name: feed.regulator,
     url, title, summary: summary || null, published_at: isNaN(+pub) ? null : pub.toISOString(),
@@ -70,7 +71,7 @@ export function parseRegs(xml: string, feed: (typeof FEEDS)[number]) {
   return [...xml.matchAll(/<item[^>]*>([\s\S]*?)<\/item>/g)].map(([, it]) => {
     const title = text(tag(it, "title")), summary = text(tag(it, "description")).slice(0, 600);
     const url = decode(tag(it, "link")).trim(), pub = new Date(text(tag(it, "pubDate")));
-    return toRow(feed, title, url, summary, pub);
+    return toRow(feed, title, url, summary, pub, "ruleList" in feed);
   }).filter((x) => x !== null);
 }
 
@@ -82,7 +83,7 @@ const SEBI_LISTS = [
   { sid: 1, ssid: 7 },   // circulars
   { sid: 1, ssid: 6 },   // master circulars
   { sid: 1, ssid: 3 },   // regulations
-  { sid: 4, ssid: 38 },  // reports, including consultation papers
+  { sid: 4, ssid: 38, open: true },  // reports, including consultation papers: filtered by title
 ];
 const SEBI_HOME = "https://www.sebi.gov.in/sebiweb/home/HomeAction.do?doListing=yes&sid=1&ssid=7&smid=0";
 const SEBI_AJAX = "https://www.sebi.gov.in/sebiweb/ajax/home/getnewslistinfo.jsp";
@@ -94,7 +95,7 @@ async function sebiCookie() {
   await r.text();
   return r.headers.getSetCookie().map((c) => c.split(";")[0]).join("; ");
 }
-async function sebiPage(cookie: string, l: { sid: number; ssid: number }, page: number) {
+async function sebiPage(cookie: string, l: { sid: number; ssid: number; open?: boolean }, page: number) {
   const body = new URLSearchParams({ nextValue: String(page), next: "n", search: "", fromDate: "", toDate: "", fromYear: "", toYear: "",
     deptId: "-1", sid: String(l.sid), ssid: String(l.ssid), smid: "0", ssidhidden: String(l.ssid), intmid: "-1", sText: "x", ssText: "x", smText: "", doDirect: String(page) });
   const r = await fetch(SEBI_AJAX, { method: "POST", body, signal: AbortSignal.timeout(30_000),
@@ -126,15 +127,15 @@ async function rbiMonth(year?: number, month?: number) {
 async function runArchive(months: number, dry: boolean) {
   const started = new Date(), cutoff = Date.now() - Math.max(months, 1) * 31 * 864e5, errors: string[] = [];
   const rows: NonNullable<ReturnType<typeof toRow>>[] = [];
-  const keep = (feed: typeof SEBI, items: { title: string; url: string; pub: Date }[]) =>
-    items.forEach((i) => { if (months === 0 || +i.pub >= cutoff) { const r = toRow(feed, i.title, i.url, "", i.pub); if (r) rows.push(r); } });
+  const keep = (feed: typeof SEBI, items: { title: string; url: string; pub: Date }[], ruleList = false) =>
+    items.forEach((i) => { if (months === 0 || +i.pub >= cutoff) { const r = toRow(feed, i.title, i.url, "", i.pub, ruleList); if (r) rows.push(r); } });
   try {
     const cookie = await sebiCookie();
     for (const l of SEBI_LISTS) {
       for (let page = 0; page < (months ? 30 : 1); page++) {
         try {
           const items = await sebiPage(cookie, l, page);
-          keep(SEBI, items);
+          keep(SEBI, items, !("open" in l));
           if (!items.length || +items[items.length - 1].pub < cutoff) break;
         } catch (e) { errors.push(`sebi ${l.ssid}/${page}: ${(e as Error).message}`); break; }
       }
@@ -143,7 +144,7 @@ async function runArchive(months: number, dry: boolean) {
   const now = new Date();
   for (let m = 0; m < Math.max(months, 1); m++) {
     const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - m, 1));
-    try { keep(RBI, await rbiMonth(m ? d.getUTCFullYear() : undefined, m ? d.getUTCMonth() + 1 : undefined)); }
+    try { keep(RBI, await rbiMonth(m ? d.getUTCFullYear() : undefined, m ? d.getUTCMonth() + 1 : undefined), true); }
     catch (e) { errors.push(`rbi ${d.toISOString().slice(0, 7)}: ${(e as Error).message}`); }
   }
   const uniq = [...new Map(rows.map((r) => [r.dedup_key, r])).values()];
