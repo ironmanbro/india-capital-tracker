@@ -11,6 +11,11 @@
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Capital Tracker">
 <!-- Link previews on LinkedIn, WhatsApp, X and Slack -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Indian Capital Tracker">
@@ -1068,6 +1073,12 @@ button,.reset,select,summary,.link,.kpi,.card,.bk,.ovrow,.ftable tbody tr,nav.ta
 body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-weight:600;margin:40px 0 8px;padding-top:24px;border-top:1px solid var(--line)}
 </style>
 <script src="vendor/lenis.min.js" defer></script>
+<style>
+.install-btn{margin-right:8px}
+.ios-hint{position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:60;background:var(--panel,#14171c);color:var(--ink,#e8ebf0);border:1px solid var(--line,#2a2f38);border-radius:14px;padding:12px 40px 12px 14px;font-size:14px;line-height:1.4;box-shadow:0 8px 30px rgba(0,0,0,.35)}
+.ios-hint button{position:absolute;top:6px;right:8px;background:none;border:0;color:inherit;font-size:20px;cursor:pointer}
+@media (display-mode: standalone){.install-btn{display:none!important}}
+</style>
 </head>
 <body>
 <div class="opener" id="opener" role="dialog" aria-label="Introduction">
@@ -1116,6 +1127,7 @@ body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-wei
       <div class="htools">
         <input type="search" id="gq" title="Press / to search" placeholder="Search firms, FPIs, deals…" aria-label="Search everything" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="gdrop">
         <div id="gdrop" role="listbox" hidden></div>
+        <button class="cmdk-btn install-btn" id="install-app" type="button" hidden title="Install as an app on this device"><span>Install app</span></button>
         <button class="cmdk-btn" id="cmdk-open" type="button" aria-label="Quick search (Ctrl or Cmd + K)" title="Quick search investors, firms or deals"><span>Quick search</span><kbd>⌘K</kbd></button>
         <button class="ib" id="theme" type="button" aria-label="Switch light or dark" title="Light or dark">&#9788;</button>
       </div>
@@ -5437,6 +5449,27 @@ route();
   // Stays until the visitor clicks. The Enter button gets focus so keyboard users can close it too.
   op.addEventListener("click", dismiss);
   document.getElementById("op-enter").focus({ preventScroll: true });
+})();
+</script>
+<script>
+// Installable app: offline support, an "Install app" button where the browser offers it, and a one-time hint on iPhone/iPad.
+(() => {
+  if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
+  const btn = document.getElementById("install-app");
+  const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+  let prompt = null;
+  addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); prompt = e; if (btn) btn.hidden = false; });
+  btn?.addEventListener("click", async () => { if (!prompt) return; prompt.prompt(); await prompt.userChoice.catch(() => {}); prompt = null; btn.hidden = true; });
+  addEventListener("appinstalled", () => { if (btn) btn.hidden = true; });
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  let seen = false; try { seen = localStorage.getItem("ict-ios-hint") === "1"; } catch {}
+  if (ios && !standalone && !seen) setTimeout(() => {
+    const d = document.createElement("div");
+    d.className = "ios-hint"; d.setAttribute("role", "status");
+    d.innerHTML = 'Use this as an app: tap <b>Share</b> then <b>Add to Home Screen</b>.<button type="button" aria-label="Dismiss">×</button>';
+    d.querySelector("button").onclick = () => { d.remove(); try { localStorage.setItem("ict-ios-hint", "1"); } catch {} };
+    document.body.appendChild(d);
+  }, 8000);
 })();
 </script>
 </body>
