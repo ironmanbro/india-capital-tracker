@@ -1567,7 +1567,7 @@ async function refresh() {
   const cols = "id,source,source_name,url,title,summary,published_at,fetched_at,event_type,investor,investor_type,investor_country,origin_jurisdiction,target,amount_usd_m,amount_text,priority,classifier,reports,event_types,parties,deal_stage,flow_kind,region,regulator,instruments,doc_type,issued_on,effective_on,reg_doc_url,reg_doc_title";
   try {
     const [events, runs, latest, reviewed] = await Promise.all([
-      api(`stories?select=${cols}&order=published_at.desc.nullslast&limit=10000`),
+      apiAll(`stories?select=${cols}`, "published_at.desc.nullslast,id"),
       api(`runs?select=*&order=started_at.desc&limit=60`),
       api(`runs_latest?select=source,finished_at`).catch(() => []),
       api(`runs?select=finished_at&source=eq.review&order=finished_at.desc&limit=1`),
@@ -1693,7 +1693,9 @@ const regMeta = (e) => [
   e.effective_on ? `<span class="src-tag">Effective ${esc(toDMY(e.effective_on))}</span>` : "",
 ].join("");
 const regDocLink = (e) => e.reg_doc_url ? `<a class="src-tag" href="${safeUrl(e.reg_doc_url)}" target="_blank" rel="noopener" title="${esc(e.reg_doc_title || "Official document")}">Official document ↗</a>` : "";
-const regs = { regulator: "", instrument: "", doc: "" };
+const regs = { regulator: "", instrument: "", doc: "", n: 200 };
+// The Regulation tab shows the newest 200 documents, then 200 more on each "Show more" tap.
+document.addEventListener("click", (e) => { if (e.target?.id === "reg-more") { regs.n += 200; renderRegs(); } });
 function renderRegs() {
   const box = $("reg-body");
   if (!state.events?.length) { box.innerHTML = skelCards(3); return; }
@@ -1702,10 +1704,10 @@ function renderRegs() {
     .sort((a, b) => String(b.issued_on || b.published_at || "").localeCompare(String(a.issued_on || a.published_at || "")));
   const sel = (id, label, cur, opts) => `<select id="${id}" aria-label="${label}"><option value="">${label}: all</option>${opts.map(([v, l]) => `<option value="${esc(v)}"${v === cur ? " selected" : ""}>${esc(l)}</option>`).join("")}</select>`;
   box.innerHTML = `<div class="filters">${sel("reg-r", "Regulator", regs.regulator, [["SEBI", "SEBI"], ["RBI", "RBI"]])}${sel("reg-i", "Instrument", regs.instrument, ["FPI", "FDI", "FVCI", "ODI", "GIFT City"].map((x) => [x, x]))}${sel("reg-d", "Document", regs.doc, Object.entries(DOC_TYPES))}</div>` +
-    (list.length ? list.map((e) => `<article class="card scard regcard"><div class="meta">${regMeta(e)}</div>
+    (list.length ? list.slice(0, regs.n).map((e) => `<article class="card scard regcard"><div class="meta">${regMeta(e)}</div>
       <div style="margin:6px 0 4px"><a class="title" href="${safeUrl(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a></div>
       ${e.summary ? `<div class="summary">${esc(e.summary)}</div>` : ""}
-      <div class="scard-foot"><a class="src-tag" href="${safeUrl(e.url)}" target="_blank" rel="noopener">Official document ↗</a></div></article>`).join("")
+      <div class="scard-foot"><a class="src-tag" href="${safeUrl(e.url)}" target="_blank" rel="noopener">Official document ↗</a></div></article>`).join("") + (list.length > regs.n ? `<div class="filters" style="justify-content:center"><button class="reset" id="reg-more" type="button">Show more (${list.length - regs.n} older)</button></div>` : "")
       : noRows(all.length ? "No documents match these filters." : "No regulatory updates yet. SEBI and RBI documents on FPI, FVCI, FDI, ODI and GIFT City appear here after the daily review."));
   [["reg-r", "regulator"], ["reg-i", "instrument"], ["reg-d", "doc"]].forEach(([id, k]) => { $(id).onchange = (ev) => { regs[k] = ev.target.value; renderRegs(); }; });
 }
@@ -3476,10 +3478,10 @@ const nfmt = (n) => Number(n || 0).toLocaleString("en-IN");
 const term = (s) => s.trim().replace(/[,()"*\\:]/g, " ").replace(/\s+/g, " ");
 
 // All rows of a large table, a page at a time (the API caps one response); stable order so pages do not overlap.
-async function apiAll(path) {
+async function apiAll(path, order = "key") {
   const out = [];
   for (let o = 0; o < 100000; o += 1000) {
-    const rows = await api(`${path}${path.includes("?") ? "&" : "?"}order=key&limit=1000&offset=${o}`);
+    const rows = await api(`${path}${path.includes("?") ? "&" : "?"}order=${order}&limit=1000&offset=${o}`);
     out.push(...rows);
     if (rows.length < 1000) break;
   }

@@ -132,7 +132,7 @@ async function runArchive(months: number, dry: boolean) {
   try {
     const cookie = await sebiCookie();
     for (const l of SEBI_LISTS) {
-      for (let page = 0; page < (months ? 30 : 1); page++) {
+      for (let page = 0; page < (months ? 40 : 1); page++) {
         try {
           const items = await sebiPage(cookie, l, page);
           keep(SEBI, items, !("open" in l));
@@ -162,7 +162,7 @@ Deno.serve(async (req) => {
   const { data: secret } = await db.from("app_secrets").select("value").eq("name", "ingest_key").single();
   if (!secret || req.headers.get("x-ingest-key") !== secret.value) return new Response("unauthorized", { status: 401 });
   const q = new URL(req.url).searchParams, dry = q.get("dry") === "1";
-  if (q.has("archive")) return Response.json(await runArchive(Math.min(Number(q.get("months")) || 0, 24), dry));
+  if (q.has("archive")) return Response.json(await runArchive(Math.min(Number(q.get("months")) || 0, 60), dry));
   const out: Record<string, unknown> = {};
   for (const feed of FEEDS) {
     const started = new Date();

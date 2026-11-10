@@ -24,14 +24,25 @@ const get = (u: string) => fetch(u, { headers: { "user-agent": UA, referer: "htt
 const num = (v: unknown) => (typeof v === "number" ? v : Number(String(v ?? "").replace(/,/g, "")) || 0);
 const clean = (v: unknown) => String(v ?? "").replace(/\s+/g, " ").trim() || null;
 
+// RBI's list page shows the current year. Older years come from its archive form (one postback per year).
+async function listHtml(year?: number) {
+  const first = await (await get(LIST)).text();
+  if (!year) return first;
+  const form = new URLSearchParams([...first.matchAll(/name="(__\w+)" id="\w+" value="([^"]*)"/g)].map(([, k, v]) => [k, v]));
+  form.set("hdnYear", String(year)); form.set("UsrFontCntr$btn", "");
+  return await (await fetch(LIST, { method: "POST", body: form, headers: { "user-agent": UA, referer: LIST }, signal: AbortSignal.timeout(60_000) })).text();
+}
+
 // The list page links each release as "Overseas Direct Investment for <Month> <Year>".
-async function releases(limit: number) {
-  const html = await (await get(LIST)).text();
+async function releases(limit: number, year?: number, skip = 0) {
+  const html = await listHtml(year);
   const out: { month: string; url: string; released: string | null }[] = [];
   const re = /<th[^>]*>([A-Za-z]{3} \d{1,2}, \d{4})<\/th>[\s\S]{0,300}?href=['"]?(BS_PressReleaseDisplay\.aspx\?prid=\d+)['"]?>\s*Overseas Direct Investment for (\w+) (\d{4})/g;
+  let seen = 0;
   for (let m; (m = re.exec(html)) && out.length < limit;) {
     const mo = MONTHS[m[3].toLowerCase()];
     if (!mo) continue;
+    if (seen++ < skip) continue;
     out.push({ month: `${m[4]}-${String(mo).padStart(2, "0")}-01`, url: `https://rbi.org.in/Scripts/${m[2]}`, released: new Date(m[1] + " UTC").toISOString().slice(0, 10) });
   }
   return out;
@@ -86,11 +97,14 @@ Deno.serve(async (req) => {
   const { data: secret } = await db.from("app_secrets").select("value").eq("name", "ingest_key").single();
   if (!secret || req.headers.get("x-ingest-key") !== secret.value) return new Response("unauthorized", { status: 401 });
   const started = new Date();
-  const limit = Math.min(Math.max(Number(new URL(req.url).searchParams.get("months")) || 2, 1), 36);
+  const q = new URL(req.url).searchParams;
+  const year = Number(q.get("year")) || undefined;
+  const limit = Math.min(Math.max(Number(q.get("months")) || 2, 1), 12);
+  const skip = Number(q.get("skip")) || 0;
   const done: Record<string, number | string> = {};
   let rows = 0;
   try {
-    for (const rel of await releases(limit)) {
+    for (const rel of await releases(limit, year, skip)) {
       try { rows += (done[rel.month] = await loadMonth(rel)) as number; }
       catch (e) { done[rel.month] = (e as Error).message; }
     }
