@@ -1281,6 +1281,21 @@ body{font-variant-numeric:tabular-nums}
 .fxd .num{text-align:right}
 :root:not(#x) #fxdesk .hc svg{max-height:none!important}
 #fxdesk .hc svg text{font-size:13px}
+
+.cb-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:10px 0}
+.cb-g>div{border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.cb-g b{display:block;font-size:20px}.cb-g span{font-size:12px;color:var(--muted)}
+.cb-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.cb-2 h4{margin:6px 0 6px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+/* Weekly brief */
+#wbrief{position:fixed;inset:0;z-index:98;background:rgba(0,0,0,.6);overflow:auto;padding:24px 12px}
+#wbrief .wb{max-width:820px;margin:0 auto;background:#fff;color:#111;border-radius:12px;padding:32px 36px;font-size:13.5px;line-height:1.5}
+#wbrief .wb h1{font-size:22px;margin:0 0 2px}#wbrief .wb h2{font-size:15px;margin:22px 0 6px;border-bottom:1px solid #ddd;padding-bottom:4px}
+#wbrief .wb table{width:100%;border-collapse:collapse;font-size:12.5px}#wbrief .wb td,#wbrief .wb th{padding:5px 6px;border-bottom:1px solid #eee;text-align:left;vertical-align:top}#wbrief .wb th{font-size:11px;text-transform:uppercase;color:#666}
+#wbrief .wb .r{text-align:right}#wbrief .wb .m{color:#666}
+#wbrief .wb-bar{max-width:820px;margin:0 auto 10px;display:flex;justify-content:flex-end;gap:8px}
+#wbrief .wb-bar button{min-height:40px;padding:0 16px;border-radius:10px;border:0;font:inherit;font-weight:700;cursor:pointer}
+@media print{body>*:not(#wbrief){display:none!important}#wbrief{position:static;background:none;padding:0}#wbrief .wb-bar{display:none}#wbrief .wb{max-width:none;border-radius:0;padding:0}}
 </style>
 </head>
 <body>
@@ -1421,7 +1436,7 @@ body{font-variant-numeric:tabular-nums}
     <p class="dsrc" data-src="review,nsdl_flows,nsdl_fpi_list" data-what="Sources: news reports, NSE, NSDL and DPIIT. Each section shows its own source and update time" style="margin:-4px 0 14px"></p>
     <p class="dsrc" id="fx-home" style="margin:-6px 0 14px" hidden></p>
     <div class="ovbanner"><div><b>Sign in to see everything on Home.</b> <span>Free. No subscription, just a login.</span></div><button class="reset" type="button" data-login>Sign in</button></div>
-    <div class="hsum-head"><h2>The whole picture</h2><span class="fxchip" id="fxchip" hidden></span></div>
+    <div class="hsum-head"><h2>The whole picture</h2><div style="display:flex;gap:8px;align-items:center"><button type="button" class="csvbtn" id="wbrief-open">Weekly brief</button><span class="fxchip" id="fxchip" hidden></span></div></div>
     <div class="hsum" id="hsum"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div>
     <div class="ovgrid">
       <div class="ovc"><div class="ovh"><div><h3>Biggest deals this week</h3><div class="sub">Largest agreed or completed deals, last 7 days</div></div><button class="link" data-go="feed" data-view="week">See these deals ↗</button></div><div id="ov-deals"><!--skel--></div></div>
@@ -1454,6 +1469,7 @@ body{font-variant-numeric:tabular-nums}
       <button type="button" data-v="holders" aria-pressed="false">Filed holders</button>
     </div>
     <div class="isumm" id="isumm"></div>
+    <section class="watch" id="cbrief" aria-label="Country briefing"></section>
     <section class="iconst" aria-label="Investor constellation">
       <div class="iconst-h"><div><h3>Constellation</h3><div class="sub">Who invested in what, and who else is in the same companies. Tap any dot to move to it; tap the centre to open its profile.</div></div>
         <div class="iconst-ctl"><select id="cpick" aria-label="Centre the chart on"></select><select id="chops" aria-label="Hops"><option value="2">2 hops</option><option value="3">3 hops</option></select></div></div>
@@ -3579,6 +3595,7 @@ document.querySelectorAll("#nhops button").forEach((b) => b.onclick = () => {
 });
 
 function setTab(t) {
+  if (t === "investors") setTimeout(() => { try { drawCountryBrief(); } catch {} }, 400);
   if (t === "flows") setTimeout(() => { try { drawMktCal(); } catch {} }, 400);
   if (t === "regulation") setTimeout(() => { try { drawCompCal(); } catch {} }, 400);
   if (t === "flows") setTimeout(() => { try { drawFxDesk(); } catch {} }, 300);
@@ -6270,6 +6287,7 @@ function drawFxDesk() {
       <div class="s">Bars: net FPI investment each month (blue in, orange out). Line: average USD/INR (higher means a weaker rupee). Hover for figures.</div></div>
       <div class="hc" style="cursor:default"><h3>USD/INR forward premia</h3><table><thead><tr><th>Tenor</th><th class="num">Annualised</th><th class="num">₹ premium</th></tr></thead><tbody>${fwdRows.map((r) => `<tr><td>${esc(r.tenor)}</td><td class="num">${(+r.premia_pct).toFixed(2)}%</td><td class="num">${(+r.premia_rs).toFixed(4)}</td></tr>`).join("") || '<tr><td colspan="3">Not available.</td></tr>'}</tbody></table>
       <div class="s">FBIL, ${fxd.fwdDay ? toDMY(fxd.fwdDay) : "–"}. The annualised premium is the cost of hedging dollars into rupees.</div></div></div>
+    ${reservesCard()}
     <div class="hc" style="cursor:default;margin-top:16px"><h3>Large deals that will move dollars</h3><div class="s" style="margin-top:-4px">USD 250 million or more, agreed, completed or planned, last 120 days. "In" brings dollars into India; "Out" takes them out.</div>
       <div class="watch-w" style="max-height:360px"><table><thead><tr><th>Date</th><th>Direction</th><th>Investor</th><th>Company</th><th>Stage</th><th class="num">Amount</th></tr></thead><tbody>${bigFlows().map(({ e, dir, usd }) => `<tr><td>${toDMY(dayStr(when(e)))}</td><td class="${dir === "In" ? "dn" : "up"}" style="font-weight:700">${dir}</td><td>${esc(e.investor || "")}</td><td>${esc(e.target || "")}</td><td>${esc(STAGES[e.deal_stage]?.[0] || "")}</td><td class="num">${fmtUsd(usd)}</td></tr>`).join("") || '<tr><td colspan="6">None in this window.</td></tr>'}</tbody></table></div></div>`;
 }
@@ -6334,6 +6352,69 @@ async function drawFpiLimits() {
   box.querySelectorAll("[data-fl]").forEach((b) => b.onclick = () => { fl.view = b.dataset.fl; drawFpiLimits(); });
   $("fl-csv").onclick = () => csvDownload(`fpi-limits-${fl.view}-${asOf || dayStr(new Date())}.csv`, [cols, ...rows]);
 }
+
+// ---------- Forex reserves (RBI WSS) inside the FX desk ----------
+async function loadReserves() { if (fxd.res || fxd.resLoading) return; fxd.resLoading = true; try { fxd.res = await api("fx_reserves?select=week,total_usd_m,wk_change_usd_m,fca_usd_m,gold_usd_m&order=week.asc"); } catch { fxd.res = []; } drawFxDesk(); }
+function reservesCard() {
+  if (!fxd.res) { loadReserves(); return ""; }
+  const r = fxd.res; if (!r.length) return "";
+  const l = r[r.length - 1], y = r.find((x) => x.week >= dayStr(new Date(new Date(l.week) - 365 * 864e5)));
+  const pts = r.slice(-60).map((x) => ({ v: +x.total_usd_m / 1000, l: x.week.slice(5, 7) === "01" && x.week.slice(8) <= "07" ? x.week.slice(0, 4) : "", t: `${toDMY(x.week)}: USD ${(+x.total_usd_m / 1000).toFixed(1)} billion (week ${+x.wk_change_usd_m >= 0 ? "+" : "−"}${fmtUsd(Math.abs(+x.wk_change_usd_m))})` }));
+  const lo = Math.min(...pts.map((p) => p.v)) * 0.98;
+  return `<div class="hc" style="cursor:default;margin-top:16px"><h3>India's forex reserves</h3><div class="k">USD ${(+l.total_usd_m / 1000).toFixed(1)} billion <small>week to ${toDMY(l.week)} · ${+l.wk_change_usd_m >= 0 ? "+" : "−"}${fmtUsd(Math.abs(+l.wk_change_usd_m))} on the week${y ? ` · ${(+l.total_usd_m / +y.total_usd_m * 100 - 100).toFixed(1)}% on the year` : ""}</small></div>
+    ${vbars(pts.map((p) => ({ ...p, v: p.v - lo })), { color: "#5cc6b0", W: 900 })}<div class="s">Weekly, from the RBI Weekly Statistical Supplement. Foreign currency assets USD ${(+l.fca_usd_m / 1000).toFixed(1)} billion, gold USD ${(+l.gold_usd_m / 1000).toFixed(1)} billion. Bars start at USD ${lo.toFixed(0)} billion to show the change.</div></div>`;
+}
+// ---------- Country briefing (Investors tab) ----------
+const cbx = { c: null, cache: {} };
+async function drawCountryBrief() {
+  const box = $("cbrief"); if (!box || state.tab !== "investors" || !state.events.length) return;
+  const n = new Map(); state.events.forEach((e) => { const c = countryOf(e); if (c && c !== "India" && e.event_type !== "regulation") n.set(c, (n.get(c) || 0) + 1); });
+  const list = [...n].sort((a, b) => b[1] - a[1]).slice(0, 40).map((x) => x[0]).sort();
+  if (!cbx.c) cbx.c = [...n].sort((a, b) => b[1] - a[1])[0]?.[0];
+  if (!cbx.cache[cbx.c]) { box.innerHTML = `<div class="watch-h"><h3>Country briefing</h3></div><div class="skl"><i></i><i></i></div>`; try { cbx.cache[cbx.c] = await api("rpc/country_brief", { method: "POST", body: JSON.stringify({ c: cbx.c }) }); } catch { cbx.cache[cbx.c] = {}; } }
+  const B = cbx.cache[cbx.c], since = Date.now() - 365 * 864e5;
+  const deals = state.events.filter((e) => countryOf(e) === cbx.c && when(e) >= since && e.event_type !== "regulation");
+  const ins = deals.filter((e) => e.event_types.includes("entry")), outs = deals.filter((e) => e.event_types.includes("exit"));
+  const sum = (a) => a.filter((e) => FIRM.has(e.deal_stage)).reduce((s, e) => s + (amountCr(e)?.usd || 0), 0);
+  const top = deals.filter((e) => amountCr(e)).sort((a, b) => amountCr(b).usd - amountCr(a).usd).slice(0, 6);
+  const invs = new Map(); deals.forEach((e) => e.investor && invs.set(e.investor, (invs.get(e.investor) || 0) + 1));
+  box.innerHTML = `<div class="watch-h"><div><h3>Country briefing</h3><div class="sub">One page per investor country: registered FPIs, deals in the last 12 months and Indian investment going there.</div></div>
+      <select id="cb-c" aria-label="Country" style="min-height:40px">${list.map((c) => `<option${c === cbx.c ? " selected" : ""}>${esc(c)}</option>`).join("")}</select></div>
+    <div class="cb-g"><div><b>${nfmt(B.fpis || 0)}</b><span>registered FPIs${B.cat ? ` · Cat I ${nfmt(B.cat.I || 0)} · Cat II ${nfmt(B.cat.II || 0)}` : ""}</span></div><div><b>${nfmt(B.new_12m || 0)}</b><span>new FPIs, 12 months · ${nfmt(B.expiring_90 || 0)} due for renewal in 90 days</span></div>
+      <div><b>${nfmt(ins.length)}</b><span>investments into India, 12 months · ${fmtUsd(sum(ins))} agreed or completed</span></div><div><b>${nfmt(outs.length)}</b><span>sales and exits · ${fmtUsd(sum(outs))}</span></div>
+      <div><b>${B.odi_12m ? fmtUsd(+B.odi_12m) : "–"}</b><span>Indian investment going to ${esc(cbx.c)}, 12 months (RBI)</span></div></div>
+    <div class="cb-2"><div><h4>Largest deals</h4>${top.map((e) => `<div style="padding:5px 0;border-bottom:1px solid var(--line)"><a href="${safeUrl(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a><div class="sub">${toDMY(dayStr(when(e)))} · ${fmtUsd(amountCr(e).usd)}</div></div>`).join("") || '<div class="sub">None with amounts.</div>'}</div>
+      <div><h4>Most active investors</h4>${[...invs].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([k, v]) => `<div style="padding:5px 0;border-bottom:1px solid var(--line)">${firmLink(k)} <span class="sub">· ${v} stories</span></div>`).join("") || '<div class="sub">None.</div>'}
+        <h4 style="margin-top:14px">FPI types</h4>${(B.types || []).slice(0, 4).map((t) => `<div class="sub">${esc(t.t)}: ${nfmt(t.n)}</div>`).join("")}
+        <h4 style="margin-top:14px">Indian companies investing there</h4>${(B.odi_top || []).map((t) => `<div class="sub">${esc(titleCase(t.p))}: ${fmtUsd(+t.usd_m)}</div>`).join("") || '<div class="sub">None in the last 12 months.</div>'}</div></div>
+    <div style="margin-top:10px"><button type="button" class="csvbtn" id="cb-deals">All deals from ${esc(cbx.c)} →</button></div>`;
+  $("cb-c").onchange = (ev) => { cbx.c = ev.target.value; drawCountryBrief(); };
+  $("cb-deals").onclick = () => { clearView(); state.country = cbx.c; render(); setTab("feed"); toTop(); };
+}
+// ---------- Weekly brief: one printable page (Save as PDF from the print dialog) ----------
+function openWeeklyBrief() {
+  const now = Date.now(), wk = (e) => now - when(e) < 7 * 864e5, today = dayStr(new Date());
+  const deals = state.events.filter((e) => wk(e) && e.event_type !== "regulation" && (e.flow_kind || "capital") === "capital");
+  const big = deals.filter((e) => amountCr(e)).sort((a, b) => amountCr(b).usd - amountCr(a).usd).slice(0, 10);
+  const rules = state.events.filter((e) => e.event_type === "regulation" && wk(e));
+  const soon = state.events.filter((e) => e.event_type === "regulation" && e.effective_on && String(e.effective_on) >= today && (new Date(e.effective_on) - now) / 864e5 <= 45);
+  const d7 = flows.daily.filter((d) => now - new Date(d.day) < 7 * 864e5), fpi = d7.reduce((a, d) => a + d.Total, 0);
+  const cnt = (t) => deals.filter((e) => e.event_types.includes(t)).length, usd = usdInr();
+  const fwN = (k) => (fw.data?.[k] || []).length;
+  const o = document.createElement("div"); o.id = "wbrief";
+  o.innerHTML = `<div class="wb-bar"><button type="button" id="wb-print" style="background:#fff;color:#111">Print or save as PDF</button><button type="button" id="wb-x" style="background:#333;color:#fff">Close</button></div><div class="wb">
+    <h1>Indian Capital Tracker: weekly brief</h1><div class="m">Week to ${toDMY(today)} · USD 1 = ₹${usd.toFixed(2)} · public sources only</div>
+    <h2>The week in numbers</h2><table><tr><td>Deal stories</td><td class="r"><b>${deals.length}</b></td><td>Investments into India</td><td class="r"><b>${cnt("entry")}</b></td><td>Sales and exits</td><td class="r"><b>${cnt("exit")}</b></td></tr>
+      <tr><td>FPI net (NSDL, ${d7.length} days)</td><td class="r"><b>${d7.length ? `${fpi < 0 ? "−" : "+"}${fmtUsd(Math.abs(usdMOf(fpi)))}` : "–"}</b></td><td>New rule documents</td><td class="r"><b>${rules.length}</b></td><td>FPI renewals due in 90 days</td><td class="r"><b>${fw.data ? nfmt(fwN("expiring")) : "–"}</b></td></tr></table>
+    <h2>Largest deals</h2><table><tr><th>Date</th><th>Deal</th><th>Stage</th><th class="r">Amount</th></tr>${big.map((e) => `<tr><td>${toDMY(dayStr(when(e)))}</td><td>${esc(e.title)}</td><td>${esc(STAGES[e.deal_stage]?.[0] || "")}</td><td class="r">${fmtUsd(amountCr(e).usd)}</td></tr>`).join("") || '<tr><td colspan="4">None this week.</td></tr>'}</table>
+    <h2>Rule changes this week</h2><table>${rules.map((e) => `<tr><td>${esc(e.regulator || "")}</td><td><b>${esc(e.title)}</b><div class="m">${esc(e.summary || "")}</div></td></tr>`).join("") || '<tr><td>None this week.</td></tr>'}</table>
+    <h2>Taking effect in the next 45 days</h2><table>${soon.map((e) => `<tr><td>${toDMY(String(e.effective_on))}</td><td>${esc(e.title)}</td></tr>`).join("") || '<tr><td>Nothing scheduled.</td></tr>'}</table>
+    <p class="m" style="margin-top:20px">Built from news reports, NSE, NSDL, SEBI, RBI, DPIIT and FBIL. Check the original source before relying on any item. Not investment advice.</p></div>`;
+  document.body.appendChild(o); document.body.style.overflow = "hidden";
+  $("wb-x").onclick = () => { o.remove(); document.body.style.overflow = ""; };
+  $("wb-print").onclick = () => print();
+}
+$("wbrief-open")?.addEventListener("click", async () => { if (!fw.data) { try { fw.data = await api("rpc/fpi_watch", { method: "POST", body: "{}" }); } catch {} } openWeeklyBrief(); });
 </script>
 </body>
 </html>
