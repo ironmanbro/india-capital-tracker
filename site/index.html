@@ -1167,6 +1167,87 @@ body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-wei
 /* Figures everywhere: tabular digits in the UI typeface */
 body{font-variant-numeric:tabular-nums}
 .tpill,.stbadge,.tfseg button{letter-spacing:0}
+
+/* ===================== Phone experience (layout under 700px only; the laptop layout is unchanged) ===================== */
+@media (max-width:700px){
+  /* 1. Compact header: title, then small status; search and account as icons */
+  :root:not(#x) .wrap>header{display:grid!important;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:6px 10px;margin-bottom:12px!important}
+  :root:not(#x) .wrap>header .eyebrow{font-size:10px!important;margin:0!important}
+  :root:not(#x) .wrap>header h1#ptitle{font-size:26px!important;line-height:1.15!important;margin:2px 0 0!important}
+  :root:not(#x) .wrap>header #psub{font-size:12px!important;margin-top:2px!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  :root:not(#x) .wrap>header .maker{display:none!important}
+  :root:not(#x) .wrap>header>div:last-child{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+  :root:not(#x) .htools{padding:0!important;background:none!important;border:0!important;box-shadow:none!important;gap:6px!important;display:flex!important}
+  :root:not(#x) .htools #gq{display:none!important}
+  :root:not(#x) body [hidden][hidden]{display:none!important}
+  :root:not(#x) .htools #cmdk-open{display:inline-flex!important;align-items:center;width:44px;height:44px;padding:0!important;justify-content:center}
+  :root:not(#x) .htools #cmdk-open span,:root:not(#x) .htools #cmdk-open kbd{display:none!important}
+  :root:not(#x) .htools #cmdk-open::before{content:"";width:18px;height:18px;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") center/contain no-repeat}
+  :root:not(#x) .htools .install-btn{display:none!important}
+  :root:not(#x) .hstatus{text-align:right}
+  :root:not(#x) .hstatus #updated{font-size:10.5px!important;max-width:150px;line-height:1.3}
+  :root:not(#x) .hstatus #visits{display:none}
+  :root:not(#x) .hstatus #acct button,:root:not(#x) .hstatus #acct .reset{min-height:36px!important;padding:0 12px!important;font-size:13px!important}
+  :root:not(#x) #kpi-note{display:none!important}
+  /* 2. Number boxes: one swipeable strip of small cards */
+  :root:not(#x) .kpis,:root:not(#x) #ov-tiles,:root:not(#x) #ov-cross,:root:not(#x) #ftiles,:root:not(#x) .isumm{display:flex!important;overflow-x:auto;scroll-snap-type:x mandatory;gap:8px!important;margin-left:-16px!important;margin-right:-16px!important;padding:0 16px 4px!important;scrollbar-width:none}
+  :root:not(#x) .kpis::-webkit-scrollbar,:root:not(#x) #ov-tiles::-webkit-scrollbar,:root:not(#x) #ftiles::-webkit-scrollbar,:root:not(#x) .isumm::-webkit-scrollbar{display:none}
+  :root:not(#x) .kpis>*,:root:not(#x) #ov-tiles>*,:root:not(#x) #ov-cross>*,:root:not(#x) #ftiles>*,:root:not(#x) .isumm>*{flex:0 0 auto;width:min(68vw,240px);scroll-snap-align:start;padding:12px 14px!important;min-height:0!important}
+  :root:not(#x) .kpi .n{font-size:24px!important}
+  :root:not(#x) .kpi .bar{margin-top:8px!important}
+  :root:not(#x) .ftile .v,:root:not(#x) .ftile .n{font-size:22px!important;line-height:1.2!important}
+  :root:not(#x) .ftile .v small,:root:not(#x) .ftile .inr{font-size:13px!important}
+  :root:not(#x) .isumm b{font-size:18px!important}
+  /* 3. Filters in a bottom sheet */
+  .msheet-btn{display:inline-flex!important;align-items:center;gap:6px;min-height:44px;padding:0 14px;border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--ink);font:inherit;font-weight:600;cursor:pointer;white-space:nowrap}
+  .msheet-btn b{display:inline-grid;place-items:center;min-width:18px;height:18px;border-radius:9px;background:var(--ink);color:var(--bg,#0f1115);font-size:11px;padding:0 5px}
+  :root:not(#x) .filters.ms:not(.ms-open)>:not(input[type=search]):not(.msheet-btn){display:none!important}
+  :root:not(#x) .filters.ms:not(.ms-open){flex-wrap:nowrap!important}
+  :root:not(#x) .filters.ms:not(.ms-open)>input[type=search]{flex:1 1 auto!important;width:auto!important}
+  :root:not(#x) .filters.ms:not(.ms-open)>.msheet-btn{width:auto!important;flex:0 0 auto}
+  :root:not(#x) .filters.ms.ms-open,:root:not(#x) .filterbar.open{position:fixed!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;z-index:70!important;max-height:78vh;overflow-y:auto;margin:0!important;padding:18px 16px calc(16px + env(safe-area-inset-bottom))!important;border-radius:20px 20px 0 0!important;background:var(--panel)!important;border:1px solid var(--line)!important;box-shadow:0 -12px 40px rgba(0,0,0,.45)!important;display:flex!important;flex-direction:column;align-items:stretch!important;gap:10px!important}
+  :root:not(#x) .filterbar.open .filters{flex-direction:column;align-items:stretch!important;gap:10px!important}
+  :root:not(#x) .filterbar.open #ftoggle{display:none!important}
+  :root:not(#x) .filterbar.open .datef{display:flex!important;align-items:center;gap:8px}
+  :root:not(#x) .filterbar.open .datef input[type=text]{flex:1}
+  :root:not(#x) .filters.ms.ms-open>*,:root:not(#x) .filterbar.open .filters>*{width:100%!important;max-width:none!important;min-height:44px}
+  :root:not(#x) .filters.ms.ms-open>.msheet-btn{display:none!important}
+  .ms-head{display:none}
+  :root:not(#x) .ms-open>.ms-head,:root:not(#x) .filterbar.open .ms-head{display:flex!important;justify-content:space-between;align-items:center;font-weight:700;font-size:16px;order:-1}
+  .ms-done{display:none}
+  :root:not(#x) .ms-open>.ms-done,:root:not(#x) .filterbar.open .ms-done{display:block!important;order:99;min-height:48px;border:0;border-radius:12px;background:var(--ink);color:var(--bg,#0f1115);font:inherit;font-weight:700;cursor:pointer}
+  #ms-scrim{position:fixed;inset:0;z-index:69;background:rgba(0,0,0,.5)}
+  /* 4. Tables become cards */
+  :root:not(#x) table.mcard{min-width:0!important;border:0!important;background:none!important;box-shadow:none!important}
+  :root:not(#x) table.mcard thead{display:none}
+  :root:not(#x) table.mcard,:root:not(#x) table.mcard tbody{display:block;width:100%}
+  :root:not(#x) table.mcard tr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 12px;padding:12px 14px;margin-bottom:8px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+  :root:not(#x) table.mcard td{display:block;padding:0!important;border:0!important;text-align:left!important;min-width:0;font-size:13px}
+  :root:not(#x) table.mcard td:first-child{grid-column:1/-1;font-size:14px}
+  :root:not(#x) table.mcard td[data-label]:not(:first-child)::before{content:attr(data-label);display:block;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:1px}
+  :root:not(#x) table.mcard td:empty{display:none}
+  :root:not(#x) .ftable-wrap:has(table.mcard),:root:not(#x) .cov-w:has(table.mcard){overflow:visible!important;border:0!important;background:none!important;box-shadow:none!important}
+  /* 5. Charts: bigger, and full screen on tap */
+  :root:not(#x) .hc svg{max-height:190px!important}
+  .cx-btn{position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);display:grid;place-items:center;cursor:pointer;font-size:16px;z-index:2}
+  .hc,.iconst{position:relative}
+  #cx{position:fixed;inset:0;z-index:95;background:var(--bg,#0f1115);display:flex;flex-direction:column}
+  #cx header{display:flex!important;justify-content:space-between;align-items:center;padding:calc(12px + env(safe-area-inset-top)) 16px 10px;border-bottom:1px solid var(--line);margin:0!important;grid-template-columns:none!important}
+  #cx header b{font-size:16px}
+  #cx .cx-ctl{display:flex;gap:6px}
+  #cx .cx-ctl button{min-width:44px;min-height:40px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:inherit;font-weight:700}
+  #cx .cx-body{flex:1;overflow:auto;padding:16px;-webkit-overflow-scrolling:touch}
+  #cx .cx-body svg{display:block;max-height:none!important;height:auto}
+  #cx .cx-body .nd text{font-size:13px!important;fill:var(--ink);paint-order:stroke;stroke:var(--bg,#0f1115);stroke-width:3px}
+  #cx .cx-body svg text{font-family:inherit}
+  /* 7. Deal cards: headline, amount and type; tap for the rest */
+  :root:not(#x) #feed .scard:not(.mx) .summary,:root:not(#x) #feed .scard:not(.mx) .scard-foot>:not(.amt-tag),:root:not(#x) #feed .scard:not(.mx) .meta+div+.meta{display:none!important}
+  :root:not(#x) #feed .scard{cursor:pointer}
+  :root:not(#x) #feed .scard:not(.mx)::after{content:"Tap for details";display:block;font-size:11.5px;color:var(--muted);margin-top:6px}
+  /* 8. Pull to refresh */
+  #ptr{position:fixed;left:50%;top:calc(8px + env(safe-area-inset-top));z-index:96;transform:translate(-50%,-60px);transition:transform .15s;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,.35);pointer-events:none}
+}
+@media (min-width:701px){.msheet-btn,.ms-head,.ms-done,.cx-btn{display:none!important}}
 </style>
 </head>
 <body>
@@ -3460,6 +3541,7 @@ document.querySelectorAll("#nhops button").forEach((b) => b.onclick = () => {
 });
 
 function setTab(t) {
+  setTimeout(() => { try { drawSideViews(); } catch {} }, 0);
   [0, 600, 1500].forEach((ms) => setTimeout(() => { try { drawTabSums(); } catch {} }, ms));
   // Going to Home drops the country, sector and story filters, so the address goes back to plain "/".
   if (t === "overview" && state.urlReady && authAllowed(t) && (state.country || state.sector || state.story)) { state.country = state.sector = state.story = null; setTimeout(() => { try { render(); } catch {} syncUrl(); }, 0); }
@@ -5942,6 +6024,115 @@ route();
     document.body.appendChild(d);
   }, 8000);
 })();
+
+// ===================== Phone experience =====================
+const isPhone = () => innerWidth <= 700;
+// 3. Filters: any filter row with two or more dropdowns folds into a bottom sheet on phones.
+function msClose() { document.querySelectorAll(".ms-open").forEach((f) => f.classList.remove("ms-open")); const fb = document.querySelector(".filterbar"); if (fb?.classList.contains("open")) { fb.classList.remove("open"); $("ftoggle")?.setAttribute("aria-expanded", "false"); } $("ms-scrim")?.remove(); document.body.style.overflow = ""; }
+function msScrim() { if ($("ms-scrim")) return; const d = document.createElement("div"); d.id = "ms-scrim"; d.onclick = msClose; document.body.appendChild(d); document.body.style.overflow = "hidden"; }
+function msCount(f) { return [...f.querySelectorAll("select")].filter((x) => x.selectedIndex > 0 && !/sort/i.test(x.getAttribute("aria-label") || "")).length; }
+function msEnhance() {
+  document.querySelectorAll(".filters").forEach((f) => {
+    if (f.closest(".filterbar") || f.closest("#cx") || f.querySelectorAll("select").length < 2) return;
+    if (!f.classList.contains("ms")) {
+      f.classList.add("ms");
+      f.insertAdjacentHTML("afterbegin", '<div class="ms-head"><span>Filters</span></div>');
+      f.insertAdjacentHTML("beforeend", '<button type="button" class="msheet-btn" aria-expanded="false">Filters</button><button type="button" class="ms-done">Show results</button>');
+      f.querySelector(".msheet-btn").onclick = () => { f.classList.add("ms-open"); msScrim(); };
+      f.querySelector(".ms-done").onclick = msClose;
+    }
+    const n = msCount(f), b = f.querySelector(".msheet-btn"); if (b) b.innerHTML = `Filters${n ? ` <b>${n}</b>` : ""}`;
+  });
+  const fb = document.querySelector(".filterbar .filters");
+  if (fb && !fb.querySelector(".ms-done")) {
+    fb.insertAdjacentHTML("afterbegin", '<div class="ms-head"><span>Filters</span></div>');
+    fb.insertAdjacentHTML("beforeend", '<button type="button" class="ms-done">Show results</button>');
+    fb.querySelector(".ms-done").onclick = msClose;
+  }
+}
+$("ftoggle")?.addEventListener("click", () => { if (isPhone() && document.querySelector(".filterbar").classList.contains("open")) msScrim(); else $("ms-scrim")?.remove(); });
+document.addEventListener("change", (e) => { const f = e.target.closest?.(".filters.ms"); if (f) { const b = f.querySelector(".msheet-btn"), n = msCount(f); if (b) b.innerHTML = `Filters${n ? ` <b>${n}</b>` : ""}`; } });
+// 4. Tables: each cell carries its column name, so phones can show rows as cards.
+function cardTables() {
+  document.querySelectorAll("table").forEach((t) => {
+    if (t.closest("#cx") || t.closest(".kpis")) return;
+    const heads = [...t.querySelectorAll("thead th")].map((th) => th.textContent.replace(/[▲▼↑↓]/g, "").trim());
+    if (heads.length < 3) return;
+    t.classList.add("mcard");
+    t.querySelectorAll("tbody tr").forEach((tr) => { if (tr.dataset.lb) return; tr.dataset.lb = 1; [...tr.children].forEach((td, i) => { if (heads[i]) td.dataset.label = heads[i]; }); });
+  });
+}
+// 5. Charts: an expand button opens the chart full screen, with zoom for the constellation.
+function chartButtons() {
+  document.querySelectorAll(".hc, .iconst").forEach((c) => {
+    if (c.querySelector(":scope > .cx-btn") || !c.querySelector("svg")) return;
+    c.insertAdjacentHTML("afterbegin", '<button type="button" class="cx-btn" aria-label="Open chart full screen">⤢</button>');
+  });
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest?.(".cx-btn"); if (!b) return;
+  e.preventDefault(); e.stopPropagation();
+  const c = b.parentElement, svg = c.querySelector("svg"); if (!svg) return;
+  const title = c.querySelector("h3")?.textContent || "Chart", zoomable = c.classList.contains("iconst");
+  const o = document.createElement("div"); o.id = "cx"; o.setAttribute("role", "dialog"); o.setAttribute("aria-label", title);
+  o.innerHTML = `<header><b>${esc(title)}</b><div class="cx-ctl">${zoomable ? '<button type="button" data-z="-1" aria-label="Zoom out">−</button><button type="button" data-z="1" aria-label="Zoom in">+</button>' : ""}<button type="button" data-x aria-label="Close">✕</button></div></header><div class="cx-body"></div>`;
+  const body = o.querySelector(".cx-body"), copy = svg.cloneNode(true);
+  let z = zoomable ? 1.8 : 1; const apply = () => { copy.style.width = `${Math.round((innerWidth - 32) * z)}px`; copy.style.height = "auto"; copy.style.maxHeight = "none"; };
+  if (!zoomable) { const vb = (svg.getAttribute("viewBox") || "").split(" ").map(Number); if (vb[2] && vb[2] < 400) { copy.style.width = "100%"; copy.style.minHeight = "50vh"; copy.setAttribute("preserveAspectRatio", "none"); } }
+  body.appendChild(copy); apply(); document.body.appendChild(o); document.body.style.overflow = "hidden";
+  if (zoomable) { body.scrollLeft = (body.scrollWidth - body.clientWidth) / 2; body.scrollTop = (body.scrollHeight - body.clientHeight) / 2; }
+  // Taps on constellation dots re-centre the real chart, then redraw the full-screen copy.
+  copy.querySelectorAll(".nd").forEach((g) => g.addEventListener("click", (ev) => { ev.stopPropagation(); const k = g.dataset.k; if (k === cst.center) return; cst.center = k; drawConst(); close(); setTimeout(() => document.querySelector(".iconst > .cx-btn")?.click(), 50); }));
+  const close = () => { o.remove(); document.body.style.overflow = ""; };
+  o.querySelector("[data-x]").onclick = close;
+  o.querySelectorAll("[data-z]").forEach((x) => x.onclick = () => { z = Math.min(4, Math.max(1, z + (+x.dataset.z) * 0.5)); apply(); });
+  document.addEventListener("keydown", function k(ev) { if (ev.key === "Escape") { close(); document.removeEventListener("keydown", k); } });
+}, true);
+// 7. Deal cards: tap anywhere but a link to show the summary and sources.
+document.addEventListener("click", (e) => {
+  if (!isPhone()) return;
+  const c = e.target.closest?.("#feed .scard"); if (!c || e.target.closest("a,button,select,input")) return;
+  c.classList.toggle("mx");
+});
+// 6. Swipe left or right to move between tabs.
+(() => {
+  let sx = 0, sy = 0, ok = false;
+  const order = () => GNAV.map((g) => gnavViews(g)[0][0]);
+  document.addEventListener("touchstart", (e) => {
+    if (!isPhone() || e.touches.length !== 1 || document.body.style.overflow === "hidden") { ok = false; return; }
+    const t = e.target; let el = t; ok = true;
+    while (el && el !== document.body) { if (el.matches?.("svg,input,select,textarea,.qviews,.kpis,#ov-tiles,#ov-cross,#ftiles,.isumm,.netsvg,#gnav,#cx") || (el.scrollWidth > el.clientWidth + 4 && getComputedStyle(el).overflowX !== "visible")) { ok = false; break; } el = el.parentElement; }
+    sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener("touchend", (e) => {
+    if (!ok) return; ok = false;
+    const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+    if (Math.abs(dx) < 90 || Math.abs(dx) < Math.abs(dy) * 2) return;
+    const o = order(), cur = gnavOwner(state.tab), i = GNAV.indexOf(cur);
+    const j = i + (dx < 0 ? 1 : -1); if (i < 0 || j < 0 || j >= o.length) return;
+    setTab(o[j]); toTop(true);
+  }, { passive: true });
+})();
+// 8. Pull down at the top of the page to refresh the data.
+(() => {
+  let y0 = null, d = 0; const ind = document.createElement("div"); ind.id = "ptr"; document.body.appendChild(ind);
+  document.addEventListener("touchstart", (e) => { y0 = isPhone() && scrollY <= 0 && e.touches.length === 1 && document.body.style.overflow !== "hidden" ? e.touches[0].clientY : null; d = 0; }, { passive: true });
+  document.addEventListener("touchmove", (e) => {
+    if (y0 == null) return; d = e.touches[0].clientY - y0;
+    if (d <= 0) { ind.style.transform = "translate(-50%,-60px)"; return; }
+    ind.textContent = d > 90 ? "Release to refresh" : "Pull to refresh";
+    ind.style.transform = `translate(-50%,${Math.min(d, 110) * 0.5 - 50}px)`;
+  }, { passive: true });
+  document.addEventListener("touchend", async () => {
+    if (y0 == null) return; y0 = null;
+    if (d > 90) { ind.textContent = "Refreshing…"; ind.style.transform = "translate(-50%,0)"; try { await refresh(); home.data = null; home.loading = false; renderHome(); } catch {} ind.textContent = "Updated"; setTimeout(() => { ind.style.transform = "translate(-50%,-60px)"; }, 700); }
+    else ind.style.transform = "translate(-50%,-60px)";
+  });
+})();
+// Keep the phone enhancements applied as sections redraw.
+let phoneT = 0;
+new MutationObserver(() => { clearTimeout(phoneT); phoneT = setTimeout(() => { try { msEnhance(); cardTables(); chartButtons(); } catch {} }, 120); }).observe(document.body, { childList: true, subtree: true });
+setTimeout(() => { try { msEnhance(); cardTables(); chartButtons(); } catch {} }, 500);
 </script>
 </body>
 </html>
