@@ -1529,6 +1529,7 @@ body{font-variant-numeric:tabular-nums}
     <p class="sub" style="margin:0 0 12px">Money moving into and out of India in aggregate. FPI figures are daily from NSDL (US$, with ₹ crore in brackets); FDI figures are by financial year from DPIIT's quarterly fact sheet (US$).</p>
 
     <section class="fxd" id="fxdesk" aria-label="FX desk"></section>
+    <section class="watch" id="mktcal" aria-label="Market calendar"></section>
     <div class="tsum" id="fl-sum"></div>
     <h2 class="fsec">FPI · foreign portfolio investment</h2>
     <p class="note">Shares and bonds bought and sold by foreign funds. Daily from NSDL, in US$ with ₹ crore in brackets.</p>
@@ -1610,6 +1611,7 @@ body{font-variant-numeric:tabular-nums}
   <section id="tab-regulation" hidden>
     <p class="sub" style="margin:0 0 12px"><span class="lg">SEBI and RBI documents that change the rules for foreign investment: FPI, FVCI, FDI, ODI and GIFT City. Summaries state only what changed, for whom and from when; always read the official document.</span><span class="sm">SEBI and RBI rule changes for foreign investment. Read the official document.</span></p>
     <div class="tsum" id="reg-sum"></div>
+    <section class="watch" id="compcal" aria-label="Compliance calendar"></section>
     <div id="reg-body"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div>
   </section>
 
@@ -2698,7 +2700,7 @@ addEventListener("resize", () => { if (innerWidth === lastW) return; lastW = inn
 
 function render() {
   ["from", "to"].forEach((id) => { if (document.activeElement !== $(`${id}-txt`)) $(`${id}-txt`).value = toDMY($(id).value); });
-  renderKpis(); renderFeed(); renderBoard(); renderInvestors(); renderRuns(); renderFlows(); renderOverview(); setTitle(); renderSources(); try { drawTabSums(); } catch {}
+  renderKpis(); renderFeed(); renderBoard(); renderInvestors(); renderRuns(); renderFlows(); renderOverview(); setTitle(); renderSources(); try { drawTabSums(); drawCompCal(); } catch {}
   if (state.tab === "network") renderNetwork();
   if (state.tab === "firm") renderFirm();
   syncUrl(); glossifyPage();
@@ -3576,6 +3578,8 @@ document.querySelectorAll("#nhops button").forEach((b) => b.onclick = () => {
 });
 
 function setTab(t) {
+  if (t === "flows") setTimeout(() => { try { drawMktCal(); } catch {} }, 400);
+  if (t === "regulation") setTimeout(() => { try { drawCompCal(); } catch {} }, 400);
   if (t === "flows") setTimeout(() => { try { drawFxDesk(); } catch {} }, 300);
   if (t === "directory") setTimeout(() => { try { drawFpiWatch(); } catch {} }, 300);
   setTimeout(() => { try { drawSideViews(); } catch {} }, 0);
@@ -6201,7 +6205,7 @@ async function drawFpiWatch() {
 // ---------- Excel/CSV export on every table ----------
 function csvButtons() {
   document.querySelectorAll("table").forEach((t) => {
-    if (t.closest(".watch,#cx") || t.dataset.csv) return;
+    if (t.closest(".watch,#cx,.fxd") || t.dataset.csv) return;
     const heads = [...t.querySelectorAll("thead th")].map((th) => th.textContent.replace(/[▲▼↑↓]/g, "").trim());
     if (heads.length < 3) return;
     t.dataset.csv = 1;
@@ -6264,7 +6268,54 @@ function drawFxDesk() {
       <svg viewBox="0 0 ${W} ${H + 18}" role="img" aria-label="USD/INR against monthly FPI flows"><line x1="0" x2="${W}" y1="${mid}" y2="${mid}" stroke="var(--line)"/>${bars}<path d="${line}" fill="none" stroke="var(--ink)" stroke-width="2"/>${ticks}</svg>
       <div class="s">Bars: net FPI investment each month (blue in, orange out). Line: average USD/INR (higher means a weaker rupee). Hover for figures.</div></div>
       <div class="hc" style="cursor:default"><h3>USD/INR forward premia</h3><table><thead><tr><th>Tenor</th><th class="num">Annualised</th><th class="num">₹ premium</th></tr></thead><tbody>${fwdRows.map((r) => `<tr><td>${esc(r.tenor)}</td><td class="num">${(+r.premia_pct).toFixed(2)}%</td><td class="num">${(+r.premia_rs).toFixed(4)}</td></tr>`).join("") || '<tr><td colspan="3">Not available.</td></tr>'}</tbody></table>
-      <div class="s">FBIL, ${fxd.fwdDay ? toDMY(fxd.fwdDay) : "–"}. The annualised premium is the cost of hedging dollars into rupees.</div></div></div>`;
+      <div class="s">FBIL, ${fxd.fwdDay ? toDMY(fxd.fwdDay) : "–"}. The annualised premium is the cost of hedging dollars into rupees.</div></div></div>
+    <div class="hc" style="cursor:default;margin-top:16px"><h3>Large deals that will move dollars</h3><div class="s" style="margin-top:-4px">USD 250 million or more, agreed, completed or planned, last 120 days. "In" brings dollars into India; "Out" takes them out.</div>
+      <div class="watch-w" style="max-height:360px"><table><thead><tr><th>Date</th><th>Direction</th><th>Investor</th><th>Company</th><th>Stage</th><th class="num">Amount</th></tr></thead><tbody>${bigFlows().map(({ e, dir, usd }) => `<tr><td>${toDMY(dayStr(when(e)))}</td><td class="${dir === "In" ? "dn" : "up"}" style="font-weight:700">${dir}</td><td>${esc(e.investor || "")}</td><td>${esc(e.target || "")}</td><td>${esc(STAGES[e.deal_stage]?.[0] || "")}</td><td class="num">${fmtUsd(usd)}</td></tr>`).join("") || '<tr><td colspan="6">None in this window.</td></tr>'}</tbody></table></div></div>`;
+}
+
+// ---------- Market calendar (NSE): holidays, corporate actions, issues ----------
+const mc = { view: "ca", q: "", seg: "CM" };
+async function drawMktCal() {
+  const box = $("mktcal"); if (!box || state.tab !== "flows") return;
+  if (!mc.data) { if (mc.loading) return; mc.loading = true;
+    try { const today = dayStr(new Date());
+      const [h, ca, is] = await Promise.all([api(`mkt_holidays?select=day,segment,description&day=gte.${today}&order=day.asc`), apiAll(`corp_actions?select=symbol,company,subject,ex_date,record_date&ex_date=gte.${dayStr(new Date(Date.now() - 7 * 864e5))}`, "ex_date.asc,symbol"), api("issues?select=symbol,company,kind,open_date,close_date,price_band,issue_size,status&order=open_date.desc")]);
+      mc.data = { h, ca, is }; } catch { mc.data = { h: [], ca: [], is: [] }; } mc.loading = false; }
+  const D = mc.data, q = mc.q.trim().toLowerCase();
+  const kind = (s) => /dividend/i.test(s) ? "Dividend" : /bonus/i.test(s) ? "Bonus" : /split|sub-division/i.test(s) ? "Split" : /rights/i.test(s) ? "Rights" : /buy ?back/i.test(s) ? "Buyback" : /meeting|agm|egm/i.test(s) ? "Meeting" : "Other";
+  const segs = [...new Set(D.h.map((x) => x.segment))].sort(), SEG = { CM: "Equities", FO: "Equity derivatives", CD: "Currency derivatives", IRD: "Interest rate derivatives", COM: "Commodities", CBM: "Corporate bonds", MF: "Mutual funds", SLBS: "Securities lending" };
+  let cols, rows;
+  if (mc.view === "ca") { cols = ["Company", "Symbol", "Action", "Detail", "Ex-date", "Record date"]; rows = D.ca.filter((x) => !q || [x.company, x.symbol, x.subject].some((v) => String(v || "").toLowerCase().includes(q))).map((x) => [x.company, x.symbol, kind(x.subject), x.subject, toDMY(x.ex_date), x.record_date ? toDMY(x.record_date) : ""]); }
+  else if (mc.view === "h") { cols = ["Date", "Day", "Holiday", "Segment"]; rows = D.h.filter((x) => x.segment === mc.seg).map((x) => [toDMY(x.day), new Date(x.day).toLocaleDateString("en-GB", { weekday: "long" }), x.description, SEG[x.segment] || x.segment]); }
+  else { cols = ["Company", "Symbol", "Type", "Opens", "Closes", "Price", "Size", "Status"]; rows = D.is.map((x) => [x.company, x.symbol, x.kind, x.open_date ? toDMY(x.open_date) : "", x.close_date ? toDMY(x.close_date) : "", x.price_band || "", x.issue_size || "", x.status || ""]); }
+  box.innerHTML = `<div class="watch-h"><div><h3>Market calendar</h3><div class="sub">From NSE, refreshed daily at 7:10am IST.</div></div><button type="button" class="csvbtn" id="mc-csv">Download CSV (${nfmt(rows.length)})</button></div>
+    <div class="qviews" role="group" aria-label="Calendar">${[["ca", "Corporate actions", D.ca.length], ["h", "Trading holidays", D.h.filter((x) => x.segment === mc.seg).length], ["is", "IPOs and issues", D.is.length]].map(([k, l, n]) => `<button type="button" data-mc="${k}" aria-pressed="${mc.view === k}">${l}<b>${nfmt(n)}</b></button>`).join("")}</div>
+    ${mc.view === "ca" ? `<div class="filters" style="margin-bottom:8px"><input type="search" id="mc-q" placeholder="Search company, symbol or action" aria-label="Search corporate actions" value="${esc(mc.q)}"></div>` : mc.view === "h" ? `<div class="filters" style="margin-bottom:8px"><select id="mc-seg" aria-label="Segment">${segs.map((x) => `<option value="${x}"${x === mc.seg ? " selected" : ""}>${SEG[x] || x}</option>`).join("")}</select></div>` : ""}
+    <div class="watch-w"><table><thead><tr>${cols.map((c) => `<th>${c}</th>`).join("")}</tr></thead><tbody>${rows.slice(0, 300).map((r) => `<tr>${r.map((v) => `<td>${esc(v)}</td>`).join("")}</tr>`).join("") || `<tr><td colspan="${cols.length}">${mc.view === "is" ? "No issues open or announced on NSE right now." : "Nothing to show."}</td></tr>`}</tbody></table></div>`;
+  box.querySelectorAll("[data-mc]").forEach((b) => b.onclick = () => { mc.view = b.dataset.mc; drawMktCal(); });
+  const qi = $("mc-q"); if (qi) qi.oninput = () => { mc.q = qi.value; drawMktCal().then(() => { const i = $("mc-q"); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }); };
+  const sg = $("mc-seg"); if (sg) sg.onchange = () => { mc.seg = sg.value; drawMktCal(); };
+  $("mc-csv").onclick = () => csvDownload(`market-calendar-${mc.view}-${dayStr(new Date())}.csv`, [cols, ...rows]);
+}
+// ---------- Compliance calendar: every rule with an effective date, upcoming first ----------
+function drawCompCal() {
+  const box = $("compcal"); if (!box || state.tab !== "regulation" || !state.events.length) return;
+  const today = dayStr(new Date()), past = dayStr(new Date(Date.now() - 90 * 864e5));
+  const list = state.events.filter((e) => e.event_type === "regulation" && e.effective_on && String(e.effective_on) >= past).sort((a, b) => String(a.effective_on).localeCompare(String(b.effective_on)));
+  const up = list.filter((e) => String(e.effective_on) >= today), done = list.filter((e) => String(e.effective_on) < today).reverse();
+  const cols = ["Takes effect", "In", "Regulator", "Applies to", "Rule", "Document"];
+  const row = (e) => { const d = Math.round((new Date(e.effective_on) - new Date(today)) / 864e5); return [toDMY(String(e.effective_on)), d === 0 ? "Today" : d > 0 ? `${d} days` : `${-d} days ago`, e.regulator || "", (e.instruments || []).join(", "), e.title, DOC_TYPES[e.doc_type] || e.doc_type || ""]; };
+  const rows = [...up, ...done].map(row);
+  box.innerHTML = `<div class="watch-h"><div><h3>Compliance calendar</h3><div class="sub">SEBI and RBI rules by the date they take effect: ${nfmt(up.length)} coming up, ${nfmt(done.length)} in the last 90 days. Check each document for the exact obligations.</div></div><button type="button" class="csvbtn" id="cc-csv">Download CSV</button></div>
+    <div class="watch-w"><table><thead><tr>${cols.map((c) => `<th>${c}</th>`).join("")}</tr></thead><tbody>${[...up, ...done].map((e, i) => { const r = rows[i]; return `<tr${String(e.effective_on) < today ? ' style="opacity:.6"' : ""}><td class="due${String(e.effective_on) >= today && (new Date(e.effective_on) - new Date(today)) / 864e5 <= 30 ? " soon" : ""}">${esc(r[0])}</td><td>${esc(r[1])}</td><td>${esc(r[2])}</td><td>${esc(r[3])}</td><td><a href="${safeUrl(e.url)}" target="_blank" rel="noopener">${esc(r[4])}</a></td><td>${esc(r[5])}</td></tr>`; }).join("") || `<tr><td colspan="6">No dated rules in this window.</td></tr>`}</tbody></table></div>`;
+  $("cc-csv").onclick = () => csvDownload(`compliance-calendar-${today}.csv`, [cols, ...rows]);
+}
+// ---------- FX desk: large deals likely to move FX ----------
+function bigFlows() {
+  const since = Date.now() - 120 * 864e5;
+  return state.events.filter((e) => when(e) >= since && e.event_type !== "regulation" && (e.flow_kind || "capital") === "capital" && ["agreed", "completed", "plan"].includes(e.deal_stage) && (amountCr(e)?.usd || 0) >= 250)
+    .map((e) => ({ e, dir: e.event_types.includes("outbound") || (e.event_types.includes("exit") && !e.event_types.includes("entry")) ? "Out" : "In", usd: amountCr(e).usd }))
+    .sort((a, b) => when(b.e) - when(a.e)).slice(0, 25);
 }
 </script>
 </body>
