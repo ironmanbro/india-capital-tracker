@@ -1248,6 +1248,39 @@ body{font-variant-numeric:tabular-nums}
   #ptr{position:fixed;left:50%;top:calc(8px + env(safe-area-inset-top));z-index:96;transform:translate(-50%,-60px);transition:transform .15s;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,.35);pointer-events:none}
 }
 @media (min-width:701px){.msheet-btn,.ms-head,.ms-done,.cx-btn{display:none!important}}
+
+/* FPI watch lists and CSV export */
+.watch{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px 18px;margin-bottom:16px}
+.watch:empty{display:none}
+.watch-h{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.watch-h h3{margin:0;font-size:16px}
+.watch .qviews{margin:0 0 10px}
+.watch .qviews b{margin-left:6px;font-weight:700;opacity:.8}
+.watch-w{overflow-x:auto;max-height:520px;overflow-y:auto;border:1px solid var(--line);border-radius:12px}
+.watch table{width:100%;border-collapse:collapse;font-size:13px;background:none;border:0;box-shadow:none}
+.watch th{position:sticky;top:0;background:var(--panel);text-align:left;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);padding:9px 12px;border-bottom:1px solid var(--line);font-weight:600}
+.watch td{padding:9px 12px;border-bottom:1px solid var(--line)}
+.watch td.due{font-weight:700}.watch td.due.soon{color:#f0884a}
+.csvbtn{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.csvbar{display:flex;justify-content:flex-end;margin:0 0 6px}
+
+/* FX desk */
+.fxd{margin-bottom:16px}.fxd:empty{display:none}
+.fxd h2{margin:0 0 4px;font-size:18px}
+.fxd .fxg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:10px 0 16px}
+.fxd .fxc{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.fxd .fxc .c{font-size:12px;color:var(--muted)}
+.fxd .fxc .r{font-size:22px;font-weight:700;margin:2px 0}
+.fxd .fxc .d{font-size:12px}
+.fxd .up{color:#f0884a}.fxd .dn{color:#34c27a}
+.fxd .fxrow{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:16px}
+@media (max-width:900px){.fxd .fxrow{grid-template-columns:minmax(0,1fr)}}
+.fxd table{width:100%;border-collapse:collapse;font-size:13px}
+.fxd th{text-align:left;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);padding:6px 8px;border-bottom:1px solid var(--line);font-weight:600}
+.fxd td{padding:7px 8px;border-bottom:1px solid var(--line)}
+.fxd .num{text-align:right}
+:root:not(#x) #fxdesk .hc svg{max-height:none!important}
+#fxdesk .hc svg text{font-size:13px}
 </style>
 </head>
 <body>
@@ -1495,6 +1528,7 @@ body{font-variant-numeric:tabular-nums}
     <p class="takeaway" id="fl-take" hidden></p>
     <p class="sub" style="margin:0 0 12px">Money moving into and out of India in aggregate. FPI figures are daily from NSDL (US$, with ₹ crore in brackets); FDI figures are by financial year from DPIIT's quarterly fact sheet (US$).</p>
 
+    <section class="fxd" id="fxdesk" aria-label="FX desk"></section>
     <div class="tsum" id="fl-sum"></div>
     <h2 class="fsec">FPI · foreign portfolio investment</h2>
     <p class="note">Shares and bonds bought and sold by foreign funds. Daily from NSDL, in US$ with ₹ crore in brackets.</p>
@@ -1597,6 +1631,7 @@ body{font-variant-numeric:tabular-nums}
 
   <section id="tab-directory" hidden>
     <div class="tsum" id="regx-sum"></div>
+    <section class="watch" id="fpiwatch" aria-label="FPI watch lists"></section>
     <div class="fhead" style="margin-bottom:10px">
       <p class="sub" style="margin:0;max-width:640px" id="dir-intro"></p>
       <div class="seg" role="group" aria-label="Directory" id="dirseg" hidden>
@@ -3541,6 +3576,8 @@ document.querySelectorAll("#nhops button").forEach((b) => b.onclick = () => {
 });
 
 function setTab(t) {
+  if (t === "flows") setTimeout(() => { try { drawFxDesk(); } catch {} }, 300);
+  if (t === "directory") setTimeout(() => { try { drawFpiWatch(); } catch {} }, 300);
   setTimeout(() => { try { drawSideViews(); } catch {} }, 0);
   [0, 600, 1500].forEach((ms) => setTimeout(() => { try { drawTabSums(); } catch {} }, ms));
   // Going to Home drops the country, sector and story filters, so the address goes back to plain "/".
@@ -6133,6 +6170,102 @@ document.addEventListener("click", (e) => {
 let phoneT = 0;
 new MutationObserver(() => { clearTimeout(phoneT); phoneT = setTimeout(() => { try { msEnhance(); cardTables(); chartButtons(); } catch {} }, 120); }).observe(document.body, { childList: true, subtree: true });
 setTimeout(() => { try { msEnhance(); cardTables(); chartButtons(); } catch {} }, 500);
+
+// ---------- Custody: FPI watch lists (expiring, late fee, new, dropped off, invalid) ----------
+const fw = { data: null, view: "expiring", q: "" };
+const FW_VIEWS = [["expiring", "Renewal due in 90 days"], ["late_fee", "In late-fee window"], ["new", "New in 30 days"], ["dropped", "Dropped off the register"], ["invalid", "Invalid"]];
+function csvDownload(name, rows) {
+  const q = (v) => { const t = String(v ?? ""); return /[",\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t; };
+  const blob = new Blob(["﻿" + rows.map((r) => r.map(q).join(",")).join("\r\n")], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+async function drawFpiWatch() {
+  const box = $("fpiwatch"); if (!box || state.tab !== "directory") return;
+  if (!fw.data) { if (fw.loading) return; fw.loading = true; try { fw.data = await api("rpc/fpi_watch", { method: "POST", body: "{}" }); } catch { fw.data = {}; } fw.loading = false; }
+  const list = (fw.data[fw.view] || []), today = dayStr(new Date());
+  const dd = (d) => d ? toDMY(String(d)) : "–", days = (d) => d ? Math.round((new Date(d) - new Date(today)) / 864e5) : null;
+  const cols = fw.view === "new" ? ["FPI", "Registration no.", "Country", "Category", "Type", "Registered", "Valid until"] : fw.view === "dropped" ? ["FPI", "Registration no.", "Country", "Category", "Type", "Valid until", "Last listed"] : ["FPI", "Registration no.", "Country", "Category", "Type", "Valid until", "Days left"];
+  const row = (r) => fw.view === "new" ? [r.name, r.reg_no, titleCase(r.country), r.category ? `Cat ${r.category}` : "", r.sub_category, dd(r.registered_on), dd(r.valid_upto)]
+    : fw.view === "dropped" ? [r.name, r.reg_no, titleCase(r.country), r.category ? `Cat ${r.category}` : "", r.sub_category, dd(r.valid_upto), dd(r.last_seen)]
+    : [r.name, r.reg_no, titleCase(r.country), r.category ? `Cat ${r.category}` : "", r.sub_category, dd(r.valid_upto), days(r.valid_upto)];
+  const q = fw.q.trim().toLowerCase(), shown = list.filter((r) => !q || [r.name, r.reg_no, r.country].some((x) => String(x || "").toLowerCase().includes(q)));
+  box.innerHTML = `<div class="watch-h"><div><h3>FPI watch lists</h3><div class="sub">From NSDL's FPI register, updated daily. Registration numbers and names only.</div></div><button type="button" class="csvbtn" id="fw-csv">Download CSV (${nfmt(shown.length)})</button></div>
+    <div class="qviews" role="group" aria-label="Watch list">${FW_VIEWS.map(([k, l]) => `<button type="button" data-fw="${k}" aria-pressed="${fw.view === k}">${l}<b>${nfmt((fw.data[k] || []).length)}</b></button>`).join("")}</div>
+    <div class="filters" style="margin-bottom:8px"><input type="search" id="fw-q" placeholder="Search name, registration number or country" aria-label="Search the watch list" value="${esc(fw.q)}"></div>
+    <div class="watch-w"><table><thead><tr>${cols.map((c) => `<th>${c}</th>`).join("")}</tr></thead><tbody>${shown.slice(0, 300).map((r) => { const v = row(r); return `<tr>${v.map((x, i) => i === 6 && fw.view !== "new" && fw.view !== "dropped" ? `<td class="due${x != null && x <= 30 ? " soon" : ""}">${x == null ? "–" : x < 0 ? `${-x} days ago` : `${x} days`}</td>` : `<td>${esc(x ?? "")}</td>`).join("")}</tr>`; }).join("") || `<tr><td colspan="${cols.length}">Nothing on this list.</td></tr>`}</tbody></table></div>
+    ${shown.length > 300 ? `<div class="sub" style="margin-top:6px">Showing 300 of ${nfmt(shown.length)}. Download the CSV for the full list.</div>` : ""}`;
+  box.querySelectorAll("[data-fw]").forEach((b) => b.onclick = () => { fw.view = b.dataset.fw; drawFpiWatch(); });
+  const qi = $("fw-q"); qi.oninput = () => { fw.q = qi.value; drawFpiWatch().then(() => { const i = $("fw-q"); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }); };
+  $("fw-csv").onclick = () => csvDownload(`fpi-${fw.view}-${today}.csv`, [cols, ...shown.map((r) => row(r))]);
+}
+// ---------- Excel/CSV export on every table ----------
+function csvButtons() {
+  document.querySelectorAll("table").forEach((t) => {
+    if (t.closest(".watch,#cx") || t.dataset.csv) return;
+    const heads = [...t.querySelectorAll("thead th")].map((th) => th.textContent.replace(/[▲▼↑↓]/g, "").trim());
+    if (heads.length < 3) return;
+    t.dataset.csv = 1;
+    const host = t.closest(".ftable-wrap,.cov-w") || t;
+    host.insertAdjacentHTML("beforebegin", '<div class="csvbar"><button type="button" class="csvbtn">Download CSV</button></div>');
+    host.previousElementSibling.querySelector("button").onclick = () => {
+      const rows = [...t.querySelectorAll("tbody tr")].map((tr) => [...tr.children].map((td) => td.innerText.replace(/\s+/g, " ").trim()));
+      const title = (document.getElementById("ptitle")?.textContent || "table").toLowerCase().replace(/\W+/g, "-");
+      csvDownload(`${title}-${dayStr(new Date())}.csv`, [heads, ...rows]);
+    };
+  });
+}
+setInterval(() => { try { csvButtons(); if (state.tab === "directory" && $("fpiwatch") && !$("fpiwatch").innerHTML) drawFpiWatch(); } catch {} }, 1500);
+
+// ---------- FX desk: FBIL reference rates, USD/INR against FPI flows, forward premia ----------
+const fxd = { ref: null, fwd: null };
+async function loadFxDesk() {
+  if (fxd.loading) return; fxd.loading = true;
+  try {
+    const since = dayStr(new Date(Date.now() - 6 * 365 * 864e5));
+    // Six years of USD for the chart; 60 days of the other currencies for the rate cards.
+    const recent = dayStr(new Date(Date.now() - 60 * 864e5));
+    const [usdRows, others, fwdLast] = await Promise.all([
+      apiAll(`fx_ref?select=day,ccy,rate&ccy=eq.USD&day=gte.${since}`, "day.asc"),
+      api(`fx_ref?select=day,ccy,rate&ccy=in.(EUR,GBP,JPY,AED)&day=gte.${recent}&order=day.asc`),
+      api("fx_fwd?select=day&order=day.desc&limit=1"),
+    ]);
+    const ref = [...usdRows, ...others];
+    const lastDay = fwdLast[0]?.day;
+    fxd.fwd = lastDay ? await api(`fx_fwd?select=tenor,premia_pct,premia_rs,settle&day=eq.${lastDay}&order=settle.asc`) : [];
+    fxd.fwdDay = lastDay; fxd.ref = ref.map((r) => ({ ...r, rate: +r.rate }));
+    // Yearly average USD/INR from FBIL replaces the rounded table wherever a full year is loaded.
+    const by = new Map(); fxd.ref.filter((r) => r.ccy === "USD").forEach((r) => { const y = +r.day.slice(0, 4); const a = by.get(y) || [0, 0]; a[0] += r.rate; a[1]++; by.set(y, a); });
+    by.forEach(([sum, n], y) => { if (n > 150 && y < new Date().getFullYear()) FX_YEAR[y] = +(sum / n).toFixed(2); });
+  } catch { fxd.ref = []; fxd.fwd = []; }
+  fxd.loading = false; drawFxDesk(); try { renderHome(); drawTabSums(); } catch {}
+}
+function drawFxDesk() {
+  const box = $("fxdesk"); if (!box || state.tab !== "flows") return;
+  if (!fxd.ref) { loadFxDesk(); return; }
+  if (!fxd.ref.length) { box.innerHTML = ""; return; }
+  const ser = (c) => fxd.ref.filter((r) => r.ccy === c);
+  const card = (c, lab, unit) => { const s = ser(c); if (!s.length) return ""; const l = s[s.length - 1], p = s[s.length - 2], m = s.find((r) => r.day >= dayStr(new Date(new Date(l.day) - 30 * 864e5)));
+    const mul = c === "JPY" ? 100 : 1, ch = p ? (l.rate - p.rate) * mul : 0, cm = m ? (l.rate / m.rate - 1) * 100 : 0;
+    return `<div class="fxc" data-tip="${esc(`${lab}: ₹${(l.rate * mul).toFixed(4)} on ${toDMY(l.day)}. 30-day change ${cm >= 0 ? "+" : ""}${cm.toFixed(2)}% (a rise means a weaker rupee)`)}"><div class="c">${lab}</div><div class="r">₹${(l.rate * mul).toFixed(2)}</div><div class="d"><span class="${ch > 0 ? "up" : ch < 0 ? "dn" : ""}">${ch >= 0 ? "+" : ""}${ch.toFixed(2)}</span> day · <span class="${cm > 0 ? "up" : cm < 0 ? "dn" : ""}">${cm >= 0 ? "+" : ""}${cm.toFixed(2)}%</span> 30 days</div></div>`; };
+  const usd = ser("USD"), last = usd[usd.length - 1];
+  // Monthly: average USD/INR line over FPI net bars (USD).
+  const months = new Map(); usd.forEach((r) => { const k = r.day.slice(0, 7); const a = months.get(k) || [0, 0]; a[0] += r.rate; a[1]++; months.set(k, a); });
+  const pts = [...months].map(([k, [sum, n]]) => { const fm = flows.monthly.find((m) => m.month.startsWith(k)); const fx = sum / n; return { k, fx, usd: fm ? fm.net * 10 / fx : null }; }).filter((x) => x.k >= "2021-01");
+  const W = 900, H = 220, n = pts.length, bw = W / n - 2, maxU = Math.max(1, ...pts.map((x) => Math.abs(x.usd || 0))), fxs = pts.map((x) => x.fx), lo = Math.min(...fxs) - 1, hi = Math.max(...fxs) + 1;
+  const yfx = (v) => 10 + (hi - v) / (hi - lo) * (H - 20), mid = H / 2;
+  const bars = pts.map((x, i) => { if (x.usd == null) return ""; const h = Math.abs(x.usd) / maxU * (H / 2 - 12), X = i * (W / n);
+    return `<g class="cb" data-tip="${esc(`${monLabel(x.k + "-01")}: FPI ${x.usd < 0 ? "−" : "+"}${fmtUsd(Math.abs(x.usd))}, USD/INR average ₹${x.fx.toFixed(2)}`)}"><rect class="hit" x="${X}" y="0" width="${W / n}" height="${H}" fill="transparent"/><rect class="v" x="${X + 1}" y="${x.usd < 0 ? mid : mid - h}" width="${bw}" height="${h}" rx="1.5" fill="${x.usd < 0 ? "#f0884a" : "#7b9cf5"}" opacity=".8"/></g>`; }).join("");
+  const line = pts.map((x, i) => `${i ? "L" : "M"}${(i + 0.5) * (W / n)},${yfx(x.fx)}`).join("");
+  const ticks = pts.map((x, i) => x.k.endsWith("-01") ? `<text x="${(i + 0.5) * (W / n)}" y="${H + 14}" text-anchor="middle">${x.k.slice(0, 4)}</text>` : "").join("");
+  const fwdRows = (fxd.fwd || []).filter((r) => ["1M", "2M", "3M", "6M", "9M", "12M", "1Y"].includes(r.tenor));
+  box.innerHTML = `<h2>FX desk</h2><p class="sub" style="margin:0">FBIL reference rates (₹ per unit; yen per 100) for ${toDMY(last.day)}. FBIL's free feed runs about a week behind; the live rate is on Home.</p>
+    <div class="fxg">${card("USD", "US dollar")}${card("EUR", "Euro")}${card("GBP", "Pound")}${card("JPY", "Yen (100)")}${card("AED", "UAE dirham")}</div>
+    <div class="fxrow"><div class="hc" style="cursor:default"><h3>USD/INR and FPI money, by month</h3>
+      <svg viewBox="0 0 ${W} ${H + 18}" role="img" aria-label="USD/INR against monthly FPI flows"><line x1="0" x2="${W}" y1="${mid}" y2="${mid}" stroke="var(--line)"/>${bars}<path d="${line}" fill="none" stroke="var(--ink)" stroke-width="2"/>${ticks}</svg>
+      <div class="s">Bars: net FPI investment each month (blue in, orange out). Line: average USD/INR (higher means a weaker rupee). Hover for figures.</div></div>
+      <div class="hc" style="cursor:default"><h3>USD/INR forward premia</h3><table><thead><tr><th>Tenor</th><th class="num">Annualised</th><th class="num">₹ premium</th></tr></thead><tbody>${fwdRows.map((r) => `<tr><td>${esc(r.tenor)}</td><td class="num">${(+r.premia_pct).toFixed(2)}%</td><td class="num">${(+r.premia_rs).toFixed(4)}</td></tr>`).join("") || '<tr><td colspan="3">Not available.</td></tr>'}</tbody></table>
+      <div class="s">FBIL, ${fxd.fwdDay ? toDMY(fxd.fwdDay) : "–"}. The annualised premium is the cost of hedging dollars into rupees.</div></div></div>`;
+}
 </script>
 </body>
 </html>
