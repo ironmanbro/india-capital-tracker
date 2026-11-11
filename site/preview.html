@@ -1231,10 +1231,10 @@ body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-wei
     <p class="dsrc" id="fx-home" style="margin:-6px 0 14px" hidden></p>
     <div class="ovbanner"><div><b>Sign in to see everything on Home.</b> <span>Free. No subscription, just a login.</span></div><button class="reset" type="button" data-login>Sign in</button></div>
     <div class="ovgrid">
-      <div class="ovc"><div class="ovh"><div><h3>Biggest deals this week</h3><div class="sub">Largest agreed or completed deals, last 7 days</div></div><button class="link" data-go="feed">Feed ↗</button></div><div id="ov-deals"><!--skel--></div></div>
+      <div class="ovc"><div class="ovh"><div><h3>Biggest deals this week</h3><div class="sub">Largest agreed or completed deals, last 7 days</div></div><button class="link" data-go="feed" data-view="week">See these deals ↗</button></div><div id="ov-deals"><!--skel--></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Latest stories</h3><div class="sub">News collected hourly, reviewed daily at 9am IST</div></div><button class="link" data-go="feed">All stories</button></div><div id="ov-stories"><!--skel--></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Indian investment abroad</h3><div class="sub">RBI overseas direct investment, latest month</div></div><button class="link" data-go="odi">Outbound ↗</button></div><div id="ov-odi"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
-      <div class="ovc"><div class="ovh"><div><h3>What changed this month</h3><div class="sub">SEBI and RBI rules for foreign investment</div></div><button class="link" data-go="regulation">Regulation ↗</button></div><div id="ov-regchg"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
+      <div class="ovc"><div class="ovh"><div><h3>What changed this month</h3><div class="sub">SEBI and RBI rules for foreign investment</div></div><button class="link" data-go="regulation" data-view="regyear">This year's rules ↗</button></div><div id="ov-regchg"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Latest FPI flow</h3><div class="sub" id="ov-flow-sub">NSDL</div></div><button class="link" data-go="flows">Flows ↗</button></div><div class="flowwrap"><div id="ov-flow"></div><div class="fchart" id="ov-fpibars"></div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>New FPI registrations</h3><div class="sub">Latest additions to the NSDL register</div></div><button class="link" data-go="directory">FPIs ↗</button></div><div id="ov-regs"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
       <div class="ovc gated"><div class="ovh"><div><h3>Funding and deal news</h3><div class="sub">Startup media and global coverage</div></div><button class="link" data-go="markets">Markets ↗</button></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-news"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
@@ -1260,6 +1260,7 @@ body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-wei
       <button type="button" data-v="holders" aria-pressed="false">Filed holders</button>
     </div>
     <p class="sub" style="margin:0 0 12px"><button type="button" class="link" data-go="directory">Browse every SEBI-registered FPI →</button></p>
+    <div class="qviews" id="iqviews" role="group" aria-label="Quick views"></div>
     <div class="filters">
       <input type="search" id="iq" placeholder="Find an investor, fund or company…" aria-label="Find an investor">
       <select id="icat" aria-label="Category">
@@ -1279,6 +1280,7 @@ body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-wei
       </select>
       <button class="reset" id="ireset" type="button">Reset</button>
     </div>
+    <div class="fchips" id="ichips"></div>
     <p class="dsrc" data-src="review" data-what="Built from the reviewed stories" style="margin:0 0 6px"></p>
     <p class="sub" id="isum" style="margin:0 0 10px"></p>
     <div id="investors"></div>
@@ -1431,6 +1433,7 @@ body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-wei
       </div>
     </div>
     <div class="ftiles" id="dir-tiles"></div>
+    <div class="qviews" id="dqviews" role="group" aria-label="Quick views"></div>
     <div class="filters" id="dir-fpi-filters">
       <input type="search" id="dq" placeholder="Search FPI name or registration number…" aria-label="Search FPIs">
       <select id="dcountry-f" aria-label="Country"><option value="">All countries</option></select>
@@ -1676,6 +1679,37 @@ $("fmore").addEventListener("click", () => {
   $("fmore").setAttribute("aria-expanded", on); $("fmore").textContent = on ? "Fewer filters" : "More filters";
 });
 
+// ---------- Quick views on Investors and Registrations (they set the dropdowns already there) ----------
+const selSet = (id, v) => { const e = $(id); if (e && (v === "" || [...e.options].some((o) => o.value === v))) e.value = v; };
+const selFire = (...ids) => ids.forEach((id) => ["input", "change"].forEach((t) => $(id)?.dispatchEvent(new Event(t, { bubbles: true }))));
+const iVal = (id) => $(id)?.value || "";
+const INV_VIEWS = [
+  ["All investors", {}], ["Buyers", { icat: "entry" }], ["Sellers", { icat: "exit" }], ["Sovereign funds", { itype: "sovereign" }],
+  ["Private equity", { itype: "pe_vc" }], ["Biggest deals", { isort: "size" }],
+].map(([l, o]) => [l, { iq: "", icat: "", itype: "", isort: "active", ...o }]);
+const DIR_VIEWS = [
+  ["All FPIs", {}], ["Registered this year", { "dyear-f": String(new Date().getFullYear()) }], ["Category I", { "dcat-f": "I" }], ["Category II", { "dcat-f": "II" }],
+].map(([l, o]) => [l, { "dcountry-f": "", "dcat-f": "", "dyear-f": "", ...o }]);
+function drawSideViews() {
+  const row = (box, views) => {
+    if (!box) return;
+    box.innerHTML = views.map((v, i) => `<button type="button" data-sv="${i}" aria-pressed="${Object.entries(v[1]).every(([id, x]) => iVal(id) === x)}">${v[0]}</button>`).join("");
+    box.querySelectorAll("button").forEach((b) => b.onclick = () => { const o = views[b.dataset.sv][1]; Object.entries(o).forEach(([id, x]) => selSet(id, x)); selFire(...Object.keys(o).slice(-1)); });
+  };
+  // The deal quick views and chips belong to the Deals tab only.
+  $("qviews").hidden = $("fchips").hidden = state.tab !== "feed";
+  row($("iqviews"), INV_VIEWS);
+  const dq = $("dqviews"); if (dq) { dq.hidden = $("dir-fpi-filters").hidden; row(dq, DIR_VIEWS); }
+  const ic = $("ichips"); if (!ic) return;
+  const chips = [["icat", ""], ["itype", ""], ["isort", "active"]].filter(([id, d]) => iVal(id) !== d).map(([id, d]) => [$(id).selectedOptions[0].text, id, d]);
+  if (iVal("iq").trim()) chips.push([`“${iVal("iq").trim()}”`, "iq", ""]);
+  const sig = chips.map((c) => c[0]).join("|"); if (ic.dataset.sig === sig) return; ic.dataset.sig = sig;
+  ic.innerHTML = chips.length ? chips.map((c, i) => `<button type="button" data-ic="${i}" aria-label="Remove filter: ${esc(c[0])}">${esc(c[0])} ✕</button>`).join("") + `<button type="button" class="clr" data-ic="all">Clear all</button>` : "";
+  ic.querySelectorAll("button").forEach((b) => b.onclick = () => { (b.dataset.ic === "all" ? chips : [chips[b.dataset.ic]]).forEach((c) => selSet(c[1], c[2])); if (b.dataset.ic === "all") $("iq").value = ""; selFire("isort"); });
+}
+["click", "input", "change"].forEach((t) => document.addEventListener(t, () => setTimeout(drawSideViews, 0)));
+setTimeout(drawSideViews, 0);
+
 function applyPreset() {
   const v = $("preset").value;
   if (v === "custom") return;
@@ -1771,23 +1805,50 @@ const regMeta = (e) => [
   e.effective_on ? `<span class="src-tag">Effective ${esc(toDMY(e.effective_on))}</span>` : "",
 ].join("");
 const regDocLink = (e) => e.reg_doc_url ? `<a class="src-tag" href="${safeUrl(e.reg_doc_url)}" target="_blank" rel="noopener" title="${esc(e.reg_doc_title || "Official document")}">Official document ↗</a>` : "";
-const regs = { regulator: "", instrument: "", doc: "", n: 200 };
+const regs = { regulator: "", instrument: "", doc: "", year: "", q: "", soon: false, n: 200 };
 // The Regulation tab shows the newest 200 documents, then 200 more on each "Show more" tap.
 document.addEventListener("click", (e) => { if (e.target?.id === "reg-more") { regs.n += 200; renderRegs(); } });
-function renderRegs() {
+const regReset = () => Object.assign(regs, { regulator: "", instrument: "", doc: "", year: "", q: "", soon: false, n: 200 });
+const regPlain = () => !regs.regulator && !regs.doc && !regs.year && !regs.q;
+const REG_VIEWS = [
+  ["All rules", () => {}, () => regPlain() && !regs.instrument && !regs.soon],
+  ["FPI", () => { regs.instrument = "FPI"; }, () => regs.instrument === "FPI" && !regs.soon],
+  ["FDI", () => { regs.instrument = "FDI"; }, () => regs.instrument === "FDI" && !regs.soon],
+  ["GIFT City", () => { regs.instrument = "GIFT City"; }, () => regs.instrument === "GIFT City" && !regs.soon],
+  ["Proposals", () => { regs.doc = "consultation paper"; }, () => regs.doc === "consultation paper"],
+  ["Not yet in force", () => { regs.soon = true; }, () => regs.soon],
+];
+function renderRegs(keepFocus) {
   const box = $("reg-body");
   if (!state.events?.length) { box.innerHTML = skelCards(3); return; }
   const all = state.events.filter((e) => e.event_type === "regulation");
-  const list = all.filter((e) => (!regs.regulator || e.regulator === regs.regulator) && (!regs.instrument || (e.instruments || []).includes(regs.instrument)) && (!regs.doc || e.doc_type === regs.doc))
-    .sort((a, b) => String(b.issued_on || b.published_at || "").localeCompare(String(a.issued_on || a.published_at || "")));
+  const day = (e) => String(e.issued_on || e.published_at || ""), today = dayStr(new Date()), q = regs.q.trim().toLowerCase();
+  const list = all.filter((e) => (!regs.regulator || e.regulator === regs.regulator) && (!regs.instrument || (e.instruments || []).includes(regs.instrument)) && (!regs.doc || e.doc_type === regs.doc) &&
+      (!regs.year || day(e).slice(0, 4) === regs.year) && (!regs.soon || (e.effective_on && String(e.effective_on) > today)) &&
+      (!q || [e.title, e.summary].some((x) => x && x.toLowerCase().includes(q))))
+    .sort((a, b) => day(b).localeCompare(day(a)));
+  const years = [...new Set(all.map((e) => day(e).slice(0, 4)).filter(Boolean))].sort().reverse();
   const sel = (id, label, cur, opts) => `<select id="${id}" aria-label="${label}"><option value="">${label}: all</option>${opts.map(([v, l]) => `<option value="${esc(v)}"${v === cur ? " selected" : ""}>${esc(l)}</option>`).join("")}</select>`;
-  box.innerHTML = `<div class="filters">${sel("reg-r", "Regulator", regs.regulator, [["SEBI", "SEBI"], ["RBI", "RBI"]])}${sel("reg-i", "Instrument", regs.instrument, ["FPI", "FDI", "FVCI", "ODI", "GIFT City"].map((x) => [x, x]))}${sel("reg-d", "Document", regs.doc, Object.entries(DOC_TYPES))}</div>` +
+  const chips = [];
+  if (regs.regulator) chips.push([regs.regulator, "regulator"]);
+  if (regs.instrument) chips.push([regs.instrument, "instrument"]);
+  if (regs.doc) chips.push([DOC_TYPES[regs.doc] || regs.doc, "doc"]);
+  if (regs.year) chips.push([regs.year, "year"]);
+  if (regs.soon) chips.push(["Not yet in force", "soon"]);
+  if (q) chips.push([`“${regs.q.trim()}”`, "q"]);
+  box.innerHTML = `<div class="qviews" role="group" aria-label="Quick views">${REG_VIEWS.map((v, i) => `<button type="button" data-rv="${i}" aria-pressed="${v[2]()}">${v[0]}</button>`).join("")}</div>` +
+    `<div class="filters"><input type="search" id="reg-q" placeholder="Search rules: KYC, custodian, VRR…" aria-label="Search rules" value="${esc(regs.q)}">${sel("reg-r", "Regulator", regs.regulator, [["SEBI", "SEBI"], ["RBI", "RBI"]])}${sel("reg-i", "Applies to", regs.instrument, ["FPI", "FDI", "FVCI", "ODI", "GIFT City"].map((x) => [x, x]))}${sel("reg-d", "Document", regs.doc, Object.entries(DOC_TYPES))}${sel("reg-y", "Year", regs.year, years.map((y) => [y, y]))}</div>` +
+    `<div class="fchips">${chips.length ? `<span><b>${list.length}</b> ${list.length === 1 ? "document" : "documents"}</span>` + chips.map((c) => `<button type="button" data-rc="${c[1]}" aria-label="Remove filter: ${esc(c[0])}">${esc(c[0])} ✕</button>`).join("") + `<button type="button" class="clr" data-rc="all">Clear all</button>` : ""}</div>` +
     (list.length ? list.slice(0, regs.n).map((e) => `<article class="card scard regcard"><div class="meta">${regMeta(e)}</div>
       <div style="margin:6px 0 4px"><a class="title" href="${safeUrl(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a></div>
       ${e.summary ? `<div class="summary">${esc(e.summary)}</div>` : ""}
       <div class="scard-foot"><a class="src-tag" href="${safeUrl(e.url)}" target="_blank" rel="noopener">Official document ↗</a></div></article>`).join("") + (list.length > regs.n ? `<div class="filters" style="justify-content:center"><button class="reset" id="reg-more" type="button">Show more (${list.length - regs.n} older)</button></div>` : "")
       : noRows(all.length ? "No documents match these filters." : "No regulatory updates yet. SEBI and RBI documents on FPI, FVCI, FDI, ODI and GIFT City appear here after the daily review."));
-  [["reg-r", "regulator"], ["reg-i", "instrument"], ["reg-d", "doc"]].forEach(([id, k]) => { $(id).onchange = (ev) => { regs[k] = ev.target.value; renderRegs(); }; });
+  [["reg-r", "regulator"], ["reg-i", "instrument"], ["reg-d", "doc"], ["reg-y", "year"]].forEach(([id, k]) => { $(id).onchange = (ev) => { regs[k] = ev.target.value; regs.n = 200; renderRegs(); }; });
+  $("reg-q").oninput = (ev) => { regs.q = ev.target.value; regs.n = 200; renderRegs(true); };
+  if (keepFocus) { const i = $("reg-q"); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }
+  box.querySelectorAll("[data-rv]").forEach((b) => b.onclick = () => { regReset(); REG_VIEWS[b.dataset.rv][1](); renderRegs(); });
+  box.querySelectorAll("[data-rc]").forEach((b) => b.onclick = () => { const k = b.dataset.rc; if (k === "all") regReset(); else regs[k] = k === "soon" ? false : ""; renderRegs(); });
 }
 // Home: regulatory changes issued this calendar month (the last 30 days early in a month).
 function renderOvRegChanges() {
@@ -2948,6 +3009,8 @@ function syncUrl() {
   });
   if (state.types.size) p.set("type", [...state.types].join(","));
   ["country", "sector", "story"].forEach((k) => state[k] && p.set(k, state[k]));
+  if (state.sort) p.set("sort", state.sort);
+  if (state.itypes) p.set("itype", [...state.itypes].join(","));
   const s = p.toString(), url = location.pathname + (s ? `?${s}` : "") + location.hash;
   try { sessionStorage.setItem("ict-view", s); } catch {}
   // A new tab gets its own history entry so Back returns to the previous one; filter changes only update the current entry.
@@ -2964,6 +3027,8 @@ function applyUrl(fromPop) {
   if (p.has("preset") && p.get("preset") !== "custom") applyPreset();
   if (p.get("type")) state.types = new Set(p.get("type").split(",").filter((t) => TYPES[t]));
   ["country", "sector", "story"].forEach((k) => state[k] = p.get(k) || null);
+  state.sort = p.get("sort") === "big" ? "big" : null;
+  state.itypes = p.get("itype") ? new Set(p.get("itype").split(",")) : null;
   const tab = p.get("tab") || (state.story || state.country || state.sector ? "feed" : null) || (fromPop ? "overview" : null);
   if (tab && tab !== "health" && tab !== "firm" && $(`tab-${tab === "gift" ? "directory" : tab}`)) setTab(tab);
   state.urlReady = true;
@@ -2986,7 +3051,7 @@ $("sharev").addEventListener("click", () => { syncUrl(); copyLink(location.href,
 function feedNotice() {
   if (state.story) return `<div class="fnote">Showing one shared story. <button class="link" data-clear="story">Show all stories</button></div>`;
   const on = [state.country && `investor from <b>${esc(state.country)}</b>`, state.sector && `sector <b>${esc(state.sector)}</b>`].filter(Boolean);
-  return on.length ? `<div class="fnote">Only deals with ${on.join(" and ")}. <button class="link" data-clear="country,sector">Clear</button></div>` : "";
+  return "";
 }
 
 // ---------- Jargon explained ----------
@@ -3270,7 +3335,12 @@ function setTab(t) {
   if (was !== t && $("sr-status")) $("sr-status").textContent = `${(TITLES[t] || [t])[0]} opened`;
 }
 document.querySelectorAll("nav.tabs button").forEach((b) => b.onclick = () => { setTab(b.dataset.tab); toTop(); });
-document.querySelectorAll("[data-go]").forEach((b) => b.onclick = () => { setTab(b.dataset.go); toTop(); });
+document.querySelectorAll("[data-go]").forEach((b) => b.onclick = () => {
+  const v = b.dataset.view;
+  if (v === "week") { clearView(); $("preset").value = "7"; applyPreset(); $("stage").value = "firm"; state.sort = "big"; render(); }
+  if (v === "regyear") Object.assign(regs, { regulator: "", instrument: "", doc: "", q: "", soon: false, year: String(CY), n: 200 });
+  setTab(b.dataset.go); if (v === "regyear") renderRegs(); toTop();
+});
 
 // ---------- Page titles ----------
 const TITLES = {
