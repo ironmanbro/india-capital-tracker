@@ -1489,7 +1489,7 @@ body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-wei
   <section id="tab-entity" hidden><div id="entity-body"></div></section>
 
   <section id="tab-directory" hidden>
-    <div class="tsum" id="dir-sum"></div>
+    <div class="tsum" id="regx-sum"></div>
     <div class="fhead" style="margin-bottom:10px">
       <p class="sub" style="margin:0;max-width:640px" id="dir-intro"></p>
       <div class="seg" role="group" aria-label="Directory" id="dirseg" hidden>
@@ -3628,12 +3628,21 @@ async function loadOverviewCross() {
     $("ov-cross").innerHTML = out.join("");
   } catch { ovX = null; }
 }
+// FPI net by year; the current year adds the month in progress from the daily figures, so it matches the Flows tiles.
+function fpiYears() {
+  const out = (home.data?.fpi_by_year || []).map((r) => ({ ...r }));
+  if (flows.loaded && flows.monthly.length) {
+    const y = new Date().getFullYear(), ms = flows.monthly.filter((m) => m.month.startsWith(String(y)));
+    if (ms.length) { const r = out.find((x) => x.y === y) || (out.push({ y }), out[out.length - 1]); r.cr = Math.round(ms.reduce((a, m) => a + m.net, 0)); r.months = ms.length; r.partial = ms.some((m) => m.partial); }
+  }
+  return out;
+}
 // ---------- Summary panels at the top of Flows, Regulation and Registrations ----------
 function drawTabSums() {
   const H = home.data; if (!H) { loadHome(); return; }
   const CYr = new Date().getFullYear(), card = (h, k, body, sub, wide) => `<div class="hc${wide ? " wide" : ""}"><h3>${h}</h3>${k ? `<div class="k">${k}</div>` : ""}${body}${sub ? `<div class="s">${sub}</div>` : ""}</div>`;
   if (state.tab === "flows" && $("fl-sum")) {
-    const fy = []; for (let y = 2002; y <= CYr; y++) fy.push((H.fpi_by_year || []).find((r) => r.y === y) || { y, cr: null });
+    const fy = []; for (let y = 2002; y <= CYr; y++) fy.push(fpiYears().find((r) => r.y === y) || { y, cr: null });
     const valid = fy.filter((r) => r.cr != null), best = valid.reduce((a, r) => r.cr > a.cr ? r : a, valid[0]), worst = valid.reduce((a, r) => r.cr < a.cr ? r : a, valid[0]);
     const u = (r) => `${r.cr < 0 ? "−" : "+"}${fmtUsd(Math.abs(usdOfYear(r.cr, r.y)))} (${fmtCr(Math.abs(r.cr))})`;
     const oy = H.odi_by_year || [];
@@ -3649,9 +3658,9 @@ function drawTabSums() {
     $("reg-sum").innerHTML = card("Rule changes by year", "", vbars(ry.map((r) => ({ v: r.n, l: String(r.y), t: `${r.y}: ${r.n} documents` })), { color: "#b79cf5" }), "SEBI and RBI documents on FPI, FDI, FVCI, ODI and GIFT City. 2021 covers October to December.") +
       card("Taking effect soon", "", soon.length ? `<div class="soon">${soon.map((e) => `<div><b>${toDMY(String(e.effective_on))}</b>${esc(e.title)}</div>`).join("")}</div>` : '<div class="s">Nothing scheduled.</div>', "");
   }
-  if ((state.tab === "directory" || state.tab === "gift") && $("dir-sum")) {
+  if ((state.tab === "directory" || state.tab === "gift") && $("regx-sum")) {
     const ry = (H.reg_by_year || []).filter((r) => r.y >= 2023), cat = H.reg_by_cat || {};
-    $("dir-sum").innerHTML = card("FPI register", `${nfmt(H.reg_total)} <small>registered FPIs · Category I ${nfmt(cat.I)} · Category II ${nfmt(cat.II)}</small>`,
+    $("regx-sum").innerHTML = card("FPI register", `${nfmt(H.reg_total)} <small>registered FPIs · Category I ${nfmt(cat.I)} · Category II ${nfmt(cat.II)}</small>`,
         vbars(ry.map((r) => ({ v: r.n, l: String(r.y), t: `${r.y}: ${nfmt(r.n)} new FPIs`, dim: r.y === CYr })), { color: "#7b9cf5" }), "New registrations by year. Dates are available for registrations since 2023.") +
       card("Where FPIs are based", "", hrows((H.reg_by_country || []).map((c) => ({ l: titleCase(c.c), v: c.n, r: nfmt(c.n) }))), "Registered FPIs by country, from NSDL.") +
       card("GIFT City", `${nfmt(H.gift_total)} <small>entities regulated by IFSCA</small>`, hrows((H.gift_by_cat || []).slice(0, 6).map((c) => ({ l: c.c, v: c.n, r: nfmt(c.n), c: "#5cc6b0" }))), "By licence type.");
@@ -3694,11 +3703,11 @@ function renderHome() {
   chip.title = "Today's figures use this rate. Past years use that year's average rate.";
   const cards = [];
   // Flows: FPI net by year
-  const fy = []; for (let y = 2014; y <= CYr; y++) fy.push((H.fpi_by_year || []).find((r) => r.y === y) || { y, cr: null, months: 0 });
+  const fy = []; for (let y = 2014; y <= CYr; y++) fy.push(fpiYears().find((r) => r.y === y) || { y, cr: null, months: 0 });
   while (fy.length && fy[fy.length - 1].cr == null) fy.pop();
   if (fy.length) {
     const cur = fy[fy.length - 1];
-    cards.push({ go: "flows", h: "FPI money in and out", k: `${cur.cr < 0 ? "−" : "+"}${fmtUsd(Math.abs(usdOfYear(cur.cr, cur.y)))} <small>${cur.y}${cur.months < 12 ? ` to ${MON[cur.months - 1]}` : ""}</small>`,
+    cards.push({ go: "flows", h: "FPI money in and out", k: `${cur.cr < 0 ? "−" : "+"}${fmtUsd(Math.abs(usdOfYear(cur.cr, cur.y)))} <small>${cur.y}${cur.months < 12 ? `, Jan to ${MON[cur.months - 1]}${cur.partial ? " so far" : ""}` : ""}</small>`,
       s: `Net FPI investment by year, from NSDL. Orange is money leaving. 2017–2019 not available.`,
       body: vbars(fy.map((r) => r.cr == null ? { v: null, l: `'${String(r.y).slice(2)}`, t: `${r.y}: not available` } : { v: usdOfYear(r.cr, r.y), l: `'${String(r.y).slice(2)}`, t: `${r.y}: ${r.cr < 0 ? "−" : "+"}${fmtUsd(Math.abs(usdOfYear(r.cr, r.y)))} (${fmtCr(Math.abs(r.cr))})` }), { signed: true, labelEvery: 2 }), more: "Open Flows" });
   }
