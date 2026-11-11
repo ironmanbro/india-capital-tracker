@@ -1113,6 +1113,34 @@ body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-wei
 .hc .row span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hc .bar{height:8px;border-radius:4px;background:var(--line);overflow:hidden}
 .hc .bar i{display:block;height:100%;border-radius:4px;background:#7b9cf5}
+
+.isumm{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px}
+@media (max-width:900px){.isumm{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.isumm>div{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;min-width:0}
+.isumm b{display:block;font-size:22px}
+.isumm span{font-size:12px;color:var(--muted)}
+.isumm small{display:block;font-size:12px;color:var(--muted);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.iconst{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px 18px;margin-bottom:16px}
+.iconst-h{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px}
+.iconst-h h3{margin:0 0 4px;font-size:16px}
+.iconst-ctl{display:flex;gap:8px;flex-wrap:wrap}
+.iconst-ctl select{min-height:40px;max-width:260px}
+.iconst-w svg{width:100%;height:auto;display:block;max-height:560px}
+.iconst-w .nd{cursor:pointer}
+.iconst-w svg text{font-family:inherit}
+@media (max-width:700px){.iconst-w .nd text{font-size:17px!important}}
+.iconst-w .nd text{font-size:11px;fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:3px}
+.iconst-w .nd:hover circle{stroke:var(--ink);stroke-width:2px}
+.iconst-k{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.iconst-k i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+
+.tsum{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:16px}
+.tsum:empty{display:none}
+.tsum .hc{cursor:default}
+.tsum .hc.wide{grid-column:1/-1}
+.tsum .hc.wide svg{max-height:200px}
+.tsum .soon{display:flex;flex-direction:column;gap:10px;font-size:14px}
+.tsum .soon b{display:block;color:#f0b98f;font-size:12px}
 </style>
 </head>
 <body>
@@ -1285,6 +1313,13 @@ body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-wei
       <button type="button" data-v="news" aria-pressed="false">In the news</button>
       <button type="button" data-v="holders" aria-pressed="false">Filed holders</button>
     </div>
+    <div class="isumm" id="isumm"></div>
+    <section class="iconst" aria-label="Investor constellation">
+      <div class="iconst-h"><div><h3>Constellation</h3><div class="sub">Who invested in what, and who else is in the same companies. Tap any dot to move to it; tap the centre to open its profile.</div></div>
+        <div class="iconst-ctl"><select id="cpick" aria-label="Centre the chart on"></select><select id="chops" aria-label="Hops"><option value="2">2 hops</option><option value="3">3 hops</option></select></div></div>
+      <div class="iconst-w" id="iconst"></div>
+      <div class="iconst-k"><span><i style="background:#7b9cf5"></i>Investor</span><span><i style="background:#5cc6b0"></i>Indian company</span><span><i style="background:#f0884a;border-radius:2px"></i>Exit link</span></div>
+    </section>
     <p class="sub" style="margin:0 0 12px"><button type="button" class="link" data-go="directory">Browse every SEBI-registered FPI →</button></p>
     <div class="qviews" id="iqviews" role="group" aria-label="Quick views"></div>
     <div class="filters">
@@ -1353,6 +1388,7 @@ body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-wei
     <p class="takeaway" id="fl-take" hidden></p>
     <p class="sub" style="margin:0 0 12px">Money moving into and out of India in aggregate. FPI figures are daily from NSDL (US$, with ₹ crore in brackets); FDI figures are by financial year from DPIIT's quarterly fact sheet (US$).</p>
 
+    <div class="tsum" id="fl-sum"></div>
     <h2 class="fsec">FPI · foreign portfolio investment</h2>
     <p class="note">Shares and bonds bought and sold by foreign funds. Daily from NSDL, in US$ with ₹ crore in brackets.</p>
     <div class="filters fperiod" aria-label="FPI period">
@@ -1432,6 +1468,7 @@ body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-wei
 
   <section id="tab-regulation" hidden>
     <p class="sub" style="margin:0 0 12px"><span class="lg">SEBI and RBI documents that change the rules for foreign investment: FPI, FVCI, FDI, ODI and GIFT City. Summaries state only what changed, for whom and from when; always read the official document.</span><span class="sm">SEBI and RBI rule changes for foreign investment. Read the official document.</span></p>
+    <div class="tsum" id="reg-sum"></div>
     <div id="reg-body"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div>
   </section>
 
@@ -1452,6 +1489,7 @@ body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-wei
   <section id="tab-entity" hidden><div id="entity-body"></div></section>
 
   <section id="tab-directory" hidden>
+    <div class="tsum" id="dir-sum"></div>
     <div class="fhead" style="margin-bottom:10px">
       <p class="sub" style="margin:0;max-width:640px" id="dir-intro"></p>
       <div class="seg" role="group" aria-label="Directory" id="dirseg" hidden>
@@ -2080,8 +2118,85 @@ document.querySelectorAll("#iview button").forEach((b) => b.onclick = () => {
   document.querySelectorAll("#iview button").forEach((x) => x.setAttribute("aria-pressed", x === b));
   renderInvestors();
 });
+// ---------- Investors: summary of all investors and the constellation ----------
+const cst = { center: null, hops: 2 };
+const coKey = (n) => String(n || "").toLowerCase().replace(/['’]s\b/g, "").replace(/\b(ltd|limited|pvt|private|india)\b\.?/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+function constGraph() {
+  // Investor ↔ company links from every reviewed deal story (not regulation).
+  const inv = new Map(), co = new Map(), adj = new Map(), link = (a, b, ex) => { (adj.get(a) || adj.set(a, new Map()).get(a)).set(b, ex); (adj.get(b) || adj.set(b, new Map()).get(b)).set(a, ex); };
+  state.events.forEach((e) => {
+    // Named Indian companies only: no exchanges, no unnamed "hospital chain" or "two assets" targets.
+    if (e.event_type === "regulation" || !e.target || /^[a-z]/.test(e.target) || /stock exchange|^bse\b|^nse\b|\b(chain|assets?|company|firm|startup|projects?|portfolio|platform)$/i.test(e.target.trim())) return;
+    const ck = "c:" + coKey(e.target); if (ck === "c:") return;
+    if (!co.has(ck)) co.set(ck, e.target);
+    const ppl = e.parties.length ? e.parties : e.investor ? [{ name: e.investor }] : [];
+    ppl.forEach((p) => { const k = invKey(p.name || ""); if (!k || GENERIC.test(p.name || "") || "c:" + coKey(p.name) === ck) return; const ik = "i:" + k;
+      if (!inv.has(ik)) inv.set(ik, p.name); link(ik, ck, e.event_types.includes("exit") && !e.event_types.includes("entry")); });
+  });
+  return { inv, co, adj, name: (k) => inv.get(k) || co.get(k) || k.slice(2) };
+}
+function drawConst() {
+  const box = $("iconst"); if (!box || !state.events.length) return;
+  const G = constGraph();
+  const ranked = [...G.inv.keys()].map((k) => [k, G.adj.get(k)?.size || 0]).filter((x) => x[1] > 0).sort((a, b) => b[1] - a[1]);
+  if (!ranked.length) { box.innerHTML = '<div class="empty">No linked deals yet.</div>'; return; }
+  if (!cst.center || !G.adj.has(cst.center)) cst.center = ranked[0][0];
+  const pick = $("cpick");
+  const opts = ranked.slice(0, 60).map(([k, n]) => `<option value="${esc(k)}">${esc(G.name(k))} (${n})</option>`).join("");
+  pick.innerHTML = (ranked.slice(0, 60).some(([k]) => k === cst.center) ? "" : `<option value="${esc(cst.center)}">${esc(G.name(cst.center))}</option>`) + opts;
+  pick.value = cst.center; $("chops").value = String(cst.hops);
+  // Breadth-first rings, capped so the chart stays readable.
+  const narrow = innerWidth < 700, CAP = narrow ? [1, 8, 12, 12] : [1, 14, 22, 26], ring = [[cst.center]], seen = new Set([cst.center]), parent = new Map();
+  for (let h = 1; h <= cst.hops; h++) {
+    const next = [];
+    ring[h - 1].forEach((a) => [...(G.adj.get(a) || new Map()).keys()].sort((x, y) => (G.adj.get(y)?.size || 0) - (G.adj.get(x)?.size || 0)).forEach((b) => {
+      if (seen.has(b) || next.length >= CAP[h]) return; seen.add(b); next.push(b); parent.set(b, a);
+    }));
+    if (!next.length) break; ring.push(next);
+  }
+  const W = 900, H = 560, cx = W / 2, cy = H / 2, R = [0, 120, 210, 268];
+  const pos = new Map([[cst.center, [cx, cy]]]);
+  for (let h = 1; h < ring.length; h++) {
+    // Keep children near their parent: order by the parent's angle.
+    const ang = (k) => { const p = pos.get(parent.get(k)); return p ? Math.atan2(p[1] - cy, p[0] - cx) : 0; };
+    const list = ring[h].slice().sort((a, b) => ang(a) - ang(b)), n = list.length;
+    list.forEach((k, i) => { const t = -Math.PI / 2 + (i + 0.5) * 2 * Math.PI / n; pos.set(k, [cx + R[h] * Math.cos(t) * 1.45, cy + R[h] * Math.sin(t)]); });
+  }
+  const lines = [...parent].map(([b, a]) => { const [x1, y1] = pos.get(a), [x2, y2] = pos.get(b), ex = G.adj.get(a).get(b);
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${ex ? "#f0884a" : "var(--line)"}" stroke-width="${ex ? 1.6 : 1.2}"${ex ? ' stroke-dasharray="4 3"' : ""}/>`; }).join("");
+  const nodes = [...pos].map(([k, [x, y]]) => {
+    const isC = k === cst.center, isInv = k.startsWith("i:"), r = isC ? 16 : Math.min(12, 5 + Math.sqrt(G.adj.get(k)?.size || 1) * 1.6);
+    const nm = G.name(k), mx = narrow ? 14 : 22, lab = nm.length > mx ? nm.slice(0, mx - 1) + "…" : nm, right = x >= cx;
+    return `<g class="nd" data-k="${esc(k)}" tabindex="0" role="button" aria-label="${esc(nm)}"><title>${esc(nm)} · ${G.adj.get(k)?.size || 0} links</title><circle cx="${x}" cy="${y}" r="${r}" fill="${isInv ? "#7b9cf5" : "#5cc6b0"}"${isC ? ' stroke="var(--ink)" stroke-width="2"' : ""}/>` +
+      `<text x="${isC ? x : x + (right ? r + 4 : -r - 4)}" y="${isC ? y + r + 14 : y + 4}" text-anchor="${isC ? "middle" : right ? "start" : "end"}"${isC ? ' style="font-weight:700;font-size:13px"' : ""}>${esc(lab)}</text></g>`;
+  }).join("");
+  box.innerHTML = `<svg viewBox="-70 0 ${W + 140} ${H}" role="img" aria-label="Constellation centred on ${esc(G.name(cst.center))}">${lines}${nodes}</svg>`;
+  box.querySelectorAll(".nd").forEach((g) => { const go = () => {
+    const k = g.dataset.k;
+    if (k === cst.center) { if (k.startsWith("i:")) location.hash = `#firm/${encodeURIComponent(k.slice(2))}`; else { $("q").value = G.name(k); state.types.clear(); setTab("feed"); render(); toTop(); } return; }
+    cst.center = k; drawConst();
+  }; g.onclick = go; g.onkeydown = (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); go(); } }; });
+}
+$("cpick")?.addEventListener("change", (ev) => { cst.center = ev.target.value; drawConst(); });
+$("chops")?.addEventListener("change", (ev) => { cst.hops = +ev.target.value; drawConst(); });
+function drawInvSummary(news) {
+  const box = $("isumm"); if (!box) return;
+  const yr = Date.now() - 365 * 864e5, act = news.filter((r) => r.last && new Date(r.last) >= yr);
+  const cnt = (f) => { const m = new Map(); act.forEach((r) => { const v = f(r); if (v) m.set(v, (m.get(v) || 0) + 1); }); return [...m].sort((a, b) => b[1] - a[1]); };
+  const ty = cnt((r) => INV_TYPES[r.type]), ct = cnt((r) => r.country && r.country !== "India" ? r.country : null);
+  const buyers = act.filter((r) => r.cats.entry).length, sellers = act.filter((r) => r.cats.exit).length;
+  box.innerHTML = [
+    [nfmt(news.length), "investors on the tracker", `${nfmt(act.length)} active in the last 12 months`],
+    [nfmt(buyers), "bought in the last 12 months", `${nfmt(sellers)} sold or exited`],
+    [ct[0] ? esc(ct[0][0]) : "–", "most active home country", ct.slice(1, 4).map(([c, n]) => `${esc(c)} ${n}`).join(" · ")],
+    [ty[0] ? esc(ty[0][0]) : "–", "most active investor type", ty.slice(1, 4).map(([c, n]) => `${esc(c)} ${n}`).join(" · ")],
+  ].map(([b, s1, s2]) => `<div><b>${b}</b><span>${s1}</span><small>${s2}</small></div>`).join("");
+}
+
 function renderInvestors() {
+  if (state.tab === "investors") { try { drawConst(); } catch {} }
   const news = buildInvestors(), holders = buildHolders();
+  try { drawInvSummary(news); } catch {}
   // The type list offers only the types present in the current results.
   const present = new Set(news.map((r) => r.type).filter(Boolean));
   const tsel = $("itype"), cur = tsel.value;
@@ -2441,7 +2556,7 @@ addEventListener("resize", () => { if (innerWidth === lastW) return; lastW = inn
 
 function render() {
   ["from", "to"].forEach((id) => { if (document.activeElement !== $(`${id}-txt`)) $(`${id}-txt`).value = toDMY($(id).value); });
-  renderKpis(); renderFeed(); renderBoard(); renderInvestors(); renderRuns(); renderFlows(); renderOverview(); setTitle(); renderSources();
+  renderKpis(); renderFeed(); renderBoard(); renderInvestors(); renderRuns(); renderFlows(); renderOverview(); setTitle(); renderSources(); try { drawTabSums(); } catch {}
   if (state.tab === "network") renderNetwork();
   if (state.tab === "firm") renderFirm();
   syncUrl(); glossifyPage();
@@ -3319,6 +3434,7 @@ document.querySelectorAll("#nhops button").forEach((b) => b.onclick = () => {
 });
 
 function setTab(t) {
+  [0, 600, 1500].forEach((ms) => setTimeout(() => { try { drawTabSums(); } catch {} }, ms));
   // Going to Home drops the country, sector and story filters, so the address goes back to plain "/".
   if (t === "overview" && state.urlReady && authAllowed(t) && (state.country || state.sector || state.story)) { state.country = state.sector = state.story = null; setTimeout(() => { try { render(); } catch {} syncUrl(); }, 0); }
   if (!authAllowed(t)) {
@@ -3512,6 +3628,36 @@ async function loadOverviewCross() {
     $("ov-cross").innerHTML = out.join("");
   } catch { ovX = null; }
 }
+// ---------- Summary panels at the top of Flows, Regulation and Registrations ----------
+function drawTabSums() {
+  const H = home.data; if (!H) { loadHome(); return; }
+  const CYr = new Date().getFullYear(), card = (h, k, body, sub, wide) => `<div class="hc${wide ? " wide" : ""}"><h3>${h}</h3>${k ? `<div class="k">${k}</div>` : ""}${body}${sub ? `<div class="s">${sub}</div>` : ""}</div>`;
+  if (state.tab === "flows" && $("fl-sum")) {
+    const fy = []; for (let y = 2002; y <= CYr; y++) fy.push((H.fpi_by_year || []).find((r) => r.y === y) || { y, cr: null });
+    const valid = fy.filter((r) => r.cr != null), best = valid.reduce((a, r) => r.cr > a.cr ? r : a, valid[0]), worst = valid.reduce((a, r) => r.cr < a.cr ? r : a, valid[0]);
+    const u = (r) => `${r.cr < 0 ? "−" : "+"}${fmtUsd(Math.abs(usdOfYear(r.cr, r.y)))} (${fmtCr(Math.abs(r.cr))})`;
+    const oy = H.odi_by_year || [];
+    $("fl-sum").innerHTML = card(`FPI net investment, ${fy[0].y} to ${CYr}`, "", vbars(fy.map((r) => r.cr == null ? { v: null, l: `'${String(r.y).slice(2)}`, t: `${r.y}: not available` } : { v: usdOfYear(r.cr, r.y), l: `'${String(r.y).slice(2)}`, t: `${r.y}: ${u(r)}` }), { signed: true, labelEvery: innerWidth < 700 ? 4 : 1, W: innerWidth < 700 ? 300 : 900 }),
+        `Largest inflow: ${best.y}, ${u(best)}. Largest outflow: ${worst.y}, ${u(worst)}. 2017–2019 not yet available. Past years at that year's average rate.`, true) +
+      card("Indian investment abroad", "", vbars(oy.filter((r) => r.months >= 6).map((r) => ({ v: r.usd_m, l: String(r.y), t: `${r.y}: ${fmtUsd(r.usd_m)}${r.months < 12 ? ` (${r.months} months)` : ""}` })), { color: "#f0884a" }), "Committed each year, from RBI.") +
+      card(`Where it goes, ${CYr}`, "", hrows((H.odi_top_country || []).map((c) => ({ l: titleCase(c.c), v: c.usd_m, r: fmtUsd(c.usd_m), c: "#f0884a" }))), "Top destinations of Indian overseas investment.");
+  }
+  if (state.tab === "regulation" && $("reg-sum")) {
+    const today = dayStr(new Date());
+    const soon = state.events.filter((e) => e.event_type === "regulation" && e.effective_on && String(e.effective_on) > today).sort((a, b) => String(a.effective_on).localeCompare(String(b.effective_on))).slice(0, 4);
+    const ry = H.rules_by_year || [];
+    $("reg-sum").innerHTML = card("Rule changes by year", "", vbars(ry.map((r) => ({ v: r.n, l: String(r.y), t: `${r.y}: ${r.n} documents` })), { color: "#b79cf5" }), "SEBI and RBI documents on FPI, FDI, FVCI, ODI and GIFT City. 2021 covers October to December.") +
+      card("Taking effect soon", "", soon.length ? `<div class="soon">${soon.map((e) => `<div><b>${toDMY(String(e.effective_on))}</b>${esc(e.title)}</div>`).join("")}</div>` : '<div class="s">Nothing scheduled.</div>', "");
+  }
+  if ((state.tab === "directory" || state.tab === "gift") && $("dir-sum")) {
+    const ry = (H.reg_by_year || []).filter((r) => r.y >= 2023), cat = H.reg_by_cat || {};
+    $("dir-sum").innerHTML = card("FPI register", `${nfmt(H.reg_total)} <small>registered FPIs · Category I ${nfmt(cat.I)} · Category II ${nfmt(cat.II)}</small>`,
+        vbars(ry.map((r) => ({ v: r.n, l: String(r.y), t: `${r.y}: ${nfmt(r.n)} new FPIs`, dim: r.y === CYr })), { color: "#7b9cf5" }), "New registrations by year. Dates are available for registrations since 2023.") +
+      card("Where FPIs are based", "", hrows((H.reg_by_country || []).map((c) => ({ l: titleCase(c.c), v: c.n, r: nfmt(c.n) }))), "Registered FPIs by country, from NSDL.") +
+      card("GIFT City", `${nfmt(H.gift_total)} <small>entities regulated by IFSCA</small>`, hrows((H.gift_by_cat || []).slice(0, 6).map((c) => ({ l: c.c, v: c.n, r: nfmt(c.n), c: "#5cc6b0" }))), "By licence type.");
+  }
+}
+
 // ---------- Home: the whole site in six chart cards ----------
 // Past years convert at that year's average rate (RBI reference rate, rounded); the current year at the live rate.
 const FX_YEAR = { 2002: 48.6, 2003: 46.6, 2004: 45.3, 2005: 44.1, 2006: 45.3, 2007: 41.3, 2008: 43.5, 2009: 48.4, 2010: 45.7, 2011: 46.7, 2012: 53.4, 2013: 58.6, 2014: 61.0, 2015: 64.2, 2016: 67.2, 2017: 65.1, 2018: 68.4, 2019: 70.4, 2020: 74.1, 2021: 73.9, 2022: 78.6, 2023: 82.6, 2024: 83.7, 2025: 87.4 };
@@ -3519,8 +3665,8 @@ const fxOf = (y) => FX_YEAR[y] || usdInr();
 const usdOfYear = (cr, y) => cr * 10 / fxOf(y);
 const home = { data: null, loading: false };
 
-function vbars(points, { signed = false, color = "#7b9cf5", neg = "#f0884a", labelEvery = 1 } = {}) {
-  const W = 300, H = signed ? 120 : 90, n = points.length, gap = 3, bw = Math.max(3, (W - gap * (n - 1)) / n);
+function vbars(points, { signed = false, color = "#7b9cf5", neg = "#f0884a", labelEvery = 1, W = 300 } = {}) {
+  const H = signed ? 120 : 90, n = points.length, gap = 3, bw = Math.max(3, (W - gap * (n - 1)) / n);
   const max = Math.max(1, ...points.map((p) => Math.abs(p.v || 0)));
   const mid = signed ? H / 2 : H;
   const bars = points.map((p, i) => {
@@ -3535,7 +3681,7 @@ const hrows = (items) => { const max = Math.max(1, ...items.map((x) => x.v)); re
 async function loadHome() {
   if (home.loading) return; home.loading = true;
   try { home.data = await api("rpc/home_summary", { method: "POST", body: "{}" }); } catch { home.data = {}; }
-  renderHome();
+  renderHome(); drawTabSums();
 }
 function renderHome() {
   const box = $("hsum"); if (!box) return;
@@ -3812,6 +3958,7 @@ async function renderAum() {
 }
 
 async function openDirectory() {
+  setTimeout(() => { try { drawTabSums(); } catch {} }, 300);
   if (!dir.meta) {
     try {
       const [[st], countries, types] = await Promise.all([api("directory_stats?select=*"), api("fpi_country_counts?select=country,n&order=n.desc"), api("ifsca_type_counts?select=*&order=n.desc")]);
