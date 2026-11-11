@@ -756,7 +756,8 @@ html.lenis,html.lenis body{height:auto}
 /* Tokens. Dark is the default; light keeps its own palette below with the same signal meanings. */
 :root{
   --font-ui:Geist,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
-  --font-mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --font-mono:Geist,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-code:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   --r-sm:4px; --r:6px; --r-lg:8px;
   --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:20px;
   --ring:0 0 0 2px rgba(59,130,246,.4);
@@ -874,7 +875,7 @@ nav.tabs .logo{border-radius:var(--r-lg);font-family:var(--font-mono)}
 /* ---------- Command palette ---------- */
 .cmdk-btn{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 6px 0 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--panel-2);color:var(--muted);font:500 12.5px var(--font-ui);cursor:pointer;white-space:nowrap}
 .cmdk-btn:hover{border-color:var(--line-2);color:var(--ink)}
-.cmdk kbd,.cmdk-btn kbd{font:600 10.5px/1 var(--font-mono);padding:3px 5px;border-radius:4px;border:1px solid var(--line-2,var(--line));background:var(--chip);color:var(--muted)}
+.cmdk kbd,.cmdk-btn kbd{font:600 10.5px/1 var(--font-code);padding:3px 5px;border-radius:4px;border:1px solid var(--line-2,var(--line));background:var(--chip);color:var(--muted)}
 .cmdk{position:fixed;inset:0;z-index:1000;display:flex;align-items:flex-start;justify-content:center;padding:12vh 16px 16px;background:rgba(0,0,0,.7);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);animation:cmdkIn .12s ease}
 .cmdk[hidden]{display:none}
 .cmdk-box{width:min(640px,100%);max-height:70vh;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line-2,var(--line));border-radius:12px;box-shadow:0 24px 60px rgba(0,0,0,.5);overflow:hidden}
@@ -1141,6 +1142,31 @@ body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-wei
 .tsum .hc.wide svg{max-height:200px}
 .tsum .soon{display:flex;flex-direction:column;gap:10px;font-size:14px}
 .tsum .soon b{display:block;color:#f0b98f;font-size:12px}
+
+/* Interactive charts */
+#ctip{position:fixed;z-index:90;pointer-events:none;max-width:280px;background:var(--ink);color:var(--bg,#0f1115);border-radius:8px;padding:7px 10px;font-size:12.5px;line-height:1.35;font-weight:600;box-shadow:0 6px 24px rgba(0,0,0,.35)}
+#ctip small{display:block;font-weight:500;opacity:.7;margin-top:2px}
+.cb .v{transition:opacity .12s}
+.cb:hover .v,.cb:focus-visible .v{opacity:.72!important}
+.cb .hit{cursor:default}.cb.act,.cb.act .hit,.hc .row.act{cursor:pointer}
+.cb:focus-visible,.hc .row.act:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.hc .row{border-radius:6px;padding:2px 4px;margin:0 -4px;transition:background .12s}
+.hc .row:hover{background:var(--chip)}
+.hc,.cov,.isumm{font-variant-numeric:tabular-nums}
+/* Data coverage */
+.cov{margin-top:22px}
+.cov:empty{display:none}
+.cov h2{margin:0 0 4px;font-size:18px}
+.cov-w{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--panel);margin-top:10px}
+.cov table{width:100%;border-collapse:collapse;font-size:13px;min-width:640px;background:none;border:0;box-shadow:none}
+.cov th{text-align:left;font-weight:600;color:var(--muted);font-size:11px;letter-spacing:.05em;text-transform:uppercase;padding:10px 14px;border-bottom:1px solid var(--line)}
+.cov td{padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+.cov tr:last-child td{border-bottom:0}
+.cov .num{text-align:right}.cov .nt{color:var(--muted)}
+
+/* Figures everywhere: tabular digits in the UI typeface */
+body{font-variant-numeric:tabular-nums}
+.tpill,.stbadge,.tfseg button{letter-spacing:0}
 </style>
 </head>
 <body>
@@ -1207,7 +1233,7 @@ body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-wei
     <div class="filters">
       <input type="search" id="q" placeholder="Search investor, company, headline…" aria-label="Search">
       <button class="ftoggle" id="ftoggle" type="button" aria-expanded="false">Filters</button>
-      <select id="ftype" aria-label="Deal type"><option value="0">All deal types</option><option value="1">Investments into India</option><option value="2">Sales and exits</option><option value="3">Fund launches and moves</option><option value="4">Indian investment abroad</option><option value="5">Regulation</option></select>
+      <select id="ftype" aria-label="Deal type"><option value="0">All deal types</option><option value="1">Investments into India</option><option value="2">Sales and exits</option><option value="3">Fund launches and moves</option><option value="4">Indian investment abroad</option></select>
       <select id="fcountry" aria-label="Investor country"><option value="">Any investor country</option></select>
       <select id="preset" aria-label="Period">
         <option value="all" selected>All time</option>
@@ -1223,7 +1249,6 @@ body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-wei
         <option value="">All sources</option>
         <option value="news">News</option>
         <option value="nse">NSE bulk/block deals</option>
-        <option value="reg">SEBI and RBI documents</option>
       </select>
       <select id="region" class="adv" aria-label="Source region">
         <option value="">All regions</option>
@@ -1297,6 +1322,7 @@ body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-wei
       <div class="ovc gated"><div class="ovh"><div><h3>Where the money comes from</h3><div class="sub">Capital deals in the last 90 days. Tap a row to see them.</div></div></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-break"></div></div>
       <div class="ovc span2 gated"><div class="ovh"><div><h3>The last 30 days</h3><div class="sub">Reported deal value by category, and the most active investors</div></div><button class="link" data-go="investors">Investors ↗</button></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-week"></div></div>
     </div>
+    <div class="cov" id="cov"></div>
   </section>
 
   <section id="tab-feed" hidden>
@@ -1578,7 +1604,6 @@ const KPI_GROUPS = [
   // Both are rare, so they share a box: offshore/GIFT City fund launches and funds moving jurisdiction.
   { label: "Fund launches & moves", types: ["fund_launch", "relocation"] },
   { label: "Indian investment abroad", types: ["outbound"] },
-  { label: "Regulation", types: ["regulation"] },
 ];
 
 const state = { events: [], types: new Set(), tab: "overview" };
@@ -1796,6 +1821,7 @@ function base() {
   const to = v !== "all" && $("to").value ? new Date(`${$("to").value}T23:59:59.999`) : null;
   const sinceHours = v === "1" ? new Date(Date.now() - 864e5) : null;
   return state.events.filter((e) => {
+    if (e.event_type === "regulation") return false;
     const t = when(e);
     return (!sinceHours || t >= sinceHours) && (sinceHours || ((!from || t >= from) && (!to || t <= to))) &&
       (!src || (src === "news" ? e.source === "news" : src === "reg" ? e.source === "sebi" || e.source === "rbi" : e.source.startsWith("nse"))) &&
@@ -3510,7 +3536,7 @@ function setTitle() {
     // Signed-in people are greeted by first name: "Welcome" on their first visit, "Welcome back" after that.
     const usr = auth.session && auth.session.user, nm = String((usr && usr.user_metadata && usr.user_metadata.name) || "").trim().split(/\s+/)[0];
     const first = usr && usr.created_at && usr.last_sign_in_at && Math.abs(new Date(usr.last_sign_in_at) - new Date(usr.created_at)) < 12e4;
-    $("ptitle").textContent = nm ? (first ? `Welcome, ${nm}` : `Welcome back, ${nm}`) : h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+    $("ptitle").textContent = nm ? (first ? `Welcome, ${nm}` : `Welcome back, ${nm}`) : "Overview";
     const day = new Date().toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata", weekday: "long", day: "numeric", month: "long" });
     const wk = state.events.filter((e) => Date.now() - new Date(e.published_at || e.fetched_at) < 7 * 864e5).length;
     $("psub").textContent = `${day} · ${wk} stor${wk === 1 ? "y" : "ies"} in the last 7 days · foreign capital into and out of India`;
@@ -3648,22 +3674,22 @@ function drawTabSums() {
     const oy = H.odi_by_year || [];
     $("fl-sum").innerHTML = card(`FPI net investment, ${fy[0].y} to ${CYr}`, "", vbars(fy.map((r) => r.cr == null ? { v: null, l: `'${String(r.y).slice(2)}`, t: `${r.y}: not available` } : { v: usdOfYear(r.cr, r.y), l: `'${String(r.y).slice(2)}`, t: `${r.y}: ${u(r)}` }), { signed: true, labelEvery: innerWidth < 700 ? 4 : 1, W: innerWidth < 700 ? 300 : 900 }),
         `Largest inflow: ${best.y}, ${u(best)}. Largest outflow: ${worst.y}, ${u(worst)}. 2017–2019 not yet available. Past years at that year's average rate.`, true) +
-      card("Indian investment abroad", "", vbars(oy.filter((r) => r.months >= 6).map((r) => ({ v: r.usd_m, l: String(r.y), t: `${r.y}: ${fmtUsd(r.usd_m)}${r.months < 12 ? ` (${r.months} months)` : ""}` })), { color: "#f0884a" }), "Committed each year, from RBI.") +
+      card("Indian investment abroad", "", vbars(oy.filter((r) => r.months >= 6).map((r) => ({ v: r.usd_m, l: String(r.y), t: `${r.y}: ${fmtUsd(r.usd_m)}${r.months < 12 ? ` (${r.months} months)` : ""}. Opens the deals`, a: () => { setTab("odi"); toTop(); } })), { color: "#f0884a" }), "Committed each year, from RBI.") +
       card(`Where it goes, ${CYr}`, "", hrows((H.odi_top_country || []).map((c) => ({ l: titleCase(c.c), v: c.usd_m, r: fmtUsd(c.usd_m), c: "#f0884a" }))), "Top destinations of Indian overseas investment.");
   }
   if (state.tab === "regulation" && $("reg-sum")) {
     const today = dayStr(new Date());
     const soon = state.events.filter((e) => e.event_type === "regulation" && e.effective_on && String(e.effective_on) > today).sort((a, b) => String(a.effective_on).localeCompare(String(b.effective_on))).slice(0, 4);
     const ry = H.rules_by_year || [];
-    $("reg-sum").innerHTML = card("Rule changes by year", "", vbars(ry.map((r) => ({ v: r.n, l: String(r.y), t: `${r.y}: ${r.n} documents` })), { color: "#b79cf5" }), "SEBI and RBI documents on FPI, FDI, FVCI, ODI and GIFT City. 2021 covers October to December.") +
+    $("reg-sum").innerHTML = card("Rule changes by year", "", vbars(ry.map((r) => ({ v: r.n, l: String(r.y), t: `${r.y}: ${r.n} documents. Shows that year`, dim: !!regs.year && regs.year !== String(r.y), a: () => { regs.year = regs.year === String(r.y) ? "" : String(r.y); regs.n = 200; renderRegs(); drawTabSums(); } })), { color: "#b79cf5" }), "SEBI and RBI documents on FPI, FDI, FVCI, ODI and GIFT City. 2021 covers October to December.") +
       card("Taking effect soon", "", soon.length ? `<div class="soon">${soon.map((e) => `<div><b>${toDMY(String(e.effective_on))}</b>${esc(e.title)}</div>`).join("")}</div>` : '<div class="s">Nothing scheduled.</div>', "");
   }
   if ((state.tab === "directory" || state.tab === "gift") && $("regx-sum")) {
     const ry = (H.reg_by_year || []).filter((r) => r.y >= 2023), cat = H.reg_by_cat || {};
     $("regx-sum").innerHTML = card("FPI register", `${nfmt(H.reg_total)} <small>registered FPIs · Category I ${nfmt(cat.I)} · Category II ${nfmt(cat.II)}</small>`,
-        vbars(ry.map((r) => ({ v: r.n, l: String(r.y), t: `${r.y}: ${nfmt(r.n)} new FPIs`, dim: r.y === CYr })), { color: "#7b9cf5" }), "New registrations by year. Dates are available for registrations since 2023.") +
-      card("Where FPIs are based", "", hrows((H.reg_by_country || []).map((c) => ({ l: titleCase(c.c), v: c.n, r: nfmt(c.n) }))), "Registered FPIs by country, from NSDL.") +
-      card("GIFT City", `${nfmt(H.gift_total)} <small>entities regulated by IFSCA</small>`, hrows((H.gift_by_cat || []).slice(0, 6).map((c) => ({ l: c.c, v: c.n, r: nfmt(c.n), c: "#5cc6b0" }))), "By licence type.");
+        vbars(ry.map((r) => ({ v: r.n, l: String(r.y), t: `${r.y}: ${nfmt(r.n)} new FPIs. Lists them`, dim: r.y === CYr, a: () => { if (state.tab !== "directory") setTab("directory"); setTimeout(() => { selSet("dyear-f", String(r.y)); selFire("dyear-f"); $("dir-fpi-filters").scrollIntoView({ block: "center" }); }, 400); } })), { color: "#7b9cf5" }), "New registrations by year. Dates are available for registrations since 2023.") +
+      card("Where FPIs are based", "", hrows((H.reg_by_country || []).map((c) => ({ l: titleCase(c.c), v: c.n, r: nfmt(c.n), t: `${titleCase(c.c)}: ${nfmt(c.n)} FPIs. Lists them`, a: () => { if (state.tab !== "directory") setTab("directory"); setTimeout(() => { const o = [...$("dcountry-f").options].find((o) => o.value.toLowerCase() === c.c.toLowerCase() || o.text.toLowerCase().startsWith(titleCase(c.c).toLowerCase())); if (o) { $("dcountry-f").value = o.value; selFire("dcountry-f"); } $("dir-fpi-filters").scrollIntoView({ block: "center" }); }, 400); } }))), "Registered FPIs by country, from NSDL.") +
+      card("GIFT City", `${nfmt(H.gift_total)} <small>entities regulated by IFSCA</small>`, hrows((H.gift_by_cat || []).slice(0, 6).map((c) => ({ l: c.c, v: c.n, r: nfmt(c.n), c: "#5cc6b0", t: `${c.c}: ${nfmt(c.n)} entities. Lists them`, a: () => { if (state.tab !== "gift") setTab("gift"); setTimeout(() => { selSet("icat2", c.c); selFire("icat2"); $("dir-ifsca-filters").scrollIntoView({ block: "center" }); }, 600); } }))), "By licence type.");
   }
 }
 
@@ -3674,6 +3700,20 @@ const fxOf = (y) => FX_YEAR[y] || usdInr();
 const usdOfYear = (cr, y) => cr * 10 / fxOf(y);
 const home = { data: null, loading: false };
 
+// Chart interactions: every bar and row shows its figure on hover or tap; the ones with an action open the matching view.
+const chartActs = [];
+const actId = (fn) => { if (chartActs.length > 6000) chartActs.length = 0; chartActs.push(fn); return chartActs.length - 1; };
+(() => {
+  const tip = document.createElement("div"); tip.id = "ctip"; tip.setAttribute("role", "tooltip"); tip.hidden = true; document.body.appendChild(tip);
+  const show = (el, x, y) => { const act = el.hasAttribute("data-a"); tip.innerHTML = `${esc(el.dataset.tip)}${act ? '<small>Click to open</small>' : ""}`; tip.hidden = false;
+    const w = tip.offsetWidth, h = tip.offsetHeight; tip.style.left = `${Math.max(8, Math.min(innerWidth - w - 8, x - w / 2))}px`; tip.style.top = `${y - h - 14 < 8 ? y + 18 : y - h - 14}px`; };
+  document.addEventListener("pointermove", (e) => { const el = e.target.closest?.("[data-tip]"); if (el && el.dataset.tip) show(el, e.clientX, e.clientY); else tip.hidden = true; });
+  document.addEventListener("pointerdown", (e) => { const el = e.target.closest?.("[data-tip]"); if (el && el.dataset.tip) show(el, e.clientX, e.clientY); else tip.hidden = true; });
+  addEventListener("scroll", () => { tip.hidden = true; }, { passive: true });
+  const run = (el, e) => { const fn = chartActs[+el.dataset.a]; if (!fn) return; e.preventDefault(); e.stopPropagation(); tip.hidden = true; fn(); };
+  document.addEventListener("click", (e) => { const el = e.target.closest?.("[data-a]"); if (el) run(el, e); }, true);
+  document.addEventListener("keydown", (e) => { if ((e.key === "Enter" || e.key === " ") && e.target.matches?.("[data-a]")) run(e.target, e); }, true);
+})();
 function vbars(points, { signed = false, color = "#7b9cf5", neg = "#f0884a", labelEvery = 1, W = 300 } = {}) {
   const H = signed ? 120 : 90, n = points.length, gap = 3, bw = Math.max(3, (W - gap * (n - 1)) / n);
   const max = Math.max(1, ...points.map((p) => Math.abs(p.v || 0)));
@@ -3682,15 +3722,22 @@ function vbars(points, { signed = false, color = "#7b9cf5", neg = "#f0884a", lab
     const x = i * (bw + gap), h = p.v == null ? 0 : Math.max(1.5, Math.abs(p.v) / max * (signed ? H / 2 - 4 : H - 4));
     const y = p.v < 0 ? mid : mid - h;
     const lab = i % labelEvery === 0 || i === n - 1 ? `<text x="${x + bw / 2}" y="${H + 12}" text-anchor="middle">${esc(p.l)}</text>` : "";
-    return `<rect x="${x}" y="${y}" width="${bw}" height="${h}" rx="2" fill="${p.v < 0 ? neg : color}" opacity="${p.dim ? 0.55 : 1}"><title>${esc(p.t || "")}</title></rect>${lab}`;
+    return `<g class="cb${p.a ? " act" : ""}" data-tip="${esc(p.t || "")}"${p.a ? ` data-a="${actId(p.a)}" tabindex="0" role="button" aria-label="${esc(p.t || "")}"` : ""}><rect class="hit" x="${x - gap / 2}" y="0" width="${bw + gap}" height="${H}" fill="transparent"/><rect class="v" x="${x}" y="${y}" width="${bw}" height="${h}" rx="2" fill="${p.v < 0 ? neg : color}" opacity="${p.dim ? 0.55 : 1}"/></g>${lab}`;
   }).join("");
   return `<svg viewBox="0 0 ${W} ${H + 16}" role="img" aria-label="Bar chart">${signed ? `<line x1="0" x2="${W}" y1="${mid}" y2="${mid}" stroke="var(--line)"/>` : ""}${bars}</svg>`;
 }
-const hrows = (items) => { const max = Math.max(1, ...items.map((x) => x.v)); return `<div class="rows">${items.map((x) => `<div class="row"><span title="${esc(x.l)}">${esc(x.l)}</span><span class="bar"><i style="width:${Math.round(x.v / max * 100)}%;background:${x.c || "#7b9cf5"}"></i></span><span>${esc(x.r)}</span></div>`).join("")}</div>`; };
+const hrows = (items) => { const max = Math.max(1, ...items.map((x) => x.v)); return `<div class="rows">${items.map((x) => `<div class="row${x.a ? " act" : ""}" data-tip="${esc(x.t || `${x.l}: ${x.r}`)}"${x.a ? ` data-a="${actId(x.a)}" tabindex="0" role="button"` : ""}><span>${esc(x.l)}</span><span class="bar"><i style="width:${Math.round(x.v / max * 100)}%;background:${x.c || "#7b9cf5"}"></i></span><span>${esc(x.r)}</span></div>`).join("")}</div>`; };
+function drawCoverage() {
+  const box = $("cov"); if (!box || !home.cov) return;
+  const d = (x) => !x ? "–" : /^\d{4}-\d{2}-01$/.test(x) ? monLabel(x) : toDMY(x);
+  box.innerHTML = `<h2>Data coverage</h2><p class="sub">What each section is built from and how far back it goes.</p><div class="cov-w"><table><thead><tr><th>Data</th><th>Source</th><th>From</th><th>Latest</th><th class="num">Records</th><th>Note</th></tr></thead><tbody>${
+    home.cov.map((r) => `<tr><td><b>${esc(r.k)}</b></td><td>${esc(r.src)}</td><td>${d(r.a)}</td><td>${d(r.b)}</td><td class="num">${nfmt(r.n)}</td><td class="nt">${esc(r.note || "")}</td></tr>`).join("")}</tbody></table></div>`;
+}
 async function loadHome() {
   if (home.loading) return; home.loading = true;
   try { home.data = await api("rpc/home_summary", { method: "POST", body: "{}" }); } catch { home.data = {}; }
   renderHome(); drawTabSums();
+  try { home.cov = await api("rpc/data_coverage", { method: "POST", body: "{}" }); drawCoverage(); } catch {}
 }
 function renderHome() {
   const box = $("hsum"); if (!box) return;
@@ -3709,38 +3756,39 @@ function renderHome() {
     const cur = fy[fy.length - 1];
     cards.push({ go: "flows", h: "FPI money in and out", k: `${cur.cr < 0 ? "−" : "+"}${fmtUsd(Math.abs(usdOfYear(cur.cr, cur.y)))} <small>${cur.y}${cur.months < 12 ? `, Jan to ${MON[cur.months - 1]}${cur.partial ? " so far" : ""}` : ""}</small>`,
       s: `Net FPI investment by year, from NSDL. Orange is money leaving. 2017–2019 not available.`,
-      body: vbars(fy.map((r) => r.cr == null ? { v: null, l: `'${String(r.y).slice(2)}`, t: `${r.y}: not available` } : { v: usdOfYear(r.cr, r.y), l: `'${String(r.y).slice(2)}`, t: `${r.y}: ${r.cr < 0 ? "−" : "+"}${fmtUsd(Math.abs(usdOfYear(r.cr, r.y)))} (${fmtCr(Math.abs(r.cr))})` }), { signed: true, labelEvery: 2 }), more: "Open Flows" });
+      body: vbars(fy.map((r) => r.cr == null ? { v: null, l: `'${String(r.y).slice(2)}`, t: `${r.y}: not available` } : { v: usdOfYear(r.cr, r.y), l: `'${String(r.y).slice(2)}`, a: () => { setTab("flows"); toTop(); }, t: `${r.y}: ${r.cr < 0 ? "−" : "+"}${fmtUsd(Math.abs(usdOfYear(r.cr, r.y)))} (${fmtCr(Math.abs(r.cr))})` }), { signed: true, labelEvery: 2 }), more: "Open Flows" });
   }
   // Deals: this year by type, and the biggest
   const yr = state.events.filter((e) => when(e).getFullYear() === CYr && e.event_type !== "regulation");
-  const typ = KPI_GROUPS.slice(1, 5).map((g) => ({ l: g.label, v: yr.filter((e) => e.event_types.some((t) => g.types.includes(t))).length, c: color(g.types[0]) }));
+  const typ = KPI_GROUPS.slice(1, 5).map((g) => ({ l: g.label, v: yr.filter((e) => e.event_types.some((t) => g.types.includes(t))).length, c: color(g.types[0]),
+    a: () => { clearView(); $("preset").value = "y" + CYr; applyPreset(); state.types = new Set(g.types); render(); setTab("feed"); toTop(); } }));
   const big = yr.filter((e) => FIRM.has(e.deal_stage) && e.target && e.event_types.some((t) => t === "entry" || t === "exit") && amountCr(e)).sort((a, b) => amountCr(b).usd - amountCr(a).usd)[0];
   cards.push({ go: "feed", view: "big", h: `Deals in ${CYr}`, k: `${nfmt(yr.length)} <small>stories</small>`,
     s: big ? `Biggest agreed or completed: ${esc(big.investor || "")}${big.target ? ` → ${esc(big.target)}` : ""}, ${fmtUsd(amountCr(big).usd)}` : "Investments, exits, fund launches and Indian money abroad",
-    body: hrows(typ.map((x) => ({ ...x, r: nfmt(x.v) }))), more: "Open Deals" });
+    body: hrows(typ.map((x) => ({ ...x, r: nfmt(x.v), t: `${x.l}: ${nfmt(x.v)} stories in ${CYr}` }))), more: "Open Deals" });
   // Investors: where the money comes from (distinct investors in reviewed deals, last 12 months)
   const since = Date.now() - 365 * 864e5, inv = new Map();
   state.events.forEach((e) => { if (when(e) < since || !e.investor) return; const c = countryOf(e); if (!c || c === "India") return; (inv.get(c) || inv.set(c, new Set()).get(c)).add(invKey(e.investor)); });
   const ic = [...inv].map(([c, s]) => ({ l: c, v: s.size })).sort((a, b) => b.v - a.v).slice(0, 6);
   const nInv = new Set(state.events.filter((e) => e.investor && when(e) >= since).map((e) => invKey(e.investor))).size;
-  cards.push({ go: "investors", h: "Who is investing", k: `${nfmt(nInv)} <small>investors, last 12 months</small>`, s: "Investors named in deals, by home country", body: hrows(ic.map((x) => ({ ...x, r: nfmt(x.v) }))), more: "Open Investors" });
+  cards.push({ go: "investors", h: "Who is investing", k: `${nfmt(nInv)} <small>investors, last 12 months</small>`, s: "Investors named in deals, by home country", body: hrows(ic.map((x) => ({ ...x, r: nfmt(x.v), t: `${x.l}: ${nfmt(x.v)} investors. Opens their deals`, a: () => { clearView(); state.country = x.l; render(); setTab("feed"); toTop(); } }))), more: "Open Investors" });
   // Regulation: rule changes by year
   const ry = H.rules_by_year || [];
   const rCur = ry.find((r) => r.y === CYr)?.n || 0;
   cards.push({ go: "regulation", view: "regyear", h: "Rule changes", k: `${nfmt(rCur)} <small>SEBI and RBI documents in ${CYr}</small>`, s: "Documents that change the rules for foreign investment. 2021 covers October to December.",
-    body: vbars(ry.map((r) => ({ v: r.n, l: String(r.y), t: `${r.y}: ${r.n}` })), { color: "#b79cf5" }), more: "Open Regulation" });
+    body: vbars(ry.map((r) => ({ v: r.n, l: String(r.y), t: `${r.y}: ${r.n} rule documents`, a: () => { Object.assign(regs, { regulator: "", instrument: "", doc: "", q: "", soon: false, year: String(r.y), n: 200 }); setTab("regulation"); renderRegs(); toTop(); } })), { color: "#b79cf5" }), more: "Open Regulation" });
   // Registrations: FPI and GIFT City
   const ry2 = (H.reg_by_year || []).filter((r) => r.y >= 2023), gy = (H.gift_by_year || []).filter((r) => r.y >= 2019);
   cards.push({ go: "directory", h: "Registrations", k: `${nfmt(H.reg_total)} <small>FPIs</small> · ${nfmt(H.gift_total)} <small>GIFT City entities</small>`,
     s: `New FPIs: ${ry2.map((r) => `${r.y} ${nfmt(r.n)}`).join(" · ")}. Bars show new GIFT City registrations by year.`,
-    body: vbars(gy.map((r) => ({ v: r.n, l: `'${String(r.y).slice(2)}`, t: `${r.y}: ${r.n} new GIFT City entities`, dim: r.y === CYr })), { color: "#5cc6b0" }), more: "Open Registrations" });
+    body: vbars(gy.map((r) => ({ v: r.n, l: `'${String(r.y).slice(2)}`, t: `${r.y}: ${nfmt(r.n)} new GIFT City entities`, a: () => { setTab("gift"); toTop(); }, dim: r.y === CYr })), { color: "#5cc6b0" }), more: "Open Registrations" });
   // Outbound: Indian investment abroad
   const oy = (H.odi_by_year || []).filter((r) => r.months >= 6);
   if (oy.length) {
     const oc = oy[oy.length - 1];
     cards.push({ go: "odi", h: "Indian money going abroad", k: `${fmtUsd(oc.usd_m)} <small>${oc.y}, ${oc.months} months</small>`,
       s: `Committed by Indian companies, from RBI. Top destinations ${CYr}: ${(H.odi_top_country || []).slice(0, 3).map((c) => titleCase(c.c)).join(", ")}.`,
-      body: vbars(oy.map((r) => ({ v: r.usd_m, l: String(r.y), t: `${r.y}: ${fmtUsd(r.usd_m)}${r.months < 12 ? ` (${r.months} months)` : ""}` })), { color: "#f0884a" }), more: "Open Outbound" });
+      body: vbars(oy.map((r) => ({ v: r.usd_m, l: String(r.y), t: `${r.y}: ${fmtUsd(r.usd_m)}${r.months < 12 ? ` (${r.months} months)` : ""}`, a: () => { setTab("odi"); toTop(); } })), { color: "#f0884a" }), more: "Open Outbound" });
   }
   box.innerHTML = cards.map((c, i) => `<div class="hc" role="link" tabindex="0" data-hc="${i}"><h3>${c.h}</h3><div class="k">${c.k}</div>${c.body}<div class="s">${c.s}</div><div class="go">${c.more} →</div></div>`).join("");
   box.querySelectorAll(".hc").forEach((el) => {
