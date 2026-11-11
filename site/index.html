@@ -1634,6 +1634,7 @@ body{font-variant-numeric:tabular-nums}
   <section id="tab-directory" hidden>
     <div class="tsum" id="regx-sum"></div>
     <section class="watch" id="fpiwatch" aria-label="FPI watch lists"></section>
+    <section class="watch" id="fpilim" aria-label="Foreign investment limits"></section>
     <div class="fhead" style="margin-bottom:10px">
       <p class="sub" style="margin:0;max-width:640px" id="dir-intro"></p>
       <div class="seg" role="group" aria-label="Directory" id="dirseg" hidden>
@@ -3581,7 +3582,7 @@ function setTab(t) {
   if (t === "flows") setTimeout(() => { try { drawMktCal(); } catch {} }, 400);
   if (t === "regulation") setTimeout(() => { try { drawCompCal(); } catch {} }, 400);
   if (t === "flows") setTimeout(() => { try { drawFxDesk(); } catch {} }, 300);
-  if (t === "directory") setTimeout(() => { try { drawFpiWatch(); } catch {} }, 300);
+  if (t === "directory") setTimeout(() => { try { drawFpiWatch(); drawFpiLimits(); } catch {} }, 300);
   setTimeout(() => { try { drawSideViews(); } catch {} }, 0);
   [0, 600, 1500].forEach((ms) => setTimeout(() => { try { drawTabSums(); } catch {} }, ms));
   // Going to Home drops the country, sector and story filters, so the address goes back to plain "/".
@@ -6316,6 +6317,22 @@ function bigFlows() {
   return state.events.filter((e) => when(e) >= since && e.event_type !== "regulation" && (e.flow_kind || "capital") === "capital" && ["agreed", "completed", "plan"].includes(e.deal_stage) && (amountCr(e)?.usd || 0) >= 250)
     .map((e) => ({ e, dir: e.event_types.includes("outbound") || (e.event_types.includes("exit") && !e.event_types.includes("entry")) ? "Out" : "In", usd: amountCr(e).usd }))
     .sort((a, b) => when(b.e) - when(a.e)).slice(0, 25);
+}
+
+// ---------- Foreign investment limits (NSDL Red Flag and Breach lists) ----------
+const fl = { view: "red_flag" };
+async function drawFpiLimits() {
+  const box = $("fpilim"); if (!box || state.tab !== "directory") return;
+  if (!fl.data) { if (fl.loading) return; fl.loading = true; try { fl.data = await api("fpi_limits?select=list,as_of,raw&order=id.asc"); } catch { fl.data = []; } fl.loading = false; }
+  const list = fl.data.filter((r) => r.list === fl.view), asOf = fl.data[0]?.as_of;
+  const g = (r, re) => { const k = Object.keys(r.raw || {}).find((x) => re.test(x)); return k ? r.raw[k] : ""; };
+  const cols = ["Company", "ISIN", "Security", "Foreign holding", "Limit", "Headroom (shares)", fl.view === "breach" ? "In breach since" : "Flagged since", "Listed on"];
+  const rows = list.map((r) => [g(r, /company|issuer/), g(r, /^isin$/), g(r, /security type/), `${g(r, /aggregate investment/)}%`, `${g(r, /permissible limit/)}%`, g(r, /headroom/), g(r, /date when/), g(r, /listed/)]);
+  box.innerHTML = `<div class="watch-h"><div><h3>Foreign investment limits</h3><div class="sub">NSDL's limit monitor${asOf ? ` for ${toDMY(asOf)}` : ""}. Red Flag: foreign holding close to the company's limit, so new FPI buying is restricted. Breach: holding above the limit.</div></div><button type="button" class="csvbtn" id="fl-csv">Download CSV</button></div>
+    <div class="qviews" role="group" aria-label="List">${[["red_flag", "Red Flag list"], ["breach", "Breach list"]].map(([k, l]) => `<button type="button" data-fl="${k}" aria-pressed="${fl.view === k}">${l}<b>${nfmt(fl.data.filter((r) => r.list === k).length)}</b></button>`).join("")}</div>
+    <div class="watch-w"><table><thead><tr>${cols.map((c) => `<th>${c}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((v, i) => `<td${i === 3 ? ' class="due soon"' : ""}>${esc(v)}</td>`).join("")}</tr>`).join("") || `<tr><td colspan="${cols.length}">Not available.</td></tr>`}</tbody></table></div>`;
+  box.querySelectorAll("[data-fl]").forEach((b) => b.onclick = () => { fl.view = b.dataset.fl; drawFpiLimits(); });
+  $("fl-csv").onclick = () => csvDownload(`fpi-limits-${fl.view}-${asOf || dayStr(new Date())}.csv`, [cols, ...rows]);
 }
 </script>
 </body>
