@@ -1708,6 +1708,7 @@ function drawSideViews() {
   ic.querySelectorAll("button").forEach((b) => b.onclick = () => { (b.dataset.ic === "all" ? chips : [chips[b.dataset.ic]]).forEach((c) => selSet(c[1], c[2])); if (b.dataset.ic === "all") $("iq").value = ""; selFire("isort"); });
 }
 ["click", "input", "change"].forEach((t) => document.addEventListener(t, () => setTimeout(drawSideViews, 0)));
+window.addEventListener("popstate", () => setTimeout(drawSideViews, 50));
 setTimeout(drawSideViews, 0);
 
 function applyPreset() {
