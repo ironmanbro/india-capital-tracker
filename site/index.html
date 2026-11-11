@@ -1545,6 +1545,8 @@ body{font-variant-numeric:tabular-nums}
     <p class="sub" style="margin:0 0 12px">Money moving into and out of India in aggregate. FPI figures are daily from NSDL (US$, with ₹ crore in brackets); FDI figures are by financial year from DPIIT's quarterly fact sheet (US$).</p>
 
     <section class="fxd" id="fxdesk" aria-label="FX desk"></section>
+    <section class="watch" id="debtlim" aria-label="FPI debt limits"></section>
+    <section class="watch" id="idxev" aria-label="Index changes"></section>
     <section class="watch" id="mktcal" aria-label="Market calendar"></section>
     <div class="tsum" id="fl-sum"></div>
     <h2 class="fsec">FPI · foreign portfolio investment</h2>
@@ -1651,6 +1653,7 @@ body{font-variant-numeric:tabular-nums}
     <div class="tsum" id="regx-sum"></div>
     <section class="watch" id="fpiwatch" aria-label="FPI watch lists"></section>
     <section class="watch" id="fpilim" aria-label="Foreign investment limits"></section>
+    <section class="watch" id="whtref" aria-label="Withholding tax reference"></section>
     <div class="fhead" style="margin-bottom:10px">
       <p class="sub" style="margin:0;max-width:640px" id="dir-intro"></p>
       <div class="seg" role="group" aria-label="Directory" id="dirseg" hidden>
@@ -3596,10 +3599,10 @@ document.querySelectorAll("#nhops button").forEach((b) => b.onclick = () => {
 
 function setTab(t) {
   if (t === "investors") setTimeout(() => { try { drawCountryBrief(); } catch {} }, 400);
-  if (t === "flows") setTimeout(() => { try { drawMktCal(); } catch {} }, 400);
+  if (t === "flows") setTimeout(() => { try { drawMktCal(); drawDebtLimits(); drawIndexEvents(); } catch {} }, 400);
   if (t === "regulation") setTimeout(() => { try { drawCompCal(); } catch {} }, 400);
   if (t === "flows") setTimeout(() => { try { drawFxDesk(); } catch {} }, 300);
-  if (t === "directory") setTimeout(() => { try { drawFpiWatch(); drawFpiLimits(); } catch {} }, 300);
+  if (t === "directory") setTimeout(() => { try { drawFpiWatch(); drawFpiLimits(); drawWht(); } catch {} }, 300);
   setTimeout(() => { try { drawSideViews(); } catch {} }, 0);
   [0, 600, 1500].forEach((ms) => setTimeout(() => { try { drawTabSums(); } catch {} }, ms));
   // Going to Home drops the country, sector and story filters, so the address goes back to plain "/".
@@ -6322,11 +6325,11 @@ function drawCompCal() {
   const today = dayStr(new Date()), past = dayStr(new Date(Date.now() - 90 * 864e5));
   const list = state.events.filter((e) => e.event_type === "regulation" && e.effective_on && String(e.effective_on) >= past).sort((a, b) => String(a.effective_on).localeCompare(String(b.effective_on)));
   const up = list.filter((e) => String(e.effective_on) >= today), done = list.filter((e) => String(e.effective_on) < today).reverse();
-  const cols = ["Takes effect", "In", "Regulator", "Applies to", "Rule", "Document"];
+  const cols = ["Takes effect", "In", "Regulator", "Applies to", "Rule and what changes", "Document"];
   const row = (e) => { const d = Math.round((new Date(e.effective_on) - new Date(today)) / 864e5); return [toDMY(String(e.effective_on)), d === 0 ? "Today" : d > 0 ? `${d} days` : `${-d} days ago`, e.regulator || "", (e.instruments || []).join(", "), e.title, DOC_TYPES[e.doc_type] || e.doc_type || ""]; };
   const rows = [...up, ...done].map(row);
   box.innerHTML = `<div class="watch-h"><div><h3>Compliance calendar</h3><div class="sub">SEBI and RBI rules by the date they take effect: ${nfmt(up.length)} coming up, ${nfmt(done.length)} in the last 90 days. Check each document for the exact obligations.</div></div><button type="button" class="csvbtn" id="cc-csv">Download CSV</button></div>
-    <div class="watch-w"><table><thead><tr>${cols.map((c) => `<th>${c}</th>`).join("")}</tr></thead><tbody>${[...up, ...done].map((e, i) => { const r = rows[i]; return `<tr${String(e.effective_on) < today ? ' style="opacity:.6"' : ""}><td class="due${String(e.effective_on) >= today && (new Date(e.effective_on) - new Date(today)) / 864e5 <= 30 ? " soon" : ""}">${esc(r[0])}</td><td>${esc(r[1])}</td><td>${esc(r[2])}</td><td>${esc(r[3])}</td><td><a href="${safeUrl(e.url)}" target="_blank" rel="noopener">${esc(r[4])}</a></td><td>${esc(r[5])}</td></tr>`; }).join("") || `<tr><td colspan="6">No dated rules in this window.</td></tr>`}</tbody></table></div>`;
+    <div class="watch-w"><table><thead><tr>${cols.map((c) => `<th>${c}</th>`).join("")}</tr></thead><tbody>${[...up, ...done].map((e, i) => { const r = rows[i]; return `<tr${String(e.effective_on) < today ? ' style="opacity:.6"' : ""}><td class="due${String(e.effective_on) >= today && (new Date(e.effective_on) - new Date(today)) / 864e5 <= 30 ? " soon" : ""}">${esc(r[0])}</td><td>${esc(r[1])}</td><td>${esc(r[2])}</td><td>${esc(r[3])}</td><td><a href="${safeUrl(e.url)}" target="_blank" rel="noopener">${esc(r[4])}</a>${e.summary ? `<div class="sub" style="margin-top:3px">${esc(e.summary)}</div>` : ""}</td><td>${esc(r[5])}</td></tr>`; }).join("") || `<tr><td colspan="6">No dated rules in this window.</td></tr>`}</tbody></table></div>`;
   $("cc-csv").onclick = () => csvDownload(`compliance-calendar-${today}.csv`, [cols, ...rows]);
 }
 // ---------- FX desk: large deals likely to move FX ----------
@@ -6415,6 +6418,51 @@ function openWeeklyBrief() {
   $("wb-print").onclick = () => print();
 }
 $("wbrief-open")?.addEventListener("click", async () => { if (!fw.data) { try { fw.data = await api("rpc/fpi_watch", { method: "POST", body: "{}" }); } catch {} } openWeeklyBrief(); });
+
+// ---------- FPI debt limits and FAR bonds (CCIL) ----------
+const dl = { view: "FAR" };
+async function drawDebtLimits() {
+  const box = $("debtlim"); if (!box || state.tab !== "flows") return;
+  if (!dl.data) { if (dl.loading) return; dl.loading = true; try { dl.data = (await api("ccil_fpi?select=day,limits,securities&order=day.desc&limit=1"))[0] || null; } catch { dl.data = null; } dl.loading = false; if (!dl.data) { box.innerHTML = ""; return; } }
+  const D = dl.data, cr = (v) => `₹${Math.round(v).toLocaleString("en-IN")} cr`;
+  const lim = D.limits.map((l) => `<div class="fxc"><div class="c">${esc(l.instrument)} · ${esc(l.route)} limit</div><div class="r">${(+l.used_pct).toFixed(2)}% used</div><div class="bar" style="height:8px;border-radius:4px;background:var(--line);margin:6px 0"><i style="display:block;height:100%;width:${Math.min(100, +l.used_pct)}%;background:#7b9cf5;border-radius:4px"></i></div><div class="d">${cr(l.total_cr)} of ${cr(l.limit_cr)} (${fmtUsd(usdMOf(l.total_cr))} of ${fmtUsd(usdMOf(l.limit_cr))}) · ${cr(l.available_cr)} available${+l.vrr_cr ? ` · VRR ${cr(l.vrr_cr)}` : ""}</div></div>`).join("");
+  const kinds = ["FAR", "G-sec", "SDL", "T-bill"], rows = D.securities.filter((x) => x.kind === dl.view).sort((a, b) => b.fpi_cr - a.fpi_cr);
+  const cols = ["Security", "ISIN", "FPI holding (₹ cr)", "Outstanding (₹ cr)", "FPI share"];
+  const data = rows.map((x) => [x.security, x.isin, Math.round(x.fpi_cr).toLocaleString("en-IN"), x.outstanding_cr ? Math.round(x.outstanding_cr).toLocaleString("en-IN") : "–", x.outstanding_cr ? `${(+x.pct).toFixed(2)}%` : "–"]);
+  const farTot = D.securities.filter((x) => x.kind === "FAR").reduce((a, x) => a + x.fpi_cr, 0);
+  box.innerHTML = `<div class="watch-h"><div><h3>FPI debt limits and FAR bonds</h3><div class="sub">CCIL, ${toDMY(D.day)}. General-route limits for government securities, and FPI holdings by security. FAR (fully accessible route) bonds have no limit; FPIs hold ${cr(farTot)} (${fmtUsd(usdMOf(farTot))}) of them.</div></div><button type="button" class="csvbtn" id="dl-csv">Download CSV</button></div>
+    <div class="fxd"><div class="fxg" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">${lim}</div></div>
+    <div class="qviews" role="group" aria-label="Securities">${kinds.map((k) => `<button type="button" data-dl="${k}" aria-pressed="${dl.view === k}">${k === "FAR" ? "FAR bonds" : k === "SDL" ? "State bonds (SDL)" : k === "T-bill" ? "T-bills" : "G-secs (general route)"}<b>${D.securities.filter((x) => x.kind === k).length}</b></button>`).join("")}</div>
+    <div class="watch-w"><table><thead><tr>${cols.map((c, i) => `<th${i > 1 ? ' class="num" style="text-align:right"' : ""}>${c}</th>`).join("")}</tr></thead><tbody>${data.map((r) => `<tr>${r.map((v, i) => `<td${i > 1 ? ' style="text-align:right"' : ""}>${esc(v)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+  box.querySelectorAll("[data-dl]").forEach((b) => b.onclick = () => { dl.view = b.dataset.dl; drawDebtLimits(); });
+  $("dl-csv").onclick = () => csvDownload(`ccil-fpi-${dl.view}-${D.day}.csv`, [cols, ...data]);
+}
+// ---------- Index changes (MSCI, FTSE, J.P. Morgan, Bloomberg) ----------
+async function drawIndexEvents() {
+  const box = $("idxev"); if (!box || state.tab !== "flows") return;
+  if (!dl.idx) { try { dl.idx = await api("index_events?select=day,provider,index_name,event,est_flow_usd_m,url,source&order=day.desc"); } catch { dl.idx = []; } }
+  const rows = dl.idx; if (!rows.length) { box.innerHTML = ""; return; }
+  const cols = ["Date", "Provider", "Index", "What happened", "Estimated passive flow", "Source"];
+  box.innerHTML = `<div class="watch-h"><div><h3>Index changes that move foreign money</h3><div class="sub">MSCI, FTSE Russell, J.P. Morgan and Bloomberg decisions and previews for India. Flow estimates are brokers' figures as reported, not official.</div></div><button type="button" class="csvbtn" id="ix-csv">Download CSV</button></div>
+    <div class="watch-w"><table><thead><tr>${cols.map((c) => `<th>${c}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr><td>${toDMY(r.day)}</td><td>${esc(r.provider)}</td><td>${esc(r.index_name || "")}</td><td>${esc(r.event)}</td><td class="${r.est_flow_usd_m < 0 ? "due soon" : ""}">${r.est_flow_usd_m == null ? "–" : `${r.est_flow_usd_m < 0 ? "−" : "+"}${fmtUsd(Math.abs(r.est_flow_usd_m))}`}</td><td><a href="${safeUrl(r.url)}" target="_blank" rel="noopener">${esc(r.source || "Source")}</a></td></tr>`).join("")}</tbody></table></div>`;
+  $("ix-csv").onclick = () => csvDownload(`index-changes-${dayStr(new Date())}.csv`, [cols, ...rows.map((r) => [r.day, r.provider, r.index_name, r.event, r.est_flow_usd_m ?? "", r.source])]);
+}
+// ---------- Withholding tax reference (domestic rates for non-residents) ----------
+function drawWht() {
+  const box = $("whtref"); if (!box || state.tab !== "directory" || box.innerHTML) return;
+  const rows = [
+    ["Dividends", "20%", "10% on dividends paid on global depository receipts"],
+    ["Interest on foreign currency borrowing or debt", "20%", "FCCBs and FCEBs before conversion: 10%"],
+    ["Interest: older concessional cases", "5%", "Specified foreign currency borrowings made before 1 July 2023, and interest accrued before 1 July 2023 to FIIs/QFIs on rupee bonds, government and municipal debt securities"],
+    ["Interest not meeting the concessional conditions", "30% (non-corporate) / 40% (foreign company)", ""],
+    ["Royalties and fees for technical services", "20%", ""],
+    ["Capital gains (foreign companies)", "12.5%, 20% or 35%", "Depends on whether the gain is long or short term and whether STT was paid"],
+    ["No PAN where a treaty applies", "Higher of treaty rate or 20%", "Not for interest, royalties or technical fees if the required documents are given"],
+  ];
+  box.innerHTML = `<div class="watch-h"><div><h3>Withholding tax on payments to non-residents</h3><div class="sub">Domestic rates before treaty relief, plus surcharge where applicable and cess. Treaty rates can be lower: check the treaty for the investor's country.</div></div></div>
+    <div class="watch-w" style="max-height:none"><table><thead><tr><th>Payment</th><th>Rate</th><th>Notes</th></tr></thead><tbody>${rows.map((r) => `<tr><td>${esc(r[0])}</td><td><b>${esc(r[1])}</b></td><td>${esc(r[2])}</td></tr>`).join("")}</tbody></table></div>
+    <div class="sub" style="margin-top:8px">Source: Deloitte, International Tax: India Highlights 2026 (updated August 2026). Country-by-country treaty rates are not shown because the official treaty pages could not be read automatically. Not tax advice.</div>`;
+}
 </script>
 </body>
 </html>
