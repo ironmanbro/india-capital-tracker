@@ -3673,7 +3673,7 @@ function drawTabSums() {
     const u = (r) => `${r.cr < 0 ? "−" : "+"}${fmtUsd(Math.abs(usdOfYear(r.cr, r.y)))} (${fmtCr(Math.abs(r.cr))})`;
     const oy = H.odi_by_year || [];
     $("fl-sum").innerHTML = card(`FPI net investment, ${fy[0].y} to ${CYr}`, "", vbars(fy.map((r) => r.cr == null ? { v: null, l: `'${String(r.y).slice(2)}`, t: `${r.y}: not available` } : { v: usdOfYear(r.cr, r.y), l: `'${String(r.y).slice(2)}`, t: `${r.y}: ${u(r)}` }), { signed: true, labelEvery: innerWidth < 700 ? 4 : 1, W: innerWidth < 700 ? 300 : 900 }),
-        `Largest inflow: ${best.y}, ${u(best)}. Largest outflow: ${worst.y}, ${u(worst)}. 2017–2019 not yet available. Past years at that year's average rate.`, true) +
+        `Largest inflow: ${best.y}, ${u(best)}. Largest outflow: ${worst.y}, ${u(worst)}. Past years at that year's average rate.`, true) +
       card("Indian investment abroad", "", vbars(oy.filter((r) => r.months >= 6).map((r) => ({ v: r.usd_m, l: String(r.y), t: `${r.y}: ${fmtUsd(r.usd_m)}${r.months < 12 ? ` (${r.months} months)` : ""}. Opens the deals`, a: () => { setTab("odi"); toTop(); } })), { color: "#f0884a" }), "Committed each year, from RBI.") +
       card(`Where it goes, ${CYr}`, "", hrows((H.odi_top_country || []).map((c) => ({ l: titleCase(c.c), v: c.usd_m, r: fmtUsd(c.usd_m), c: "#f0884a" }))), "Top destinations of Indian overseas investment.");
   }
@@ -3755,7 +3755,7 @@ function renderHome() {
   if (fy.length) {
     const cur = fy[fy.length - 1];
     cards.push({ go: "flows", h: "FPI money in and out", k: `${cur.cr < 0 ? "−" : "+"}${fmtUsd(Math.abs(usdOfYear(cur.cr, cur.y)))} <small>${cur.y}${cur.months < 12 ? `, Jan to ${MON[cur.months - 1]}${cur.partial ? " so far" : ""}` : ""}</small>`,
-      s: `Net FPI investment by year, from NSDL. Orange is money leaving. 2017–2019 not available.`,
+      s: `Net FPI investment by year, from NSDL. Orange is money leaving.`,
       body: vbars(fy.map((r) => r.cr == null ? { v: null, l: `'${String(r.y).slice(2)}`, t: `${r.y}: not available` } : { v: usdOfYear(r.cr, r.y), l: `'${String(r.y).slice(2)}`, a: () => { setTab("flows"); toTop(); }, t: `${r.y}: ${r.cr < 0 ? "−" : "+"}${fmtUsd(Math.abs(usdOfYear(r.cr, r.y)))} (${fmtCr(Math.abs(r.cr))})` }), { signed: true, labelEvery: 2 }), more: "Open Flows" });
   }
   // Deals: this year by type, and the biggest

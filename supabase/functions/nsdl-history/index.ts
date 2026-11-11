@@ -25,11 +25,12 @@ const num = (s: string) => {
   return isNaN(v) ? null : neg ? -v : v;
 };
 
-// NSDL's column set changes by year: 2024 onward has 12 segments; 2023 has five; 2003–2015 have three.
+// NSDL's column set changes by year: 2024 onward has 12 segments; 2020–2023 have five; 2017–2019 have four; 2002–2016 have three.
 // Any other layout is reported, not guessed.
 const LAYOUTS: Record<number, string[]> = {
   12: ["Equity", "Debt-General Limit", "Debt-VRR", "Debt-FAR", "Hybrid", "MF Equity", "MF Debt", "MF Hybrid", "MF Solution Oriented", "MF Other", "AIF", "Total"],
   5: ["Equity", "Debt", "Debt-VRR", "Hybrid", "Total"],
+  4: ["Equity", "Debt", "Hybrid", "Total"],
   3: ["Equity", "Debt", "Total"],
 };
 
