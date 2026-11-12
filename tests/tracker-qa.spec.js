@@ -17,8 +17,14 @@ test('Verify India Capital Tracker UI elements, buttons, and views', async ({ pa
   // 2. Test closing the introductory / welcome modal if present
   const introModal = page.locator('#opener[role="dialog"]');
   if (await introModal.isVisible()) {
-    await page.keyboard.press('Escape');
-    await introModal.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+    await page.locator('#op-skip').click();
+    await introModal.waitFor({ state: 'hidden', timeout: 5000 });
+  }
+
+  const welcomeModal = page.locator('#welcome[role="dialog"]');
+  if (await welcomeModal.isVisible()) {
+    await page.locator('#welcome-enter').click();
+    await welcomeModal.waitFor({ state: 'hidden', timeout: 5000 });
   }
 
   // 3. Test filter dropdowns on the Overview page
@@ -35,7 +41,7 @@ test('Verify India Capital Tracker UI elements, buttons, and views', async ({ pa
   }
 
   // 4. Test clicking through navigation tabs (Sections)
-  const navTabs = page.locator('nav[role="tablist"] > div');
+  const navTabs = page.locator('nav[role="tablist"] button[role="tab"]');
   const tabCount = await navTabs.count();
   console.log(`Found ${tabCount} navigation items to test.`);
 
