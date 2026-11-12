@@ -5,3 +5,5 @@ __pycache__/
 
 # NSE pipeline output; terms for storing/redistributing it not reviewed
 data/
+
+node_modules/
