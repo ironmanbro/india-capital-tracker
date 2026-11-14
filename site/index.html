@@ -2396,7 +2396,9 @@ function renderInvestors() {
   const rows = [...all.values()].filter((r) => (!q || nm(r).some((n) => n.toLowerCase().includes(q)) || (r.news?.country || "").toLowerCase().includes(q))
       && (src === "all" || (src === "news" ? r.news : r.hold)) && (!cat || r.news?.cats[cat]) && (!ty || r.news?.type === ty))
     .sort({
-      active: (a, b) => stories(b) + held(b) - stories(a) - held(a) || (last(b) > last(a) ? 1 : -1),
+      // "Most active" means most deals and news first. Holdings only break ties, so a fund that merely holds many shares
+      // (and has no news) no longer outranks investors that are actually doing deals.
+      active: (a, b) => (src === "holders" ? held(b) - held(a) : 0) || stories(b) - stories(a) || (last(b) > last(a) ? 1 : last(b) < last(a) ? -1 : 0) || held(b) - held(a),
       holdings: (a, b) => held(b) - held(a) || (b.hold?.top.pct || 0) - (a.hold?.top.pct || 0),
       recent: (a, b) => (last(b) > last(a) ? 1 : -1),
       size: (a, b) => (b.news?.biggest ? amountCr(b.news.biggest).usd : 0) - (a.news?.biggest ? amountCr(a.news.biggest).usd : 0) || stories(b) - stories(a),
