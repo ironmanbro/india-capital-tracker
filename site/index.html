@@ -2224,7 +2224,11 @@ function renderFeed() {
   const rows = filtered();
   $("fnote-slot").innerHTML = feedNotice();
   if (!rows.length) { $("feed").innerHTML = noRows("No stories match these filters, so try a wider date range or reset them.", "feed"); return; }
-  $("feed").innerHTML = rows.slice(0, 400).map((e) => {
+  // The list shows 50 stories and adds more on request: 1,000+ cards at once made the page 58,000px tall, and 400 was the hard limit before.
+  const sig = `${rows.length}:${rows[0]?.id}:${state.sort}`;
+  if (feedPage.sig !== sig) { feedPage.sig = sig; feedPage.n = 50; }
+  const left = rows.length - feedPage.n;
+  $("feed").innerHTML = rows.slice(0, feedPage.n).map((e) => {
     const who = e.parties.length
       ? `<span>${e.parties.map((p) => `<strong>${firmLink(p.name)}</strong>${p.role && p.role !== "other" ? ` (${esc(p.role)})` : ""}`).join(", ")}</span>`
       : e.investor && `<strong>${firmLink(e.investor)}</strong>`;
@@ -2247,8 +2251,13 @@ function renderFeed() {
       ${e.event_type === "regulation" ? `<div class="meta" style="margin-top:6px">${regMeta(e)}</div>` : ""}
       <div class="scard-foot">${amtTag(e)}${srcTag(e)}${regionTag(e)}${regDocLink(e)}</div>
     </article>`;
-  }).join("");
+  }).join("") + (left > 0 ? `<div class="filters" style="justify-content:center;margin:14px 0"><button class="reset" id="feed-more" type="button">Show ${Math.min(100, left)} more (${nfmt(left)} left)</button><button class="reset" id="feed-all" type="button">Show all ${nfmt(rows.length)}</button></div>` : `<p class="sub" style="text-align:center;margin:14px 0">That is all ${nfmt(rows.length)}.</p>`);
 }
+const feedPage = { n: 50, sig: "" };
+document.addEventListener("click", (ev) => {
+  const t = ev.target.closest?.("#feed-more, #feed-all"); if (!t) return;
+  feedPage.n += t.id === "feed-all" ? 1e6 : 100; renderFeed();
+});
 
 const INV_TYPES = {
   pe_vc: "Private equity / VC", sovereign: "Sovereign wealth fund", pension: "Pension fund", asset_manager: "Asset manager",
