@@ -1116,6 +1116,36 @@ body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-wei
 :root:not(#x) .ovgrid>.span2{grid-column:1/-1}
 :root:not(#x) .ovgrid-a{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media (max-width:900px){:root:not(#x) .ovgrid-a{grid-template-columns:minmax(0,1fr)}}
+/* ---- Collapsible sections ("click to open"), view switches and the Flows page navigator ---- */
+.acc{border:1px solid var(--line);border-radius:14px;background:var(--panel);margin:0 0 12px}
+.acc>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:16px 18px;align-items:center;border-radius:14px}
+.acc>summary::-webkit-details-marker{display:none}
+.acc>summary:hover{background:color-mix(in srgb,var(--ink) 4%,transparent)}
+.acc>summary::after{content:"";grid-row:1/3;grid-column:2;width:9px;height:9px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .15s;margin-right:4px}
+.acc[open]>summary::after{transform:rotate(-135deg)}
+.acc-t{font-weight:700;font-size:17px}
+.acc-s{grid-column:1;color:var(--muted);font-size:13px}
+.acc-body{padding:2px 18px 18px}
+.acc-in{background:transparent;margin:14px 0 0}
+.acc-in>summary{padding:12px 14px}.acc-in .acc-t{font-size:15px}
+.acc-body>.fsec,.acc-body>h2.fsec{display:none}
+#acc-fx #fxdesk>h2:first-child{display:none}
+.viewseg{margin:0 0 12px;flex-wrap:wrap}
+.viewseg button{min-height:38px;padding:0 16px}
+.fpane[hidden]{display:none}
+.fpi-main{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:16px 18px 18px;margin:0 0 12px}
+.fpi-main>h2.fsec{margin:0 0 4px}
+.fpane .fcard{border:0;box-shadow:none;background:none;padding:0;margin:0}
+#fhseg{display:none}
+.gseg-note{margin:0 0 8px}
+.fnav{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:0 0 16px}
+@media (max-width:700px){.fnav{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.fnav button{padding:10px 12px}.fnav span{font-size:12px}}
+#fl-sum{display:none}   /* the summary cards repeated the yearly FPI chart and the Outbound chart that now sit in their own sections */
+.fnav button{text-align:left;border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:12px 14px;cursor:pointer;color:var(--ink);font:inherit;display:block;transition:border-color .12s}
+.fnav button:hover{border-color:var(--ink)}
+.fnav b{display:block;font-size:14px}
+.fnav span{display:block;color:var(--muted);font-size:12.5px;margin-top:2px;line-height:1.35}
+.fnav-h{font-size:13px;color:var(--muted);margin:0 0 8px}
 .qviews{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
 .jump{position:sticky;top:0;z-index:15;margin:0 0 12px;padding:8px 0;background:var(--bg);flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none}
 .jump::-webkit-scrollbar{display:none}
@@ -1586,9 +1616,13 @@ body{font-variant-numeric:tabular-nums}
     <p class="takeaway" id="fl-take" hidden></p>
     <p class="sub" style="margin:0 0 12px">Money moving into and out of India in aggregate. FPI figures are daily from NSDL (in the currency you chose, with a second currency in brackets); FDI figures are by financial year from DPIIT's quarterly fact sheet (reported in US$, shown in the currency you chose).</p>
 
+    <div id="fl-nav"></div>
     <div class="tsum" id="fl-sum"></div>
-    <h2 class="fsec">FPI · foreign portfolio investment</h2>
-    <p class="note">Shares and bonds bought and sold by foreign funds. Daily from NSDL, in the currency you chose, with a second currency in brackets.</p>
+    <section class="fpi-main" id="sec-fpi">
+    <h2 class="fsec">FPI net investment</h2>
+    <p class="note">Shares and bonds bought and sold by foreign funds, from NSDL. Pick a view: by day, month, quarter or year.</p>
+    <div class="seg viewseg" role="group" aria-label="View" id="fpiview"><button type="button" data-v="d" aria-pressed="true">Daily</button><button type="button" data-v="m" aria-pressed="false">Monthly</button><button type="button" data-v="q" aria-pressed="false">Quarterly</button><button type="button" data-v="y" aria-pressed="false">Yearly</button></div>
+    <div id="fpi-dailyctl">
     <div class="filters fperiod" aria-label="FPI period">
       <div class="tfseg" id="tfseg" role="group" aria-label="Period"><button type="button" data-v="30">30D</button><button type="button" data-v="90">90D</button><button type="button" data-v="ytd">YTD</button><button type="button" data-v="fy">FY</button><button type="button" data-v="all">All</button></div>
       <select id="fpreset" aria-label="Period">
@@ -1606,6 +1640,8 @@ body{font-variant-numeric:tabular-nums}
     <p class="note fcover" id="fcover"></p>
     <div class="ftiles" id="ftiles"></div>
 
+    </div>
+    <div class="fpane" data-p="d">
     <div class="fcard">
       <div class="fhead"><div><h3>FPI net investment by day<span class="era cur">Current period</span></h3><div class="sub" id="fday-sub">Chosen currency</div></div>
         <div class="seg" role="group" aria-label="Segment" id="fseg">
@@ -1616,6 +1652,8 @@ body{font-variant-numeric:tabular-nums}
       <p class="dsrc" data-src="nsdl_flows" data-what="NSDL FPI daily trends"></p>
     </div>
 
+    </div>
+    <div class="fpane" data-p="m" hidden>
     <div class="fcard">
       <div class="fhead"><div><h3>FPI net investment by month<span class="era cur">All available months</span></h3><div class="sub" id="fmonth-sub">Chosen currency · all segments</div></div></div>
       <div class="flegend"><span><i style="background:var(--c-in)"></i>Net inflow</span><span><i style="background:var(--c-out)"></i>Net outflow</span></div>
@@ -1623,6 +1661,8 @@ body{font-variant-numeric:tabular-nums}
       <p class="dsrc" data-src="nsdl_flows" data-what="NSDL FPI calendar-year report"></p>
     </div>
 
+    </div>
+    <div class="fpane" data-p="h" hidden>
     <div class="fcard">
       <div class="fhead"><div><h3>FPI net investment over the years</h3><div class="sub" id="fhist-sub">In your chosen currency (second currency in brackets) · all segments</div></div>
         <div class="seg" role="group" aria-label="Period" id="fhseg"><button data-v="fy" aria-pressed="true">Yearly</button><button data-v="q" aria-pressed="false">Quarterly</button></div></div>
@@ -1636,8 +1676,19 @@ body{font-variant-numeric:tabular-nums}
     <section class="fxd" id="fxdesk" aria-label="FX desk"></section>
     <section class="fxd" id="fxres" aria-label="Forex reserves"></section>
     <section class="watch" id="debtlim" aria-label="FPI debt limits"></section>
-    <h2 class="fsec">FDI · foreign direct investment</h2>
+    </div>
+    </section>
+    <details class="acc" id="acc-fx"><summary><span class="acc-t">Rupee, dollar and reserves</span><span class="acc-s">Exchange rates, USD/INR against FPI money, forward premia and India’s forex reserves</span></summary><div class="acc-body">
+    <section class="fxd" id="fxdesk" aria-label="FX desk"></section>
+    <section class="fxd" id="fxres" aria-label="Forex reserves"></section>
+    </div></details>
+    <details class="acc" id="acc-debt"><summary><span class="acc-t">FPI debt limits and FAR bonds</span><span class="acc-s">How much of the limits foreign investors have used, and who holds which government bonds</span></summary><div class="acc-body">
+    <section class="watch" id="debtlim" aria-label="FPI debt limits"></section>
+    </div></details>
+    <details class="acc" id="acc-fdi"><summary><span class="acc-t">FDI: foreign direct investment</span><span class="acc-s">Long-term stakes in Indian companies, by source country, sector and state</span></summary><div class="acc-body">
     <p class="note" id="dpiit-sub">Long-term stakes in Indian companies. From DPIIT's quarterly FDI fact sheet, by financial year.</p>
+    <div class="seg viewseg" role="group" aria-label="View" id="fdiview"><button type="button" data-v="1" aria-pressed="true">Where it comes from</button><button type="button" data-v="2" aria-pressed="false">Where it goes</button><button type="button" data-v="3" aria-pressed="false">Over 26 years</button></div>
+    <div class="fpane" data-p="1">
     <div class="fcard">
       <div class="fhead"><div><h3>Where FDI comes from<span class="era hist">Financial years</span></h3><div class="sub" id="dcountry-sub">FDI equity inflow by source country · chosen currency</div></div></div>
       <div class="flegend" id="dlegend1"></div>
@@ -1645,6 +1696,8 @@ body{font-variant-numeric:tabular-nums}
       <p class="dsrc" data-src="dpiit_fdi" data-what="DPIIT quarterly FDI fact sheet" data-edition="1"></p>
       <p class="note" style="margin-top:10px"><span class="lg">The ten largest source countries since 2000, ordered by the latest year. Much of the money routed through Singapore and Mauritius comes from funds based elsewhere.</span><span class="sm">Ten largest source countries since 2000, by latest year. Money routed through Singapore and Mauritius often comes from funds based elsewhere.</span></p>
     </div>
+    </div>
+    <div class="fpane" data-p="2" hidden>
     <div class="fcard">
       <div class="fhead"><div><h3>Where FDI goes</h3><div class="sub" id="dwhere-sub">FDI equity inflow · chosen currency</div></div>
         <div class="seg" role="group" aria-label="Show sectors or states" id="dseg">
@@ -1655,41 +1708,48 @@ body{font-variant-numeric:tabular-nums}
       <p class="dsrc" data-src="dpiit_fdi" data-what="DPIIT quarterly FDI fact sheet" data-edition="1"></p>
       <p class="note" style="margin-top:10px" id="dwhere-note"></p>
     </div>
+    </div>
+    <div class="fpane" data-p="3" hidden>
     <div class="fcard">
       <div class="fhead"><div><h3>FDI into India over 26 years<span class="era hist">Historical · official</span></h3><div class="sub" id="dannual-sub">Total FDI inflow by financial year · US$ million</div></div></div>
       <div class="fchart" id="dannual"></div>
       <p class="dsrc" data-src="dpiit_fdi" data-what="DPIIT quarterly FDI fact sheet" data-edition="1"></p>
       <p class="note" style="margin-top:8px"><span class="lg">Total FDI = equity + re-invested earnings + other capital, on the international definition DPIIT uses. The latest year is provisional and may be revised.</span><span class="sm">Total FDI = equity + re-invested earnings + other capital. The latest year is provisional.</span></p>
     </div>
-    <h2 class="fsec">FDI reports from DPIIT</h2>
+    </div>
+    <details class="acc acc-in" id="acc-dpiit"><summary><span class="acc-t">DPIIT reports</span><span class="acc-s">Latest FDI newsletters and fact sheets, with the original PDFs</span></summary><div class="acc-body">
     <p class="note">Latest FDI newsletters and fact sheets published by DPIIT, with the original PDFs.</p>
     <div id="dpiit-pubs"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div>
-    <div class="ftip" id="ftip" role="tooltip" hidden></div>
+    </div></details>
+    </div></details>
+    <details class="acc" id="acc-big"><summary><span class="acc-t">Large deals and index changes</span><span class="acc-s">Deals of USD 250 million or more that move dollars, and index decisions that move foreign money</span></summary><div class="acc-body">
     <section class="fxd" id="fxbig" aria-label="Large deals that will move dollars"></section>
     <section class="watch" id="idxev" aria-label="Index changes"></section>
-    <section class="watch" id="mktcal" aria-label="Market calendar"></section>
-
+    </div></details>
+    <div class="ftip" id="ftip" role="tooltip" hidden></div>
   </section>
 
   <section id="tab-regulation" hidden>
     <p class="sub" style="margin:0 0 12px"><span class="lg">SEBI, RBI and IFSCA documents that change the rules for foreign investment and for GIFT City: FPI, FVCI, FDI, ODI and IFSC entities. IFSCA items are listed with the official title and a link; they are not summarised. Summaries state only what changed, for whom and from when; always read the official document.</span><span class="sm">SEBI and RBI rule changes for foreign investment. Read the official document.</span></p>
     <div class="tsum" id="reg-sum"></div>
     <div id="reg-body"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div>
-    <section class="watch" id="compcal" aria-label="Compliance calendar"></section>
+    <details class="acc" id="acc-cal"><summary><span class="acc-t">Compliance calendar</span><span class="acc-s">Rules by the date they take effect: what is coming up and what changed in the last 90 days</span></summary><div class="acc-body"><section class="watch" id="compcal" aria-label="Compliance calendar"></section></div></details>
     <details class="reglib" id="reglib"><summary><h3>Laws and regulations that apply to foreign investment (60)</h3><span>FEMA and RBI, FDI policy, SEBI, anti-money laundering, company law, tax, other laws, GIFT City</span></summary><div id="reglib-body"></div></details>
-    <section class="watch" id="whtref" aria-label="Withholding tax reference"></section>
+    <details class="acc" id="acc-wht"><summary><span class="acc-t">Withholding tax on payments to non-residents</span><span class="acc-s">Domestic rates before treaty relief</span></summary><div class="acc-body"><section class="watch" id="whtref" aria-label="Withholding tax reference"></section></div></details>
   </section>
 
   <section id="tab-odi" hidden>
-    <h2 class="stack-h">Indian investment abroad</h2>
+    <details class="acc" id="acc-odi"><summary><span class="acc-t">Indian investment abroad</span><span class="acc-s">What Indian companies committed overseas each month: by month, by destination, and every investment</span></summary><div class="acc-body">
     <p class="sub" style="margin:0 0 12px"><span class="lg">Money Indian companies commit to joint ventures (JV) and wholly owned subsidiaries (WOS) abroad: equity, loans and guarantees. Monthly from RBI's Overseas Direct Investment data, in US$.</span><span class="sm">Indian companies investing abroad, monthly from RBI (US$).</span></p>
     <div id="odi-body"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div>
+    </div></details>
   </section>
 
   <section id="tab-markets" hidden>
-    <h2 class="stack-h">Exchange data</h2>
+    <details class="acc" id="acc-mk"><summary><span class="acc-t">Exchange data</span><span class="acc-s">Daily FII and DII flows, bulk and block deals, FPI holdings, derivatives, SEBI filings and more</span></summary><div class="acc-body">
     <p class="sub" style="margin:0 0 12px"><span class="lg">Daily exchange and NSDL data: FII/FPI activity, bulk and block deals with foreign investors, FPI debt holdings and sector allocations.</span><span class="sm">Daily FII/FPI activity, foreign bulk and block deals, FPI debt and sector holdings.</span></p>
     <div id="mk-body"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div>
+    </div></details>
   </section>
 
   <section id="tab-users" hidden><div id="us-body"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></section>
@@ -1723,8 +1783,8 @@ body{font-variant-numeric:tabular-nums}
     <div class="dsum" id="dir-sum"></div>
     <div class="dlist" id="dir-list"></div>
     <button class="reset" id="dir-more" type="button" hidden style="margin-top:10px">Show more</button>
-    <section class="watch" id="fpilim" aria-label="Foreign investment limits"></section>
-    <div id="dir-aum"></div>
+    <details class="acc" id="acc-fpilim"><summary><span class="acc-t">Foreign investment limits</span><span class="acc-s">Sectoral caps and how much room is left</span></summary><div class="acc-body"><section class="watch" id="fpilim" aria-label="Foreign investment limits"></section></div></details>
+    <details class="acc" id="acc-aum"><summary><span class="acc-t">Assets held by country and sector</span><span class="acc-s">What FPIs hold in India, from NSDL custody data</span></summary><div class="acc-body"><div id="dir-aum"></div></div></details>
     <p class="dsrc" id="dir-src" data-src="nsdl_fpi_list" data-what="NSDL register of SEBI-registered FPIs"></p>
     <details class="more" style="margin-top:12px"><summary>About this data</summary><p class="note" id="dir-note"></p></details>
   </section>
@@ -3721,8 +3781,72 @@ document.querySelectorAll("#nhops button").forEach((b) => b.onclick = () => {
 });
 
 
+
+// ---------- Collapsible sections, view switches and the Flows navigator ----------
+// A chart drawn while its section was closed had no width to measure; draw it again once it is on screen.
+const redrawCharts = (root) => root.querySelectorAll(".fchart").forEach((el) => { if (el._args && el.offsetParent) { try { barChart(el, ...el._args); } catch {} } });
+const accState = new Map();
+document.addEventListener("toggle", (e) => { const d = e.target; if (d.matches && d.matches("details.acc")) { accState.set(d.id || d.dataset.k, d.open); if (d.open) redrawCharts(d); } }, true);
+function paneSwitch(segId, show) {
+  const seg = $(segId); if (!seg) return;
+  seg.querySelectorAll("button").forEach((b) => b.onclick = () => { seg.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b)); show(b.dataset.v); });
+}
+const showPane = (box, key) => { box.querySelectorAll(":scope > .fpane").forEach((p) => { p.hidden = p.dataset.p !== key; if (!p.hidden) redrawCharts(p); }); };
+// FPI: Daily, Monthly, Quarterly and Yearly are one card; the period filters belong to the daily view only.
+paneSwitch("fpiview", (v) => {
+  const box = $("sec-fpi"), pane = { d: "d", m: "m", q: "h", y: "h" }[v];
+  $("fpi-dailyctl").hidden = v !== "d";
+  if (v === "q" || v === "y") { const b = document.querySelector(`#fhseg [data-v="${v === "q" ? "q" : "fy"}"]`); if (b) b.click(); }
+  showPane(box, pane);
+});
+paneSwitch("fdiview", (v) => showPane($("acc-fdi").querySelector(".acc-body"), v));
+// Sections that other code fills with "heading, note, content" groups are folded into click-to-open sections (or view buttons) as they arrive.
+function regroup(box, o) {
+  if (!box || box.querySelector(":scope > .acc, :scope > .viewseg")) return;
+  const kids = [...box.children], heads = kids.filter((k) => k.matches("h2.fsec"));
+  if (!heads.length) return;
+  const pre = kids.slice(0, kids.indexOf(heads[0]));
+  let groups = heads.map((h) => { const nodes = []; for (let j = kids.indexOf(h) + 1; j < kids.length && !kids[j].matches("h2.fsec"); j++) nodes.push(kids[j]); return { h, title: h.textContent.trim(), nodes }; });
+  groups.filter((g) => (o.drop || []).includes(g.title)).forEach((g) => { g.h.remove(); g.nodes.forEach((x) => x.remove()); });
+  groups = groups.filter((g) => !(o.drop || []).includes(g.title));
+  const last = groups[groups.length - 1], post = last && last.nodes.length && last.nodes[last.nodes.length - 1].matches("p.dsrc") ? [last.nodes.pop()] : [];
+  const frag = document.createDocumentFragment(); pre.forEach((x) => frag.append(x));
+  if (o.mode === "tabs") {
+    const seg = document.createElement("div"); seg.className = "seg viewseg"; seg.setAttribute("role", "group"); seg.setAttribute("aria-label", "View");
+    const cur = Math.min(regroup.pane[box.id] || 0, groups.length - 1);
+    seg.innerHTML = groups.map((g, i) => `<button type="button" data-v="${i}" aria-pressed="${i === cur}">${esc((o.labels || {})[g.title] || g.title)}</button>`).join(""); frag.append(seg);
+    groups.forEach((g, i) => { const d = document.createElement("div"); d.className = "fpane"; d.dataset.p = String(i); d.hidden = i !== cur; g.nodes.forEach((x) => d.append(x)); g.h.remove(); frag.append(d); });
+    seg.querySelectorAll("button").forEach((b) => b.onclick = () => { regroup.pane[box.id] = +b.dataset.v; seg.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b)); showPane(box, b.dataset.v); });
+  } else {
+    groups.forEach((g, i) => {
+      const note = g.nodes.find((x) => x.matches && x.matches("p.note")), sub = note ? note.textContent.replace(/\s+/g, " ").trim().slice(0, 130) : "";
+      const d = document.createElement("details"); d.className = "acc acc-in"; d.dataset.k = box.id + ":" + g.title;
+      d.open = accState.has(d.dataset.k) ? accState.get(d.dataset.k) : (o.open || []).includes(g.title);
+      d.innerHTML = `<summary><span class="acc-t">${esc(g.title)}</span><span class="acc-s">${esc(sub)}</span></summary><div class="acc-body"></div>`;
+      const body = d.querySelector(".acc-body"); g.nodes.forEach((x) => body.append(x)); g.h.remove(); frag.append(d);
+    });
+  }
+  post.forEach((x) => frag.append(x)); box.append(frag);
+}
+regroup.pane = {};
+function watchGroups(id, o) {
+  const box = $(id); if (!box) return;
+  const run = () => { mo.disconnect(); try { regroup(box, o); } finally { mo.observe(box, { childList: true }); } };
+  const mo = new MutationObserver(run); mo.observe(box, { childList: true }); run();
+}
+watchGroups("odi-body", { mode: "tabs", labels: { "Each month": "By month", "Top destinations": "Top destinations", "Every investment": "All investments" } });
+watchGroups("mk-body", { mode: "acc", open: ["Daily FII and DII net flows"], drop: ["India's foreign exchange reserves"] });
+// The Flows navigator: one tile per section; a tile opens the section and scrolls to it.
+const FL_NAV = [["sec-fpi", "FPI flows", "Net investment by day, month, quarter and year"], ["acc-fx", "Rupee and reserves", "Exchange rates, USD/INR and forex reserves"], ["acc-debt", "Debt limits and bonds", "FPI limits used, FAR bond holdings"],
+  ["acc-fdi", "FDI", "Foreign direct investment by country, sector, state"], ["acc-big", "Large deals and indices", "Deals over USD 250 million, index changes"], ["acc-odi", "Indian money abroad", "Overseas investment by Indian companies"], ["acc-mk", "Exchange data", "FII/DII flows, bulk deals, derivatives, SEBI filings"]];
+function drawFlowsNav() {
+  const box = $("fl-nav"); if (!box || box.dataset.done) return; box.dataset.done = "1";
+  box.innerHTML = `<p class="fnav-h">What is on this page. Tap a box to jump straight to it.</p><div class="fnav">${FL_NAV.map(([id, t, s2]) => `<button type="button" data-n="${id}"><b>${esc(t)}</b><span>${esc(s2)}</span></button>`).join("")}</div>`;
+  box.querySelectorAll("[data-n]").forEach((b) => b.onclick = () => { const el = $(b.dataset.n); if (!el) return; if (el.tagName === "DETAILS") el.open = true; setTimeout(() => el.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }), 60); });
+}
+drawFlowsNav();
 // ---------- Jump menu: long tabs get a sticky row of links to their sections ----------
-const JUMP_TABS = ["flows", "markets", "directory", "odi", "investors", "regulation"];
+const JUMP_TABS = ["directory", "investors", "regulation"];
 function buildJump(t) {
   const sec = $("tab-" + t); if (!sec || sec.hidden || !JUMP_TABS.includes(t)) return;
   const items = [], seen = new Set();
@@ -3740,18 +3864,18 @@ function buildJump(t) {
   if (!nav) { nav = document.createElement("nav"); nav.className = "qviews jump"; nav.setAttribute("aria-label", "Jump to a section"); sec.prepend(nav); }
   nav.innerHTML = items.map(([l], i) => `<button type="button" data-j="${i}">${esc(l)}</button>`).join("");
   items.forEach(([, el]) => el.classList.add("jump-t"));
-  nav.onclick = (ev) => { const b = ev.target.closest("button[data-j]"); if (b) items[+b.dataset.j][1].scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); };
+  nav.onclick = (ev) => { const b = ev.target.closest("button[data-j]"); if (b && items[+b.dataset.j][1].tagName === "DETAILS") items[+b.dataset.j][1].open = true; if (b) items[+b.dataset.j][1].scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); };
 }
 function setTab(t) {
   [700, 2200, 5000].forEach((ms) => setTimeout(() => { try { buildJump(t); } catch {} }, ms));
   if (t === "investors") setTimeout(() => { try { drawCountryBrief(); } catch {} }, 400);
-  if (t === "flows") setTimeout(() => { try { drawMktCal(); drawDebtLimits(); drawIndexEvents(); } catch {} }, 400);
+  if (t === "flows") setTimeout(() => { try { drawDebtLimits(); drawIndexEvents(); } catch {} }, 400);
   if (t === "regulation") setTimeout(() => { try { drawCompCal(); } catch {} }, 400);
   if (t === "flows") setTimeout(() => { try { drawFxDesk(); } catch {} }, 300);
   if (t === "directory") setTimeout(() => { try { drawFpiWatch(); drawFpiLimits(); } catch {} }, 300);
   if (t === "regulation") [300, 1800].forEach((ms) => setTimeout(() => { try { drawWht(); drawRegLib(); } catch {} }, ms));
   // The FPI watch lists, investment limits and FPI asset tables belong to the FPI register only; GIFT City keeps its own totals.
-  ["fpiwatch", "fpilim", "dir-aum"].forEach((id) => { const e = $(id); if (e) e.hidden = t === "gift"; });
+  ["fpiwatch", "acc-fpilim", "acc-aum"].forEach((id) => { const e = $(id); if (e) e.hidden = t === "gift"; });
   setTimeout(() => { try { drawSideViews(); } catch {} }, 0);
   [0, 600, 1500].forEach((ms) => setTimeout(() => { try { drawTabSums(); } catch {} }, ms));
   // Going to Home drops the country, sector and story filters, so the address goes back to plain "/".
@@ -3771,6 +3895,8 @@ function setTab(t) {
   const stack = t === "flows";
   document.body.classList.toggle("flows-stack", stack);
   if (stack) { $("tab-odi").hidden = false; $("tab-markets").hidden = false; }
+  if (t === "odi" && $("acc-odi")) $("acc-odi").open = true;
+  if (t === "markets" && $("acc-mk")) $("acc-mk").open = true;
   if (was === "firm" && t !== "firm" && location.hash.startsWith("#firm/")) history.replaceState(null, "", location.pathname + location.search);
   // Fade the section in when it changes.
   const sec = $(`tab-${secId}`); sec.classList.remove("enter"); void sec.offsetWidth; sec.classList.add("enter");
