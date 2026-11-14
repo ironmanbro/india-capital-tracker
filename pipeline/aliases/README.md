@@ -1,4 +1,4 @@
-# Alias table: which names are the same investor
+# Alias table: which names are the same investor or company
 
 The same investor is written many ways across the tables: `SVF II MEERKAT (DE) LLC`, `SoftBank Vision Fund` and
 `SoftBank` are one group; `FIDELITY FUNDS - INDIA FOCUS FUND` is a Fidelity fund. Without a mapping, the Investors
@@ -7,10 +7,12 @@ directory finds only 50 of 552 news names in the shareholding filings, and the p
 ## Pieces
 | File | What it does |
 |---|---|
-| `build_candidates.py` | Reads names from stories, shareholdings, fpi_registry and CCI orders and PROPOSES groups. Writes `candidates.json` (not committed, 1.4 MB) and optionally `mockups/v2/alias.js` for the review page |
+| `build_company_candidates.py` | Same idea for companies, but anchored on NSE symbols and ISINs (see "Companies" below). Writes `candidates_company.json` (not committed) and `mockups/v2/company_alias.js` |
+| `build_candidates.py` | Investors. Reads names from stories, shareholdings, fpi_registry and CCI orders and PROPOSES groups. Writes `candidates.json` (not committed, 1.4 MB) and optionally `mockups/v2/alias.js` for the review page |
 | `aliases_curated.json` | Hand-written patterns, applied first. Only SoftBank is in it today |
 | `../../supabase/migrations/20261114_entity_aliases.sql` | Stores the owner's DECISIONS only (`entity_group`, `entity_alias`, `entity_of()`). **Not yet applied to the live project** |
-| `../../mockups/v2/alias.html` | Review queue: confirm, reject, untick members, change relations, export SQL |
+| `../../supabase/migrations/20261115_entity_companies.sql` | Run after the first one. Adds symbol and ISIN to company groups, makes aliases unique per kind, adds the `part_of` relation and `entity_of(name, kind)`. **Not yet applied** |
+| `../../mockups/v2/alias.html` | Review queue for investors and companies: confirm, reject, untick members, change relations, export SQL |
 
 ## How a name gets proposed
 1. **Exact**: equal after `norm_name()` (same function as the database, checked on 2,247 name pairs with no difference). Already merged; not reviewed.
@@ -39,8 +41,28 @@ Re-running the same file changes nothing.
 - By hand, 70 random proposals were read. Three error patterns were found and fixed (country names as group names, custodian wording, a 3-letter acronym rule). Of 30 non-fund proposals read after the fixes, none was clearly wrong, but several rest on a brand meaning one owner ("Prudential", "Kia"), which is why every proposal needs the owner's decision. This is a spot check, not a measured precision.
 
 ## Not done
-- Companies (kind `company`: Meesho Ltd vs Meesho Limited vs the NSE symbol) have no generator yet.
 - Only the top 150 groups by impact are loaded in the review page; the full list is in `candidates.json`.
 - Names are linked by text only. ISINs, LEIs and registration numbers are not used as evidence.
 - The site does not read `entity_of()` yet; wiring it into the Investors directory, profiles and Registrations is the next step after the first decisions.
 - The generator is not scheduled; it should run after each ingest once decisions exist, and skip names already decided.
+
+## Companies (`build_company_candidates.py`)
+A listed company has identifiers, so the rules are stricter than for investors.
+
+| Level | Rule | Reviewed? |
+|---|---|---|
+| certain | same NSE symbol or ISIN in any table: the NSE shareholding feed (2,716 rows), corporate actions, deals, shareholdings, limits. A rights-entitlement symbol (`OLAELEC-RE`) joins its base symbol. Symbol and ISIN are joined with union-find, so an ISIN change after a share split stays one company | no |
+| exact | a free-text name (news target, CCI party, ODI Indian party) equals ONE registered name after cleaning: address after a comma, "(India)", "Pvt", typos such as "LIMTED", and "IPO" are ignored. "Trust", "Fund" and "LP" are kept, because they make it another kind of body | no |
+| proposed | the text is the start of ONE registered name ("Lenskart" for "Lenskart Solutions Limited"), or a registered name is the start of the text ("Tata Steel overseas arm") | **yes** |
+| ambiguous | the text fits several registered names; listed in the review page, never proposed | needs a symbol or ISIN |
+
+A text that is already a complete legal name ("Gulf Oil Corporation Ltd", "Hitachi, Ltd", "X LLP") is never linked to a longer registered name: it is a different company. A text that also appears as an investor in the news is flagged. Subsidiary-type links (`part_of`) are off by default.
+
+Last run (snapshot 14-Nov-26): 2,530 listed companies; 11,882 free-text names checked (mostly ODI parties and unlisted targets, which have no symbol); 871 link exactly; 63 groups with 71 proposed names (28 "same" and 43 "part of"); 4 ambiguous (LTIMindtree was renamed, Jain Irrigation has equity and DVR shares, GACM has two entries, "Tamil Nadu operations" is generic). Of 1,154 news items that name a target, 513 already link to a listed company; accepting every proposal would make it 550. The rest name unlisted or foreign companies.
+
+Checked: 40 random exact links read by hand, 39 correct; the wrong one ("Highway Infrastructure Trust" matched to a company because `norm_name()` drops "trust") exposed a rule and was fixed. All 28 "same" proposals read by hand: 26 look right; "Prudential" (a sugar company matched to the insurer's name) is wrong and is flagged, and "Bodhi Tree" is unclear. "Hitachi, Ltd" was dropped by the complete-legal-name rule. A first, looser version produced 214 proposals, most wrong; the stricter rules cut it to 71.
+
+Not done for companies: unlisted companies (startups) are only grouped by exact cleaned name; there is no registry (CIN or LEI) for them. Issuers with several listed securities under different names (equity and DVR) are not merged. Subsidiaries are not rolled up to a parent.
+
+## Export SQL: safety checks
+`Download SQL` writes one file for both kinds. It collapses two spellings that reduce to the same `norm_name()` key into one alias, and it stops with "Not saved" (changing nothing) if the same name is in two groups, is both confirmed and rejected, or already belongs to a different group in the database. Tested on a throwaway PostgreSQL 16 with both migrations: a repeat run is a no-op, and each of the three failures was triggered on purpose and left the data unchanged.

@@ -38,26 +38,32 @@ kbd{font:var(--t-11) var(--font-mono);border:1px solid var(--line-strong);border
 <main class="wrap">
   <div class="crumb">Admin / Alias review</div>
   <div class="pagehead"><h1>Alias review queue</h1>
-    <div class="meta">Owner only · nothing is applied: decisions stay in this browser until you export them · <b id="asof"></b></div></div>
+    <div class="meta"><span class="seg" id="kindseg" role="group" aria-label="What to review"><button data-v="investor">Investors</button><button data-v="company">Companies</button></span> &nbsp;Owner only · nothing is applied: decisions stay in this browser until you export them · <b id="asof"></b></div></div>
 
   <div class="grid">
-    <div class="p c3 stat"><span>Names across all tables</span><b id="s1"></b><small id="s1s"></small></div>
-    <div class="p c3 stat"><span>Proposed groups, highest impact first</span><b id="s2"></b><small id="s2s"></small></div>
-    <div class="p c3 stat"><span>Reviewed so far</span><b id="s3"></b><small id="s3s"></small></div>
-    <div class="p c3 stat"><span>If every proposal were right</span><b id="s4"></b><small id="s4s"></small></div>
+    <div class="p c3 stat"><span id="l1">Names across all tables</span><b id="s1"></b><small id="s1s"></small></div>
+    <div class="p c3 stat"><span id="l2">Proposed groups, highest impact first</span><b id="s2"></b><small id="s2s"></small></div>
+    <div class="p c3 stat"><span id="l3">Reviewed so far</span><b id="s3"></b><small id="s3s"></small></div>
+    <div class="p c3 stat"><span id="l4">If every proposal were right</span><b id="s4"></b><small id="s4s"></small></div>
 
     <section class="p c4" aria-label="Queue">
-      <div class="ph"><h2>Queue</h2><span class="seg" data-k="show"><button data-v="pending">Pending</button><button data-v="done">Decided</button><button data-v="all">All</button></span></div>
+      <div class="ph"><h2>Queue</h2><span class="seg" id="showseg" data-k="show"><button data-v="pending">Pending</button><button data-v="done">Decided</button><button data-v="all">All</button></span></div>
       <div class="qlist" id="ql"></div>
-      <div class="pf"><span><kbd>j</kbd> <kbd>k</kbd> next / previous · <kbd>c</kbd> confirm · <kbd>r</kbd> reject · <kbd>s</kbd> skip</span><span>Impact = deals in 12 months ×2 + filed holdings + register entries ÷2 + CCI orders, +10 when it links news to filings</span></div>
+      <div class="pf"><span><kbd>j</kbd> <kbd>k</kbd> next / previous · <kbd>c</kbd> confirm · <kbd>r</kbd> reject · <kbd>s</kbd> skip</span><span id="impact-note"></span></div>
     </section>
 
     <section class="p c8" aria-label="Group detail" id="detail"></section>
 
+    <section class="p c12" id="ambp" aria-labelledby="h-a" hidden>
+      <div class="ph"><h2 id="h-a">Ambiguous company names, not proposed</h2><span class="u">the name fits several listed companies</span></div>
+      <div class="tw"><table class="tbl" id="amb"></table></div>
+      <div class="pf"><span>These need an NSE symbol or ISIN to decide. They are left unlinked until someone adds one.</span></div>
+    </section>
+
     <section class="p c12" aria-labelledby="h-x">
       <div class="ph"><h2 id="h-x">Export decisions</h2><span class="u" id="xs"></span></div>
       <div class="dl"><button class="btn" id="x-json">Download decisions (JSON)</button><button class="btn" id="x-sql">Download SQL for the database</button><button class="btn" id="x-clear">Clear all decisions in this browser</button></div>
-      <div class="pf"><span>The SQL fills entity_group and entity_alias (supabase/migrations/20261114_entity_aliases.sql, not yet applied). Run it in the Supabase SQL editor after reading it.</span><span>Excluded members are stored as "rejected" so they are not proposed again.</span></div>
+      <div class="pf"><span>The SQL fills entity_group and entity_alias (migrations 20261114 and 20261115, not yet applied). Run it in the Supabase SQL editor after reading it. It stops without saving if a name already belongs to a different group.</span><span>Excluded members are stored as "rejected" so they are not proposed again.</span></div>
     </section>
 
     <section class="p c12" aria-labelledby="h-g">
@@ -67,53 +73,73 @@ kbd{font:var(--t-11) var(--font-mono);border:1px solid var(--line-strong);border
         <tr><td><b>Fund of</b></td><td class="wrapc">A fund or sub-fund run by the group. Names that differ only by Ltd, Inc, Fund or Trust are already treated as equal by the database; this is the step beyond that.</td></tr>
         <tr><td><b>Vehicle of</b></td><td class="wrapc">A holding vehicle, for example the "SVF ..." companies for SoftBank.</td></tr>
         <tr><td><b>Related</b></td><td class="wrapc">The name starts with the group's name (a subsidiary, branch or affiliate). Check that the brand really means one owner: "Prudential" is used by unrelated companies.</td></tr>
+        <tr><td><b>Part of</b></td><td class="wrapc">Companies only: the name is a unit, plant or subsidiary of the listed company ("Pricol unit", "Reliance Industries Investment and Holding"). Off by default: a deal in a subsidiary is not a deal in the parent unless you decide it should roll up.</td></tr>
         <tr><td><b>Held via (off by default)</b></td><td class="wrapc">The name starts with a custodian or trustee and says "Re:", "as trustee" or "on behalf of". The fund usually belongs to someone else, so it is excluded unless you include it.</td></tr>
       </tbody></table></div>
     </section>
   </div>
 </main>
-<div class="foot"><span>India Capital Monitor · v2 design mockup · Alias review</span><span>Candidates come from pipeline/aliases/build_candidates.py; the top 150 groups are loaded here with every member</span></div>
+<div class="foot"><span>India Capital Monitor · v2 design mockup · Alias review</span><span>Candidates come from pipeline/aliases/build_candidates.py (investors) and build_company_candidates.py (companies)</span></div>
 
-<script src="data.js"></script><script src="alias.js"></script><script src="ui.js"></script>
+<script src="data.js"></script><script src="alias.js"></script><script src="company_alias.js"></script><script src="ui.js"></script>
 <script>
-const F=window.F, A=ALIAS, C=A.clusters, ST=A.stats, KEY='ict-alias-decisions-v1';
+const F=window.F, KEY='ict-alias-decisions-v1';
 ICTUI.shell('','');
-document.getElementById('asof').textContent='Data snapshot '+ST.snapshot+' · built '+ST.built;
-const REL={same:'Same entity',fund_of:'Fund of',vehicle_of:'Vehicle of',related:'Related'};
+const SETS={investor:ALIAS, company:ALIAS_CO};
+ALIAS.clusters.forEach(c=>c.kind='investor'); ALIAS_CO.clusters.forEach(c=>c.kind='company');
+const byId={}; [...ALIAS.clusters,...ALIAS_CO.clusters].forEach(c=>byId[c.id]=c);
+const REL={same:'Same entity',fund_of:'Fund of',vehicle_of:'Vehicle of',related:'Related',part_of:'Part of'};
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let D={}; try{D=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){}};
-const get=c=>{ if(!D[c.id]){const m={}; c.members.forEach(x=>m[x.key]={inc:!x.warn,rel:x.relation==='held_via'?'related':x.relation}); D[c.id]={status:'pending',canon:c.canon,m}} return D[c.id]};
-let cur=C[0].id, show='pending';
-const byId=Object.fromEntries(C.map(c=>[c.id,c]));
+let kind='investor', cur=SETS.investor.clusters[0].id, show='pending', mq='', onlyLow=false;
+const C=()=>SETS[kind].clusters, ST=()=>SETS[kind].stats;
+document.getElementById('asof').textContent='Data snapshot '+ALIAS.stats.snapshot+' · built '+ALIAS.stats.built;
+/* what counts as "on" when a group is first opened */
+const defInc=(c,m)=>c.kind==='company' ? (!m.warn&&m.relation!=='part_of'&&m.conf!=='low') : !m.warn;
+const get=c=>{ if(!D[c.id]){const m={}; c.members.forEach(x=>m[x.key]={inc:defInc(c,x),rel:x.relation==='held_via'?'related':x.relation}); D[c.id]={status:'pending',canon:c.canon,m}} return D[c.id]};
+const COLS={investor:{h:['Deals 12m','Filed','Register','CCI'],c:m=>[m.d12?m.e12+'↑ '+m.x12+'↓':null,m.shp?m.shp+(m.shp_max?' · '+m.shp_max.toFixed(1)+'%':''):null,m.fpi||null,m.cci||null],t:m=>[null,m.shp_co,m.fpi_ex&&m.fpi_ex[0]?m.fpi_ex[0].join(' · '):null,null],sum:['d12','shp','fpi','cci'],words:['deals in 12 months','filed holdings','register entries','CCI orders']},
+ company:{h:['Deals 12m','All deals','CCI','ODI'],c:m=>[m.d12||null,m.stories||null,m.cci||null,m.odi||null],t:m=>[null,null,null,null],sum:['d12','stories','cci','odi'],words:['deals in 12 months','news and exchange deals in all','CCI orders','ODI filings']}};
 
 function stats(){
-  const nd=C.filter(c=>get(c).status!=='pending').length, ok=C.filter(c=>get(c).status==='confirmed').length;
-  s1.textContent=F.inr(ST.names); const b=ST.by_source; s1s.textContent='news '+F.inr(b.stories)+' · filed '+F.inr(b.shareholdings)+' · register '+F.inr(b.fpi_registry)+' · CCI '+F.inr(b.cci);
-  s2.textContent=ST.clusters; s2s.textContent=F.inr(ST.members_in_clusters)+' names; '+F.inr(ST.spellings_merged_by_norm_name)+' spelling variants are already merged by the database';
-  s3.textContent=nd+' of '+C.length; s3s.textContent=ok+' confirmed · '+(nd-ok)+' rejected';
-  s4.textContent=ST.news_also_filed_exact+' → '+ST.news_also_filed_if_all_accepted; s4s.textContent='news names also found in shareholding filings; in the FPI register '+ST.news_also_registered_exact+' → '+ST.news_also_registered_if_all_accepted+'. An upper bound: expect fewer after review.';
+  const st=ST(), cl=C(), nd=cl.filter(c=>get(c).status!=='pending').length, ok=cl.filter(c=>get(c).status==='confirmed').length, L=(i,t)=>document.getElementById('l'+i).textContent=t;
+  if(kind==='investor'){
+    L(1,'Names across all tables'); L(2,'Proposed groups, highest impact first'); L(4,'If every proposal were right');
+    s1.textContent=F.inr(st.names); const b=st.by_source; s1s.textContent='news '+F.inr(b.stories)+' · filed '+F.inr(b.shareholdings)+' · register '+F.inr(b.fpi_registry)+' · CCI '+F.inr(b.cci);
+    s2.textContent=st.clusters; s2s.textContent=F.inr(st.members_in_clusters)+' names; '+F.inr(st.spellings_merged_by_norm_name)+' spelling variants are already merged by the database';
+    s4.textContent=st.news_also_filed_exact+' → '+st.news_also_filed_if_all_accepted; s4s.textContent='news names also found in shareholding filings; in the FPI register '+st.news_also_registered_exact+' → '+st.news_also_registered_if_all_accepted+'. An upper bound: expect fewer after review.';
+  } else {
+    L(1,'Listed companies known by symbol or ISIN'); L(2,'Proposed company links, highest impact first'); L(4,'News items linked to a listed company');
+    s1.textContent=F.inr(st.listed_companies); s1s.textContent=F.inr(st.free_text_names)+' free-text company names checked; '+st.more_than_one_isin+' companies have changed ISIN (share splits), which is normal';
+    s2.textContent=st.clusters; s2s.textContent=st.proposed_names+' names proposed; '+F.inr(st.result.exact)+' more link exactly without review; '+st.ambiguous+' are ambiguous';
+    s4.textContent=st.stories_linked_exact+' → '+st.stories_linked_if_all_accepted; s4s.textContent='of '+F.inr(st.stories_with_target)+' news items that name a target. Most of the rest name unlisted companies, which have no symbol to link to. An upper bound.';
+  }
+  s3.textContent=nd+' of '+cl.length; s3s.textContent=ok+' confirmed · '+(nd-ok)+' rejected';
+  document.getElementById('ambp').hidden=kind!=='company'; if(kind==='company') amb();
+  document.getElementById('impact-note').textContent=kind==='company'?'Impact = deals in 12 months ×2 + all deals + CCI orders + ODI filings ÷20, +5 for a company in the NSE shareholding feed':'Impact = deals in 12 months ×2 + filed holdings + register entries ÷2 + CCI orders, +10 when it links news to filings';
 }
+function amb(){const A=ALIAS_CO.ambiguous; document.getElementById('amb').innerHTML='<thead><tr><th>Name as written</th><th>Fits these listed companies</th><th>Why</th><th class="n">Uses</th></tr></thead><tbody>'+A.map(x=>'<tr><td>'+esc(x.text)+'</td><td class="wrapc">'+x.candidates.map(esc).join(' · ')+'</td><td>'+esc(x.why)+'</td><td class="n num">'+x.n+'</td></tr>').join('')+'</tbody>'}
+const visible=()=>C().filter(c=>{const s=get(c).status; return show==='all'||(show==='pending'?s==='pending':s!=='pending')});
 function queue(){
-  const list=C.filter(c=>{const s=get(c).status; return show==='all'||(show==='pending'?s==='pending':s!=='pending')});
-  document.getElementById('ql').innerHTML=list.map(c=>{const d=get(c),n=Object.values(d.m).filter(x=>x.inc).length;return '<button class="qi" data-id="'+c.id+'" aria-current="'+(c.id===cur)+'"><span class="st '+(d.status==='confirmed'?'ok':d.status==='rejected'?'no':'')+'">'+(d.status==='pending'?'pending':d.status)+'</span><b>'+esc(d.canon)+'</b><small>'+F.inr(c.names)+' names · '+c.d12+' deals · '+c.shp+' filed · '+F.inr(c.fpi)+' register'+(c.bridge?' · bridges news and filings':'')+'</small></button>'}).join('')||'<div class="mut" style="padding:14px">Nothing here.</div>';
+  const list=visible();
+  document.getElementById('ql').innerHTML=list.map(c=>{const d=get(c),sub=kind==='company'?(c.names-1)+' proposed · '+c.d12+' deals 12m · '+esc(c.symbol||'no symbol')+(c.isin?'':' · no ISIN'):F.inr(c.names)+' names · '+c.d12+' deals · '+c.shp+' filed · '+F.inr(c.fpi)+' register'+(c.bridge?' · bridges news and filings':'');
+    return '<button class="qi" data-id="'+c.id+'" aria-current="'+(c.id===cur)+'"><span class="st '+(d.status==='confirmed'?'ok':d.status==='rejected'?'no':'')+'">'+(d.status==='pending'?'pending':d.status)+'</span><b>'+esc(d.canon)+'</b><small>'+sub+'</small></button>'}).join('')||'<div class="mut" style="padding:14px">Nothing here.</div>';
   document.querySelectorAll('.qi').forEach(b=>b.onclick=()=>{cur=b.dataset.id;draw()});
   const el=document.querySelector('.qi[aria-current="true"]'); if(el) el.scrollIntoView({block:'nearest'});
 }
-let mq='',onlyLow=false;
 function detail(){
-  const c=byId[cur]; if(!c){document.getElementById('detail').innerHTML='<div class="pb mut" style="padding:20px">Pick a group.</div>';return}
-  const d=get(c), inc=c.members.filter(m=>d.m[m.key].inc), sum=f=>inc.reduce((s,m)=>s+(m[f]||0),0);
-  const warn=c.members.filter(m=>m.warn).length;
+  const c=byId[cur]; if(!c||c.kind!==kind){document.getElementById('detail').innerHTML='<div class="pb mut" style="padding:20px">Pick a group.</div>';return}
+  const d=get(c), K=COLS[kind], inc=c.members.filter(m=>d.m[m.key].inc), sum=f=>inc.reduce((s,m)=>s+(m[f]||0),0), warn=c.members.filter(m=>m.warn).length;
   const rows=c.members.filter(m=>(!mq||m.name.toLowerCase().includes(mq))&&(!onlyLow||m.conf==='low'||m.warn));
+  const ids=kind==='company'?'<div><label>NSE symbol · ISIN (from the exchange, not a guess)</label><span class="num" style="line-height:30px">'+esc(c.symbol||'none')+' · '+esc(c.isin||'none')+'</span></div>':'';
   document.getElementById('detail').innerHTML=
-   '<div class="dh"><div><label for="cn">Group name (editable)</label><input class="nm" id="cn" value="'+esc(d.canon)+'"></div>'+
+   '<div class="dh"><div><label for="cn">Group name (editable)</label><input class="nm" id="cn" value="'+esc(d.canon)+'"></div>'+ids+
    '<div><span class="st '+(d.status==='confirmed'?'ok':d.status==='rejected'?'no':'')+'" style="float:none">'+d.status+'</span></div>'+
    '<div class="btns"><button class="btn ok" id="b-c">Confirm group (c)</button><button class="btn no" id="b-r">Reject group (r)</button><button class="btn" id="b-s">Skip (s)</button><button class="btn" id="b-u">Undo decision</button></div></div>'+
-   '<div class="impact">Confirming would link <b>'+inc.length+'</b> of '+c.names+' names to this group: <b>'+sum('d12')+'</b> deals in 12 months, <b>'+sum('shp')+'</b> filed holdings, <b>'+F.inr(sum('fpi'))+'</b> register entries, <b>'+sum('cci')+'</b> CCI orders.'+(warn?' <span class="warn">'+warn+' name'+(warn>1?'s are':' is')+' flagged and off by default.</span>':'')+''+'</div>'+
+   '<div class="impact">Confirming would link <b>'+inc.length+'</b> of '+c.names+' names to this group: '+K.sum.map((f,i)=>'<b>'+F.inr(sum(f))+'</b> '+K.words[i]).join(', ')+'.'+(warn?' <span class="warn">'+warn+' name'+(warn>1?'s are':' is')+' flagged'+(kind==='investor'?' and off by default':'')+'.</span>':'')+'</div>'+
    '<div class="filters" style="padding:8px 14px"><div><label for="mq">Find a name</label><input id="mq" type="search" placeholder="Filter the members" value="'+esc(mq)+'"></div><div><label>&nbsp;</label><label style="display:inline;color:var(--ink-2);font-size:var(--t-12)"><input type="checkbox" id="lo" '+(onlyLow?'checked':'')+'> Only low confidence or flagged</label></div><button class="link-btn rs" id="xl">Exclude all low confidence</button></div>'+
-   '<div class="tw" style="max-height:520px;overflow:auto"><table class="tbl mt"><thead><tr><th></th><th>Name</th><th>Relation</th><th>Why proposed</th><th class="n">Deals 12m</th><th class="n">Filed</th><th class="n">Register</th><th class="n">CCI</th></tr></thead><tbody>'+
-   rows.map(m=>{const s=d.m[m.key];return '<tr class="'+(s.inc?'':'off ')+(m.warn?'warn-row':'')+'"><td><input type="checkbox" data-k="'+esc(m.key)+'" '+(s.inc?'checked':'')+' aria-label="Include '+esc(m.name)+'"></td><td class="cl" title="'+esc(m.spellings.join(' | '))+'">'+esc(m.name)+'</td><td><select data-r="'+esc(m.key)+'">'+Object.keys(REL).map(k=>'<option value="'+k+'"'+(s.rel===k?' selected':'')+'>'+REL[k]+'</option>').join('')+'</select></td><td class="cl" title="'+esc(m.warn||m.rule)+'">'+(m.warn?'<span class="warn">'+esc(m.warn)+'</span>':esc(m.rule))+' <span class="tag '+(m.conf==='high'?'a':m.conf==='low'?'c':'')+'">'+m.conf+'</span></td><td class="n num">'+(m.d12?m.e12+'↑ '+m.x12+'↓':'<span class="mut">–</span>')+'</td><td class="n num" title="'+esc(m.shp_co||'')+'">'+(m.shp?m.shp+(m.shp_max?' · '+m.shp_max.toFixed(1)+'%':''):'<span class="mut">–</span>')+'</td><td class="n num" title="'+esc(m.fpi_ex&&m.fpi_ex[0]?m.fpi_ex[0].join(' · '):'')+'">'+(m.fpi||'<span class="mut">–</span>')+'</td><td class="n num">'+(m.cci||'<span class="mut">–</span>')+'</td></tr>'}).join('')+'</tbody></table></div>'+
+   '<div class="tw" style="max-height:520px;overflow:auto"><table class="tbl mt"><thead><tr><th></th><th>Name</th><th>Relation</th><th>Why proposed</th>'+K.h.map(h=>'<th class="n">'+h+'</th>').join('')+'</tr></thead><tbody>'+
+   rows.map(m=>{const s=d.m[m.key], cells=K.c(m), tips=K.t(m);return '<tr class="'+(s.inc?'':'off ')+(m.warn?'warn-row':'')+'"><td><input type="checkbox" data-k="'+esc(m.key)+'" '+(s.inc?'checked':'')+' aria-label="Include '+esc(m.name)+'"></td><td class="cl" title="'+esc(m.spellings.join(' | '))+'">'+esc(m.name)+'</td><td><select data-r="'+esc(m.key)+'">'+Object.keys(REL).map(k=>'<option value="'+k+'"'+(s.rel===k?' selected':'')+'>'+REL[k]+'</option>').join('')+'</select></td><td class="cl" title="'+esc(m.warn||m.rule)+'">'+(m.warn?'<span class="warn">'+esc(m.warn)+'</span>':esc(m.rule==='root'&&kind==='company'?'listed company (registry)':m.rule))+' <span class="tag '+(m.conf==='high'?'a':m.conf==='low'?'c':'')+'">'+m.conf+'</span></td>'+cells.map((v,i)=>'<td class="n num" title="'+esc(tips[i]||'')+'">'+(v==null?'<span class="mut">–</span>':v)+'</td>').join('')+'</tr>'}).join('')+'</tbody></table></div>'+
    '<div class="pf"><span>Untick a name to keep it out of the group; it is stored as rejected. Change a relation with the dropdown.</span></div>';
   const $=id=>document.getElementById(id);
   $('cn').oninput=e=>{d.canon=e.target.value; touch(c); save(); queue()};
@@ -126,27 +152,72 @@ function detail(){
 }
 const touch=c=>{const d=get(c); if(d.status!=='pending'){d.status='pending'; delete d.at}};
 function decide(st){const c=byId[cur], list=visible(), i=list.findIndex(x=>x.id===cur), d=get(c); d.status=st; d.at=new Date().toISOString(); save(); draw(); if(show==='pending'){const n=list[i+1]||list[i-1]; if(n&&n.id!==cur){cur=n.id; draw()}}}
-const visible=()=>C.filter(c=>{const s=get(c).status; return show==='all'||(show==='pending'?s==='pending':s!=='pending')});
 function step(n){const l=visible(); if(!l.length) return; let i=l.findIndex(x=>x.id===cur); i=Math.min(l.length-1,Math.max(0,(i<0?0:i)+n)); cur=l[i].id; draw()}
 function draw(keepScroll){const sc=document.querySelector('#detail .tw'),y=sc?sc.scrollTop:0; stats(); queue(); detail(); exportBar(); if(keepScroll){const n=document.querySelector('#detail .tw'); if(n) n.scrollTop=y}}
-document.querySelectorAll('.seg button').forEach(b=>{b.setAttribute('aria-pressed',String(b.dataset.v===show)); b.onclick=()=>{show=b.dataset.v; document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.v===show))); const l=visible(); if(l.length&&!l.find(x=>x.id===cur)) cur=l[0].id; draw()}});
+const press=(id,v)=>document.querySelectorAll('#'+id+' button').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.v===v)));
+document.querySelectorAll('#showseg button').forEach(b=>b.onclick=()=>{show=b.dataset.v; press('showseg',show); const l=visible(); if(l.length&&!l.find(x=>x.id===cur)) cur=l[0].id; draw()});
+document.querySelectorAll('#kindseg button').forEach(b=>b.onclick=()=>{kind=b.dataset.v; press('kindseg',kind); mq=''; onlyLow=false; const l=visible(); cur=(l[0]||C()[0]).id; draw()});
+press('showseg',show); press('kindseg',kind);
 document.addEventListener('keydown',e=>{ if(e.target.closest('input,select,textarea')||e.metaKey||e.ctrlKey||e.altKey) return;
   if(e.key==='j') step(1); else if(e.key==='k') step(-1); else if(e.key==='c') decide('confirmed'); else if(e.key==='r') decide('rejected'); else if(e.key==='s') step(1)});
 
-/* ---- export ---- */
-function decisions(){ return C.map(c=>({c,d:get(c)})).filter(x=>x.d.status!=='pending').map(({c,d})=>({id:c.id,canonical:d.canon.trim()||c.canon,status:d.status,decided_at:d.at,members:c.members.map(m=>{const s=d.m[m.key]; const inc=d.status==='confirmed'&&s.inc; return {alias:m.name,key:m.key,relation:s.rel,status:inc?'confirmed':'rejected',rule:m.rule==='root'?'group name':m.rule}})}))}
-const q=s=>"'"+String(s).replace(/\u0000/g,'').replace(/'/g,"''")+"'";
-function sql(){ const ds=decisions(), ok=ds.filter(d=>d.status==='confirmed');
-  let o='-- Alias decisions exported '+new Date().toISOString()+' from the review queue.\n-- Needs supabase/migrations/20261114_entity_aliases.sql. Read before running.\n-- Rejected groups are stored too (status rejected, hidden from the public by row-level security) so they are not proposed again.\nbegin;\n';
-  if(!ds.length) return o+'-- No decisions yet.\ncommit;\n';
-  o+='insert into public.entity_group (canonical, kind) values\n'+[...new Set(ds.map(d=>d.canonical))].map(g=>'  ('+q(g)+", 'investor')").join(',\n')+'\non conflict (kind, canonical) do update set decided_at = now();\n\n';
-  const vals=ds.flatMap(d=>d.members.map(m=>'  ('+[q(d.canonical),q(m.alias),q(m.relation),q(m.status),q(m.rule||'')].join(', ')+')')).join(',\n');
-  o+='insert into public.entity_alias (group_id, alias, alias_key, relation, status, rule)\nselect g.id, v.alias, norm_name(v.alias), v.relation, v.status, v.rule\nfrom (values\n'+vals+'\n) as v(canonical, alias, relation, status, rule)\njoin public.entity_group g on g.kind = \'investor\' and g.canonical = v.canonical\nwhere norm_name(v.alias) <> \'\'\non conflict (alias_key) do update set group_id = excluded.group_id, relation = excluded.relation, status = excluded.status, rule = excluded.rule, decided_at = now();\n\ncommit;\n';
+/* ---- export: every decided group, both kinds ---- */
+function decisions(){ return Object.values(byId).map(c=>({c,d:D[c.id]})).filter(x=>x.d&&x.d.status!=='pending').map(({c,d})=>({id:c.id,kind:c.kind,canonical:d.canon.trim()||c.canon,symbol:c.symbol||null,isin:c.isin||null,status:d.status,decided_at:d.at,members:c.members.map(m=>{const s=d.m[m.key]; const inc=d.status==='confirmed'&&s.inc; return {alias:m.name,key:m.key,relation:s.rel,status:inc?'confirmed':'rejected',rule:m.rule==='root'?(c.kind==='company'?'listed company':'group name'):m.rule}})}))}
+const q=s=>"'"+String(s).replace(/\u0000/g,'').replace(/'/g,"''")+"'", qn=s=>s==null?'null':q(s);
+function sql(){ const ds=decisions();
+  let o='-- Alias decisions exported '+new Date().toISOString()+' from the review queue.\n-- Needs supabase/migrations/20261114_entity_aliases.sql and 20261115_entity_companies.sql. Read before running.\n-- Rejected groups are stored too (status rejected, hidden from the public by row-level security) so they are not proposed again.\n-- Names are compared with norm_name(), so two spellings that reduce to the same key are ONE alias; the script checks for clashes.\n';
+  if(!ds.length) return o+'begin;\n-- No decisions yet.\ncommit;\n';
+  const grp=new Map(); ds.forEach(d=>{const k=d.kind+'|'+d.canonical; const g=grp.get(k); if(!g) grp.set(k,d); else {g.symbol=g.symbol||d.symbol; g.isin=g.isin||d.isin}});
+  o+='begin;\ncreate temp table _in (kind text, canonical text, alias text, relation text, status text, rule text) on commit drop;\ninsert into _in values\n'+ds.flatMap(d=>d.members.map(m=>'  ('+[q(d.kind),q(d.canonical),q(m.alias),q(m.relation),q(m.status),q(m.rule||'')].join(', ')+')')).join(',\n')+';\n\n';
+  o+=`-- 1. Stop if this file puts one name in two groups, or confirms and rejects the same name.
+do $$
+declare bad text;
+begin
+  select string_agg(kind || ': ' || k || ' is in ' || string_agg_g, '; ') into bad from (
+    select kind, norm_name(alias) as k, string_agg(distinct canonical, ' and ') as string_agg_g
+    from _in where norm_name(alias) <> '' group by kind, norm_name(alias) having count(distinct canonical) > 1) x;
+  if bad is not null then raise exception 'Not saved. The same name is in two groups of this file: %', bad; end if;
+  select string_agg(kind || ': ' || k || ' in ' || canonical, '; ') into bad from (
+    select kind, norm_name(alias) as k, canonical from _in where norm_name(alias) <> ''
+    group by kind, norm_name(alias), canonical having count(distinct status) > 1) y;
+  if bad is not null then raise exception 'Not saved. The same name is both confirmed and rejected: %', bad; end if;
+end $$;
+
+-- 2. Two spellings with the same key are one alias.
+create temp table _alias on commit drop as
+select distinct on (i.kind, norm_name(i.alias)) i.kind, i.canonical, i.alias, norm_name(i.alias) as alias_key, i.relation, i.status, i.rule
+from _in i where norm_name(i.alias) <> ''
+order by i.kind, norm_name(i.alias), (i.rule in ('listed company', 'group name')) desc, i.alias;
+
+`;
+  o+='insert into public.entity_group (canonical, kind, symbol, isin) values\n'+[...grp.values()].map(g=>'  ('+[q(g.canonical),q(g.kind),qn(g.symbol),qn(g.isin)].join(', ')+')').join(',\n')+'\non conflict (kind, canonical) do update set decided_at = now(),\n  symbol = coalesce(excluded.symbol, public.entity_group.symbol), isin = coalesce(excluded.isin, public.entity_group.isin);\n\n';
+  o+=`insert into public.entity_alias (group_id, kind, alias, alias_key, relation, status, rule)
+select g.id, a.kind, a.alias, a.alias_key, a.relation, a.status, a.rule
+from _alias a join public.entity_group g on g.kind = a.kind and g.canonical = a.canonical
+on conflict (kind, alias_key) do update set relation = excluded.relation, status = excluded.status, rule = excluded.rule, decided_at = now()
+  where public.entity_alias.group_id = excluded.group_id;
+
+-- 3. Stop, and save nothing, if a name already belongs to a different group in the database (it would otherwise be skipped silently).
+do $$
+declare bad text;
+begin
+  select string_agg(a.alias || ' (already in ' || g2.canonical || ')', '; ') into bad
+  from _alias a
+  join public.entity_group g on g.kind = a.kind and g.canonical = a.canonical
+  join public.entity_alias e on e.kind = a.kind and e.alias_key = a.alias_key
+  join public.entity_group g2 on g2.id = e.group_id
+  where e.group_id <> g.id;
+  if bad is not null then raise exception 'Not saved. These names already belong to another group: %', bad; end if;
+end $$;
+
+commit;
+`;
   return o}
-function exportBar(){const ds=decisions(), ok=ds.filter(d=>d.status==='confirmed'); document.getElementById('xs').textContent=ok.length+' confirmed groups ('+ok.reduce((s,d)=>s+d.members.filter(m=>m.status==='confirmed').length,0)+' aliases) · '+(ds.length-ok.length)+' rejected groups'}
+function exportBar(){const ds=decisions(); const f=k=>{const x=ds.filter(d=>d.kind===k), ok=x.filter(d=>d.status==='confirmed'); return ok.length+' confirmed ('+ok.reduce((s,d)=>s+d.members.filter(m=>m.status==='confirmed').length,0)+' aliases) · '+(x.length-ok.length)+' rejected'};
+  document.getElementById('xs').textContent='Investors: '+f('investor')+'   |   Companies: '+f('company')}
 const dl=(name,text,type)=>{const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type})); a.download=name; a.click()};
-document.getElementById('x-json').onclick=()=>dl('alias-decisions-'+ST.snapshot+'.json',JSON.stringify({exported_at:new Date().toISOString(),snapshot:ST.snapshot,decisions:decisions()},null,1),'application/json');
-document.getElementById('x-sql').onclick=()=>dl('alias-decisions-'+ST.snapshot+'.sql',sql(),'text/plain');
+document.getElementById('x-json').onclick=()=>dl('alias-decisions-'+ALIAS.stats.snapshot+'.json',JSON.stringify({exported_at:new Date().toISOString(),snapshot:ALIAS.stats.snapshot,decisions:decisions()},null,1),'application/json');
+document.getElementById('x-sql').onclick=()=>dl('alias-decisions-'+ALIAS.stats.snapshot+'.sql',sql(),'text/plain');
 document.getElementById('x-clear').onclick=()=>{if(confirm('Clear every decision saved in this browser?')){D={};save();draw()}};
 window.__aliasSql=sql; window.__aliasDecisions=decisions;
 draw();
