@@ -47,13 +47,13 @@
     <section class="p c12" aria-labelledby="h-al">
       <div class="ph"><h2 id="h-al">Entities and names behind this page</h2><span class="u">audit</span></div>
       <div class="tw"><table class="tbl" id="al"></table></div>
-      <div class="pf"><span>NSDL FPI register: no entry found for "softbank", "svf" or "meerkat". These vehicles are US/Cayman funds, so a registration number cannot link them; only the name can.</span></div>
+      <div class="pf"><span id="aln"></span><span>NSDL FPI register: no entry found for "softbank", "svf" or "meerkat". These vehicles are US/Cayman funds, so a registration number cannot link them; only the name can.</span></div>
     </section>
   </div>
 </main>
 <div class="foot"><span>India Capital Monitor · v2 design mockup · investor profile</span></div>
 
-<script src="data.js"></script><script src="profiles.js"></script><script src="ui.js"></script>
+<script src="data.js"></script><script src="profiles.js"></script><script src="resolver.js"></script><script src="ui.js"></script>
 <script>
 const F=window.F, I=PROF.investor, P=I.profile;
 ICTUI.shell('investors','profile');
@@ -91,8 +91,10 @@ document.getElementById('nw').innerHTML='<thead><tr><th>Date</th><th>Source</th>
  nonNse.map(n=>'<tr><td class="num">'+F.dshort(n.published_at)+'</td><td>'+n.source_name+'</td><td class="wrapc">'+n.title+'</td><td>'+(ev[n.event_type]||n.event_type||'')+'</td><td class="n num">'+n.reports+'</td></tr>').join('')+'</tbody>';
 
 document.getElementById('mn').textContent=mentions+' other items that only mention SoftBank are left out.';
+const confirmed=n=>{const r=ALIASES.resolve(n,'investor'); return !!r&&r.canonical===I.name};
 document.getElementById('al').innerHTML='<thead><tr><th>Name as found</th><th>Seen in</th><th>Link to this group</th><th>Basis</th></tr></thead><tbody>'+
- [...ents.values()].map(e=>{const n=[...e.names][0],s=svf(n);return '<tr><td>'+[...e.names].join(' / ')+'</td><td>'+[...e.src].join(', ')+'</td><td><span class="tag c">Name match</span></td><td>'+(s?'Name starts with "SVF" (SoftBank Vision Fund naming)':'Group name used in news')+'</td></tr>'}).join('')+'</tbody>';
+ [...ents.values()].map(e=>{const names=[...e.names], n=names[0], s=svf(n), ok=names.some(confirmed);return '<tr><td>'+names.join(' / ')+'</td><td>'+[...e.src].join(', ')+'</td><td>'+(ok?'<span class="tag a">Confirmed</span>':'<span class="tag c">Name match</span>')+'</td><td>'+(ok?'You confirmed this alias in the review queue':s?'Name starts with "SVF" (SoftBank Vision Fund naming); not yet confirmed':'Group name used in news; not yet confirmed')+'</td></tr>'}).join('')+'</tbody>';
+document.getElementById('aln').textContent=ALIASES.note()+'.';
 </script>
 </body>
 </html>

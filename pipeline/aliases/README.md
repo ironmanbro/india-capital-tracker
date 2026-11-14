@@ -66,3 +66,26 @@ Not done for companies: unlisted companies (startups) are only grouped by exact 
 
 ## Export SQL: safety checks
 `Download SQL` writes one file for both kinds. It collapses two spellings that reduce to the same `norm_name()` key into one alias, and it stops with "Not saved" (changing nothing) if the same name is in two groups, is both confirmed and rejected, or already belongs to a different group in the database. Tested on a throwaway PostgreSQL 16 with both migrations: a repeat run is a no-op, and each of the three failures was triggered on purpose and left the data unchanged.
+
+## Using the aliases on the site (`mockups/v2/resolver.js`)
+`window.ALIASES` is the browser twin of `entity_of(name, kind)`: `resolve(name, kind)` returns the confirmed group (name, relation, symbol, ISIN) or nothing, and `groupOf()` gives the key to group by. Its `norm()` is a copy of `norm_name()`; it was compared with PostgreSQL on 14,223 names (accents, CJK text, tabs, zero-width characters) with no difference.
+
+Two sources, same lookup:
+- **local** (default): every confirm, reject or untick in `alias.html` is published to this browser, and the other pages update at once (even in another open tab). It works before the migrations are applied, and only for the person who made the decisions.
+- **database**: `ALIASES.use('database', {url, key})` pages through the view `entity_alias_confirmed` (added to migration 20261115; tested on PostgreSQL, anonymous users see only confirmed aliases and cannot write to it). The HTTP side was tested against a mock server that pages like the API (2,487 rows in 3 requests, bad URL throws); **it has not been run against the live project.**
+
+Pages using it: the Investors directory (rows merge into confirmed groups; a "N names" tag lists them), Registrations ("in deals" tag), Deals (investor shown under its group name with an "alias" tag, search finds either name, and the count after "+" counts investors not legs), and the SoftBank and Meesho profiles (a link reads "Confirmed" once you confirm it, "Name match" before). Not wired: Regulations (the CCI-to-deal links are still computed from exact names), and the profile pages' underlying data, which is still a SoftBank snapshot.
+
+### What confirming three groups did (Goldman Sachs, Fidelity, SoftBank Group; 510 aliases)
+Each number was recomputed in Python from the saved decisions, without using any page code, and matched the page:
+| Page | Before | After |
+|---|---|---|
+| Investors directory | 1,645 names | 1,599 investors |
+| News names also found in filings | 50 of 552 | 69 of 552 |
+| Goldman Sachs row | 10 bought / 3 sold (one name) | 26 / 7 (14 names) |
+| Registered FPIs tagged "in deals" | 51 | 519 (Fidelity's funds are now recognised) |
+| 13-Nov Meesho buyers (Deals) | SOCIETE GENERALE +10 | +7 (11 legs are 8 investors) |
+| SoftBank profile | 8 names, "Name match" | 8 names, "Confirmed" |
+Clearing the decisions returned every page to its original numbers.
+
+"Investors in both news and filings" can go DOWN after merging (50 to 45 here) because two overlapping names become one investor; the coverage measure is "news names also found in filings".

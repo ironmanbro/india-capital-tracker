@@ -59,13 +59,15 @@
 </main>
 <div class="foot"><span>India Capital Monitor · v2 design mockup · company profile</span></div>
 
-<script src="data.js"></script><script src="profiles.js"></script><script src="ui.js"></script>
+<script src="data.js"></script><script src="profiles.js"></script><script src="resolver.js"></script><script src="ui.js"></script>
 <script>
 const F=window.F, C=PROF.company, I=PROF.investor;
 ICTUI.shell('investors','co');
 document.getElementById('bc').textContent=C.name; 
 const norm=s=>s.toLowerCase().replace(/\b(limited|ltd|llc|inc)\b|[.,()]/g,'').replace(/\s+/g,' ').trim();
 const svf=n=>/^svf\b/i.test(n.trim());
+const conf=n=>{const r=ALIASES.resolve(n,'investor'); return r&&r.canonical==='SoftBank Group'};
+const lnk=n=>conf(n)?'<a href="investor.html">SoftBank Group</a> <span class="tag a">Confirmed</span>':(svf(n)?'<a href="investor.html">SoftBank Group</a> <span class="tag c">Name match</span>':null);
 const last=C.deals[0], ds=C.deals.map(d=>d.d).sort(), clients=C.clients;
 document.getElementById('asof').textContent='Exchange data to '+F.dshort(last.d);
 
@@ -80,7 +82,7 @@ s4.textContent=C.limits.length?'Listed':'Not listed'; s4s.textContent='Not on NS
 
 /* shareholders; link SVF vehicle to investor page */
 document.getElementById('shp').innerHTML='<thead><tr><th>Holder</th><th>Category</th><th class="n">Stake %</th><th></th><th>Investor page</th></tr></thead><tbody>'+
- shp.map(x=>'<tr><td>'+x.holder+'</td><td>'+x.category+'</td><td class="n num">'+x.pct.toFixed(2)+'</td><td><span class="meter"><i style="width:'+Math.min(100,x.pct/12*100)+'%"></i></span></td><td class="nw">'+(svf(x.holder)?'<a href="investor.html">SoftBank Group</a> <span class="tag c">Name match</span>':'<span class="mut">not built</span>')+'</td></tr>').join('')+
+ shp.map(x=>'<tr><td>'+x.holder+'</td><td>'+x.category+'</td><td class="n num">'+x.pct.toFixed(2)+'</td><td><span class="meter"><i style="width:'+Math.min(100,x.pct/12*100)+'%"></i></span></td><td class="nw">'+(lnk(x.holder)||'<span class="mut">not built</span>')+'</td></tr>').join('')+
  '<tr class="tot"><td>Total, foreign holders on file</td><td></td><td class="n num">'+tot.toFixed(2)+'</td><td></td><td></td></tr></tbody>';
 
 /* chart by day */
@@ -92,7 +94,7 @@ ICTUI.bars('c-deals',days.map((d,i)=>({label:F.dnum(d),major:i%3===0,tip:F.dshor
 const reg=Object.fromEntries(clients.filter(c=>c.reg).map(c=>[c.name.toUpperCase(),c]));
 document.getElementById('dlu').textContent=C.deals.length+' unique deals, newest first · ₹ cr';
 document.getElementById('dl').innerHTML='<thead><tr><th>Date</th><th>Type</th><th>Client</th><th>Side</th><th class="n">Quantity</th><th class="n">Price ₹</th><th class="n">Value</th><th>Register</th><th>Investor page</th></tr></thead><tbody>'+
- C.deals.slice(0,16).map(d=>{const r=reg[d.client.toUpperCase()];return '<tr><td class="num">'+F.dshort(d.d)+'</td><td>'+d.kind.charAt(0)+d.kind.slice(1).toLowerCase()+'</td><td class="cl" title="'+d.client+'">'+d.client+'</td><td><span class="sd '+(d.side==='BUY'?'b':'s')+'">'+d.side+'</span></td><td class="n num">'+F.inr(d.qty)+'</td><td class="n num">'+d.px.toFixed(2)+'</td><td class="n num">'+F.inr(d.cr,{dp:1})+'</td><td>'+(r?'<span class="tag a">Exact</span> <span class="num mut">'+r.reg+'</span>':'')+'</td><td>'+(svf(d.client)?'<a href="investor.html">SoftBank Group</a> <span class="tag c">Name match</span>':'')+'</td></tr>'}).join('')+'</tbody>';
+ C.deals.slice(0,16).map(d=>{const r=reg[d.client.toUpperCase()];return '<tr><td class="num">'+F.dshort(d.d)+'</td><td>'+d.kind.charAt(0)+d.kind.slice(1).toLowerCase()+'</td><td class="cl" title="'+d.client+'">'+d.client+'</td><td><span class="sd '+(d.side==='BUY'?'b':'s')+'">'+d.side+'</span></td><td class="n num">'+F.inr(d.qty)+'</td><td class="n num">'+d.px.toFixed(2)+'</td><td class="n num">'+F.inr(d.cr,{dp:1})+'</td><td>'+(r?'<span class="tag a">Exact</span> <span class="num mut">'+r.reg+'</span>':'')+'</td><td>'+(lnk(d.client)||'')+'</td></tr>'}).join('')+'</tbody>';
 
 /* news */
 document.getElementById('nw').innerHTML='<thead><tr><th>Date</th><th>Source</th><th>Headline</th><th class="n">Reports</th></tr></thead><tbody>'+C.news.map(n=>'<tr><td class="num">'+F.dshort(n.published_at)+'</td><td>'+n.source_name+'</td><td class="wrapc">'+n.title+'</td><td class="n num">'+n.reports+'</td></tr>').join('')+'</tbody>';
@@ -102,12 +104,13 @@ const ln=[['Index review',C.index.map(e=>F.dshort(e.day)+' · '+e.provider+': '+
 document.getElementById('ln').innerHTML='<tbody>'+ln.map(r=>'<tr><td style="width:170px" class="mut">'+r[0]+'</td><td class="wrapc">'+r[1]+'</td></tr>').join('')+'</tbody>';
 
 /* audit */
-const nm=clients.length, ex=clients.filter(c=>c.reg).length, sv=clients.filter(c=>svf(c.name)).length;
+const nm=clients.length, ex=clients.filter(c=>c.reg).length, sv=clients.filter(c=>svf(c.name)&&!conf(c.name)).length, cf=clients.filter(c=>conf(c.name)).length;
 document.getElementById('au').innerHTML='<thead><tr><th>Step</th><th class="n">Count</th><th>Basis</th></tr></thead><tbody>'+
  [['Distinct client names in Meesho exchange deals',nm,'NSE bulk and block files'],
   ['Exact match to the NSDL FPI register',ex+' ('+Math.round(ex/nm*100)+'%)','Same name; registration number shown'],
-  ['Linked to an investor group by name pattern',sv,'Name starts with "SVF"; unconfirmed'],
-  ['Not linked',nm-ex-sv,'May be domestic funds, unregistered entities or spelling variants']].map(r=>'<tr><td>'+r[0]+'</td><td class="n num">'+r[1]+'</td><td>'+r[2]+'</td></tr>').join('')+'</tbody>';
+  ['Linked to an investor group by a confirmed alias',cf,ALIASES.note()],
+  ['Linked to an investor group by name pattern',sv,'Name starts with "SVF"; not yet confirmed'],
+  ['Not linked',nm-ex-sv-cf,'May be domestic funds, unregistered entities or spelling variants']].map(r=>'<tr><td>'+r[0]+'</td><td class="n num">'+r[1]+'</td><td>'+r[2]+'</td></tr>').join('')+'</tbody>';
 </script>
 </body>
 </html>

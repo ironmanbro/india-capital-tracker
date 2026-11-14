@@ -64,7 +64,7 @@
 </main>
 <div class="foot"><span>India Capital Monitor · v2 design mockup · Deals</span><span>Verified trail: a reported deal gets an exchange match when an exchange deal has the same direction, a similar target name and a date within 2 days (name match, unconfirmed)</span></div>
 
-<script src="data.js"></script><script src="deals.js"></script><script src="ui.js"></script>
+<script src="data.js"></script><script src="deals.js"></script><script src="resolver.js"></script><script src="ui.js"></script>
 <script>
 const F=window.F, R=DEALS.rows;
 ICTUI.shell('deals','all');
@@ -74,16 +74,25 @@ const dirOf=e=>e==='entry'?'in':e==='exit'?'out':e==='outbound'?'abroad':'fund';
 const DL={in:'Into India',out:'Exit',fund:'Fund / move',abroad:'Abroad'};
 const SL={completed:'Completed',agreed:'Agreed',plan:'Plan',talks:'Talks'};
 const TL={pe_vc:'PE / VC',strategic:'Strategic',fpi:'FPI',asset_manager:'Asset manager',sovereign:'Sovereign',bank:'Bank',pension:'Pension',government:'Government',other:'Other'};
-R.forEach(r=>{r.dir=dirOf(r.ev);r.k=(r.tgt||'').toLowerCase().replace(/[^a-z ]/g,'').split(' ').filter(Boolean)[0]||'';r.dn=dayN(r.d)});
-/* exchange match for reported rows */
-const A=R.filter(r=>r.g==='A');
-R.forEach(r=>{ if(r.g==='C'&&r.k.length>=4) r.m=A.find(a=>a.dir===r.dir&&a.k===r.k&&Math.abs(a.dn-r.dn)<=2)||null; });
-const GRP=(()=>{const m=new Map(),out=[];
+/* Names are resolved through confirmed aliases (resolver.js): an investor shows under its group's name, and a target that is a
+   confirmed company alias matches by company, not by first word. Without confirmed aliases it behaves as before. */
+let A=[], GRP=[], nC=0, nM=0;
+const firstTok=t=>(t||'').toLowerCase().replace(/[^a-z ]/g,'').split(' ').filter(Boolean)[0]||'';
+function prep(){
+  R.forEach(r=>{ r.dir=dirOf(r.ev); r.dn=dayN(r.d); delete r.m;
+    const ri=ALIASES.resolve(r.inv,'investor'), rt=ALIASES.resolve(r.tgt,'company');
+    r.icanon=ri?ri.canonical:null; r.invd=r.icanon||r.inv; r.ig=ALIASES.groupOf(r.inv||'','investor');
+    r.k=rt?'c:'+(rt.symbol||rt.canonical):'k:'+firstTok(r.tgt); r.kok=!!rt||firstTok(r.tgt).length>=4 });
+  A=R.filter(r=>r.g==='A');
+  R.forEach(r=>{ if(r.g==='C'&&r.kok) r.m=A.find(a=>a.dir===r.dir&&a.k===r.k&&Math.abs(a.dn-r.dn)<=2)||null; });
+  const m=new Map(), out=[];
   R.forEach(r=>{ if(r.g!=='A'){out.push(r);return} const k=r.d+'|'+r.k+'|'+r.dir; let o=m.get(k);
     if(!o){o=Object.assign({},r,{usd:0,legs:[]});m.set(k,o);out.push(o)} o.usd+=r.usd||0; o.legs.push(r)});
-  out.forEach(o=>{ if(o.legs){o.legs.sort((a,b)=>(b.usd||0)-(a.usd||0)); o.inv=o.legs[0].inv; o.extra=o.legs.length-1; o.n=o.legs.length; o.usd=Math.round(o.usd*10)/10; o.t=o.legs.map(l=>l.inv+' '+F.west(l.usd||0)).join(', '); o.all=o.legs.map(l=>l.inv).join(' ')} });
-  return out})();
-const nC=R.filter(r=>r.g==='C').length, nM=R.filter(r=>r.m).length;
+  out.forEach(o=>{ if(o.legs){o.legs.sort((a,b)=>(b.usd||0)-(a.usd||0)); o.inv=o.legs[0].inv; o.invd=o.legs[0].invd; o.icanon=o.legs[0].icanon; o.extra=new Set(o.legs.map(l=>l.ig)).size-1; o.n=o.legs.length; o.usd=Math.round(o.usd*10)/10; o.t=o.legs.map(l=>l.inv+' '+F.west(l.usd||0)).join(', '); o.all=o.legs.map(l=>l.inv+' '+(l.icanon||'')).join(' ')} });
+  GRP=out; nC=R.filter(r=>r.g==='C').length; nM=R.filter(r=>r.m).length;
+  const n=document.getElementById('mnote'); if(n) n.textContent='Exchange match found for '+nM+' of '+nC+' reported deals in this period. Aliases: '+ALIASES.note()+'.';
+}
+prep();
 
 const def={grp:'1',win:'30',dir:'all',g:'all',stage:'all',size:'0',q:'',sort:'d',asc:'0',n:'30'};
 let S=Object.assign({},def);
@@ -91,7 +100,7 @@ try{new URLSearchParams(location.hash.slice(1)).forEach((v,k)=>{if(k in def)S[k]
 const pushHash=()=>{try{const p=new URLSearchParams();for(const k in S) if(S[k]!==def[k]&&k!=='n') p.set(k,S[k]); history.replaceState(null,'', '#'+p)}catch(e){}};
 
 function base(skipDir){ const cut=dayN(maxD)-(+S.win)+1, q=S.q.trim().toLowerCase();
-  return (S.grp==='1'?GRP:R).filter(r=>r.dn>=cut&&(S.g==='all'||r.g===S.g)&&(S.stage==='all'||r.stage===S.stage)&&(r.usd||0)>=+S.size&&(skipDir||S.dir==='all'||r.dir===S.dir)&&(!q||((r.all||r.inv||'')+' '+(r.tgt||'')).toLowerCase().includes(q))); }
+  return (S.grp==='1'?GRP:R).filter(r=>r.dn>=cut&&(S.g==='all'||r.g===S.g)&&(S.stage==='all'||r.stage===S.stage)&&(r.usd||0)>=+S.size&&(skipDir||S.dir==='all'||r.dir===S.dir)&&(!q||((r.all||((r.inv||'')+' '+(r.icanon||'')))+' '+(r.tgt||'')).toLowerCase().includes(q))); }
 const sum=(a,g)=>a.filter(r=>r.g===g).reduce((s,r)=>s+(r.usd||0),0);
 const cnt=(a,g)=>a.filter(r=>r.g===g).length;
 
@@ -112,7 +121,7 @@ function render(){
   const arrow=k=>S.sort===k?(S.asc==='1'?' ↑':' ↓'):'';
   document.getElementById('cnt').textContent=rows.length+' deals · US$ mn';
   document.getElementById('tbl').innerHTML='<thead><tr><th><button data-s="d">Date'+arrow('d')+'</button></th><th>Investor</th><th>Type</th><th>Target</th><th>Stage</th><th class="n"><button data-s="u">US$ mn'+arrow('u')+'</button></th><th>Source</th><th>Matched</th></tr></thead><tbody>'+
-   (shown.map(r=>'<tr title="'+(r.t||'').replace(/"/g,'&quot;')+'"><td class="num">'+F.dshort(r.d)+'</td><td class="cl">'+(r.inv||'–')+(r.extra?' <span class="mut num">+'+r.extra+'</span>':'')+(r.ic?' <span class="mut">· '+r.ic+'</span>':'')+'</td><td><span class="dir '+r.dir+'">'+DL[r.dir]+'</span></td><td class="cl">'+(r.tgt||'–')+'</td><td>'+(SL[r.stage]||'–')+'</td><td class="n num">'+(r.usd!=null&&r.usd!==0?F.west(r.usd):'<span class="mut">–</span>')+'</td><td><span class="tag '+(r.g==='A'?'a':'c')+'">'+r.g+'</span> <span class="mut num">'+(r.g==='A'&&r.n>1?r.n+' clients':r.g==='C'&&r.n>1?r.n+' reports':'')+'</span></td><td>'+(r.g==='C'?(r.m?'<span class="tag c" title="Name match, unconfirmed: exchange deal '+r.m.inv+', '+F.dshort(r.m.d)+', US$ '+F.west(r.m.usd||0)+' mn">Exchange</span>':'<span class="mut">none</span>'):'<span class="mut">–</span>')+'</td></tr>').join('')||'<tr><td colspan="8" class="mut" style="height:60px">No deals match these filters. <button class="link-btn" id="r2">Reset filters</button></td></tr>')+'</tbody>';
+   (shown.map(r=>'<tr title="'+(r.t||'').replace(/"/g,'&quot;')+'"><td class="num">'+F.dshort(r.d)+'</td><td class="cl" title="'+(r.icanon&&r.icanon!==r.inv?'Written as: '+(r.inv||'').replace(/"/g,''):'')+'">'+(r.invd||'–')+(r.icanon?' <span class="tag a" title="Confirmed alias">alias</span>':'')+(r.extra?' <span class="mut num">+'+r.extra+'</span>':'')+(r.ic?' <span class="mut">· '+r.ic+'</span>':'')+'</td><td><span class="dir '+r.dir+'">'+DL[r.dir]+'</span></td><td class="cl">'+(r.tgt||'–')+'</td><td>'+(SL[r.stage]||'–')+'</td><td class="n num">'+(r.usd!=null&&r.usd!==0?F.west(r.usd):'<span class="mut">–</span>')+'</td><td><span class="tag '+(r.g==='A'?'a':'c')+'">'+r.g+'</span> <span class="mut num">'+(r.g==='A'&&r.n>1?r.n+' clients':r.g==='C'&&r.n>1?r.n+' reports':'')+'</span></td><td>'+(r.g==='C'?(r.m?'<span class="tag c" title="Name match, unconfirmed: exchange deal '+r.m.inv+', '+F.dshort(r.m.d)+', US$ '+F.west(r.m.usd||0)+' mn">Exchange</span>':'<span class="mut">none</span>'):'<span class="mut">–</span>')+'</td></tr>').join('')||'<tr><td colspan="8" class="mut" style="height:60px">No deals match these filters. <button class="link-btn" id="r2">Reset filters</button></td></tr>')+'</tbody>';
   document.getElementById('more').innerHTML=rows.length>n?'<button class="tbtn" id="mb">Show '+Math.min(30,rows.length-n)+' more ('+(rows.length-n)+' left)</button>':'';
   document.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{const k=b.dataset.s; if(S.sort===k) S.asc=S.asc==='1'?'0':'1'; else {S.sort=k;S.asc='0'} change()});
   const mb=document.getElementById('mb'); if(mb) mb.onclick=()=>{S.n=String(+S.n+30); render()};
@@ -138,7 +147,8 @@ document.getElementById('od').innerHTML='<thead><tr><th>Month</th><th class="n">
 document.getElementById('ocu').textContent=F.dshort(DEALS.odi_month).slice(3)+' · US$ mn';
 document.getElementById('oc').innerHTML='<thead><tr><th>Country</th><th class="n">Deals</th><th class="n">Amount</th></tr></thead><tbody>'+DEALS.odi_ctry.map(c=>'<tr><td>'+c[0]+'</td><td class="n num">'+c[2]+'</td><td class="n num">'+F.west(c[1])+'</td></tr>').join('')+'</tbody>';
 render();
-document.querySelector('.foot').insertAdjacentHTML('beforeend','<span>Exchange match found for '+nM+' of '+nC+' reported deals in this period</span>');
+document.querySelector('.foot').insertAdjacentHTML('beforeend','<span id="mnote"></span>'); prep();
+window.addEventListener('storage',e=>{ if(e.key==='ict-alias-map-v1'){ ALIASES.reload(); prep(); render() } });
 </script>
 </body>
 </html>

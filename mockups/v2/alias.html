@@ -81,7 +81,7 @@ kbd{font:var(--t-11) var(--font-mono);border:1px solid var(--line-strong);border
 </main>
 <div class="foot"><span>India Capital Monitor · v2 design mockup · Alias review</span><span>Candidates come from pipeline/aliases/build_candidates.py (investors) and build_company_candidates.py (companies)</span></div>
 
-<script src="data.js"></script><script src="alias.js"></script><script src="company_alias.js"></script><script src="ui.js"></script>
+<script src="data.js"></script><script src="alias.js"></script><script src="company_alias.js"></script><script src="resolver.js"></script><script src="ui.js"></script>
 <script>
 const F=window.F, KEY='ict-alias-decisions-v1';
 ICTUI.shell('','');
@@ -91,7 +91,9 @@ const byId={}; [...ALIAS.clusters,...ALIAS_CO.clusters].forEach(c=>byId[c.id]=c)
 const REL={same:'Same entity',fund_of:'Fund of',vehicle_of:'Vehicle of',related:'Related',part_of:'Part of'};
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let D={}; try{D=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){}};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){}; publishMap()};
+/* the other pages read confirmed aliases through resolver.js; keep it in step with every decision */
+function publishMap(){ ALIASES.publish(decisions().filter(d=>d.status==='confirmed').map(d=>({kind:d.kind,canonical:d.canonical,symbol:d.symbol,isin:d.isin,aliases:d.members.filter(m=>m.status==='confirmed').map(m=>({alias:m.alias,relation:m.relation}))}))) }
 let kind='investor', cur=SETS.investor.clusters[0].id, show='pending', mq='', onlyLow=false;
 const C=()=>SETS[kind].clusters, ST=()=>SETS[kind].stats;
 document.getElementById('asof').textContent='Data snapshot '+ALIAS.stats.snapshot+' · built '+ALIAS.stats.built;
@@ -220,7 +222,7 @@ document.getElementById('x-json').onclick=()=>dl('alias-decisions-'+ALIAS.stats.
 document.getElementById('x-sql').onclick=()=>dl('alias-decisions-'+ALIAS.stats.snapshot+'.sql',sql(),'text/plain');
 document.getElementById('x-clear').onclick=()=>{if(confirm('Clear every decision saved in this browser?')){D={};save();draw()}};
 window.__aliasSql=sql; window.__aliasDecisions=decisions;
-draw();
+publishMap(); draw();
 </script>
 </body>
 </html>

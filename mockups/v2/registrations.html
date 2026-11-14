@@ -68,7 +68,7 @@
 </main>
 <div class="foot"><span>India Capital Monitor · v2 design mockup · Registrations</span><span id="dl"></span></div>
 
-<script src="data.js"></script><script src="reg.js"></script><script src="ui.js"></script>
+<script src="data.js"></script><script src="reg.js"></script><script src="inv.js"></script><script src="resolver.js"></script><script src="ui.js"></script>
 <script>
 const F=window.F, G=REG, T0='2026-11-14', dayN=iso=>Date.UTC(+iso.slice(0,4),+iso.slice(5,7)-1,+iso.slice(8,10))/864e5, today=dayN(T0);
 ICTUI.shell('reg','reg');
@@ -77,6 +77,12 @@ const title=s=>s?s.toLowerCase().replace(/\b[a-z]/g,c=>c.toUpperCase()).replace(
 const short=s=>({'UNITED STATES OF AMERICA':'United States','UNITED ARAB EMIRATES':'UAE','UNITED KINGDOM':'United Kingdom'}[s]||title(s));
 const objs=G.rows.map(r=>({reg:r[0],name:r[1],ctry:G.countries[r[2]],cat:r[3],sub:G.subs[r[4]],st:r[5],valid:r[6],on:r[7],yr:r[8],d:r[9]}));
 const byReg=Object.fromEntries(objs.map(o=>[o.reg,o]));
+/* "In deals": a register name counts when it is, or is confirmed to be, an investor with deals in the last 12 months */
+function tagDeals(){
+  const agg=new Map(); INV.rows.forEach(r=>{ if(!(r.e+r.x+r.o)) return; const k=ALIASES.groupOf(r.n,'investor'), res=ALIASES.resolve(r.n,'investor'); const a=agg.get(k)||{e:0,x:0,n:res?res.canonical:r.n}; a.e+=r.e; a.x+=r.x; agg.set(k,a) });
+  objs.forEach(o=>{ const a=agg.get(ALIASES.groupOf(o.name,'investor')); o.d=a?[a.e,a.x,a.n]:null });
+}
+tagDeals();
 const W=G.watch, lookup=l=>l.map(k=>byReg[k]).filter(Boolean);
 const dropped=W.dropped.map(x=>({reg:x.reg_no,name:x.name,ctry:x.country,cat:x.category==='I'?1:2,sub:x.sub_category,valid:x.valid_upto,last:x.last_seen,d:null}));
 const VIEWS=[['exp','Expiring ≤90 days',lookup(W.expiring)],['late','Late-fee window',lookup(W.late_fee)],['new','New in 30 days',lookup(W.new)],['drop','Dropped off',dropped],['inv','Invalid',lookup(W.invalid)],['all','Full register',objs]];
@@ -144,7 +150,9 @@ document.getElementById('lmf').textContent=rf.length+' on the red flag list; a f
 const im=G.ifsca[0][1];
 document.getElementById('gc').innerHTML='<tbody>'+G.ifsca.slice(0,6).map(c=>'<tr><td class="cl" title="'+c[0]+'">'+c[0]+'</td><td class="n num">'+F.inr(c[1])+'</td><td><span class="meter"><i style="width:'+c[1]/im*100+'%"></i></span></td></tr>').join('')+'<tr class="tot"><td>All entities</td><td class="n num" colspan="2">'+F.inr(G.stats.ifsca)+'</td></tr></tbody>';
 document.getElementById('gcf').textContent=G.stats.ifsca_new_30d+' added in the last 30 days · '+G.stats.fpi_gift+' FPIs are GIFT City based. Source: IFSCA directory.';
-document.getElementById('dl').textContent=objs.filter(o=>o.d).length+' of '+F.inr(objs.length)+' registered names also match an investor active in deals (name match, unconfirmed)';
+function dealNote(){ document.getElementById('dl').innerHTML=objs.filter(o=>o.d).length+' of '+F.inr(objs.length)+' registered names match an investor with deals in the last 12 months (same cleaned name, or a confirmed alias). Aliases: '+ALIASES.note()+'.' }
+dealNote();
+window.addEventListener('storage',e=>{ if(e.key==='ict-alias-map-v1'){ ALIASES.reload(); tagDeals(); dealNote(); render() } });
 render();
 </script>
 </body>

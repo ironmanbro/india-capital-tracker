@@ -36,3 +36,11 @@ language sql stable set search_path = public as $$
   where a.status = 'confirmed' and a.kind = p_kind and a.alias_key = norm_name(p_name) and norm_name(p_name) <> ''
 $$;
 grant execute on function public.entity_of(text, text) to anon, authenticated;
+
+-- One flat list of the confirmed aliases, for the site to load in a few requests and resolve names in the browser
+-- (mockups/v2/resolver.js). Runs as the caller, so row-level security still applies.
+create or replace view public.entity_alias_confirmed with (security_invoker = true) as
+select a.kind, a.alias_key, a.relation, g.canonical, g.symbol, g.isin
+from public.entity_alias a join public.entity_group g on g.id = a.group_id
+where a.status = 'confirmed';
+grant select on public.entity_alias_confirmed to anon, authenticated;

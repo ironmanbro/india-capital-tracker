@@ -21,6 +21,8 @@
     <div class="p c3 stat"><span>In both news and filings</span><b id="s3"></b><small id="s3s"></small></div>
     <div class="p c3 stat"><span>Type known · home country known</span><b id="s4"></b><small id="s4s"></small></div>
 
+    <div class="p c12 impact" id="alias-note" style="border-bottom:0;display:block"></div>
+
     <section class="p c12" aria-label="Filters">
       <div class="filters">
         <div><label>View</label><span class="seg" data-k="view"><button data-v="all">All</button><button data-v="news">In news or exchange deals</button><button data-v="filed">Filed holders</button></span></div>
@@ -58,20 +60,32 @@
     </div>
   </div>
 </main>
-<div class="foot"><span>India Capital Monitor · v2 design mockup · Investors directory</span><span>Profile pages exist for SoftBank Group only</span></div>
+<div class="foot"><span>India Capital Monitor · v2 design mockup · Investors directory</span><span>Profile pages exist for SoftBank Group only</span><span>Aliases: names merged only where you confirmed them in the review queue</span></div>
 
-<script src="data.js"></script><script src="inv.js"></script><script src="ui.js"></script>
+<script src="data.js"></script><script src="inv.js"></script><script src="resolver.js"></script><script src="ui.js"></script>
 <script>
-const F=window.F, R=INV.rows, dayN=iso=>Date.UTC(+iso.slice(0,4),+iso.slice(5,7)-1,+iso.slice(8,10))/864e5;
+const F=window.F, RAW=INV.rows, dayN=iso=>Date.UTC(+iso.slice(0,4),+iso.slice(5,7)-1,+iso.slice(8,10))/864e5;
 ICTUI.shell('investors','dir');
 document.getElementById('asof').textContent='Data to '+F.dshort(INV.asof)+' · page built '+INV.built;
 document.getElementById('cut').textContent=F.dshort(INV.cut);
 const TL={pe_vc:'PE / VC',strategic:'Strategic',fpi:'FPI',asset_manager:'Asset manager',sovereign:'Sovereign',bank:'Bank',pension:'Pension',government:'Government',other:'Other'};
-R.forEach(r=>{r.act=r.e+r.x+r.o; r.news=/[nxa]/.test(r.fl)&&/[na]/.test(r.fl)?1:0; r.inNews=/[na]/.test(r.fl); r.filed=/f/.test(r.fl); r.both=r.inNews&&r.filed; r.k=r.n.toLowerCase()});
-const cc={}; R.forEach(r=>{if(r.c) cc[r.c]=(cc[r.c]||0)+1});
-const topC=Object.keys(cc).sort((a,b)=>cc[b]-cc[a]).slice(0,16);
+/* One row per name, or one row per CONFIRMED group: names the owner confirmed as one investor are merged here. */
+let R=[], CC={}, topC=[], newsLinked=0;
+function build(){
+  const g=new Map(), of=new Map();
+  RAW.forEach(r=>{ const res=ALIASES.resolve(r.n,'investor'), key=res?'g:'+res.canonical:'n:'+r.nk; let o=g.get(key); of.set(r,key);
+    if(!o){ o=Object.assign({},r,{members:[r],grp:!!res}); if(res) o.n=res.canonical; g.set(key,o); return }
+    o.members.push(r); o.e+=r.e; o.x+=r.x; o.o+=r.o; o.uc+=r.uc; o.ua+=r.ua; o.tot+=r.tot; o.h+=r.h; o.al+=r.al;
+    if(r.ld&&(!o.ld||r.ld>o.ld)) o.ld=r.ld; if((r.hp||0)>(o.hp||0)){o.hp=r.hp;o.hc=r.hc}
+    if(!o.t&&r.t) o.t=r.t; if(!o.c&&r.c) o.c=r.c; o.p=o.p||r.p; o.fl=[...new Set((o.fl+r.fl).split(''))].sort().join('') });
+  R=[...g.values()]; newsLinked=RAW.filter(r=>/[na]/.test(r.fl)&&/f/.test(g.get(of.get(r)).fl)).length; R.forEach(r=>{r.act=r.e+r.x+r.o; r.inNews=/[na]/.test(r.fl); r.filed=/f/.test(r.fl); r.both=r.inNews&&r.filed; r.k=r.n.toLowerCase()});
+  CC={}; R.forEach(r=>{if(r.c) CC[r.c]=(CC[r.c]||0)+1}); topC=Object.keys(CC).sort((a,b)=>CC[b]-CC[a]).slice(0,16);
+  const cur=document.getElementById('co').value;
+  document.getElementById('co').innerHTML='<option value="all">Any country</option>'+topC.map(c=>'<option value="'+c+'">'+c+' ('+CC[c]+')</option>').join('')+'<option value="none">Not known</option>'; document.getElementById('co').value=cur;
+}
 document.getElementById('ty').innerHTML='<option value="all">All types</option>'+Object.keys(TL).map(k=>'<option value="'+k+'">'+TL[k]+'</option>').join('')+'<option value="none">Not classified</option>';
-document.getElementById('co').innerHTML='<option value="all">Any country</option>'+topC.map(c=>'<option value="'+c+'">'+c+' ('+cc[c]+')</option>').join('')+'<option value="none">Not known</option>';
+const bothRaw=RAW.filter(r=>/f/.test(r.fl)&&/[na]/.test(r.fl)).length;   // before any alias
+build();
 
 const def={view:'all',act:'any',ty:'all',co:'all',q:'',sort:'a',asc:'0',n:'30'};
 let S=Object.assign({},def);
@@ -91,10 +105,10 @@ function render(){
   /* stats */
   s1.textContent=F.inr(v.length); s1s.textContent='of '+F.inr(R.length)+' in the directory';
   const act=v.filter(r=>r.act>0); s2.textContent=F.inr(act.length); s2s.textContent=v.filter(r=>r.e>0).length+' bought into India · '+v.filter(r=>r.x>0).length+' sold or exited';
-  s3.textContent=F.inr(v.filter(r=>r.both).length); s3s.textContent='whole directory: '+R.filter(r=>r.both).length+' of '+R.filter(r=>r.inNews).length+' news names ('+pc(R.filter(r=>r.both).length,R.filter(r=>r.inNews).length)+')';
+  s3.textContent=F.inr(v.filter(r=>r.both).length); s3s.textContent='whole directory: '+R.filter(r=>r.both).length+' of '+R.filter(r=>r.inNews).length+' investors seen in news or exchange deals ('+pc(R.filter(r=>r.both).length,R.filter(r=>r.inNews).length)+')';
   const tk=v.filter(r=>r.t).length, ck=v.filter(r=>r.c).length; s4.textContent=F.inr(tk)+' · '+F.inr(ck); s4s.textContent=pc(tk,v.length)+' have a type; '+pc(ck,v.length)+' a home country';
   document.getElementById('cnt').textContent=F.inr(rows.length)+' investors';
-  const nm=r=>(r.n==='SoftBank Group'?'<a href="investor.html">'+r.n+'</a>':r.n)+(r.g?' <span class="tag c" title="'+r.al+' names grouped by name pattern, unconfirmed">'+r.al+' names</span>':'')+(r.p?' <span class="tag" title="Profile facts from Wikidata or Wikipedia">B</span>':'');
+  const nm=r=>(r.n==='SoftBank Group'?'<a href="investor.html">'+r.n+'</a>':r.n)+(r.members.length>1?' <span class="tag a" title="Confirmed: '+r.members.length+' names. '+r.members.slice(0,8).map(m=>m.n.replace(/"/g,'')).join(' | ')+(r.members.length>8?' ...':'')+'">'+r.members.length+' names</span>':(r.grp?' <span class="tag a" title="Confirmed alias group">alias</span>':''))+(r.p?' <span class="tag" title="Profile facts from Wikidata or Wikipedia">B</span>':'');
   const src=r=>'<span class="src"><i class="'+(/n/.test(r.fl)?'on':'')+'" title="News">N</i><i class="'+(/a/.test(r.fl)?'on':'')+'" title="Exchange deal">X</i><i class="'+(r.filed?'on':'')+'" title="Shareholding filing">F</i></span>';
   document.getElementById('tbl').innerHTML='<thead><tr><th><button data-s="n">Name'+arr('n')+'</button></th><th>Type · home country</th><th class="n"><button data-s="a">Bought / sold'+arr('a')+'</button></th><th class="n"><button data-s="l">Last deal'+arr('l')+'</button></th><th class="n"><button data-s="p">Largest stake / cos'+arr('p')+'</button></th><th>Seen in</th></tr></thead><tbody>'+
    (rows.slice(0,n).map(r=>'<tr><td class="cl" title="'+r.n.replace(/"/g,'&quot;')+'">'+nm(r)+'</td><td class="cl">'+(TL[r.t]||'<span class="mut">–</span>')+(r.c?' <span class="mut">· '+r.c+'</span>':'')+'</td><td class="n num">'+(r.act?'<span class="up">'+r.e+'</span> / <span class="dn">'+r.x+'</span>'+(r.o?' <span class="mut">+'+r.o+'</span>':''):'<span class="mut">–</span>')+'</td><td class="n num">'+(r.ld?F.dshort(r.ld):'<span class="mut">–</span>')+'</td><td class="n num" title="'+(r.hc?'Largest: '+r.hc:'')+'">'+(r.hp?r.hp.toFixed(2)+'% <span class="mut">/ '+r.h+'</span>':'<span class="mut">–</span>')+'</td><td>'+src(r)+'</td></tr>').join('')||'<tr><td colspan="6" class="mut" style="height:60px">No investors match. <button class="link-btn" id="r2">Reset filters</button></td></tr>')+'</tbody>';
@@ -115,16 +129,20 @@ ty.onchange=e=>{S.ty=e.target.value;S.n='30';render()}; co.onchange=e=>{S.co=e.t
 document.getElementById('q').oninput=e=>{S.q=e.target.value;S.n='30';render()}; document.getElementById('reset').onclick=reset;
 
 /* coverage (whole directory) */
-const nn=R.filter(r=>r.inNews).length, nf=R.filter(r=>r.filed).length, bo=R.filter(r=>r.both).length;
+function coverage(){
+const nn=R.filter(r=>r.inNews).length, nf=R.filter(r=>r.filed).length, bo=R.filter(r=>r.both).length, gr=R.filter(r=>r.members.length>1);
+document.getElementById('alias-note').innerHTML='<b>Aliases:</b> '+ALIASES.note()+'. Directory names '+F.inr(RAW.length)+' → <b>'+F.inr(R.length)+'</b> investors; news names also found in filings '+bothRaw+' → <b>'+newsLinked+'</b> of '+RAW.filter(r=>/[na]/.test(r.fl)).length+'. <a href="alias.html">Review aliases</a>';
 document.getElementById('cv').innerHTML='<tbody>'+[
  ['News and exchange names, as written',F.inr(INV.news_strings),'investor field in stories'],
  ['After cleaning legal suffixes, grouped',F.inr(nn),'names in the directory'],
  ['Filed holder names (latest filings)',F.inr(INV.shp_strings),'shareholding patterns'],
  ['After cleaning, grouped',F.inr(nf),'names in the directory'],
- ['Names found in both',F.inr(bo),pc(bo,nn)+' of news names'],
+ ['News names also found in filings',F.inr(newsLinked),pc(newsLinked,RAW.filter(r=>/[na]/.test(r.fl)).length)+' of news names (investors in both: '+bo+')'],
  ['With a profile (Wikidata or Wikipedia)',F.inr(R.filter(r=>r.p).length),pc(R.filter(r=>r.p).length,R.length)+' of all'],
- ['Grouped by name pattern (SoftBank)',R.filter(r=>r.g).map(r=>r.al).join(', ')+' names','unconfirmed']].map(r=>'<tr><td class="wrapc">'+r[0]+'</td><td class="n num">'+r[1]+'</td><td class="mut">'+r[2]+'</td></tr>').join('')+'</tbody>';
-render();
+ ['Merged by confirmed aliases',gr.length+' groups','from '+F.inr(gr.reduce((t,r)=>t+r.members.length,0))+' names']].map(r=>'<tr><td class="wrapc">'+r[0]+'</td><td class="n num">'+r[1]+'</td><td class="mut">'+r[2]+'</td></tr>').join('')+'</tbody>';
+}
+coverage(); render();
+window.addEventListener('storage',e=>{ if(e.key==='ict-alias-map-v1'){ ALIASES.reload(); build(); coverage(); render() } });
 </script>
 </body>
 </html>
