@@ -1339,7 +1339,6 @@ body{font-variant-numeric:tabular-nums}
       <div class="eyebrow">Indian Capital Tracker</div>
       <h1 id="ptitle">Overview</h1>
       <div class="sub" id="psub">Foreign investments into India, exits from India, offshore fund launches, and jurisdiction moves</div>
-      <div class="maker">Built by <a href="https://www.linkedin.com/in/kishansinghania/" target="_blank" rel="noopener"><strong>Kishan Singhania</strong></a> · <a href="https://www.linkedin.com/in/kishansinghania/" target="_blank" rel="noopener">Connect on LinkedIn →</a></div>
     </div>
     <div>
       <div class="htools">
@@ -1630,6 +1629,7 @@ body{font-variant-numeric:tabular-nums}
     <p class="sub" style="margin:0 0 12px"><span class="lg">SEBI and RBI documents that change the rules for foreign investment: FPI, FVCI, FDI, ODI and GIFT City. Summaries state only what changed, for whom and from when; always read the official document.</span><span class="sm">SEBI and RBI rule changes for foreign investment. Read the official document.</span></p>
     <div class="tsum" id="reg-sum"></div>
     <section class="watch" id="compcal" aria-label="Compliance calendar"></section>
+    <section class="watch" id="whtref" aria-label="Withholding tax reference"></section>
     <div id="reg-body"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div>
   </section>
 
@@ -1653,7 +1653,6 @@ body{font-variant-numeric:tabular-nums}
     <div class="tsum" id="regx-sum"></div>
     <section class="watch" id="fpiwatch" aria-label="FPI watch lists"></section>
     <section class="watch" id="fpilim" aria-label="Foreign investment limits"></section>
-    <section class="watch" id="whtref" aria-label="Withholding tax reference"></section>
     <div class="fhead" style="margin-bottom:10px">
       <p class="sub" style="margin:0;max-width:640px" id="dir-intro"></p>
       <div class="seg" role="group" aria-label="Directory" id="dirseg" hidden>
@@ -1815,12 +1814,23 @@ const usdAxis = (v) => v === 0 ? "0" : `${v < 0 ? "−" : ""}${fmtUsdS(Math.abs(
 async function refresh() {
   const cols = "id,source,source_name,url,title,summary,published_at,fetched_at,event_type,investor,investor_type,investor_country,origin_jurisdiction,target,amount_usd_m,amount_text,priority,classifier,reports,event_types,parties,deal_stage,flow_kind,region,regulator,instruments,doc_type,issued_on,effective_on,reg_doc_url,reg_doc_title";
   try {
-    const [events, runs, latest, reviewed] = await Promise.all([
-      apiAll(`stories?select=${cols}`, "published_at.desc.nullslast,id"),
-      api(`runs?select=*&order=started_at.desc&limit=60`),
-      api(`runs_latest?select=source,finished_at`).catch(() => []),
-      api(`runs?select=finished_at&source=eq.review&order=finished_at.desc&limit=1`),
-    ]);
+    // A cold database can answer the first request slowly or time out; try again twice before giving up.
+    let events, runs, latest, reviewed;
+    for (let attempt = 0; ; attempt++) {
+      try {
+        [events, runs, latest, reviewed] = await Promise.all([
+          apiAll(`stories?select=${cols}`, "published_at.desc.nullslast,id"),
+          api(`runs?select=*&order=started_at.desc&limit=60`),
+          api(`runs_latest?select=source,finished_at`).catch(() => []),
+          api(`runs?select=finished_at&source=eq.review&order=finished_at.desc&limit=1`),
+        ]);
+        break;
+      } catch (err) {
+        if (attempt >= 2) throw err;
+        $("updated").textContent = "Loading is taking longer than usual, trying again…";
+        await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)));
+      }
+    }
     // Older stories carry one category; newer ones can carry several.
     state.events = events.map((e) => ({ ...e, event_types: e.event_types?.length ? e.event_types : [e.event_type], parties: e.parties || [] }));
     mergeFirms();
@@ -1831,7 +1841,10 @@ async function refresh() {
     await loadFlows();
     render();
   } catch (e) {
-    $("updated").textContent = `Could not load data: ${e.message}`;
+    // Say so plainly instead of showing zeros that look like real data, and offer a retry.
+    $("updated").innerHTML = `Couldn't load the latest data. <button class="link" type="button" id="retry-load">Try again</button>`;
+    $("retry-load").onclick = () => { $("updated").textContent = "Loading…"; refresh(); };
+    const k = $("kpis"); if (k && !state.events.length) k.innerHTML = "";
   }
 }
 
@@ -3602,7 +3615,8 @@ function setTab(t) {
   if (t === "flows") setTimeout(() => { try { drawMktCal(); drawDebtLimits(); drawIndexEvents(); } catch {} }, 400);
   if (t === "regulation") setTimeout(() => { try { drawCompCal(); } catch {} }, 400);
   if (t === "flows") setTimeout(() => { try { drawFxDesk(); } catch {} }, 300);
-  if (t === "directory") setTimeout(() => { try { drawFpiWatch(); drawFpiLimits(); drawWht(); } catch {} }, 300);
+  if (t === "directory") setTimeout(() => { try { drawFpiWatch(); drawFpiLimits(); } catch {} }, 300);
+  if (t === "regulation") setTimeout(() => { try { drawWht(); } catch {} }, 300);
   setTimeout(() => { try { drawSideViews(); } catch {} }, 0);
   [0, 600, 1500].forEach((ms) => setTimeout(() => { try { drawTabSums(); } catch {} }, ms));
   // Going to Home drops the country, sector and story filters, so the address goes back to plain "/".
@@ -3824,9 +3838,10 @@ function drawTabSums() {
   if (state.tab === "regulation" && $("reg-sum")) {
     const today = dayStr(new Date());
     const soon = state.events.filter((e) => e.event_type === "regulation" && e.effective_on && String(e.effective_on) > today).sort((a, b) => String(a.effective_on).localeCompare(String(b.effective_on))).slice(0, 4);
+    const recent = state.events.filter((e) => e.event_type === "regulation" && e.issued_on).sort((a, b) => String(b.issued_on).localeCompare(String(a.issued_on))).slice(0, 3);
     const ry = H.rules_by_year || [];
     $("reg-sum").innerHTML = card("Rule changes by year", "", vbars(ry.map((r) => ({ v: r.n, l: String(r.y), t: `${r.y}: ${r.n} documents. Shows that year`, dim: !!regs.year && regs.year !== String(r.y), a: () => { regs.year = regs.year === String(r.y) ? "" : String(r.y); regs.n = 200; renderRegs(); drawTabSums(); } })), { color: "#b79cf5" }), "SEBI and RBI documents on FPI, FDI, FVCI, ODI and GIFT City. 2021 covers October to December.") +
-      card("Taking effect soon", "", soon.length ? `<div class="soon">${soon.map((e) => `<div><b>${toDMY(String(e.effective_on))}</b>${esc(e.title)}</div>`).join("")}</div>` : '<div class="s">Nothing scheduled.</div>', "");
+      card("Taking effect soon", "", soon.length ? `<div class="soon">${soon.map((e) => `<div><b>${toDMY(String(e.effective_on))}</b>${esc(e.title)}</div>`).join("")}</div>` : (recent.length ? `<div class="s">Nothing scheduled. Most recent rules:</div><div class="soon">${recent.map((e) => `<div><b>${toDMY(String(e.issued_on))}</b>${esc(e.title)}</div>`).join("")}</div>` : '<div class="s">Nothing scheduled.</div>'), "");
   }
   if ((state.tab === "directory" || state.tab === "gift") && $("regx-sum")) {
     const ry = (H.reg_by_year || []).filter((r) => r.y >= 2023), cat = H.reg_by_cat || {};
@@ -4443,10 +4458,11 @@ async function countVisit() {
   } catch {}
 }
 
-// The welcome screen shows on a visitor's first visit each day (Indian time).
+// The welcome notice shows on a first visit and again after 30 days (Indian time), not every day.
 function showWelcome() {
   const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
-  if (load("ict-welcome") === today) return;
+  const seen = load("ict-welcome");
+  if (seen && (new Date(today) - new Date(seen)) / 864e5 < 30) return;
   const w = $("welcome");
   w.hidden = false; document.body.classList.add("locked");
   $("welcome-enter").focus();
@@ -5944,12 +5960,12 @@ route();
 })();
 </script>
 <script>
-// Opener: globe with beams into India. Shown again 4 hours after it was last closed; skipped for reduced motion.
+// Opener: globe with beams into India. Shown on a first visit and again after 30 days; skipped for reduced motion. (Returning visitors want the numbers, not an intro.)
 (function () {
   const op = document.getElementById("opener");
   if (!op) return;
   let seen = false, reduce = false;
-  const EVERY_MS = 4 * 60 * 60 * 1000;
+  const EVERY_MS = 30 * 24 * 60 * 60 * 1000;
   try { const last = +localStorage.getItem("ict-opener-last") || 0; seen = Date.now() - last < EVERY_MS; } catch {}
   try { reduce = matchMedia("(prefers-reduced-motion: reduce)").matches; } catch {}
   if (seen || reduce) { op.remove(); return; }
@@ -6449,7 +6465,7 @@ async function drawIndexEvents() {
 }
 // ---------- Withholding tax reference (domestic rates for non-residents) ----------
 function drawWht() {
-  const box = $("whtref"); if (!box || state.tab !== "directory" || box.innerHTML) return;
+  const box = $("whtref"); if (!box || state.tab !== "regulation" || box.innerHTML) return;
   const rows = [
     ["Dividends", "20%", "10% on dividends paid on global depository receipts"],
     ["Interest on foreign currency borrowing or debt", "20%", "FCCBs and FCEBs before conversion: 10%"],
