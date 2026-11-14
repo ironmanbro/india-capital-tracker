@@ -40,8 +40,9 @@ const gsec=D.ccil_limits.find(l=>/Central/.test(l.ins));
 window.CALC=calc;
 
 /* ---------- shell ---------- */
-const NAV=[['home','Home','monitor.html'],['deals','Deals','deals.html'],['investors','Investors','investors.html'],['reg','Registrations','#'],['regs','Regulations','#']];
-const SUB={deals:[['all','All deals','deals.html'],['ex','Exchange deals','#'],['rep','Reported deals','#'],['odi','Outbound (ODI)','#'],['fund','Fund launches and moves','#']],
+const NAV=[['home','Home','monitor.html'],['deals','Deals','deals.html'],['investors','Investors','investors.html'],['reg','Registrations','registrations.html'],['regs','Regulations','#']];
+const SUB={reg:[['reg','Register and watch lists','registrations.html'],['lim','Foreign investment limits','#'],['gift','GIFT City / IFSCA','#'],['an','Analytics','#']],
+  deals:[['all','All deals','deals.html'],['ex','Exchange deals','#'],['rep','Reported deals','#'],['odi','Outbound (ODI)','#'],['fund','Fund launches and moves','#']],
   home:[['today','Today','monitor.html'],['markets','Markets','flows.html'],['brief','Weekly brief','#']],
   investors:[['dir','Directory','investors.html'],['own','Ownership changes','#'],['net','Network','#'],['ctry','Countries','#'],['f13','13F','#'],['profile','Profile: SoftBank Group','investor.html'],['co','Profile: Meesho','company.html']]};
 function shell(active,sub){

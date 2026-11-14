@@ -15,6 +15,8 @@ Open: `python3 -m http.server` in this folder, then `monitor.html` or `flows.htm
 | `deals.html` | Deals landing view: filters, grouped table, weekly chart, ODI |
 | `inv.js` | Snapshot for the Investors directory (1,646 names from stories and shareholding filings). Generated, do not edit |
 | `investors.html` | Investors directory: filters, sortable table, country and activity panels, coverage audit |
+| `reg.js` | Snapshot for Registrations: full NSDL register (12,364 FPIs), watch lists, IFSCA counts, limit lists. About 1.3 MB because the whole register is embedded so search works offline; production would query the database. Generated, do not edit |
+| `registrations.html` | Registrations tab: watch lists and full register, filters, CSV, analytics and limit panels |
 | `company.html` | Company profile: Meesho Ltd |
 | `investor.html` | Investor-group profile: SoftBank Group |
 | `screens/` | Screenshots of the current state |
@@ -28,7 +30,7 @@ Open: `python3 -m http.server` in this folder, then `monitor.html` or `flows.htm
 
 ## Navigation (5 tabs)
 Home (Today, Markets, Weekly brief), Deals, Investors (Directory, Ownership changes, Network, Countries, 13F, plus profile pages), Registrations, Regulations.
-Only Home, Deals, the Investors directory and the two profiles are drawn; every other link is a placeholder.
+Only Home, Deals, Investors directory, Registrations and the two profiles are drawn; every other link is a placeholder.
 
 ## What the profile pages showed about name matching
 - Meesho exchange deals name 50 distinct clients; 16 (32%) match the NSDL FPI register exactly (registration number shown). 1 group (SVF) links by name pattern; 33 are unlinked. No fuzzy matching was tried.
@@ -63,3 +65,11 @@ Only Home, Deals, the Investors directory and the two profiles are drawn; every 
 - SoftBank is the only group merged by name pattern (8 names, "SVF…" and "SoftBank…"), tagged unconfirmed. Other duplicates remain, for example two spellings of Goldman Sachs Bank Europe SE, and index-fund families are listed fund by fund.
 - Home country comes from news items or Wikidata profiles; filed holders have no country field, so most show "–".
 - Not built: profile pages for anyone except SoftBank Group, Ownership changes, Network, Countries, 13F.
+
+## Registrations
+- Six lists share one table: expiring within 90 days (621), late-fee window (43), new in 30 days (73), dropped off the register (25), invalid (41), full register (12,364). The counts equal those of the live site's `fpi_watch` function.
+- Filters (list, category, country, name or registration number) and sort order are kept in the URL; "Download CSV" exports the current rows.
+- Side panels: new registrations per month (dates exist for 3,352 FPIs, 2023 onward), where FPIs are based, category and type, companies nearing the foreign limit, GIFT City (IFSCA) licence types.
+- Link to deals: 52 of 12,364 registered names match an investor with deals in the last 12 months after name cleaning; they show a bought/sold tag that opens the Investors directory. Name match, unconfirmed (for example "UBS AG" matches the investor "UBS").
+- "Registered in 2026" (853) is NSDL's own count; the 30-day watch list (73) uses a different date field than the directory's own 30-day figure (68), so only the watch-list figure is shown.
+- Not built: Foreign investment limits, GIFT City and Analytics sub-views (links are placeholders; their summaries are panels on this page); weekly brief.

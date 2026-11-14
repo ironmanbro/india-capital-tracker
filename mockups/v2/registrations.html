@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Registrations · India Capital Monitor (v2 mockup)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="tokens.css">
+<style>.cl{max-width:250px;overflow:hidden;text-overflow:ellipsis}.d0{color:var(--neg);font-weight:500}.d1{color:var(--warn);font-weight:500}</style>
+</head>
+<body>
+<div id="shell"></div>
+<main class="wrap">
+  <div class="pagehead"><h1>Registrations</h1>
+    <div class="meta"><span class="tag a">A</span> NSDL FPI register, IFSCA directory and NSDL limit lists &nbsp;·&nbsp; <b id="asof"></b></div></div>
+
+  <div class="grid">
+    <div class="p c3 stat"><span>FPIs on the register</span><b id="s1"></b><small id="s1s"></small></div>
+    <div class="p c3 stat"><span>Registration expiring within 90 days</span><b id="s2"></b><small id="s2s"></small></div>
+    <div class="p c3 stat"><span>Registered in 2026</span><b id="s3"></b><small id="s3s"></small></div>
+    <div class="p c3 stat"><span>Companies on foreign investment limit lists</span><b id="s4"></b><small id="s4s"></small></div>
+
+    <section class="p c12" aria-label="Filters">
+      <div class="filters">
+        <div><label>List</label><span class="seg" data-k="view" id="views"></span></div>
+        <div><label>Category</label><span class="seg" data-k="cat"><button data-v="all">All</button><button data-v="1">Cat I</button><button data-v="2">Cat II</button></span></div>
+        <div><label for="co">Country</label><select id="co"></select></div>
+        <div><label for="q">Name or registration number</label><input id="q" type="search" placeholder="e.g. INUSFP or Vanguard"></div>
+        <button class="link-btn rs" id="reset">Reset filters</button>
+      </div>
+    </section>
+
+    <section class="p c8" aria-labelledby="h-t">
+      <div class="ph"><h2 id="h-t"><span id="tt">Register</span></h2><span class="u"><span id="cnt"></span> <button class="link-btn" id="csv">Download CSV</button></span></div>
+      <div class="tw"><table class="tbl" id="tbl"></table></div>
+      <div class="more" id="more"></div>
+      <div class="pf"><span>Source: NSDL FPI register, updated daily; names and registration numbers only</span><span id="ft"></span></div>
+    </section>
+
+    <div class="stack">
+      <section class="p" aria-labelledby="h-m">
+        <div class="ph"><h2 id="h-m">New registrations per month</h2><span class="u">count</span></div>
+        <div class="pb"><div id="c-new"></div></div>
+        <div class="pf"><span>Latest month is partial. Registration dates are held for 2023 onward (<span id="ond"></span> FPIs); older entries have a year only</span></div>
+      </section>
+      <section class="p" aria-labelledby="h-c">
+        <div class="ph"><h2 id="h-c">Where FPIs are based</h2><span class="u">registered FPIs</span></div>
+        <div class="tw"><table class="tbl" id="ct"></table></div>
+        <div class="pf"><span>Whole register, country as shown by NSDL</span></div>
+      </section>
+      <section class="p" aria-labelledby="h-y">
+        <div class="ph"><h2 id="h-y">Category and type</h2><span class="u">registered FPIs</span></div>
+        <div class="tw"><table class="tbl" id="ty"></table></div>
+      </section>
+      <section class="p" aria-labelledby="h-l">
+        <div class="ph"><h2 id="h-l">Nearing the foreign limit <span class="tag a">A</span></h2><span class="u">held and cap, %</span></div>
+        <div class="tw"><table class="tbl" id="lm"></table></div>
+        <div class="pf"><span id="lmf"></span></div>
+      </section>
+      <section class="p" aria-labelledby="h-g">
+        <div class="ph"><h2 id="h-g">GIFT City (IFSCA) <span class="tag a">A</span></h2><span class="u">regulated entities</span></div>
+        <div class="tw"><table class="tbl" id="gc"></table></div>
+        <div class="pf"><span id="gcf"></span></div>
+      </section>
+    </div>
+  </div>
+</main>
+<div class="foot"><span>India Capital Monitor · v2 design mockup · Registrations</span><span id="dl"></span></div>
+
+<script src="data.js"></script><script src="reg.js"></script><script src="ui.js"></script>
+<script>
+const F=window.F, G=REG, T0='2026-11-14', dayN=iso=>Date.UTC(+iso.slice(0,4),+iso.slice(5,7)-1,+iso.slice(8,10))/864e5, today=dayN(T0);
+ICTUI.shell('reg','reg');
+document.getElementById('asof').textContent='Register updated '+F.dshort(G.stats.fpi_updated)+' · page built '+G.built;
+const title=s=>s?s.toLowerCase().replace(/\b[a-z]/g,c=>c.toUpperCase()).replace(/\bOf\b/,'of'):'';
+const short=s=>({'UNITED STATES OF AMERICA':'United States','UNITED ARAB EMIRATES':'UAE','UNITED KINGDOM':'United Kingdom'}[s]||title(s));
+const objs=G.rows.map(r=>({reg:r[0],name:r[1],ctry:G.countries[r[2]],cat:r[3],sub:G.subs[r[4]],st:r[5],valid:r[6],on:r[7],yr:r[8],d:r[9]}));
+const byReg=Object.fromEntries(objs.map(o=>[o.reg,o]));
+const W=G.watch, lookup=l=>l.map(k=>byReg[k]).filter(Boolean);
+const dropped=W.dropped.map(x=>({reg:x.reg_no,name:x.name,ctry:x.country,cat:x.category==='I'?1:2,sub:x.sub_category,valid:x.valid_upto,last:x.last_seen,d:null}));
+const VIEWS=[['exp','Expiring ≤90 days',lookup(W.expiring)],['late','Late-fee window',lookup(W.late_fee)],['new','New in 30 days',lookup(W.new)],['drop','Dropped off',dropped],['inv','Invalid',lookup(W.invalid)],['all','Full register',objs]];
+const VM=Object.fromEntries(VIEWS.map(v=>[v[0],v]));
+document.getElementById('views').innerHTML=VIEWS.map(v=>'<button data-v="'+v[0]+'">'+v[1]+' <b class="num">'+F.inr(v[2].length)+'</b></button>').join('');
+const cc={}; objs.forEach(o=>{cc[o.ctry]=(cc[o.ctry]||0)+1}); const topC=Object.keys(cc).sort((a,b)=>cc[b]-cc[a]).slice(0,20);
+document.getElementById('co').innerHTML='<option value="all">Any country</option>'+topC.map(c=>'<option value="'+c+'">'+title(c)+' ('+F.inr(cc[c])+')</option>').join('');
+
+const def={view:'exp',cat:'all',co:'all',q:'',sort:'',asc:'',n:'45'};
+let S=Object.assign({},def);
+try{new URLSearchParams(location.hash.slice(1)).forEach((v,k)=>{if(k in def)S[k]=v})}catch(e){}
+const push=()=>{try{const p=new URLSearchParams();for(const k in S) if(S[k]!==def[k]&&k!=='n') p.set(k,S[k]); history.replaceState(null,'','#'+p)}catch(e){}};
+const dateOf=(o,v)=>v==='new'?o.on:v==='drop'?o.last:o.valid;
+const dflt={exp:['d','1'],late:['d','1'],new:['d','0'],drop:['d','0'],inv:['n','1'],all:['n','1']};
+let cur=[];
+function render(){
+  document.querySelectorAll('.seg').forEach(g=>g.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(S[g.dataset.k]===b.dataset.v))));
+  co.value=S.co; document.getElementById('q').value=S.q;
+  const v=S.view, base=VM[v][2], q=S.q.trim().toLowerCase();
+  let rows=base.filter(o=>(S.cat==='all'||String(o.cat)===S.cat)&&(S.co==='all'||o.ctry===S.co)&&(!q||o.name.toLowerCase().includes(q)||o.reg.toLowerCase().includes(q)));
+  const [sk,sa]=S.sort?[S.sort,S.asc]:dflt[v], dir=sa==='1'?1:-1;
+  rows=rows.slice().sort((a,b)=>{let x,y; if(sk==='n'){x=a.name.toLowerCase();y=b.name.toLowerCase();return dir*x.localeCompare(y)} x=dateOf(a,v)||'';y=dateOf(b,v)||''; return dir*(x<y?-1:x>y?1:0)||a.name.localeCompare(b.name)});
+  cur=rows; const n=+S.n, arr=k=>sk===k?(dir===1?' ↑':' ↓'):'';
+  const dh={exp:'Valid until',late:'Valid until',new:'Registered',drop:'Last seen',inv:'Valid until',all:'Valid until'}[v];
+  const last=v==='exp'||v==='late'?'Days left':'Valid until';
+  document.getElementById('tt').textContent=VM[v][1];
+  document.getElementById('cnt').textContent=F.inr(rows.length)+' FPIs ';
+  const days=o=>Math.round(dayN(o.valid)-today);
+  document.getElementById('tbl').innerHTML='<thead><tr><th><button data-s="n">Name'+arr('n')+'</button></th><th>Reg. no.</th><th>Country</th><th>Category · type</th><th class="n"><button data-s="d">'+dh+arr('d')+'</button></th><th class="n">'+last+'</th><th>In deals</th></tr></thead><tbody>'+
+   (rows.slice(0,n).map(o=>{const dd=(v==='exp'||v==='late')&&o.valid?days(o):null;
+     return '<tr><td class="cl" style="max-width:200px" title="'+o.name.replace(/"/g,'&quot;')+'">'+o.name+'</td><td class="num">'+o.reg+'</td><td class="cl" style="max-width:110px" title="'+title(o.ctry)+'">'+short(o.ctry)+'</td><td class="cl" style="max-width:130px" title="'+o.sub+'">'+(o.cat===1?'I':'II')+' <span class="mut">· '+o.sub+'</span></td><td class="n num">'+(dateOf(o,v)?F.dshort(dateOf(o,v)):'<span class="mut">–</span>')+'</td><td class="n num">'+(dd!==null?'<span class="'+(dd<=0?'d0':dd<=30?'d1':'')+'">'+(dd<0?F.MINUS+Math.abs(dd):dd)+'</span>':(o.valid?F.dshort(o.valid):'–'))+'</td><td>'+(o.d?'<a class="tag c" href="investors.html#q='+encodeURIComponent(o.d[2])+'" title="Name match with investor '+o.d[2].replace(/"/g,'')+': bought '+o.d[0]+', sold '+o.d[1]+' in the last 12 months">'+o.d[0]+' / '+o.d[1]+'</a>':'')+'</td></tr>'}).join('')||'<tr><td colspan="7" class="mut" style="height:60px">No FPIs match. <button class="link-btn" id="r2">Reset filters</button></td></tr>')+'</tbody>';
+  document.getElementById('more').innerHTML=rows.length>n?'<button class="tbtn" id="mb">Show '+Math.min(45,rows.length-n)+' more ('+F.inr(rows.length-n)+' left)</button>':'';
+  document.getElementById('ft').textContent={exp:'Registration validity ends within 90 days; "Days left" 0 means today',late:'Past validity but still within the late-fee window',new:'Registered in the last 30 days',drop:'Previously on the register, no longer listed by NSDL',inv:'Marked Invalid by NSDL',all:'All FPIs listed by NSDL'}[v];
+  document.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{const k=b.dataset.s; if(sk===k) S.asc=dir===1?'0':'1'; else {S.sort=k;S.asc=k==='n'?'1':'0'} S.n='45'; render()});
+  const mb=document.getElementById('mb'); if(mb) mb.onclick=()=>{S.n=String(n+45);render()}; const r2=document.getElementById('r2'); if(r2) r2.onclick=reset;
+  push();
+}
+const reset=()=>{S=Object.assign({},def);render()};
+document.querySelectorAll('.seg').forEach(g=>g.querySelectorAll('button').forEach(b=>b.onclick=()=>{S[g.dataset.k]=b.dataset.v;S.sort='';S.asc='';S.n='45';render()}));
+co.onchange=e=>{S.co=e.target.value;S.n='45';render()};
+document.getElementById('q').oninput=e=>{S.q=e.target.value;S.n='45';render()}; document.getElementById('reset').onclick=reset;
+document.getElementById('csv').onclick=()=>{const esc=x=>'"'+String(x==null?'':x).replace(/"/g,'""')+'"';
+  const csv=['reg_no,name,country,category,type,valid_upto,registered_on'].concat(cur.map(o=>[o.reg,o.name,o.ctry,o.cat===1?'I':'II',o.sub,o.valid,o.on].map(esc).join(','))).join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='fpi-'+S.view+'-'+T0+'.csv'; a.click()};
+
+/* stats */
+const exp=VM.exp[2], in7=exp.filter(o=>dayN(o.valid)-today<=7).length;
+s1.textContent=F.inr(G.stats.fpis); s1s.textContent='Category I '+F.inr(G.stats.fpi_cat1)+' · Category II '+F.inr(G.stats.fpi_cat2);
+s2.textContent=F.inr(exp.length); s2s.textContent=in7+' within 7 days · '+VM.late[2].length+' already in the late-fee window';
+s3.textContent=F.inr(G.stats.fpi_this_year); s3s.textContent=G.stats.fpi_new_7d+' in the last 7 days · '+VM.new[2].length+' in the last 30';
+const rf=G.lim.filter(x=>x.l==='red_flag'), br=G.lim.filter(x=>x.l==='breach');
+s4.textContent=G.lim.length; s4s.textContent=rf.length+' red flag · '+br.length+' breach';
+
+/* side panels */
+const byM={}; objs.forEach(o=>{if(o.on){const m=o.on.slice(0,7); byM[m]=(byM[m]||0)+1}});
+const ms=Object.keys(byM).sort().slice(-24); document.getElementById('ond').textContent=F.inr(objs.filter(o=>o.on).length);
+ICTUI.bars('c-new',ms.map(m=>({label:F.dshort(m+'-01').slice(3,6),major:false,tip:F.dshort(m+'-01').slice(3)+' · '+byM[m]+' new FPIs'+(m===ms[ms.length-1]?' (month to date)':''),vals:{v:byM[m]}})),[{key:'v',color:'--s1'}],{h:190,label:'New registrations per month',ticks:3});
+const mx=G.cc[0][1], rest=G.cc.slice(8).reduce((s,c)=>s+c[1],0);
+document.getElementById('ct').innerHTML='<tbody>'+G.cc.slice(0,8).map(c=>'<tr><td>'+title(c[0])+'</td><td class="n num">'+F.inr(c[1])+'</td><td><span class="meter"><i style="width:'+c[1]/mx*100+'%"></i></span></td></tr>').join('')+'<tr><td class="mut">'+(G.cc.length-8)+' other countries</td><td class="n num mut">'+F.inr(rest)+'</td><td></td></tr></tbody>';
+const sc={}; objs.forEach(o=>{sc[o.sub]=(sc[o.sub]||0)+1}); const sk2=Object.keys(sc).sort((a,b)=>sc[b]-sc[a]).slice(0,6), smx=sc[sk2[0]];
+document.getElementById('ty').innerHTML='<tbody>'+sk2.map(k=>'<tr><td class="cl" title="'+k+'">'+k+'</td><td class="n num">'+F.inr(sc[k])+'</td><td><span class="meter"><i style="width:'+sc[k]/smx*100+'%"></i></span></td></tr>').join('')+'<tr class="tot"><td>Category I / II</td><td class="n num" colspan="2">'+F.inr(G.stats.fpi_cat1)+' / '+F.inr(G.stats.fpi_cat2)+'</td></tr></tbody>';
+const near=rf.map(x=>Object.assign({r:x.agg/x.cap},x)).sort((a,b)=>b.r-a.r).slice(0,5);
+document.getElementById('lm').innerHTML='<thead><tr><th>Company</th><th class="n">Held</th><th class="n">Cap</th><th class="n">Since</th></tr></thead><tbody>'+near.map(x=>'<tr><td class="cl" title="'+x.co+'">'+x.co.replace(/ LIMITED$| LTD\.?$/,'')+'</td><td class="n num">'+x.agg.toFixed(2)+'</td><td class="n num">'+x.cap.toFixed(0)+'</td><td class="n num">'+(x.since||'–')+'</td></tr>').join('')+'</tbody>';
+document.getElementById('lmf').textContent=rf.length+' on the red flag list; a further '+br.length+' already on the breach list. As of '+F.dshort(G.lim[0].as_of)+'. Source: NSDL.';
+const im=G.ifsca[0][1];
+document.getElementById('gc').innerHTML='<tbody>'+G.ifsca.slice(0,6).map(c=>'<tr><td class="cl" title="'+c[0]+'">'+c[0]+'</td><td class="n num">'+F.inr(c[1])+'</td><td><span class="meter"><i style="width:'+c[1]/im*100+'%"></i></span></td></tr>').join('')+'<tr class="tot"><td>All entities</td><td class="n num" colspan="2">'+F.inr(G.stats.ifsca)+'</td></tr></tbody>';
+document.getElementById('gcf').textContent=G.stats.ifsca_new_30d+' added in the last 30 days · '+G.stats.fpi_gift+' FPIs are GIFT City based. Source: IFSCA directory.';
+document.getElementById('dl').textContent=objs.filter(o=>o.d).length+' of '+F.inr(objs.length)+' registered names also match an investor active in deals (name match, unconfirmed)';
+render();
+</script>
+</body>
+</html>
