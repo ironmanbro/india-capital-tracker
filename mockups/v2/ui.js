@@ -1,3 +1,6 @@
+/* Old addresses: sign-in returns, shared story links and #firm/ links belong to the classic app (/classic/). Forward them with their query and hash. */
+(function(){var l=location,h=l.hash,q=l.search;
+ if(/^\/(index(\.html)?)?$/.test(l.pathname)&&(/(^#|&)(access_token|error_description|type)=/.test(h)||/^#firm\//.test(h)||/[?&](story|tab|q|preset|region|stage|flow|country|sector)=/.test(q)))l.replace('/classic/'+q+h)})();
 /* ICT v2 mockup helpers: one number/date formatter, shared shell, small SVG charts.
    Data comes from data.js (window.ICT), built from the live Supabase tables. */
 (function(){

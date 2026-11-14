@@ -1,6 +1,6 @@
-name: Refresh the /v2 pages
+name: Refresh the home pages
 
-# Rebuilds the data files of the new design (site/v2) from the project's public tables and commits them to main when the data really changed.
+# Rebuilds the data files of the home pages (data files in site/) from the project's public tables and commits them to main when the data really changed.
 # Cloudflare then publishes the commit like any other change to site/. The build checks its own input first (see pipeline/site_v2/build_all.py):
 # if a fetch or a check fails, this job fails and the pages keep their last good data.
 
@@ -34,13 +34,14 @@ jobs:
       - name: Build the data files and package the pages
         run: python pipeline/site_v2/package_site.py
       - name: Keep the result only if the data really changed
-        run: python pipeline/site_v2/keep_if_changed.py site/v2
+        run: python pipeline/site_v2/keep_if_changed.py $(python pipeline/site_v2/package_site.py --list | sed 's#^#site/#')
       - name: Commit and push
         run: |
-          if git diff --quiet -- site/v2 && [ -z "$(git ls-files --others --exclude-standard site/v2)" ]; then echo "nothing new to publish"; exit 0; fi
+          FILES=$(python pipeline/site_v2/package_site.py --list | sed 's#^#site/#')
+          if git diff --quiet -- $FILES && [ -z "$(git ls-files --others --exclude-standard $FILES)" ]; then echo "nothing new to publish"; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add site/v2
-          git commit -m "Refresh /v2 data ($(date -u +'%Y-%m-%d %H:%M UTC'))"
+          git add $FILES
+          git commit -m "Refresh home page data ($(date -u +'%Y-%m-%d %H:%M UTC'))"
           for i in 1 2 3; do git push origin HEAD:main && exit 0; git pull --rebase origin main; sleep 5; done
           echo "could not push after 3 tries"; exit 1

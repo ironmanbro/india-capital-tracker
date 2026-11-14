@@ -1,16 +1,16 @@
-# The /v2 pages: how they are built, refreshed and published
+# The home pages: how they are built, refreshed and published
 
-`site/v2/` is the public copy of the new design (Home, Deals, Investors, Registrations, Regulations). The old site at `/` is unchanged and stays the main page. Every `/v2` page has a "Classic site" link back to it.
+**Promoted on 14-Nov-26.** The new design is the main page at `/` (files directly in `site/`). The previous app moved, unchanged apart from its address, to `/classic/` (`site/classic/index.html`) and still has sign-in, Network, owner tools, weekly brief and the GIFT/ODI desks. Old `/v2/...` links redirect to `/...` (`site/_redirects`). Every page has a "Classic site" link to `/classic/`.
 
 ## What is in it
 | | |
 |---|---|
 | Pages | Home (`/v2/`, with Today and Markets), Deals, Investors directory, Registrations, Regulations. Source of truth: `mockups/v2/*.html`, copied by `package_site.py` |
 | Data | `data.js`, `deals.js`, `inv.js`, `reg.js`, `regs.js`, built from the project's public tables by `build_*.py`. Static files: the pages read nothing from the database in the browser |
-| Not shipped | the alias review page and its data (owner-only tools), the SoftBank and Meesho profile mock-ups, screenshots, the README. `package_site.py` removes any stray file from `site/v2` |
-| Public config | `site/v2/config.js`, written by `package_site.py`. It lists the pages that exist, so links to unbuilt pages and the placeholder search box are hidden; alias grouping is off (`aliasSource: 'local'`) until aliases are loaded (see `pipeline/aliases/ROLLOUT.md`) |
+| Not shipped | the alias review page and its data (owner-only tools), the SoftBank and Meesho profile mock-ups, screenshots, the README. `package_site.py` copies only the files it manages (`package_site.py --list`) |
+| Public config | `site/config.js`, written by `package_site.py`. It lists the pages that exist, so links to unbuilt pages and the placeholder search box are hidden; alias grouping is off (`aliasSource: 'local'`) until aliases are loaded (see `pipeline/aliases/ROLLOUT.md`) |
 
-Pages carry `noindex` so search engines do not list `/v2` next to the main page. Remove that line from the six pages when the new design is promoted.
+Pages are indexable (the `noindex` line is stripped on packaging). `/classic/` has its own canonical address.
 
 ## How it stays current
 `.github/workflows/refresh_v2.yml` runs after each run of "Sync NSE and NSDL data" (and daily at 10:00 IST as a fallback, and on demand):
@@ -22,7 +22,7 @@ All date windows ("last 90 days", "month to date", the previous month, the secto
 
 ## Run and test it yourself
 ```bash
-python3 pipeline/site_v2/package_site.py            # builds site/v2 (about 40 seconds; reads public tables, needs no secret)
+python3 pipeline/site_v2/package_site.py            # builds the home pages into site/ (about 40 seconds; reads public tables, needs no secret)
 npx wrangler dev --port 8790 --local                # serves site/ with your real _headers and asset rules
 node pipeline/site_v2/tests/pages.js /tmp           # every page, desktop and phone: errors, security-policy violations, "NaN", overflow, dead links
 node pipeline/site_v2/tests/behaviour.js            # service worker, old site, offline, month labels, today's date
@@ -30,16 +30,14 @@ node pipeline/site_v2/tests/behaviour.js            # service worker, old site, 
 The tests need Playwright (`npm i playwright`). They were last run on 14-Nov-26: 12 of 12 page loads and all behaviour checks passed.
 
 ## The service worker
-`site/sw.js` now ignores `/v2/`. Without that, the old app's offline cache would have served stale `/v2` data on the first view, and an offline visit to `/` could have opened a `/v2` page. Tested: a changed data file shows on the very next load, and offline `/` still opens the old app.
+`site/sw.js` ignores the new pages. Without that, the old app's offline cache would have served stale `/v2` data on the first view, and an offline visit to `/` could have opened a `/v2` page. Tested: a changed data file shows on the very next load, and offline `/` still opens the old app.
 
-## Publishing (needs your go-ahead: it makes the new pages public)
-1. Merge the branch into `main`. Cloudflare publishes `site/`, so `/v2` goes live and `sw.js` updates.
-2. Run the "Refresh the /v2 pages" workflow once by hand (Actions tab, Run workflow) to bring the data up to date. If it fails with a 403 on push, enable Settings, Actions, General, "Read and write permissions", or allow the bot on a protected `main`.
-3. Open `/v2/` on a phone and a laptop. Check the line under the page title shows today's data date.
+## Service worker and sign-in after the move
+- `site/sw.js` now serves only `/classic/` offline (cache `ict-v2`); the home pages always come from the network, so their data is never stale.
+- Sign-in links (email, Google, etc.) still return to the site root, the address Supabase already allows. A small script at the top of `mockups/v2/ui.js` forwards those returns (`#access_token=`, `#error_description=`, `#firm/`, old `?story=`, `?tab=` links) to `/classic/` with the query and hash intact.
 
-## Rolling back
-- Pages only: delete the `site/v2` folder in a commit (and the refresh workflow, or it will rebuild them). The old site is not touched.
-- Everything: revert the merge commit. The only change to the old site's files is three lines in `site/sw.js`.
+## Rolling back the promotion
+Revert the promotion commit: `/` returns to the previous app, `/classic/` and the redirects disappear. No data is touched.
 
 ## Differences from the mock-ups, found while making them real
 - "Largest FAR holdings" on the mock-up Home page was **wrong**: a fetch cut off at 100 rows missed the biggest positions (07.38 GS 2027, 07.18 GS 2033). The builder reads all of them.
