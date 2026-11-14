@@ -1135,7 +1135,7 @@ body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-wei
 .fpane[hidden]{display:none}
 .fpi-main{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:16px 18px 18px;margin:0 0 12px}
 .fpi-main>h2.fsec{margin:0 0 4px}
-.fpane .fcard{border:0;box-shadow:none;background:none;padding:0;margin:0}
+.fpi-main .fpane .fcard,#acc-fdi .fpane .fcard{border:0;box-shadow:none;background:none;padding:0;margin:0}
 #fhseg{display:none}
 .gseg-note{margin:0 0 8px}
 .fnav{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:0 0 16px}
@@ -1146,6 +1146,19 @@ body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-wei
 .fnav b{display:block;font-size:14px}
 .fnav span{display:block;color:var(--muted);font-size:12.5px;margin-top:2px;line-height:1.35}
 .fnav-h{font-size:13px;color:var(--muted);margin:0 0 8px}
+/* ---- Profile pages ---- */
+.pf-head{display:flex;gap:16px;align-items:center;flex-wrap:wrap;padding:18px 20px;border:1px solid var(--line);border-radius:16px;background:var(--panel);margin:10px 0 14px}
+.pf-av{width:56px;height:56px;border-radius:14px;background:var(--accent);color:var(--accent-ink,#fff);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;flex:none}
+.pf-title{flex:1 1 280px;min-width:0}
+.pf-title h2{margin:0;font-size:26px;letter-spacing:-.02em;overflow-wrap:anywhere}
+.pf-chips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 2px}
+.pf-chip{padding:2px 10px;border:1px solid var(--line);border-radius:999px;font-size:12.5px;color:var(--muted);white-space:nowrap}
+.pf-actions{display:flex;gap:8px;flex-wrap:wrap}
+.pf-ct{opacity:.7;font-weight:600;margin-left:4px;font-size:12px}
+.pf-links{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:4px 18px;list-style:none;margin:0;padding:0}
+.pf-links li{padding:8px 0;border-bottom:1px solid var(--line)}
+.pf-links a{font-weight:600}
+#firm-body .viewseg,#entity-body .viewseg{margin-top:4px}
 .qviews{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
 .jump{position:sticky;top:0;z-index:15;margin:0 0 12px;padding:8px 0;background:var(--bg);flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none}
 .jump::-webkit-scrollbar{display:none}
@@ -1569,7 +1582,7 @@ body{font-variant-numeric:tabular-nums}
     <div style="text-align:center;margin-top:12px"><button class="reset" id="imore" hidden>Show more investors</button></div>
     <section class="watch" id="cbrief" aria-label="Country briefing"></section>
     <section class="iconst" aria-label="Investor constellation">
-      <div class="iconst-h"><div><h3>Constellation</h3><div class="sub">Who invested in what, and who else is in the same companies. Tap any dot to move to it; tap the centre to open its profile.</div></div>
+      <div class="iconst-h"><div><h3>Constellation</h3><div class="sub">Who invested in what, and who else is in the same companies. Click any dot to open its profile. Hold Shift (or Ctrl) while clicking to move the chart to that dot, or pick a firm from the list.</div></div>
         <div class="iconst-ctl"><select id="cpick" aria-label="Centre the chart on"></select><select id="chops" aria-label="Hops"><option value="2">2 hops</option><option value="3">3 hops</option></select></div></div>
       <div class="iconst-w" id="iconst"></div>
       <div class="iconst-k"><span><i style="background:#7b9cf5"></i>Investor</span><span><i style="background:#5cc6b0"></i>Indian company</span><span><i style="background:#f0884a;border-radius:2px"></i>Exit link</span><span>Numbers on the lines: largest agreed or completed deal, and the stake held where a shareholding filing shows one</span></div>
@@ -1649,6 +1662,7 @@ body{font-variant-numeric:tabular-nums}
         </div></div>
       <div class="flegend"><span><i style="background:var(--c-in)"></i>Net inflow</span><span><i style="background:var(--c-out)"></i>Net outflow</span></div>
       <div class="fchart" id="fday"></div>
+      <p class="note" id="fday-note" hidden></p>
       <p class="dsrc" data-src="nsdl_flows" data-what="NSDL FPI daily trends"></p>
     </div>
 
@@ -1657,6 +1671,7 @@ body{font-variant-numeric:tabular-nums}
     <div class="fcard">
       <div class="fhead"><div><h3>FPI net investment by month<span class="era cur">All available months</span></h3><div class="sub" id="fmonth-sub">Chosen currency · all segments</div></div></div>
       <div class="flegend"><span><i style="background:var(--c-in)"></i>Net inflow</span><span><i style="background:var(--c-out)"></i>Net outflow</span></div>
+      <div class="tfseg" id="mseg" role="group" aria-label="How far back" style="margin:0 0 10px"><button type="button" data-v="12">1 year</button><button type="button" data-v="36">3 years</button><button type="button" data-v="60">5 years</button><button type="button" data-v="0">All</button></div>
       <div class="fchart" id="fmonth"></div>
       <p class="dsrc" data-src="nsdl_flows" data-what="NSDL FPI calendar-year report"></p>
     </div>
@@ -1673,9 +1688,6 @@ body{font-variant-numeric:tabular-nums}
       <p class="dsrc" data-src="nsdl_flows" data-what="NSDL annual and quarterly FPI net investment reports"></p>
     </div>
 
-    <section class="fxd" id="fxdesk" aria-label="FX desk"></section>
-    <section class="fxd" id="fxres" aria-label="Forex reserves"></section>
-    <section class="watch" id="debtlim" aria-label="FPI debt limits"></section>
     </div>
     </section>
     <details class="acc" id="acc-fx"><summary><span class="acc-t">Rupee, dollar and reserves</span><span class="acc-s">Exchange rates, USD/INR against FPI money, forward premia and India’s forex reserves</span></summary><div class="acc-body">
@@ -2508,15 +2520,16 @@ function drawConst() {
   const nodes = [...pos].map(([k, [x, y]]) => {
     const isC = k === cst.center, isInv = k.startsWith("i:"), r = isC ? 16 : Math.min(12, 5 + Math.sqrt(G.adj.get(k)?.size || 1) * 1.6);
     const nm = G.name(k), mx = narrow ? 14 : 22, lab = nm.length > mx ? nm.slice(0, mx - 1) + "…" : nm, right = x >= cx;
-    return `<g class="nd" data-k="${esc(k)}" tabindex="0" role="button" aria-label="${esc(nm)}"><title>${esc(nm)} · ${G.adj.get(k)?.size || 0} links</title><circle cx="${x}" cy="${y}" r="${r}" fill="${isInv ? "#7b9cf5" : "#5cc6b0"}"${isC ? ' stroke="var(--ink)" stroke-width="2"' : ""}/>` +
+    return `<g class="nd" data-k="${esc(k)}" tabindex="0" role="button" aria-label="${esc(nm)}"><title>${esc(nm)} · ${G.adj.get(k)?.size || 0} links · click to open the profile</title><circle cx="${x}" cy="${y}" r="${r}" fill="${isInv ? "#7b9cf5" : "#5cc6b0"}"${isC ? ' stroke="var(--ink)" stroke-width="2"' : ""}/>` +
       `<text x="${isC ? x : x + (right ? r + 4 : -r - 4)}" y="${isC ? y + r + 14 : y + 4}" text-anchor="${isC ? "middle" : right ? "start" : "end"}"${isC ? ' style="font-weight:700;font-size:13px"' : ""}>${esc(lab)}</text></g>`;
   }).join("");
   box.innerHTML = `<svg viewBox="-70 0 ${W + 140} ${H}" role="img" aria-label="Constellation centred on ${esc(G.name(cst.center))}">${lines}${nodes}</svg>`;
-  box.querySelectorAll(".nd").forEach((g) => { const go = () => {
-    const k = g.dataset.k;
-    if (k === cst.center) { if (k.startsWith("i:")) location.hash = `#firm/${encodeURIComponent(k.slice(2))}`; else { $("q").value = G.name(k); state.types.clear(); setTab("feed"); render(); toTop(); } return; }
-    cst.center = k; drawConst();
-  }; g.onclick = go; g.onkeydown = (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); go(); } }; });
+  box.querySelectorAll(".nd").forEach((g) => { const go = (ev) => {
+    const k = g.dataset.k, nm = G.name(k);
+    // Holding Shift, Ctrl or Alt while clicking moves the chart to that dot; a plain click opens its profile.
+    if (ev && (ev.shiftKey || ev.ctrlKey || ev.altKey || ev.metaKey) && k !== cst.center) { cst.center = k; drawConst(); return; }
+    location.hash = `#firm/${encodeURIComponent(invKey(nm))}`;
+  }; g.onclick = (ev) => go(ev); g.onkeydown = (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); go(ev); } }; });
 }
 $("cpick")?.addEventListener("change", (ev) => { cst.center = ev.target.value; drawConst(); });
 $("chops")?.addEventListener("change", (ev) => { cst.hops = +ev.target.value; drawConst(); });
@@ -2806,6 +2819,15 @@ document.addEventListener("click", (ev) => { if (!ev.target.closest?.(".fchart .
 function renderFlowCharts() {
   hideTip();
   const seg = flows.seg, r = flowRange(), d = flows.daily.filter((x) => inDays(x.day, r)), mon = flows.monthly;
+  // Daily figures exist only for the recent weeks; say so when the chosen period reaches further back, and offer the monthly view for the rest.
+  const dstart = flows.daily[0] && flows.daily[0].day, note = $("fday-note");
+  if (note) {
+    const short = dstart && r.from < dstart;
+    note.hidden = !short;
+    if (short) { note.innerHTML = `NSDL publishes daily figures only for the recent weeks: this chart starts on ${toDMY(dstart)}. The figures above also count whole months before that date. For the earlier part of ${r.from === "2000-01-01" ? "the history" : rangeLabel(r)}, <button class="link" type="button" id="fday-tomonth">see the monthly view</button>.`; $("fday-tomonth").onclick = () => $("fpiview").querySelector('[data-v="m"]').click(); }
+  }
+  const mN = flows.mrange == null ? 36 : flows.mrange, monS = mN ? mon.slice(-mN) : mon;
+  document.querySelectorAll("#mseg button").forEach((b) => { b.setAttribute("aria-pressed", String(+b.dataset.v === mN)); b.onclick = () => { flows.mrange = +b.dataset.v; renderFlowCharts(); }; });
   $("fday").dataset.title = "FPI net investment by day";
   barChart($("fday"), d.map((x) => ({ ...x, v: usdMOf(x[seg]) })), {
     axis: usdAxis, line: cumLine(),
@@ -2814,9 +2836,9 @@ function renderFlowCharts() {
   });
   $("fday-sub").textContent = `In your chosen currency (second currency in brackets) · ${seg === "Total" ? "all segments" : seg.toLowerCase()} · ${d.length} trading day${d.length === 1 ? "" : "s"}${d.length ? ` from ${toDMY(d[0].day)} to ${toDMY(d[d.length - 1].day)}` : " in this period"}`;
   $("fmonth").dataset.title = "FPI net investment by month";
-  barChart($("fmonth"), mon.map((m) => ({ ...m, v: usdMOf(m.net) })), {
+  barChart($("fmonth"), monS.map((m) => ({ ...m, v: usdMOf(m.net) })), {
     axis: usdAxis, line: cumLine(),
-    label: (p) => mon.some((m) => m.month.slice(0, 4) !== p.month.slice(0, 4)) ? monLabel(p.month) : MON[+p.month.slice(5, 7) - 1],
+    label: (p) => monS.some((m) => m.month.slice(0, 4) !== p.month.slice(0, 4)) ? monLabel(p.month) : MON[+p.month.slice(5, 7) - 1],
     tip: (p) => `<b>${monLabel(p.month)}${p.partial ? " (so far)" : ""}</b><div class="row"><span>Net, all segments</span><span>${crore(p.net)}</span></div>`,
   });
   $("fmonth-sub").textContent = `In your chosen currency (second currency in brackets) · all segments${mon.some((m) => m.partial) ? " · lighter bar = month in progress" : ""}`;
@@ -3176,35 +3198,46 @@ function renderFirm() {
   const heldNews = new Set();
   (net.g.adj.get(n.key) || new Map()).forEach((e, k) => { if (e.stakes.length) net.g.nodes.get(k).stories.forEach((x) => { if (!n.stories.has(x)) heldNews.add(x); }); });
   const back = { investors: "Investors", network: "Network", feed: "Feed", flows: "Flows", directory: "Directory" }[net.back] || (net.back === "overview" ? "Home" : "Investors");
+  // Who they are, as far as the stories say: the most common investor type and home country.
+  const tc = new Map(), cc = new Map();
+  list.forEach((e) => { const ps = e.parties.length ? e.parties : e.investor ? [{ name: e.investor }] : []; if (ps.some((x) => invKey((x.name || "").trim()) === n.key)) { if (e.investor_type) tc.set(e.investor_type, (tc.get(e.investor_type) || 0) + 1); if (e.investor_country && invKey(e.investor || "") === n.key) cc.set(e.investor_country, (cc.get(e.investor_country) || 0) + 1); } });
+  const top1 = (m) => [...m].sort((x, y) => y[1] - x[1])[0]?.[0], ptype = INV_TYPES[top1(tc)], pcountry = top1(cc);
+  const initials = n.name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+  const newest = (a) => [...a].sort((x, y) => (y.published_at || y.fetched_at) > (x.published_at || x.fetched_at) ? 1 : -1);
+  const stakes = stakesHtml(n.key), hasStakes = !!String(stakes || "").trim();
+  const nPane = (id, l, c, hid) => `<button type="button" data-v="${id}" aria-pressed="${id === "o"}"${hid ? " hidden" : ""}>${l}${c != null ? ` <span class="pf-ct">${c}</span>` : ""}</button>`;
   box.innerHTML = `
     <button class="link backbtn" id="firm-back" type="button">← Back to ${back}</button>
-    <div class="fhead" style="margin-bottom:14px"><div><h2 style="margin:0;font-size:26px;letter-spacing:-.02em">${esc(n.name)}</h2>
-      <div class="sub">${others.length ? `Also written as ${others.map(esc).join(", ")} · ` : ""}First seen ${dmy(first)} · latest ${dmy(last)}</div></div>
-      <div style="display:flex;gap:8px"><button class="reset" id="firm-follow" type="button" aria-pressed="${follows().includes(n.key)}">${follows().includes(n.key) ? "★ Following" : "☆ Follow"}</button>
-      <button class="reset" id="firm-graph" type="button">Show in Network</button>
-      <button class="reset" id="firm-feed" type="button">Show in Feed</button></div></div>
+    <div class="pf-head"><div class="pf-av" aria-hidden="true">${esc(initials || "?")}</div>
+      <div class="pf-title"><h2>${esc(n.name)}</h2>
+        <div class="pf-chips">${ptype ? `<span class="pf-chip">${esc(ptype)}</span>` : ""}${pcountry ? `<span class="pf-chip">${esc(pcountry)}</span>` : ""}${held.length ? `<span class="pf-chip">Holds ${held.length} listed ${held.length === 1 ? "company" : "companies"}</span>` : ""}${target ? `<span class="pf-chip">Invested in by others</span>` : ""}</div>
+        <div class="sub">${others.length ? `Also written as ${others.map(esc).join(", ")} · ` : ""}First seen ${dmy(first)} · latest ${dmy(last)}</div></div>
+      <div class="pf-actions"><button class="reset" id="firm-follow" type="button" aria-pressed="${follows().includes(n.key)}">${follows().includes(n.key) ? "★ Following" : "☆ Follow"}</button>
+        <button class="reset" id="firm-graph" type="button">Show in constellation</button>
+        <button class="reset" id="firm-feed" type="button">All deals</button></div></div>
     <div class="ftiles">
+      ${tile("Stories", list.length, Object.entries(cats).map(([k, v]) => `${v} ${(CAT_WORDS[k] || [k, k])[v === 1 ? 0 : 1]}`).join(" · "))}
+      ${big ? tile("Largest disclosed deal", esc(money(big)), esc(big.title)) : ""}
+      ${buy || sell ? tile("Role in deals", `${buy} as investor or buyer`, sell ? `${sell} as seller` : "") : ""}
       ${held.length ? tile("Listed companies held (1%+)", held.length, `Filings as of ${dmy(held.reduce((m, h) => h.period_end > m ? h.period_end : m, ""))}`) + tile("Largest stake", `${(+topHeld.pct).toFixed(2)}%`, esc(titleCase(topHeld.company))) : ""}
       ${priv.length ? tile("Private rounds", priv.length, "Unlisted companies") : ""}
-      ${tile("Stories", list.length, Object.entries(cats).map(([k, v]) => `${v} ${(CAT_WORDS[k] || [k, k])[v === 1 ? 0 : 1]}`).join(" · "))}
-      ${buy ? tile("As investor or buyer", buy) : ""}${sell ? tile("As seller", sell) : ""}${target ? tile("As the company invested in", target) : ""}
-      ${big ? tile("Largest disclosed deal", esc(money(big)), esc(big.title)) : ""}
+      ${target ? tile("As the company invested in", target) : ""}
     </div>
-    <div id="mb"></div>
-    ${aboutHtml(n.key)}
-    ${egoCard()}
-    ${held.length ? stakesHtml(n.key) : ""}
-    ${priv.length ? `<div class="fcard" style="margin-top:14px"><div class="fhead"><div><h3>Private (unlisted) deals</h3><div class="sub">Funding rounds in companies that are not listed, from startup and business news. Amounts are as reported.</div></div></div>${netStories(priv, 200, true)}</div>` : ""}
-    <div class="netwrap" style="margin-top:14px">
-      <div class="fcard" style="margin:0"><div class="fhead"><h3>Stories</h3></div>${rest.length ? netStories(rest, 200, true) : `<div class="sub" style="margin-top:8px">No other stories.</div>`}</div>
-      <aside class="netpanel"><h3>Linked firms</h3><div class="sub">Named on the same deal stories, or holding a stake</div>
-        <div class="pg"><ul>${links.map(([k, ed], i) => `<li${pgHide(i, true)}><a href="#firm/${encodeURIComponent(k)}">${esc(net.g.nodes.get(k).name)}</a><div class="sub">${esc(edgeLabel(ed))}</div></li>`).join("") || `<li class="sub">None yet</li>`}</ul>${pgBar(links.length)}</div></aside>
-    </div>
-    ${held.length ? "" : stakesHtml(n.key)}
-    ${heldNews.size ? `<div class="fcard" style="margin-top:14px"><div class="fhead"><div><h3>News on companies it holds</h3><div class="sub">Stories about the companies above, where this firm is not named</div></div></div>${netStories(heldNews, 50, true)}</div>` : ""}
+    <div class="seg viewseg" id="firm-views" role="group" aria-label="Profile sections">${nPane("o", "Overview")}${nPane("d", "Deals and news", list.length + heldNews.size)}${nPane("h", "Stakes", null, !hasStakes)}${nPane("l", "Linked firms", links.length, !links.length)}${nPane("x", "Registrations and filings")}</div>
+    <div class="fpane" data-p="o">${buy || sell ? `<div id="mb"></div>` : ""}${aboutHtml(n.key)}${egoCard()}
+      <div class="fcard" style="margin-top:14px"><div class="fhead"><div><h3>Latest stories</h3><div class="sub">The five newest. Open Deals and news for all ${list.length}.</div></div></div>${list.length ? netStories(newest(list).slice(0, 5), 5, false) : `<div class="sub">No stories.</div>`}</div></div>
+    <div class="fpane" data-p="d" hidden>
+      ${priv.length ? `<div class="fcard" style="margin-top:4px"><div class="fhead"><div><h3>Private (unlisted) deals</h3><div class="sub">Funding rounds in companies that are not listed, from startup and business news. Amounts are as reported.</div></div></div>${netStories(priv, 200, true)}</div>` : ""}
+      <div class="fcard" style="margin-top:14px"><div class="fhead"><h3>Stories</h3></div>${rest.length ? netStories(rest, 200, true) : `<div class="sub" style="margin-top:8px">No other stories.</div>`}</div>
+      ${heldNews.size ? `<div class="fcard" style="margin-top:14px"><div class="fhead"><div><h3>News on companies it holds</h3><div class="sub">Stories about the companies it holds a stake in, where this firm is not named</div></div></div>${netStories(heldNews, 50, true)}</div>` : ""}</div>
+    <div class="fpane" data-p="h" hidden>${stakes}</div>
+    <div class="fpane" data-p="l" hidden><div class="fcard" style="margin-top:4px"><div class="fhead"><div><h3>Linked firms</h3><div class="sub">Named on the same deal stories, or holding a stake. Click one to open its profile.</div></div></div>
+      <ul class="pf-links">${links.map(([k, ed]) => `<li><a href="#firm/${encodeURIComponent(k)}">${esc(net.g.nodes.get(k).name)}</a><div class="sub">${esc(edgeLabel(ed))}</div></li>`).join("")}</ul></div></div>
+    <div class="fpane" data-p="x" hidden><div id="firm-x"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
     <p class="note">Built from news stories, which may contain errors; check the original article. A link is not an ownership record.</p>`;
+  paneSwitch("firm-views", (v) => showPane(box, v));
   egoMap(n.key, $("ego-map"));
-  mbMount(n.key, n.name, "firm");
+  if (buy || sell) mbMount(n.key, n.name, "firm");   // the meeting brief is for investors, not for companies that were invested in
   $("firm-follow").onclick = () => {
     const f = follows(), on = f.includes(n.key);
     setFollows(on ? f.filter((k) => k !== n.key) : [...f, n.key]);
@@ -3212,8 +3245,7 @@ function renderFirm() {
   };
   $("firm-back").onclick = () => { location.hash = ""; setTab(net.back && net.back !== "firm" ? net.back : "investors"); toTop(true); };
   $("firm-feed").onclick = () => { $("q").value = n.name; state.types.clear(); location.hash = ""; setTab("feed"); render(); };
-  $("firm-graph").onclick = () => { net.center = n.key; net.edge = null; net.view = "one"; location.hash = ""; setTab("network"); };
-  box.insertAdjacentHTML("beforeend", `<div id="firm-x"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div>`);
+  $("firm-graph").onclick = () => { cst.center = "i:" + n.key; location.hash = ""; setTab("investors"); setTimeout(() => { try { drawConst(); $("iconst").scrollIntoView({ behavior: "smooth", block: "center" }); } catch {} }, 500); };
   firmXrefs(n);
   setTitle();
 }
@@ -5960,8 +5992,10 @@ async function openEntity(kind, ref) {
     const myDeals = kind === "company" ? deals.filter((r) => gNorm(r.name) === n || gNorm(r.symbol) === n) : deals.filter((r) => gNorm(r.clientName) === n);
     const held = kind === "company" ? (state.holdings || []).filter((h) => gNorm(h.company) === n) : (state.holdings || []).filter((h) => gNorm(h.holder) === n);
     box.innerHTML = `<button class="reset" id="ent-back" type="button">← Back</button>
-      <div class="fhead" style="margin:12px 0 4px"><div><h2 style="margin:0">${esc(name)}</h2><div class="sub">${esc(head)}</div></div></div>
+      <div class="pf-head"><div class="pf-av" aria-hidden="true">${esc(name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase() || "?")}</div>
+        <div class="pf-title"><h2>${esc(name)}</h2><div class="pf-chips"><span class="pf-chip">${esc(head)}</span>${held.length ? `<span class="pf-chip">${held.length} holding${held.length === 1 ? "" : "s"} on file</span>` : ""}${myDeals.length ? `<span class="pf-chip">${myDeals.length} exchange deal${myDeals.length === 1 ? "" : "s"}</span>` : ""}</div></div></div>
       <div id="mb"></div>${eFacts(facts) || ""}${(() => { try { ensureNet(); return net.g.nodes.has(invKey(name)) ? egoCard("ego-map-e") : ""; } catch { return ""; } })()}${eStories(name)}${eDeals(myDeals)}${eHeld(held, kind === "company" ? "company" : "holder")}${extra}${xtProfile(X, name, kind)}`;
+    regroup(box, { mode: "acc", open: ["Stories", "Holdings in listed companies", "Holders"] });   // each section opens on request
     if ($("ego-map-e")) egoMap(invKey(name), $("ego-map-e"));
     mbMount(invKey(name), name, kind);
     $("ent-back").onclick = () => setTab(state.prevTab || "overview");
