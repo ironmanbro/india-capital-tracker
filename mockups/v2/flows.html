@@ -72,7 +72,7 @@
 <script src="ui.js"></script>
 <script>
 const D=ICT, F=window.F, C=ICTUI.calc, L=C.daily[C.daily.length-1];
-ICTUI.shell('flows');
+ICTUI.shell('home','markets');
 document.getElementById('asof').textContent='Data to '+F.dshort(L.d)+' · page built '+D.built;
 document.getElementById('gap').textContent=Math.max(...C.daily.map(r=>Math.abs(r.chk)))+' ₹ cr';
 const maj=(r,i,a)=>i===0||r.d.slice(5,7)!==a[i-1].d.slice(5,7);

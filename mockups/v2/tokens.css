@@ -68,6 +68,17 @@ button{font:inherit;color:inherit}
 .tbtn{height:28px;min-width:28px;padding:0 8px;border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--surface);cursor:pointer;font-size:var(--t-12)}
 .tbtn:hover{background:var(--surface-2)}
 
+.sub{background:var(--surface-2);border-bottom:1px solid var(--line)}
+.sub-in{max-width:1440px;margin:0 auto;display:flex;gap:2px;padding:0 10px;overflow-x:auto;scrollbar-width:none}
+.sub-in a{padding:6px 10px;font-size:var(--t-12);color:var(--ink-2);white-space:nowrap;border-bottom:2px solid transparent;text-decoration:none}
+.sub-in a:hover{color:var(--ink)}
+.sub-in a[aria-current="page"]{color:var(--ink);font-weight:500;border-bottom-color:var(--accent)}
+.crumb{font-size:var(--t-12);color:var(--ink-3);margin:2px 0 4px}
+.crumb a{color:var(--ink-2)}
+.stat{padding:10px 14px}
+.stat span{display:block;font-size:var(--t-11);color:var(--ink-3)}
+.stat b{display:block;font:500 var(--t-18)/1.3 var(--font-mono);font-variant-numeric:tabular-nums}
+.stat small{display:block;font-size:var(--t-11);color:var(--ink-3)}
 .tick{background:var(--surface);border-bottom:1px solid var(--line)}
 .tick-in{max-width:1440px;margin:0 auto;display:flex;overflow-x:auto;scrollbar-width:none}
 .tick-i{flex:0 0 auto;padding:7px 16px;border-right:1px solid var(--line);min-width:150px}

@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SoftBank Group · Investor profile (v2 mockup)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="tokens.css">
+<style>.cl{max-width:300px;overflow:hidden;text-overflow:ellipsis}.sd{font:500 var(--t-11) var(--font-mono)}.sd.b{color:var(--pos)}.sd.s{color:var(--neg)}</style>
+</head>
+<body>
+<div id="shell"></div>
+<main class="wrap">
+  <div class="crumb"><a href="investor.html">Investors</a> / Directory / <span id="bc"></span></div>
+  <div class="pagehead"><h1>SoftBank Group <span class="tag">Investor group</span></h1>
+    <div class="meta"><span class="tag a">Exact</span> same registration number &nbsp;<span class="tag c">Name match</span> same name pattern, not confirmed &nbsp;·&nbsp; <b id="asof"></b></div></div>
+
+  <div class="grid">
+    <div class="p c3 stat"><span>Indian companies held (filed)</span><b id="s1"></b><small id="s1s"></small></div>
+    <div class="p c3 stat"><span>Entities found under this name</span><b id="s2"></b><small id="s2s"></small></div>
+    <div class="p c3 stat"><span>Exchange deals on file</span><b id="s3"></b><small id="s3s"></small></div>
+    <div class="p c3 stat"><span>Reported items</span><b id="s4"></b><small id="s4s"></small></div>
+
+    <section class="p c8" aria-labelledby="h-ho">
+      <div class="ph"><h2 id="h-ho">Holdings in Indian listed companies <span class="tag a">A</span></h2><span class="u">% of shares, latest filing</span></div>
+      <div class="tw"><table class="tbl" id="ho"></table></div>
+      <div class="pf"><span>Source: NSE shareholding pattern filings</span><span>The latest filing for each company is shown; the Meesho figure is before the 13-Nov-26 sale</span></div>
+    </section>
+    <section class="p c4" aria-labelledby="h-pr">
+      <div class="ph"><h2 id="h-pr">Profile <span class="tag">B</span></h2></div>
+      <div class="pb"><table class="tbl" id="pr"></table><p class="note" id="prs"></p></div>
+      <div class="pf"><span>Source: Wikidata and Wikipedia, checked 28-Oct-26</span></div>
+    </section>
+
+    <section class="p c6" aria-labelledby="h-dl">
+      <div class="ph"><h2 id="h-dl">Exchange deals <span class="tag a">A</span></h2><span class="u">₹ cr</span></div>
+      <div class="tw"><table class="tbl" id="dl"></table></div>
+      <div class="pf"><span>Source: NSE bulk and block deal files; clients whose name starts with "SVF"</span></div>
+    </section>
+    <section class="p c6" aria-labelledby="h-nw">
+      <div class="ph"><h2 id="h-nw">Reported <span class="tag c">C</span></h2><span class="u">news, not verified</span></div>
+      <div class="tw"><table class="tbl" id="nw"></table></div>
+      <div class="pf"><span>Only items where SoftBank or an SVF vehicle is the investor. Exchange-sourced items are in the deals table. <b id="mn"></b></span></div>
+    </section>
+
+    <section class="p c12" aria-labelledby="h-al">
+      <div class="ph"><h2 id="h-al">Entities and names behind this page</h2><span class="u">audit</span></div>
+      <div class="tw"><table class="tbl" id="al"></table></div>
+      <div class="pf"><span>NSDL FPI register: no entry found for "softbank", "svf" or "meerkat". These vehicles are US/Cayman funds, so a registration number cannot link them; only the name can.</span></div>
+    </section>
+  </div>
+</main>
+<div class="foot"><span>India Capital Monitor · v2 design mockup · investor profile</span></div>
+
+<script src="data.js"></script><script src="profiles.js"></script><script src="ui.js"></script>
+<script>
+const F=window.F, I=PROF.investor, P=I.profile;
+ICTUI.shell('investors','profile');
+document.getElementById('bc').textContent=I.name;
+const norm=s=>s.toLowerCase().replace(/\b(limited|ltd|llc|inc)\b|[.,()]/g,'').replace(/\s+/g,' ').trim();
+const svf=n=>/^svf\b/i.test(n.trim());
+const link=c=>/^meesho/i.test(c)?'<a href="company.html">'+c+'</a>':c;
+
+/* latest filing per company+holder (normalised) */
+const latest={}; I.shp.forEach(x=>{const k=norm(x.company.replace(/mobility/i,''))+'|'+norm(x.holder); if(!latest[k]||x.period_end>latest[k].period_end) latest[k]=x});
+const ho=Object.values(latest).sort((a,b)=>b.pct-a.pct);
+const own=n=>n.investor&&/softbank|svf/i.test(n.investor);
+const nonNse=I.news.filter(n=>n.source_name!=='NSE'&&own(n)), mentions=I.news.filter(n=>n.source_name!=='NSE'&&!own(n)).length;
+const seenD=new Set(); I.deals=I.deals.filter(d=>{const k=[d.d,d.sym,d.client.toUpperCase(),d.side,d.cr].join('|'); if(seenD.has(k)) return false; seenD.add(k); return true});
+const ents=new Map(); const add=(n,src)=>{const k=norm(n); const e=ents.get(k)||{names:new Set(),src:new Set()}; e.names.add(n.trim()); e.src.add(src); ents.set(k,e)};
+I.shp.forEach(x=>add(x.holder,'Shareholding pattern')); I.deals.forEach(x=>add(x.client,'NSE deals')); I.news.forEach(x=>{if(x.investor&&/softbank|svf/i.test(x.investor)) add(x.investor,x.source_name==='NSE'?'NSE deals':'News')});
+document.getElementById('asof').textContent='Latest filing '+F.dshort(ho.map(h=>h.period_end).sort().pop());
+
+s1.textContent=ho.length; s1s.textContent='through '+new Set(ho.map(h=>norm(h.holder))).size+' separate vehicles';
+s2.textContent=ents.size; s2s.textContent='different names, grouped by name';
+s3.textContent=I.deals.length; s3s.textContent=I.deals.filter(d=>d.side==='SELL').length+' sells, '+I.deals.filter(d=>d.side==='BUY').length+' buys';
+s4.textContent=nonNse.length; s4s.textContent='news items, '+F.dshort(nonNse[nonNse.length-1].published_at)+' to '+F.dshort(nonNse[0].published_at);
+
+document.getElementById('ho').innerHTML='<thead><tr><th>Company</th><th>Vehicle, as filed</th><th class="n">Stake %</th><th></th><th>As of</th></tr></thead><tbody>'+
+ ho.map(h=>'<tr><td>'+link(h.company)+'</td><td class="cl" title="'+h.holder+'">'+h.holder.toUpperCase()+'</td><td class="n num">'+h.pct.toFixed(2)+'</td><td><span class="meter"><i style="width:'+Math.min(100,h.pct/20*100)+'%"></i></span></td><td class="num">'+F.dshort(h.period_end)+'</td></tr>').join('')+'</tbody>';
+
+document.getElementById('pr').innerHTML='<tbody>'+[['Country',P.country],['Headquarters',P.headquarters],['Founded',P.inception&&F.dshort(P.inception)],['Largest holder',P.owner],['Website',P.website&&'<a href="'+P.website+'" rel="noopener">'+P.website.replace('https://','')+'</a>']].filter(r=>r[1]).map(r=>'<tr><td class="mut" style="width:110px">'+r[0]+'</td><td class="wrapc">'+r[1]+'</td></tr>').join('')+'</tbody>';
+document.getElementById('prs').textContent=P.summary.replace(/\s+/g,' ')+'…';
+
+document.getElementById('dl').innerHTML='<thead><tr><th>Date</th><th>Stock</th><th>Vehicle</th><th>Side</th><th class="n">Value</th></tr></thead><tbody>'+
+ I.deals.map(d=>'<tr><td class="num">'+F.dshort(d.d)+'</td><td>'+(d.sym==='MEESHO'?'<a href="company.html">MEESHO</a>':d.sym)+'</td><td class="cl" title="'+d.client+'">'+d.client+'</td><td><span class="sd '+(d.side==='BUY'?'b':'s')+'">'+d.side+'</span></td><td class="n num">'+F.inr(d.cr,{dp:1})+'</td></tr>').join('')+'</tbody>';
+
+const ev={exit:'Exit',entry:'Entry'};
+document.getElementById('nw').innerHTML='<thead><tr><th>Date</th><th>Source</th><th>Headline</th><th>Type</th><th class="n">Reports</th></tr></thead><tbody>'+
+ nonNse.map(n=>'<tr><td class="num">'+F.dshort(n.published_at)+'</td><td>'+n.source_name+'</td><td class="wrapc">'+n.title+'</td><td>'+(ev[n.event_type]||n.event_type||'')+'</td><td class="n num">'+n.reports+'</td></tr>').join('')+'</tbody>';
+
+document.getElementById('mn').textContent=mentions+' other items that only mention SoftBank are left out.';
+document.getElementById('al').innerHTML='<thead><tr><th>Name as found</th><th>Seen in</th><th>Link to this group</th><th>Basis</th></tr></thead><tbody>'+
+ [...ents.values()].map(e=>{const n=[...e.names][0],s=svf(n);return '<tr><td>'+[...e.names].join(' / ')+'</td><td>'+[...e.src].join(', ')+'</td><td><span class="tag c">Name match</span></td><td>'+(s?'Name starts with "SVF" (SoftBank Vision Fund naming)':'Group name used in news')+'</td></tr>'}).join('')+'</tbody>';
+</script>
+</body>
+</html>

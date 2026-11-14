@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Meesho Ltd · Company profile (v2 mockup)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="tokens.css">
+<style>.tbl td.nw{white-space:normal;min-width:150px}.cl{max-width:260px;overflow:hidden;text-overflow:ellipsis}.sd{font:500 var(--t-11) var(--font-mono)}.sd.b{color:var(--pos)}.sd.s{color:var(--neg)}</style>
+</head>
+<body>
+<div id="shell"></div>
+<main class="wrap">
+  <div class="crumb"><a href="investor.html">Investors</a> / Companies / <span id="bc"></span></div>
+  <div class="pagehead"><h1>Meesho Ltd <span class="tag">NSE: MEESHO</span></h1>
+    <div class="meta"><span class="tag a">Exact</span> same registration number &nbsp;<span class="tag c">Name match</span> same name pattern, not confirmed &nbsp;·&nbsp; <b id="asof"></b></div></div>
+
+  <div class="grid">
+    <div class="p c3 stat"><span>Foreign holders on file, <i id="shpd"></i></span><b id="s1"></b><small id="s1s"></small></div>
+    <div class="p c3 stat"><span>Exchange deals on file (bulk and block)</span><b id="s2"></b><small id="s2s"></small></div>
+    <div class="p c3 stat"><span>Last deal price</span><b id="s3"></b><small id="s3s"></small></div>
+    <div class="p c3 stat"><span>Foreign investment limit lists</span><b id="s4"></b><small id="s4s"></small></div>
+
+    <section class="p c7" aria-labelledby="h-sh">
+      <div class="ph"><h2 id="h-sh">Foreign shareholders <span class="tag a">A</span></h2><span class="u">% of shares, from shareholding pattern</span></div>
+      <div class="tw"><table class="tbl" id="shp"></table></div>
+      <div class="pf"><span>Source: NSE shareholding pattern filing; foreign categories only on file</span><span>Quarter shown is the latest filed (before the 13-Nov sale)</span></div>
+    </section>
+    <section class="p c5" aria-labelledby="h-ch">
+      <div class="ph"><h2 id="h-ch">Exchange deal value by day <span class="tag a">A</span></h2><span class="u">₹ cr</span></div>
+      <div class="pb"><div class="legend"><span><i style="background:var(--pos)"></i>Bought</span><span><i style="background:var(--neg)"></i>Sold</span><span class="mut">Sum over all clients</span></div><div id="c-deals"></div></div>
+      <div class="pf"><span>Source: NSE bulk and block deal files; duplicates removed</span></div>
+    </section>
+
+    <section class="p c12" aria-labelledby="h-dl">
+      <div class="ph"><h2 id="h-dl">Exchange deals <span class="tag a">A</span></h2><span class="u" id="dlu"></span></div>
+      <div class="tw"><table class="tbl" id="dl"></table></div>
+      <div class="pf"><span>Client as filed with the exchange. "Register" shows an exact name match in the NSDL FPI register (registration number), otherwise blank.</span></div>
+    </section>
+
+    <section class="p c6" aria-labelledby="h-nw">
+      <div class="ph"><h2 id="h-nw">Reported <span class="tag c">C</span></h2><span class="u">news, not verified</span></div>
+      <div class="tw"><table class="tbl" id="nw"></table></div>
+      <div class="pf"><span>Exchange-sourced items are shown in the table above, not repeated here</span></div>
+    </section>
+    <section class="p c6" aria-labelledby="h-ln">
+      <div class="ph"><h2 id="h-ln">Linked data <span class="tag a">A</span></h2></div>
+      <div class="tw"><table class="tbl" id="ln"></table></div>
+      <div class="pf"><span>Each row is a separate table; "none on file" means no row was found, not that none exists</span></div>
+    </section>
+
+    <section class="p c12" aria-labelledby="h-au">
+      <div class="ph"><h2 id="h-au">How the names on this page were linked</h2><span class="u">audit</span></div>
+      <div class="tw"><table class="tbl" id="au"></table></div>
+      <div class="pf"><span>No fuzzy matching was tried. Clients that did not match may be domestic funds, unregistered entities or spelling variants.</span></div>
+    </section>
+  </div>
+</main>
+<div class="foot"><span>India Capital Monitor · v2 design mockup · company profile</span></div>
+
+<script src="data.js"></script><script src="profiles.js"></script><script src="ui.js"></script>
+<script>
+const F=window.F, C=PROF.company, I=PROF.investor;
+ICTUI.shell('investors','co');
+document.getElementById('bc').textContent=C.name; 
+const norm=s=>s.toLowerCase().replace(/\b(limited|ltd|llc|inc)\b|[.,()]/g,'').replace(/\s+/g,' ').trim();
+const svf=n=>/^svf\b/i.test(n.trim());
+const last=C.deals[0], ds=C.deals.map(d=>d.d).sort(), clients=C.clients;
+document.getElementById('asof').textContent='Exchange data to '+F.dshort(last.d);
+
+/* stats */
+const shp=C.shp, pd=shp[0].period_end, tot=shp.reduce((s,x)=>s+x.pct,0);
+document.getElementById('shpd').textContent=F.dshort(pd);
+s1.textContent=shp.length+' holders'; s1s.textContent='together '+tot.toFixed(2)+'% of shares';
+const val=C.deals.reduce((s,d)=>s+d.cr,0);
+s2.textContent=C.deals.length+' deals'; s2s.textContent='₹ '+F.inr(val)+' cr, '+F.dshort(ds[0])+' to '+F.dshort(ds[ds.length-1]);
+s3.textContent='₹ '+last.px.toFixed(2); s3s.textContent=F.dshort(last.d)+', '+last.kind.toLowerCase()+' deal price, not a market quote';
+s4.textContent=C.limits.length?'Listed':'Not listed'; s4s.textContent='Not on NSDL red flag or breach list (as of 12-Nov-26)';
+
+/* shareholders; link SVF vehicle to investor page */
+document.getElementById('shp').innerHTML='<thead><tr><th>Holder</th><th>Category</th><th class="n">Stake %</th><th></th><th>Investor page</th></tr></thead><tbody>'+
+ shp.map(x=>'<tr><td>'+x.holder+'</td><td>'+x.category+'</td><td class="n num">'+x.pct.toFixed(2)+'</td><td><span class="meter"><i style="width:'+Math.min(100,x.pct/12*100)+'%"></i></span></td><td class="nw">'+(svf(x.holder)?'<a href="investor.html">SoftBank Group</a> <span class="tag c">Name match</span>':'<span class="mut">not built</span>')+'</td></tr>').join('')+
+ '<tr class="tot"><td>Total, foreign holders on file</td><td></td><td class="n num">'+tot.toFixed(2)+'</td><td></td><td></td></tr></tbody>';
+
+/* chart by day */
+const by={}; C.deals.forEach(d=>{const o=by[d.d]||(by[d.d]={b:0,s:0}); d.side==='BUY'?o.b+=d.cr:o.s-=d.cr});
+const days=Object.keys(by).sort();
+ICTUI.bars('c-deals',days.map((d,i)=>({label:F.dnum(d),major:i%3===0,tip:F.dshort(d)+'<br>Bought '+F.inr(by[d].b)+'<br>Sold '+F.inr(by[d].s),vals:{b:by[d].b,s:by[d].s}})),[{key:'b',color:'--pos'},{key:'s',color:'--neg'}],{h:210,label:'Exchange deal value by day'});
+
+/* deals table */
+const reg=Object.fromEntries(clients.filter(c=>c.reg).map(c=>[c.name.toUpperCase(),c]));
+document.getElementById('dlu').textContent=C.deals.length+' unique deals, newest first · ₹ cr';
+document.getElementById('dl').innerHTML='<thead><tr><th>Date</th><th>Type</th><th>Client</th><th>Side</th><th class="n">Quantity</th><th class="n">Price ₹</th><th class="n">Value</th><th>Register</th><th>Investor page</th></tr></thead><tbody>'+
+ C.deals.slice(0,16).map(d=>{const r=reg[d.client.toUpperCase()];return '<tr><td class="num">'+F.dshort(d.d)+'</td><td>'+d.kind.charAt(0)+d.kind.slice(1).toLowerCase()+'</td><td class="cl" title="'+d.client+'">'+d.client+'</td><td><span class="sd '+(d.side==='BUY'?'b':'s')+'">'+d.side+'</span></td><td class="n num">'+F.inr(d.qty)+'</td><td class="n num">'+d.px.toFixed(2)+'</td><td class="n num">'+F.inr(d.cr,{dp:1})+'</td><td>'+(r?'<span class="tag a">Exact</span> <span class="num mut">'+r.reg+'</span>':'')+'</td><td>'+(svf(d.client)?'<a href="investor.html">SoftBank Group</a> <span class="tag c">Name match</span>':'')+'</td></tr>'}).join('')+'</tbody>';
+
+/* news */
+document.getElementById('nw').innerHTML='<thead><tr><th>Date</th><th>Source</th><th>Headline</th><th class="n">Reports</th></tr></thead><tbody>'+C.news.map(n=>'<tr><td class="num">'+F.dshort(n.published_at)+'</td><td>'+n.source_name+'</td><td class="wrapc">'+n.title+'</td><td class="n num">'+n.reports+'</td></tr>').join('')+'</tbody>';
+
+/* linked data */
+const ln=[['Index review',C.index.map(e=>F.dshort(e.day)+' · '+e.provider+': '+e.event).join('<br>')||'none on file'],['NSDL foreign limit lists','none on file'],['Corporate actions',C.corp.length?C.corp.length+' on file':'none on file'],['Investor pages reached','SoftBank Group (via SVF II MEERKAT (DE) LLC)']];
+document.getElementById('ln').innerHTML='<tbody>'+ln.map(r=>'<tr><td style="width:170px" class="mut">'+r[0]+'</td><td class="wrapc">'+r[1]+'</td></tr>').join('')+'</tbody>';
+
+/* audit */
+const nm=clients.length, ex=clients.filter(c=>c.reg).length, sv=clients.filter(c=>svf(c.name)).length;
+document.getElementById('au').innerHTML='<thead><tr><th>Step</th><th class="n">Count</th><th>Basis</th></tr></thead><tbody>'+
+ [['Distinct client names in Meesho exchange deals',nm,'NSE bulk and block files'],
+  ['Exact match to the NSDL FPI register',ex+' ('+Math.round(ex/nm*100)+'%)','Same name; registration number shown'],
+  ['Linked to an investor group by name pattern',sv,'Name starts with "SVF"; unconfirmed'],
+  ['Not linked',nm-ex-sv,'May be domestic funds, unregistered entities or spelling variants']].map(r=>'<tr><td>'+r[0]+'</td><td class="n num">'+r[1]+'</td><td>'+r[2]+'</td></tr>').join('')+'</tbody>';
+</script>
+</body>
+</html>

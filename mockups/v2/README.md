@@ -9,7 +9,10 @@ Open: `python3 -m http.server` in this folder, then `monitor.html` or `flows.htm
 | `tokens.css` | Design tokens (light primary, dark option) and base components: panel grid, table, meter, segmented control |
 | `ui.js` | The only number/date formatter, shared header and ticker, SVG bar/line charts, heat table |
 | `data.js` | Snapshot of live Supabase tables (read-only, public key), built 2026-11-14. Generated, do not edit |
-| `monitor.html`, `flows.html` | The two screens |
+| `profiles.js` | Snapshot for the two profile pages (Meesho, SoftBank Group). Generated, do not edit |
+| `monitor.html`, `flows.html` | Home: Today and Markets |
+| `company.html` | Company profile: Meesho Ltd |
+| `investor.html` | Investor-group profile: SoftBank Group |
 | `screens/` | Screenshots of the current state |
 
 ## Rules the mockups follow
@@ -18,6 +21,16 @@ Open: `python3 -m http.server` in this folder, then `monitor.html` or `flows.htm
 - Units live in the panel or column header (₹ cr, US$ mn, %), never in the cell. ₹ uses Indian grouping, US$ uses Western.
 - Dates are `13-Nov-26`. Negative numbers use a true minus sign. A value that rounds to zero shows `0`, uncoloured.
 - Every panel names its source in the footer. Grade tags: `A` regulator/exchange data, `C` news-derived. Grade C rows are never added into any total.
+
+## Navigation (5 tabs)
+Home (Today, Markets, Weekly brief), Deals, Investors (Directory, Ownership changes, Network, Countries, 13F, plus profile pages), Registrations, Regulations.
+Only Home and the two profiles are drawn; every other link is a placeholder.
+
+## What the profile pages showed about name matching
+- Meesho exchange deals name 50 distinct clients; 16 (32%) match the NSDL FPI register exactly (registration number shown). 1 group (SVF) links by name pattern; 33 are unlinked. No fuzzy matching was tried.
+- SoftBank appears under 8 different names (six SVF vehicles plus "SoftBank" and "SoftBank Vision Fund"). None is in the FPI register, so only the name can link them. Every such link is tagged "Name match" (unconfirmed).
+- The same holder is spelled differently between filings (e.g. "Svf Ii Ostrich (De) Llc" vs "SVF II OSTRICH (DE) LLC"), so names are normalised before the latest filing per holder is chosen.
+- News that merely mentions SoftBank is not counted as a SoftBank deal.
 
 ## Checks done on the data
 - NSDL daily: the segment rows add up to the Total on all 29 days (largest gap 0).

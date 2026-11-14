@@ -40,8 +40,10 @@ const gsec=D.ccil_limits.find(l=>/Central/.test(l.ins));
 window.CALC=calc;
 
 /* ---------- shell ---------- */
-const NAV=[['monitor','Monitor','monitor.html'],['flows','Flows','flows.html'],['debt','Debt','#'],['own','Ownership','#'],['deals','Deals','#'],['rules','Rules & register','#']];
-function shell(active){
+const NAV=[['home','Home','monitor.html'],['deals','Deals','#'],['investors','Investors','investor.html'],['reg','Registrations','#'],['regs','Regulations','#']];
+const SUB={home:[['today','Today','monitor.html'],['markets','Markets','flows.html'],['brief','Weekly brief','#']],
+  investors:[['dir','Directory','#'],['own','Ownership changes','#'],['net','Network','#'],['ctry','Countries','#'],['f13','13F','#'],['profile','Profile: SoftBank Group','investor.html'],['co','Profile: Meesho','company.html']]};
+function shell(active,sub){
   const el=document.getElementById('shell'); if(!el) return;
   const t=(l,v,s)=>'<div class="tick-i"><span>'+l+'</span><b>'+v+'</b>'+(s?'<small>'+s+'</small>':'')+'</div>';
   el.innerHTML=
@@ -49,6 +51,7 @@ function shell(active){
    '<nav class="nav" aria-label="Desks">'+NAV.map(n=>'<a href="'+n[2]+'"'+(n[0]===active?' aria-current="page"':'')+(n[2]==='#'?' title="Not in the week-1 mockups"':'')+'>'+n[1]+'</a>').join('')+'</nav>'+
    '<div class="search" role="search">Search company, FPI, ISIN, circular<kbd>⌘K</kbd></div>'+
    '<button class="tbtn" id="theme" aria-label="Switch light or dark theme">Dark</button></div></header>'+
+   (SUB[active]?'<div class="sub"><nav class="sub-in" aria-label="Views">'+SUB[active].map(n=>'<a href="'+n[2]+'"'+(n[0]===sub?' aria-current="page"':'')+(n[2]==='#'?' title="Not in the mockups yet"':'')+'>'+n[1]+'</a>').join('')+'</nav></div>':'')+
    '<div class="tick"><div class="tick-in">'+
    t('FPI net, NSDL, '+dshort(last.d)+' · ₹ cr',sg(last.total))+
    t('Nov MTD · ₹ cr',sg(calc.mtdTotal))+
