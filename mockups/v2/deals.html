@@ -3,7 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Deals · India Capital Monitor (v2 mockup)</title>
+<title>Deals · India Capital Monitor</title>
+<meta name="description" content="Foreign capital in and out of India: FPI flows, exchange and reported deals, investors, registrations and SEBI/RBI rules, from primary sources.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#f3f3ef">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="tokens.css">
@@ -23,7 +27,7 @@
 
     <section class="p c12" aria-label="Filters">
       <div class="filters">
-        <div><label>Period</label><span class="seg" data-k="win"><button data-v="7">7 days</button><button data-v="30">30 days</button><button data-v="91">All (since 15-Aug)</button></span></div>
+        <div><label>Period</label><span class="seg" data-k="win"><button data-v="7">7 days</button><button data-v="30">30 days</button><button data-v="91" id="allbtn">All</button></span></div>
         <div><label>Type</label><span class="seg" data-k="dir"><button data-v="all">All</button><button data-v="in">Into India</button><button data-v="out">Exits</button><button data-v="fund">Fund launches and moves</button><button data-v="abroad">Abroad</button></span></div>
         <div><label>Source</label><span class="seg" data-k="g"><button data-v="all">All</button><button data-v="A">Exchange (A)</button><button data-v="C">Reported (C)</button></span></div>
         <div><label>Stage</label><span class="seg" data-k="stage"><button data-v="all">All</button><button data-v="completed">Completed</button><button data-v="agreed">Agreed</button><button data-v="plan">Plan</button><button data-v="talks">Talks</button></span></div>
@@ -62,7 +66,7 @@
     </div>
   </div>
 </main>
-<div class="foot"><span>India Capital Monitor · v2 design mockup · Deals</span><span>Verified trail: a reported deal gets an exchange match when an exchange deal has the same direction, a similar target name and a date within 2 days (name match, unconfirmed)</span></div>
+<div class="foot"><span>India Capital Monitor (beta) · Deals</span><span>Verified trail: a reported deal gets an exchange match when an exchange deal has the same direction, a similar target name and a date within 2 days (name match, unconfirmed)</span></div>
 
 <script src="data.js"></script><script src="deals.js"></script><script src="config.js"></script><script src="resolver.js"></script><script src="ui.js"></script>
 <script>
@@ -71,6 +75,7 @@ const F=window.F, R=DEALS.rows;
 ICTUI.shell('deals','all');
 const maxD=R[0].d, dayN=iso=>Date.UTC(+iso.slice(0,4),+iso.slice(5,7)-1,+iso.slice(8,10))/864e5;
 document.getElementById('asof').textContent='Deals to '+F.dshort(maxD)+' · page built '+DEALS.built;
+const allDays=Math.max(31,Math.ceil(dayN(maxD)-dayN(DEALS.since))+1), allBtn=document.getElementById('allbtn'); allBtn.dataset.v=String(allDays); allBtn.textContent='All (since '+F.dnum(DEALS.since)+')';
 const dirOf=e=>e==='entry'?'in':e==='exit'?'out':e==='outbound'?'abroad':'fund';
 const DL={in:'Into India',out:'Exit',fund:'Fund / move',abroad:'Abroad'};
 const SL={completed:'Completed',agreed:'Agreed',plan:'Plan',talks:'Talks'};

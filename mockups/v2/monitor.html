@@ -3,7 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Monitor · India Capital Monitor (v2 mockup)</title>
+<title>Monitor · India Capital Monitor</title>
+<meta name="description" content="Foreign capital in and out of India: FPI flows, exchange and reported deals, investors, registrations and SEBI/RBI rules, from primary sources.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#f3f3ef">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="tokens.css">
@@ -75,22 +79,22 @@
     </section>
   </div>
 </main>
-<div class="foot"><span>India Capital Monitor · v2 design mockup</span><span>Desks other than Monitor and Flows are not drawn yet</span><span>Built by Kishan Singhania</span></div>
+<div class="foot"><span>India Capital Monitor (beta)</span><span>Built by Kishan Singhania</span></div>
 
 <script src="data.js"></script>
-<script src="ui.js"></script>
+<script src="config.js"></script><script src="ui.js"></script>
 <script>
 const D=ICT, F=window.F, C=ICTUI.calc, L=C.daily[C.daily.length-1];
 ICTUI.shell('home','today');
 document.getElementById('asof').textContent='Data to '+F.dshort(L.d)+' · page built '+D.built;
 
 /* 1. segment table */
-const d5=C.daily.slice(-5), oct=C.daily.filter(r=>r.d.slice(0,7)==='2026-10');
+const d5=C.daily.slice(-5), curM=L.d.slice(0,7), prevM=(()=>{const y=+curM.slice(0,4),m=+curM.slice(5,7); return m===1?(y-1)+'-12':y+'-'+String(m-1).padStart(2,'0')})(), oct=C.daily.filter(r=>r.d.slice(0,7)===prevM);
 const S=(rows,k)=>rows.reduce((s,r)=>s+r[k],0);
 const seg=[['Equity','eq'],['Debt (general, VRR, FAR)','debt'],['Hybrid','hyb'],['Mutual funds','mf'],['AIFs','aif'],['Total','total']];
-document.getElementById('segtbl').innerHTML='<thead><tr><th>Segment</th><th class="n">'+F.dshort(L.d)+'</th><th class="n">Last 5 sessions</th><th class="n">Nov MTD</th><th class="n">Oct</th><th class="n">FYTD</th></tr></thead><tbody>'+
+document.getElementById('segtbl').innerHTML='<thead><tr><th>Segment</th><th class="n">'+F.dshort(L.d)+'</th><th class="n">Last 5 sessions</th><th class="n">'+F.mname(curM)+' MTD</th><th class="n">'+F.mname(prevM)+'</th><th class="n">FYTD</th></tr></thead><tbody>'+
  seg.map(([n,k])=>'<tr'+(k==='total'?' class="tot"':'')+'><td>'+n+'</td><td class="n">'+F.sg(L[k])+'</td><td class="n">'+F.sg(S(d5,k))+'</td><td class="n">'+F.sg(S(C.mtd,k))+'</td><td class="n">'+F.sg(S(oct,k))+'</td><td class="n">'+(k==='total'?F.sg(C.fytd):'<span class="mut">–</span>')+'</td></tr>').join('')+'</tbody>';
-document.getElementById('f-fpi').textContent='As of '+F.dshort(L.d)+' · FYTD = NSDL monthly table Apr–Oct + November daily; segment split not loaded for FYTD';
+document.getElementById('f-fpi').textContent='As of '+F.dshort(L.d)+' · FYTD = NSDL monthly table, '+F.mname(C.fyStart)+'–'+F.mname(prevM)+', plus '+F.mname(curM)+' daily; segment split not loaded for FYTD';
 /* two series so the sign decides the colour */
 ICTUI.bars('c-daily',C.daily.map((r,i)=>({label:(i===0||r.d.slice(5,7)!==C.daily[i-1].d.slice(5,7))?F.dnum(r.d):F.dnum(r.d).slice(0,2),major:(i===0||r.d.slice(5,7)!==C.daily[i-1].d.slice(5,7)),tip:F.dshort(r.d)+' · ₹ '+F.inr(r.total,{sign:true})+' cr',vals:{p:Math.max(0,r.total),n:Math.min(0,r.total)}})),[{key:'p',color:'--pos'},{key:'n',color:'--neg'}],{h:190,every:2,label:'Daily FPI net investment'});
 

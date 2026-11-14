@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Regulations · India Capital Monitor</title>
+<meta name="description" content="Foreign capital in and out of India: FPI flows, exchange and reported deals, investors, registrations and SEBI/RBI rules, from primary sources.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#f3f3ef">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="tokens.css">
+<style>.cl{max-width:200px;overflow:hidden;text-overflow:ellipsis}.soon{color:var(--warn);font-weight:500}.past{color:var(--ink-3)}</style>
+</head>
+<body>
+<div id="shell"></div>
+<main class="wrap">
+  <div class="pagehead"><h1>Regulations</h1>
+    <div class="meta"><span class="tag a">A</span> the document is the regulator's own &nbsp;·&nbsp; summaries and "affects" labels are automatic &nbsp;·&nbsp; <b id="asof"></b></div></div>
+
+  <div class="grid">
+    <div class="p c3 stat"><span>Rules and circulars, last 90 days</span><b id="s1"></b><small id="s1s"></small></div>
+    <div class="p c3 stat"><span>Taking effect in the next 30 days</span><b id="s2"></b><small id="s2s"></small></div>
+    <div class="p c3 stat"><span>Consultation papers, last 90 days</span><b id="s3"></b><small>Proposals, not yet rules</small></div>
+    <div class="p c3 stat"><span>CCI merger approvals, last 90 days</span><b id="s4"></b><small id="s4s"></small></div>
+
+    <section class="p c12" aria-label="Filters">
+      <div class="filters">
+        <div><label>Period</label><span class="seg" data-k="win"><button data-v="30">30 days</button><button data-v="90">90 days</button><button data-v="365">1 year</button><button data-v="all">All</button></span></div>
+        <div><label>Regulator</label><span class="seg" data-k="reg"><button data-v="all">All</button><button data-v="SEBI">SEBI</button><button data-v="RBI">RBI</button></span></div>
+        <div><label for="ty">Document</label><select id="ty"></select></div>
+        <div><label for="ins">Affects</label><select id="ins"></select></div>
+        <div><label for="q">Title or summary</label><input id="q" type="search" placeholder="e.g. FATCA"></div>
+        <button class="link-btn rs" id="reset">Reset filters</button>
+      </div>
+    </section>
+
+    <section class="p c8" aria-labelledby="h-t">
+      <div class="ph"><h2 id="h-t">Rules and circulars <span class="tag a">A</span></h2><span class="u" id="cnt"></span></div>
+      <div class="tw"><table class="tbl" id="tbl"></table></div>
+      <div class="more" id="more"></div>
+      <div class="pf"><span>Source: SEBI and RBI publications; each title links to the regulator's document</span><span>Summaries and "affects" labels are written automatically from the document and not reviewed. Read the source before acting.</span></div>
+    </section>
+
+    <div class="stack">
+      <section class="p" aria-labelledby="h-c">
+        <div class="ph"><h2 id="h-c">Compliance calendar</h2><span class="u">effective date</span></div>
+        <div class="tw"><table class="tbl" id="cal"></table></div>
+        <div class="pf"><span>Only rules with a stated effective date (<span id="ced"></span> of <span id="ctot"></span>)</span></div>
+      </section>
+      <section class="p" aria-labelledby="h-m">
+        <div class="ph"><h2 id="h-m">Rules per month</h2><span class="u">count</span></div>
+        <div class="pb"><div class="legend"><span><i style="background:var(--s1)"></i>SEBI</span><span><i style="background:var(--s3)"></i>RBI</span></div><div id="c-m"></div></div>
+        <div class="pf"><span>Follows the filters except Period</span></div>
+      </section>
+      <section class="p" aria-labelledby="h-i">
+        <div class="ph"><h2 id="h-i">What the rules touch</h2><span class="u">rules in view</span></div>
+        <div class="tw"><table class="tbl" id="it"></table></div>
+        <div class="pf"><span>A rule can touch more than one; click a label in the table to filter</span></div>
+      </section>
+      <section class="p" aria-labelledby="h-cc">
+        <div class="ph"><h2 id="h-cc">CCI merger approvals <span class="tag a">A</span></h2><span class="u">latest orders</span></div>
+        <div class="tw"><table class="tbl" id="cci"></table></div>
+        <div class="pf"><span id="ccif"></span></div>
+      </section>
+      <section class="p" aria-labelledby="h-r">
+        <div class="ph"><h2 id="h-r">Reference: FPI debt limits <span class="tag a">A</span></h2><span class="u">% of limit used</span></div>
+        <div class="tw"><table class="tbl" id="ref"></table></div>
+        <div class="ph" style="padding-top:12px"><h2>Reference: tax on payments to non-residents <span class="tag">B</span></h2><span class="u">before treaty relief</span></div>
+        <div class="tw"><table class="tbl" id="wht"></table></div>
+        <div class="pf"><span>Debt limits: CCIL and NSDL. Tax rates: Deloitte, International Tax: India Highlights 2026 (a secondary source, updated Aug 2026), not the Income-tax Act. Check the Act and the relevant treaty. Not tax advice.</span></div>
+      </section>
+    </div>
+  </div>
+</main>
+<div class="foot"><span>India Capital Monitor (beta) · Regulations</span><span>RBI and SEBI items only so far; DPIIT, IFSCA and PIB documents are collected but not yet classified as rules</span></div>
+
+<script src="data.js"></script><script src="regs.js"></script><script src="config.js"></script><script src="ui.js"></script>
+<script>
+const F=window.F, G=REGS, R=G.regs, T0=window.F.todayIST(), dayN=iso=>Date.UTC(+iso.slice(0,4),+iso.slice(5,7)-1,+iso.slice(8,10))/864e5, today=dayN(T0);
+ICTUI.shell('regs','feed');
+document.getElementById('asof').textContent='Latest rule '+F.dshort(R[0].d)+' · page built '+G.built;
+const DT={circular:'Circular',notification:'Notification','consultation paper':'Consultation','master direction':'Master direction',other:'Other'};
+R.forEach(r=>{r.n=dayN(r.d); r.en=r.eff?dayN(r.eff):null; r.k=(r.t+' '+r.s).toLowerCase()});
+const insAll={}; R.forEach(r=>r.ins.forEach(i=>insAll[i]=(insAll[i]||0)+1)); const insK=Object.keys(insAll).sort((a,b)=>insAll[b]-insAll[a]);
+document.getElementById('ty').innerHTML='<option value="all">All documents</option>'+Object.keys(DT).map(k=>'<option value="'+k+'">'+DT[k]+'</option>').join('');
+document.getElementById('ins').innerHTML='<option value="all">Anything</option>'+insK.map(i=>'<option value="'+i+'">'+i+' ('+insAll[i]+')</option>').join('');
+
+const def={win:'365',reg:'all',ty:'all',ins:'all',q:'',n:'25'};
+let S=Object.assign({},def);
+try{new URLSearchParams(location.hash.slice(1)).forEach((v,k)=>{if(k in def)S[k]=v})}catch(e){}
+const push=()=>{try{const p=new URLSearchParams();for(const k in S) if(S[k]!==def[k]&&k!=='n') p.set(k,S[k]); history.replaceState(null,'','#'+p)}catch(e){}};
+const base=(skipWin)=>{const q=S.q.trim().toLowerCase();return R.filter(r=>(skipWin||S.win==='all'||today-r.n<=+S.win)&&(S.reg==='all'||r.reg===S.reg)&&(S.ty==='all'||r.dt===S.ty)&&(S.ins==='all'||r.ins.includes(S.ins))&&(!q||r.k.includes(q)))};
+const eff=r=>{if(r.en==null) return '<span class="mut">–</span>'; const d=r.en-today; return '<span class="num '+(d>=0&&d<=30?'soon':d<0?'past':'')+'">'+F.dshort(r.eff)+'</span> <span class="mut">'+(d===0?'today':d>0?'in '+d+' d':(-d)+' d ago')+'</span>'};
+
+function render(){
+  document.querySelectorAll('.seg').forEach(g=>g.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(S[g.dataset.k]===b.dataset.v))));
+  ty.value=S.ty; ins.value=S.ins; document.getElementById('q').value=S.q;
+  const rows=base(false).sort((a,b)=>b.n-a.n||a.t.localeCompare(b.t)), n=+S.n;
+  document.getElementById('cnt').textContent=rows.length+' of '+R.length+' on file';
+  document.getElementById('tbl').innerHTML='<thead><tr><th>Issued</th><th>By</th><th>Document</th><th>Rule</th><th>Affects</th><th class="n">Takes effect</th></tr></thead><tbody>'+
+   (rows.slice(0,n).map(r=>'<tr><td class="num">'+F.dshort(r.d)+'</td><td>'+r.reg+'</td><td>'+(DT[r.dt]||r.dt)+'</td><td class="rule"><a href="'+(r.u||'#')+'" rel="noopener" title="Open the '+r.reg+' document">'+r.t+'</a><div class="sum">'+r.s+'</div></td><td>'+(r.ins.map(i=>'<button class="chip" data-i="'+i+'" title="Show only rules that affect '+i+'">'+i+'</button>').join('')||'<span class="mut">–</span>')+'</td><td class="n">'+eff(r)+'</td></tr>').join('')||'<tr><td colspan="6" class="mut" style="height:60px">No rules match. <button class="link-btn" id="r2">Reset filters</button></td></tr>')+'</tbody>';
+  document.getElementById('more').innerHTML=rows.length>n?'<button class="tbtn" id="mb">Show '+Math.min(25,rows.length-n)+' more ('+(rows.length-n)+' left)</button>':'';
+  document.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{S.ins=b.dataset.i;S.n='25';render()});
+  const mb=document.getElementById('mb'); if(mb) mb.onclick=()=>{S.n=String(n+25);render()}; const r2=document.getElementById('r2'); if(r2) r2.onclick=reset;
+  /* per month, last 12 months, ignores Period */
+  const nw=base(true), mo={}; nw.forEach(r=>{const m=r.d.slice(0,7); (mo[m]||(mo[m]={SEBI:0,RBI:0}))[r.reg]++});
+  const months=[]; for(let i=11;i>=0;i--){const d=new Date(Date.UTC(+T0.slice(0,4),+T0.slice(5,7)-1-i,1)); months.push(d.toISOString().slice(0,7))}
+  ICTUI.bars('c-m',months.map(m=>{const o=mo[m]||{SEBI:0,RBI:0};return{label:F.dshort(m+'-01').slice(3,6),major:false,tip:F.dshort(m+'-01').slice(3)+'<br>SEBI '+o.SEBI+'<br>RBI '+o.RBI,vals:{a:o.SEBI,b:o.RBI}}}),[{key:'a',color:'--s1'},{key:'b',color:'--s3'}],{h:170,label:'Rules per month',ticks:3});
+  /* touches */
+  const ic={}; rows.forEach(r=>r.ins.forEach(i=>ic[i]=(ic[i]||0)+1)); const ik=Object.keys(ic).sort((a,b)=>ic[b]-ic[a]), mx=Math.max(1,...Object.values(ic));
+  document.getElementById('it').innerHTML='<tbody>'+(ik.map(k=>'<tr><td>'+k+'</td><td class="n num">'+ic[k]+'</td><td><span class="meter"><i style="width:'+ic[k]/mx*100+'%"></i></span></td></tr>').join('')||'<tr><td class="mut">Nothing in view</td></tr>')+'<tr><td class="mut">No label</td><td class="n num mut">'+rows.filter(r=>!r.ins.length).length+'</td><td></td></tr></tbody>';
+  push();
+}
+const reset=()=>{S=Object.assign({},def);render()};
+document.querySelectorAll('.seg').forEach(g=>g.querySelectorAll('button').forEach(b=>b.onclick=()=>{S[g.dataset.k]=b.dataset.v;S.n='25';render()}));
+ty.onchange=e=>{S.ty=e.target.value;S.n='25';render()}; ins.onchange=e=>{S.ins=e.target.value;S.n='25';render()};
+document.getElementById('q').oninput=e=>{S.q=e.target.value;S.n='25';render()}; document.getElementById('reset').onclick=reset;
+
+/* stats (whole dataset) */
+const l90=R.filter(r=>today-r.n<=90), up30=R.filter(r=>r.en!=null&&r.en>=today&&r.en-today<=30).sort((a,b)=>a.en-b.en);
+s1.textContent=l90.length; s1s.textContent='SEBI '+l90.filter(r=>r.reg==='SEBI').length+' · RBI '+l90.filter(r=>r.reg==='RBI').length;
+s2.textContent=up30.length; s2s.textContent=up30.length?'Next: '+F.dshort(up30[0].eff)+', '+up30[0].t.slice(0,48)+'…':'None with a stated date';
+s3.textContent=l90.filter(r=>r.dt==='consultation paper').length;
+const cci90=G.cci.filter(c=>c.dd&&today-dayN(c.dd)<=90); s4.textContent=cci90.length; s4s.textContent=G.cci_m12+' of '+G.cci_n12+' orders in 12 months match a reported deal by name';
+
+/* compliance calendar */
+const withEff=R.filter(r=>r.en!=null), upc=withEff.filter(r=>r.en>=today).sort((a,b)=>a.en-b.en), recent=withEff.filter(r=>r.en<today&&today-r.en<=90).sort((a,b)=>b.en-a.en);
+document.getElementById('ced').textContent=withEff.length; document.getElementById('ctot').textContent=R.length;
+const crow=(r,mut)=>'<tr'+(mut?' class="past"':'')+'><td class="num">'+F.dshort(r.eff)+'</td><td>'+r.reg+'</td><td class="rule" style="min-width:0"><a href="'+r.u+'" rel="noopener">'+r.t+'</a></td></tr>';
+document.getElementById('cal').innerHTML='<tbody><tr class="h"><td colspan="3" style="background:var(--surface-2);font-size:var(--t-11);color:var(--ink-3);height:22px">Coming up</td></tr>'+(upc.map(r=>crow(r,false)).join('')||'<tr><td colspan="3" class="mut">None with a stated date</td></tr>')+'<tr><td colspan="3" style="background:var(--surface-2);font-size:var(--t-11);color:var(--ink-3);height:22px">Took effect in the last 90 days</td></tr>'+(recent.map(r=>crow(r,true)).join('')||'<tr><td colspan="3" class="mut">None</td></tr>')+'</tbody>';
+
+/* CCI */
+document.getElementById('cci').innerHTML='<thead><tr><th>Decided</th><th>Parties</th><th>Outcome</th><th>Deal</th></tr></thead><tbody>'+G.cci.slice(0,8).map(c=>'<tr><td class="num">'+(c.dd?F.dshort(c.dd):'–')+'</td><td class="cl" title="'+c.p.replace(/"/g,'&quot;')+'"><a href="'+(c.l||'#')+'" rel="noopener">'+c.p+'</a></td><td>'+(/^Approved/.test(c.s)?'Approved':c.s.replace(/ \(.*\)/,''))+'</td><td>'+(c.m?'<span class="tag c" title="Name match, unconfirmed: '+c.m.inv.replace(/"/g,'')+' → '+(c.m.tgt||'').replace(/"/g,'')+', reported '+F.dshort(c.m.d)+'">Deal</span>':'')+'</td></tr>').join('')+'</tbody>';
+document.getElementById('ccif').textContent='Source: CCI combination orders. '+G.cci_m12+' of '+G.cci_n12+' orders in the last 12 months match a reported (news) deal by exact name and date; many involve foreign-to-foreign deals that never reach the Deals tab.';
+
+/* reference */
+const ICT=window.ICT, mt=p=>'<span class="meter '+(p>=90?'d':p>=70?'w':'')+'"><i style="width:'+Math.min(100,p)+'%"></i></span>';
+const refs=ICT.ccil_limits.map(l=>[l.ins.replace('Central Government Securities','G-sec, general route').replace('State Government Securities','SDL, general route'),l.pct]).concat(ICT.debt_util.map(u=>[u.name+', general + VRR',u.pct]));
+document.getElementById('ref').innerHTML='<tbody>'+refs.map(r=>'<tr><td>'+r[0]+'</td><td class="n num">'+r[1].toFixed(2)+'%</td><td>'+mt(r[1])+'</td></tr>').join('')+'</tbody>';
+const W=[['Dividends','20%'],['Interest on foreign currency borrowing or debt','20%'],['Interest, older concessional cases','5%'],['Interest outside concessional conditions','30% / 40%'],['Royalties and technical fees','20%'],['Capital gains, foreign companies','12.5%, 20% or 35%'],['No PAN, treaty applies','Higher of treaty or 20%']];
+document.getElementById('wht').innerHTML='<tbody>'+W.map(r=>'<tr><td class="cl" style="max-width:240px" title="'+r[0]+'">'+r[0]+'</td><td class="n num">'+r[1]+'</td></tr>').join('')+'</tbody>';
+render();
+</script>
+</body>
+</html>

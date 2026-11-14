@@ -3,7 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Regulations · India Capital Monitor (v2 mockup)</title>
+<title>Regulations · India Capital Monitor</title>
+<meta name="description" content="Foreign capital in and out of India: FPI flows, exchange and reported deals, investors, registrations and SEBI/RBI rules, from primary sources.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#f3f3ef">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="tokens.css">
@@ -70,11 +74,11 @@
     </div>
   </div>
 </main>
-<div class="foot"><span>India Capital Monitor · v2 design mockup · Regulations</span><span>RBI and SEBI items only so far; DPIIT, IFSCA and PIB documents are collected but not yet classified as rules</span></div>
+<div class="foot"><span>India Capital Monitor (beta) · Regulations</span><span>RBI and SEBI items only so far; DPIIT, IFSCA and PIB documents are collected but not yet classified as rules</span></div>
 
-<script src="data.js"></script><script src="regs.js"></script><script src="ui.js"></script>
+<script src="data.js"></script><script src="regs.js"></script><script src="config.js"></script><script src="ui.js"></script>
 <script>
-const F=window.F, G=REGS, R=G.regs, T0='2026-11-14', dayN=iso=>Date.UTC(+iso.slice(0,4),+iso.slice(5,7)-1,+iso.slice(8,10))/864e5, today=dayN(T0);
+const F=window.F, G=REGS, R=G.regs, T0=window.F.todayIST(), dayN=iso=>Date.UTC(+iso.slice(0,4),+iso.slice(5,7)-1,+iso.slice(8,10))/864e5, today=dayN(T0);
 ICTUI.shell('regs','feed');
 document.getElementById('asof').textContent='Latest rule '+F.dshort(R[0].d)+' · page built '+G.built;
 const DT={circular:'Circular',notification:'Notification','consultation paper':'Consultation','master direction':'Master direction',other:'Other'};
@@ -102,7 +106,7 @@ function render(){
   const mb=document.getElementById('mb'); if(mb) mb.onclick=()=>{S.n=String(n+25);render()}; const r2=document.getElementById('r2'); if(r2) r2.onclick=reset;
   /* per month, last 12 months, ignores Period */
   const nw=base(true), mo={}; nw.forEach(r=>{const m=r.d.slice(0,7); (mo[m]||(mo[m]={SEBI:0,RBI:0}))[r.reg]++});
-  const months=[]; for(let i=11;i>=0;i--){const d=new Date(Date.UTC(2026,10-i,1)); months.push(d.toISOString().slice(0,7))}
+  const months=[]; for(let i=11;i>=0;i--){const d=new Date(Date.UTC(+T0.slice(0,4),+T0.slice(5,7)-1-i,1)); months.push(d.toISOString().slice(0,7))}
   ICTUI.bars('c-m',months.map(m=>{const o=mo[m]||{SEBI:0,RBI:0};return{label:F.dshort(m+'-01').slice(3,6),major:false,tip:F.dshort(m+'-01').slice(3)+'<br>SEBI '+o.SEBI+'<br>RBI '+o.RBI,vals:{a:o.SEBI,b:o.RBI}}}),[{key:'a',color:'--s1'},{key:'b',color:'--s3'}],{h:170,label:'Rules per month',ticks:3});
   /* touches */
   const ic={}; rows.forEach(r=>r.ins.forEach(i=>ic[i]=(ic[i]||0)+1)); const ik=Object.keys(ic).sort((a,b)=>ic[b]-ic[a]), mx=Math.max(1,...Object.values(ic));

@@ -3,7 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Investors · India Capital Monitor (v2 mockup)</title>
+<title>Investors · India Capital Monitor</title>
+<meta name="description" content="Foreign capital in and out of India: FPI flows, exchange and reported deals, investors, registrations and SEBI/RBI rules, from primary sources.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#f3f3ef">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="tokens.css">
@@ -60,7 +64,7 @@
     </div>
   </div>
 </main>
-<div class="foot"><span>India Capital Monitor · v2 design mockup · Investors directory</span><span>Profile pages exist for SoftBank Group only</span><span>Aliases: names merged only where you confirmed them in the review queue</span></div>
+<div class="foot"><span>India Capital Monitor (beta) · Investors directory</span></div>
 
 <script src="data.js"></script><script src="inv.js"></script><script src="config.js"></script><script src="resolver.js"></script><script src="ui.js"></script>
 <script>
@@ -71,6 +75,7 @@ document.getElementById('asof').textContent='Data to '+F.dshort(INV.asof)+' · p
 document.getElementById('cut').textContent=F.dshort(INV.cut);
 const TL={pe_vc:'PE / VC',strategic:'Strategic',fpi:'FPI',asset_manager:'Asset manager',sovereign:'Sovereign',bank:'Bank',pension:'Pension',government:'Government',other:'Other'};
 /* One row per name, or one row per CONFIRMED group: names the owner confirmed as one investor are merged here. */
+const PUBLIC=!!(window.ICT_CONFIG&&ICT_CONFIG.shipped), HASPROFILE=!PUBLIC||ICT_CONFIG.shipped.indexOf('investor.html')>=0;
 let R=[], CC={}, topC=[], newsLinked=0;
 function build(){
   const g=new Map(), of=new Map();
@@ -109,7 +114,7 @@ function render(){
   s3.textContent=F.inr(v.filter(r=>r.both).length); s3s.textContent='whole directory: '+R.filter(r=>r.both).length+' of '+R.filter(r=>r.inNews).length+' investors seen in news or exchange deals ('+pc(R.filter(r=>r.both).length,R.filter(r=>r.inNews).length)+')';
   const tk=v.filter(r=>r.t).length, ck=v.filter(r=>r.c).length; s4.textContent=F.inr(tk)+' · '+F.inr(ck); s4s.textContent=pc(tk,v.length)+' have a type; '+pc(ck,v.length)+' a home country';
   document.getElementById('cnt').textContent=F.inr(rows.length)+' investors';
-  const nm=r=>(r.n==='SoftBank Group'?'<a href="investor.html">'+r.n+'</a>':r.n)+(r.members.length>1?' <span class="tag a" title="Confirmed: '+r.members.length+' names. '+r.members.slice(0,8).map(m=>m.n.replace(/"/g,'')).join(' | ')+(r.members.length>8?' ...':'')+'">'+r.members.length+' names</span>':(r.grp?' <span class="tag a" title="Confirmed alias group">alias</span>':''))+(r.p?' <span class="tag" title="Profile facts from Wikidata or Wikipedia">B</span>':'');
+  const nm=r=>(r.n==='SoftBank Group'&&HASPROFILE?'<a href="investor.html">'+r.n+'</a>':r.n)+(r.members.length>1?' <span class="tag a" title="Confirmed: '+r.members.length+' names. '+r.members.slice(0,8).map(m=>m.n.replace(/"/g,'')).join(' | ')+(r.members.length>8?' ...':'')+'">'+r.members.length+' names</span>':(r.grp?' <span class="tag a" title="Confirmed alias group">alias</span>':''))+(r.p?' <span class="tag" title="Profile facts from Wikidata or Wikipedia">B</span>':'');
   const src=r=>'<span class="src"><i class="'+(/n/.test(r.fl)?'on':'')+'" title="News">N</i><i class="'+(/a/.test(r.fl)?'on':'')+'" title="Exchange deal">X</i><i class="'+(r.filed?'on':'')+'" title="Shareholding filing">F</i></span>';
   document.getElementById('tbl').innerHTML='<thead><tr><th><button data-s="n">Name'+arr('n')+'</button></th><th>Type · home country</th><th class="n"><button data-s="a">Bought / sold'+arr('a')+'</button></th><th class="n"><button data-s="l">Last deal'+arr('l')+'</button></th><th class="n"><button data-s="p">Largest stake / cos'+arr('p')+'</button></th><th>Seen in</th></tr></thead><tbody>'+
    (rows.slice(0,n).map(r=>'<tr><td class="cl" title="'+r.n.replace(/"/g,'&quot;')+'">'+nm(r)+'</td><td class="cl">'+(TL[r.t]||'<span class="mut">–</span>')+(r.c?' <span class="mut">· '+r.c+'</span>':'')+'</td><td class="n num">'+(r.act?'<span class="up">'+r.e+'</span> / <span class="dn">'+r.x+'</span>'+(r.o?' <span class="mut">+'+r.o+'</span>':''):'<span class="mut">–</span>')+'</td><td class="n num">'+(r.ld?F.dshort(r.ld):'<span class="mut">–</span>')+'</td><td class="n num" title="'+(r.hc?'Largest: '+r.hc:'')+'">'+(r.hp?r.hp.toFixed(2)+'% <span class="mut">/ '+r.h+'</span>':'<span class="mut">–</span>')+'</td><td>'+src(r)+'</td></tr>').join('')||'<tr><td colspan="6" class="mut" style="height:60px">No investors match. <button class="link-btn" id="r2">Reset filters</button></td></tr>')+'</tbody>';
@@ -131,6 +136,7 @@ document.getElementById('q').oninput=e=>{S.q=e.target.value;S.n='30';render()}; 
 
 /* coverage (whole directory) */
 function coverage(){
+if(PUBLIC) document.getElementById('alias-note').style.display='none';
 const nn=R.filter(r=>r.inNews).length, nf=R.filter(r=>r.filed).length, bo=R.filter(r=>r.both).length, gr=R.filter(r=>r.members.length>1);
 document.getElementById('alias-note').innerHTML='<b>Aliases:</b> '+ALIASES.note()+'. Directory names '+F.inr(RAW.length)+' → <b>'+F.inr(R.length)+'</b> investors; news names also found in filings '+bothRaw+' → <b>'+newsLinked+'</b> of '+RAW.filter(r=>/[na]/.test(r.fl)).length+'. <a href="alias.html">Review aliases</a>';
 document.getElementById('cv').innerHTML='<tbody>'+[

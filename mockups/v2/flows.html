@@ -3,7 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Flows · India Capital Monitor (v2 mockup)</title>
+<title>Flows · India Capital Monitor</title>
+<meta name="description" content="Foreign capital in and out of India: FPI flows, exchange and reported deals, investors, registrations and SEBI/RBI rules, from primary sources.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#f3f3ef">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="tokens.css">
@@ -18,7 +22,7 @@
   <div class="grid">
     <section class="p c8" aria-labelledby="h-d">
       <div class="ph"><h2 id="h-d">FPI net investment by segment, daily <span class="tag a">A</span></h2>
-        <span class="seg" role="group" aria-label="Window"><button aria-pressed="false" data-w="10">10 sessions</button><button aria-pressed="false" data-w="20">20</button><button aria-pressed="true" data-w="99">All 29</button></span></div>
+        <span class="seg" role="group" aria-label="Window"><button aria-pressed="false" data-w="10">10 sessions</button><button aria-pressed="false" data-w="20">20</button><button aria-pressed="true" data-w="99" id="allw">All</button></span></div>
       <div class="pb">
         <div class="legend"><span><i style="background:var(--s1)"></i>Equity</span><span><i style="background:var(--s2)"></i>Debt (general, VRR, FAR)</span><span><i style="background:var(--s3)"></i>Hybrid, mutual funds, AIFs</span><span class="mut">₹ cr; inflows above zero</span></div>
         <div id="c-day"></div>
@@ -34,7 +38,7 @@
     <section class="p c7" aria-labelledby="h-fy">
       <div class="ph"><h2 id="h-fy">Net investment by financial year <span class="tag a">A</span></h2><span class="u">₹ cr</span></div>
       <div class="pb"><div id="c-fy"></div></div>
-      <div class="pf"><span>Source: NSDL monthly table, all segments</span><span>FY27 to date (*) is partial</span></div>
+      <div class="pf"><span>Source: NSDL monthly table, all segments</span><span id="fynote"></span></div>
     </section>
     <section class="p c5" aria-labelledby="h-m">
       <div class="ph"><h2 id="h-m">By month <span class="tag a">A</span></h2><span class="u">₹ cr</span></div>
@@ -45,7 +49,7 @@
     <section class="p c12" aria-labelledby="h-s">
       <div class="ph"><h2 id="h-s">Net investment by sector, fortnightly <span class="tag a">A</span></h2><span class="u">₹ cr; shading scales with size</span></div>
       <div id="heat"></div>
-      <div class="pf"><span>Source: NSDL fortnightly sector-wise FPI data</span><span>AUC = assets under custody at 15-Oct-26</span><span>Sector table covers classified holdings, so it need not sum to the daily total</span></div>
+      <div class="pf"><span>Source: NSDL fortnightly sector-wise FPI data</span><span id="aucnote"></span><span>Sector table covers classified holdings, so it need not sum to the daily total</span></div>
     </section>
 
     <section class="p c6" aria-labelledby="h-fx">
@@ -66,10 +70,10 @@
     </section>
   </div>
 </main>
-<div class="foot"><span>India Capital Monitor · v2 design mockup</span><span>Desks other than Monitor and Flows are not drawn yet</span></div>
+<div class="foot"><span>India Capital Monitor (beta)</span></div>
 
 <script src="data.js"></script>
-<script src="ui.js"></script>
+<script src="config.js"></script><script src="ui.js"></script>
 <script>
 const D=ICT, F=window.F, C=ICTUI.calc, L=C.daily[C.daily.length-1];
 ICTUI.shell('home','markets');
@@ -82,7 +86,7 @@ function day(w){ const rows=C.daily.slice(-w);
   ICTUI.bars('c-day',rows.map((r,i,a)=>{const oth=r.hyb+r.mf+r.aif; return {label:maj(r,i,a)?F.dnum(r.d):F.dnum(r.d).slice(0,2),major:maj(r,i,a),
     tip:F.dshort(r.d)+'<br>Equity '+F.inr(r.eq,{sign:true})+'<br>Debt '+F.inr(r.debt,{sign:true})+'<br>Other '+F.inr(oth,{sign:true})+'<br>Total '+F.inr(r.total,{sign:true}),
     vals:{eq:r.eq,debt:r.debt,oth}}}),[{key:'eq',color:'--s1'},{key:'debt',color:'--s2'},{key:'oth',color:'--s3'}],{h:260,label:'Daily FPI net investment by segment'}); }
-let win=99; day(win);
+document.getElementById('allw').textContent='All '+C.daily.length; let win=99; day(win);
 document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed','false'));b.setAttribute('aria-pressed','true');
   const w=+b.dataset.w; const el=document.getElementById('c-day'); day(w);});
 
@@ -97,16 +101,20 @@ const fy={}; mon.forEach(([m,v])=>{const y=+m.slice(0,4),mm=+m.slice(5,7),e=mm>=
 const fys=Object.keys(fy).map(Number).sort().slice(-12), last=fys[fys.length-1];
 const two=(v,tip,l)=>({label:l,tip:tip,vals:{p:Math.max(0,v),n:Math.min(0,v)}});
 ICTUI.bars('c-fy',fys.map(e=>two(fy[e],'FY'+String(e).slice(2)+(e===last?' to date':'')+' · ₹ '+F.inr(fy[e],{sign:true})+' cr','FY'+String(e).slice(2)+(e===last?'*':''))),[{key:'p',color:'--pos'},{key:'n',color:'--neg'}],{h:230,label:'Net investment by financial year'});
+document.getElementById('fynote').textContent='FY'+String(last).slice(2)+' to date (*) is partial';
 const ms=mon.slice(-18);
 ICTUI.bars('c-m',ms.map(([m,v],i)=>two(v,F.dshort(m+'-01').slice(3)+(i===ms.length-1?' to date':'')+' · ₹ '+F.inr(v,{sign:true})+' cr',F.dshort(m+'-01').slice(3,6)+(i===ms.length-1?'*':''))),[{key:'p',color:'--pos'},{key:'n',color:'--neg'}],{h:230,label:'Net investment by month'});
 
-/* sector heat */
-const keys=['September 16-30','October 01-15'];
+/* sector heat: the two newest fortnights and the latest assets under custody, named in the data (they change every fortnight) */
+const SM=D.sector_meta, keys=SM.periods.map(p=>p.key);
+const rng=p=>{const a=+p.start.slice(8,10), b=+p.end.slice(8,10); return (a===1?'1':String(a))+'–'+b+' '+F.mname(p.end)};
+const aucL=+SM.auc_date.slice(8,10)+' '+F.mname(SM.auc_date);
 const sec=D.sector.filter(s=>s.auc&&keys.every(k=>s.nets[k]!=null)).slice(0,14);
-ICTUI.heat('heat',sec.map(s=>({name:s.name,cells:keys.map(k=>s.nets[k]),extra:F.inr(s.auc)+'</td><td class="n num">'+(s.nets[keys[1]]/s.auc*100).toFixed(2)+'%'})),['Net, 16–30 Sep','Net, 1–15 Oct'],{extra:'AUC, 15 Oct'});
+ICTUI.heat('heat',sec.map(s=>({name:s.name,cells:keys.map(k=>s.nets[k]),extra:F.inr(s.auc)+'</td><td class="n num">'+(s.nets[keys[1]]/s.auc*100).toFixed(2)+'%'})),keys.map((k,i)=>'Net, '+rng(SM.periods[i])),{extra:'AUC, '+aucL});
 /* the extra column carries two cells; add the second header */
-const th=document.querySelector('#heat thead tr'); th.insertAdjacentHTML('beforeend','<th class="n">Net 1–15 Oct, % of AUC</th>');
+const th=document.querySelector('#heat thead tr'); th.insertAdjacentHTML('beforeend','<th class="n">Net '+rng(SM.periods[1])+', % of AUC</th>');
 const tot=D.sector_total; document.querySelector('#heat tbody').insertAdjacentHTML('beforeend','<tr class="tot"><td>All sectors</td><td class="n num">'+F.inr(tot.nets[keys[0]],{sign:true})+'</td><td class="n num">'+F.inr(tot.nets[keys[1]],{sign:true})+'</td><td class="n num">'+F.inr(tot.auc)+'</td><td class="n num">'+(tot.nets[keys[1]]/tot.auc*100).toFixed(2)+'%</td></tr>');
+document.getElementById('aucnote').textContent='AUC = assets under custody at '+F.dshort(SM.auc_date);
 
 /* fx and reserves */
 const fx=D.fbil_usd.slice(-90); document.getElementById('fxl').textContent=F.dshort(fx[fx.length-1][0]);

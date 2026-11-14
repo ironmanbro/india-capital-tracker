@@ -3,7 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Registrations · India Capital Monitor (v2 mockup)</title>
+<title>Registrations · India Capital Monitor</title>
+<meta name="description" content="Foreign capital in and out of India: FPI flows, exchange and reported deals, investors, registrations and SEBI/RBI rules, from primary sources.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#f3f3ef">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="tokens.css">
@@ -18,7 +22,7 @@
   <div class="grid">
     <div class="p c3 stat"><span>FPIs on the register</span><b id="s1"></b><small id="s1s"></small></div>
     <div class="p c3 stat"><span>Registration expiring within 90 days</span><b id="s2"></b><small id="s2s"></small></div>
-    <div class="p c3 stat"><span>Registered in 2026</span><b id="s3"></b><small id="s3s"></small></div>
+    <div class="p c3 stat"><span id="l3">Registered this year</span><b id="s3"></b><small id="s3s"></small></div>
     <div class="p c3 stat"><span>Companies on foreign investment limit lists</span><b id="s4"></b><small id="s4s"></small></div>
 
     <section class="p c12" aria-label="Filters">
@@ -66,12 +70,12 @@
     </div>
   </div>
 </main>
-<div class="foot"><span>India Capital Monitor · v2 design mockup · Registrations</span><span id="dl"></span></div>
+<div class="foot"><span>India Capital Monitor (beta) · Registrations</span><span id="dl"></span></div>
 
 <script src="data.js"></script><script src="reg.js"></script><script src="inv.js"></script><script src="config.js"></script><script src="resolver.js"></script><script src="ui.js"></script>
 <script>
 ALIASES.ready.then(()=>{
-const F=window.F, G=REG, T0='2026-11-14', dayN=iso=>Date.UTC(+iso.slice(0,4),+iso.slice(5,7)-1,+iso.slice(8,10))/864e5, today=dayN(T0);
+const F=window.F, G=REG, T0=window.F.todayIST(), dayN=iso=>Date.UTC(+iso.slice(0,4),+iso.slice(5,7)-1,+iso.slice(8,10))/864e5, today=dayN(T0);
 ICTUI.shell('reg','reg');
 document.getElementById('asof').textContent='Register updated '+F.dshort(G.stats.fpi_updated)+' · page built '+G.built;
 const title=s=>s?s.toLowerCase().replace(/\b[a-z]/g,c=>c.toUpperCase()).replace(/\bOf\b/,'of'):'';
@@ -133,7 +137,7 @@ document.getElementById('csv').onclick=()=>{const esc=x=>'"'+String(x==null?'':x
 const exp=VM.exp[2], in7=exp.filter(o=>dayN(o.valid)-today<=7).length;
 s1.textContent=F.inr(G.stats.fpis); s1s.textContent='Category I '+F.inr(G.stats.fpi_cat1)+' · Category II '+F.inr(G.stats.fpi_cat2);
 s2.textContent=F.inr(exp.length); s2s.textContent=in7+' within 7 days · '+VM.late[2].length+' already in the late-fee window';
-s3.textContent=F.inr(G.stats.fpi_this_year); s3s.textContent=G.stats.fpi_new_7d+' in the last 7 days · '+VM.new[2].length+' in the last 30';
+document.getElementById('l3').textContent='Registered in '+T0.slice(0,4); s3.textContent=F.inr(G.stats.fpi_this_year); s3s.textContent=G.stats.fpi_new_7d+' in the last 7 days · '+VM.new[2].length+' in the last 30';
 const rf=G.lim.filter(x=>x.l==='red_flag'), br=G.lim.filter(x=>x.l==='breach');
 s4.textContent=G.lim.length; s4s.textContent=rf.length+' red flag · '+br.length+' breach';
 
@@ -151,7 +155,8 @@ document.getElementById('lmf').textContent=rf.length+' on the red flag list; a f
 const im=G.ifsca[0][1];
 document.getElementById('gc').innerHTML='<tbody>'+G.ifsca.slice(0,6).map(c=>'<tr><td class="cl" title="'+c[0]+'">'+c[0]+'</td><td class="n num">'+F.inr(c[1])+'</td><td><span class="meter"><i style="width:'+c[1]/im*100+'%"></i></span></td></tr>').join('')+'<tr class="tot"><td>All entities</td><td class="n num" colspan="2">'+F.inr(G.stats.ifsca)+'</td></tr></tbody>';
 document.getElementById('gcf').textContent=G.stats.ifsca_new_30d+' added in the last 30 days · '+G.stats.fpi_gift+' FPIs are GIFT City based. Source: IFSCA directory.';
-function dealNote(){ document.getElementById('dl').innerHTML=objs.filter(o=>o.d).length+' of '+F.inr(objs.length)+' registered names match an investor with deals in the last 12 months (same cleaned name, or a confirmed alias). Aliases: '+ALIASES.note()+'.' }
+const PUBLICPAGE=!!(window.ICT_CONFIG&&ICT_CONFIG.shipped);
+function dealNote(){ document.getElementById('dl').innerHTML=objs.filter(o=>o.d).length+' of '+F.inr(objs.length)+' registered names match an investor with deals in the last 12 months (same cleaned name'+(PUBLICPAGE?'':', or a confirmed alias). Aliases: '+ALIASES.note()+'.')+(PUBLICPAGE?').':'') }
 dealNote();
 window.addEventListener('ict-alias-change',()=>{ tagDeals(); dealNote(); render() });
 render();
