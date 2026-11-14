@@ -1382,6 +1382,170 @@ body{font-variant-numeric:tabular-nums}
 #wbrief .wb-bar button{min-height:40px;padding:0 16px;border-radius:10px;border:0;font:inherit;font-weight:700;cursor:pointer}
 @media print{body>*:not(#wbrief){display:none!important}#wbrief{position:static;background:none;padding:0}#wbrief .wb-bar{display:none}#wbrief .wb{max-width:none;border-radius:0;padding:0}}
 </style>
+<style id="ds">
+/* =====================================================================================================
+   Design layer. Direction: a trading desk before the open. Ink-dark neutral surfaces, figures set like a
+   terminal (Geist Mono, tabular), one money colour pair (blue = money in, amber = money out) and nothing
+   else that shouts. This block comes last and overrides the older layers above it.
+   ===================================================================================================== */
+:root:not([data-theme="light"]):not(#x){
+  --bg:#0b0d12;--page:#0b0d12;--deep:#08090d;--panel:#11141b;--panel-2:#161a22;--raised:#1b1f28;--glass:var(--panel);--glass-bg:var(--panel);
+  --ink:#eceef3;--ink-2:#a6acba;--muted:#7c8497;--line:rgba(236,238,243,.08);--line-2:rgba(236,238,243,.14);--chip:rgba(236,238,243,.05);
+  --accent:#eceef3;--accent-ink:#0b0d12;--link:#c9cfdc;
+  --in:#5b8cff;--out:#e8a33a;--c-in:#5b8cff;--c-out:#e8a33a;--good:#4cc38a;--bad:#e5484d;
+  --entry:#5b8cff;--exit:#e8a33a;--fund_launch:#4fb3a9;--relocation:#9d90f0;--outbound:#c98a5e;--regulation:#a6acba;--other:#7c8497;
+  --shadow:none;--bar:#8b93a7;
+}
+:root[data-theme="light"]:not(#x){
+  --bg:#f5f6f8;--page:#f5f6f8;--deep:#eceef2;--panel:#ffffff;--panel-2:#f7f8fa;--raised:#eef0f4;--glass:var(--panel);--glass-bg:var(--panel);
+  --ink:#12151c;--ink-2:#4b5565;--muted:#6b7487;--line:rgba(18,21,28,.08);--line-2:rgba(18,21,28,.14);--chip:rgba(18,21,28,.04);
+  --accent:#12151c;--accent-ink:#ffffff;--link:#2a3242;
+  --in:#2f5fd0;--out:#b46b00;--c-in:#2f5fd0;--c-out:#b46b00;--good:#16a34a;--bad:#dc2626;
+  --entry:#2f5fd0;--exit:#b46b00;--fund_launch:#0f8a80;--relocation:#6b5bd6;--outbound:#a35f2c;--regulation:#4b5565;--other:#6b7487;
+  --shadow:none;--bar:#a3abbb;
+}
+:root:not(#x){--font-ui:Geist,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--font-mono:Geist,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--font-code:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --ease:cubic-bezier(.22,1,.36,1);--r-sm:6px;--r:8px;--r-lg:12px}
+
+/* ---- Page and background: one calm surface, no colour washes ---- */
+:root:not(#ds1):not(#ds2) body{font-variant-numeric:tabular-nums;background:var(--bg)!important;color:var(--ink);font-family:var(--font-ui);font-size:14px;letter-spacing:0;-webkit-font-smoothing:antialiased}
+:root:not(#ds1):not(#ds2) body::before,:root:not(#ds1):not(#ds2) body::after{display:none!important;content:none!important}
+::selection{background:color-mix(in srgb,var(--in) 30%,transparent)}
+
+/* ---- Type: two weights, hierarchy from size and colour ---- */
+:root:not(#ds1):not(#ds2) :is(h1,h2,h3,h4){font-weight:500!important;letter-spacing:0}
+:root:not(#ds1):not(#ds2) b,:root:not(#ds1):not(#ds2) strong{font-weight:500;color:var(--ink)}
+:root:not(#ds1):not(#ds2) header h1#ptitle{font-size:32px!important;line-height:1.15!important;letter-spacing:-.02em!important;font-weight:500!important;margin:2px 0 4px}
+:root:not(#ds1):not(#ds2) header .eyebrow{font-size:13px!important;font-weight:500!important;letter-spacing:0!important;text-transform:none!important;color:var(--muted)!important;opacity:1!important;margin:0}
+:root:not(#ds1):not(#ds2) header .sub,:root:not(#ds1):not(#ds2) #psub{color:var(--ink-2);font-size:14px}
+:root:not(#ds1):not(#ds2) .sub,:root:not(#ds1):not(#ds2) .note,:root:not(#ds1):not(#ds2) .dsrc{color:var(--muted)}
+:root:not(#ds1):not(#ds2) h2.fsec{font-size:20px!important;margin:32px 0 4px}
+:root:not(#ds1):not(#ds2) :is(.ovh h3,.fhead h3,.hc h3,.watch-h h3){font-size:16px!important}
+:root:not(#ds1):not(#ds2) .acc-t{font-size:16px!important;font-weight:500!important}
+/* Every figure in mono, tabular */
+:root:not(#ds1):not(#ds2) :is(.ftile .n,.kpi .n,.hc .k,.amt-tag,.cb-g b,.isumm b,.rstats b,.fxc .r,td.num,.num,.ftable td,.watch-w td,.vlab,.axis,.fchart text,.fxchip,.pf-ct){font-family:var(--font-mono)!important;font-variant-numeric:tabular-nums}
+:root:not(#ds1):not(#ds2) :is(.ftile .n,.kpi .n,.hc .k){font-family:var(--font-ui)!important;font-feature-settings:"tnum" 1;font-size:30px!important;font-weight:500!important;line-height:1.1!important;letter-spacing:-.01em!important;overflow-wrap:anywhere}
+:root:not(#ds1):not(#ds2) .hc .k{font-size:24px!important;font-weight:500!important}
+:root:not(#ds1):not(#ds2) :is(.rstats b,.cb-g b,.isumm b){font-family:var(--font-ui)!important;font-feature-settings:"tnum" 1}
+:root:not(#ds1):not(#ds2) :is(.ftile,.kpi) .l{font-size:13px;color:var(--ink-2);font-weight:400}
+:root:not(#ds1):not(#ds2) :is(.ftile,.kpi) .s{font-size:12.5px;color:var(--muted)}
+:root:not(#ds1):not(#ds2) small.inr,:root:not(#ds1):not(#ds2) .amt-tag span{font-size:.62em!important;color:var(--muted)!important;font-weight:400!important;margin-left:4px}
+:root:not(#ds1):not(#ds2) .arrow{font-family:var(--font-mono);font-size:.62em;margin-right:4px;vertical-align:.18em}
+
+/* ---- Surfaces: hairlines and surface steps, no glass, no glow, no lift ---- */
+:root:not(#ds1):not(#ds2) :is(.kpi,.ftile,.fcard,.filterbar,.inv,.card,.drow,.ftable-wrap,.ovc,.bcol,.hc,.watch,.acc,.fpi-main,.pf-head,.iconst,.cov,.tsum>*,.fxc,.reglib,.anonnote,.bk){
+  background:var(--panel)!important;border:1px solid var(--line)!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+:root:not(#ds1):not(#ds2) :is(.kpi,.ftile,.fcard,.ovc,.hc,.watch,.acc,.fpi-main,.pf-head,.iconst,.reglib,.card,.bcol,.inv){border-radius:14px!important}
+:root:not(#ds1):not(#ds2) :is(.kpi,.card,.inv,.bk,.ftile,.ovc,.fcard):hover{transform:none!important;box-shadow:none!important}
+:root:not(#ds1):not(#ds2) :is(.card,.inv,.bk,.ftile,.ovc):active{transform:none!important}
+:root:not(#ds1):not(#ds2) :is(.ovc){padding:24px!important}
+:root:not(#ds1):not(#ds2) :is(.ftile,.kpi){padding:20px!important}
+:root:not(#ds1):not(#ds2) .feat{border:1px solid var(--line)!important;background:var(--panel-2)!important;border-radius:12px!important}
+:root:not(#ds1):not(#ds2) .acc>summary:hover{background:var(--chip)}
+:root:not(#ds1):not(#ds2) .acc-in{background:transparent!important}
+:root:not(#ds1):not(#ds2) .bk{background:var(--panel-2)!important;border-radius:10px!important}
+:root:not(#ds1):not(#ds2) .scard,:root:not(#ds1):not(#ds2) .ovrow.scard{background:var(--panel-2)!important;border:1px solid var(--line)!important;border-radius:12px!important;box-shadow:none!important}
+/* The lead sentence reads as text, not as a boxed banner */
+:root:not(#ds1):not(#ds2) .takeaway{background:none!important;border:0!important;border-radius:0!important;padding:0!important;margin:4px 0 24px!important;font-size:16px!important;line-height:1.6!important;color:var(--ink-2);max-width:78ch}
+
+/* ---- Navigation rail: flush, quiet, one active surface ---- */
+@media (min-width:701px){
+  :root:not(#ds1):not(#ds2) nav.tabs{left:0!important;top:0!important;bottom:0!important;width:84px!important;border:0!important;border-right:1px solid var(--line)!important;border-radius:0!important;background:var(--deep)!important;padding:16px 0!important;gap:4px!important}
+  :root:not(#ds1):not(#ds2) .wrap{margin-left:84px!important;padding:28px 40px 64px!important}
+}
+:root:not(#ds1):not(#ds2) nav.tabs .logo{width:auto!important;height:auto!important;background:none!important;color:var(--ink)!important;border-radius:0!important;box-shadow:none!important;margin:4px 0 16px!important;padding:0!important;font-size:0!important}
+:root:not(#ds1):not(#ds2) nav.tabs button{color:var(--muted)!important;background:transparent!important;border:0!important;border-radius:10px!important;box-shadow:none!important;font-weight:500!important;font-size:11px!important;letter-spacing:0!important;transition:background-color .15s var(--ease),color .15s var(--ease)!important}
+:root:not(#ds1):not(#ds2) nav.tabs button:hover{color:var(--ink)!important;background:var(--chip)!important}
+:root:not(#ds1):not(#ds2) nav.tabs button[aria-selected="true"]{color:var(--ink)!important;background:var(--raised)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)!important}
+:root:not(#ds1):not(#ds2) nav.tabs button svg{stroke-width:1.6!important}
+:root:not(#ds1):not(#ds2) .logo-mark{display:block;width:28px;height:28px}
+
+/* ---- Controls: 8 to 10px radius, neutral, the selected state is a surface step ---- */
+:root:not(#ds1):not(#ds2) :is(.reset,.csvbtn,.cmdk-btn,.ib,select,input[type=search],input[type=text],.filters input,.filters select){border-radius:8px!important}
+:root:not(#ds1):not(#ds2) :is(.reset,.csvbtn){background:var(--raised)!important;border:1px solid var(--line)!important;color:var(--ink)!important;font-weight:500!important;min-height:36px;box-shadow:none!important}
+:root:not(#ds1):not(#ds2) :is(.reset,.csvbtn):hover{border-color:var(--line-2)!important}
+:root:not(#ds1):not(#ds2) :is(select,.filters input,input[type=search]){background:var(--panel-2)!important;border:1px solid var(--line)!important;color:var(--ink)!important;box-shadow:none!important}
+:root:not(#ds1):not(#ds2) :is(.seg,.tfseg){background:var(--panel-2)!important;border:1px solid var(--line)!important;border-radius:10px!important;padding:3px!important;box-shadow:none!important}
+:root:not(#ds1):not(#ds2) :is(.seg button,.tfseg button){border-radius:7px!important;color:var(--muted)!important;background:transparent!important;font-family:var(--font-ui)!important;font-weight:500!important;letter-spacing:0!important;box-shadow:none!important}
+:root:not(#ds1):not(#ds2) :is(.seg button[aria-pressed="true"],.tfseg button[aria-pressed="true"]){background:var(--raised)!important;color:var(--ink)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 0 0 1px var(--line)!important}
+:root:not(#ds1):not(#ds2) .qviews button,:root:not(#ds1):not(#ds2) .fchips button{border-radius:8px!important;background:transparent!important;border:1px solid var(--line)!important;color:var(--ink-2)!important;font-weight:500!important}
+:root:not(#ds1):not(#ds2) .qviews button[aria-pressed="true"]{background:var(--raised)!important;color:var(--ink)!important;border-color:var(--line-2)!important}
+:root:not(#ds1):not(#ds2) .qviews button b,:root:not(#ds1):not(#ds2) .qviews button .c{font-family:var(--font-mono);color:var(--muted);font-weight:400}
+:root:not(#ds1):not(#ds2) .htools{border-radius:12px!important;background:var(--panel)!important;border:1px solid var(--line)!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+:root:not(#ds1):not(#ds2) .htools .ib{border-radius:8px!important}
+:root:not(#ds1):not(#ds2) .cmdk-btn{background:var(--raised)!important;border:1px solid var(--line)!important;color:var(--ink-2)!important}
+:root:not(#ds1):not(#ds2) kbd{font-family:var(--font-code);font-size:11px;padding:1px 5px;border-radius:4px;border:1px solid var(--line-2);background:var(--panel-2);color:var(--muted)}
+:root:not(#ds1):not(#ds2) a,:root:not(#ds1):not(#ds2) .link{color:var(--link)}
+:root:not(#ds1):not(#ds2) .link:hover,:root:not(#ds1):not(#ds2) a:hover{color:var(--ink)}
+:root:not(#ds1):not(#ds2) :focus-visible{outline:2px solid var(--in)!important;outline-offset:2px}
+
+/* ---- Tags: categories are a dot and a word; sources and amounts are quiet text ---- */
+:root:not(#ds1):not(#ds2) .tpill{background:none!important;border:0!important;padding:0!important;height:auto!important;color:var(--ink-2)!important;font:500 12px/1.4 var(--font-ui)!important;letter-spacing:0!important;gap:6px}
+:root:not(#ds1):not(#ds2) .tpill::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--tc);flex:none}
+:root:not(#ds1):not(#ds2) .src-tag{background:none!important;padding:0!important;color:var(--muted)!important;font-size:12px!important}
+:root:not(#ds1):not(#ds2) .src-tag svg{display:none}
+:root:not(#ds1):not(#ds2) .amt-tag{background:none!important;border:0!important;padding:0!important;font:500 13px/1.2 var(--font-mono)!important;color:var(--ink)!important}
+:root:not(#ds1):not(#ds2) .newtag{background:none!important;color:var(--in)!important;padding:0!important;font-weight:500!important}
+:root:not(#ds1):not(#ds2) .era{background:none!important;color:var(--muted)!important;font-weight:400!important;padding:0 0 0 8px!important}
+:root:not(#ds1):not(#ds2) .pf-chip{border-radius:6px}
+:root:not(#ds1):not(#ds2) .pf-av{background:var(--raised)!important;color:var(--ink)!important;border:1px solid var(--line);font-weight:500!important}
+
+/* ---- Charts: muted grid and labels, money in and out only ---- */
+:root:not(#ds1):not(#ds2) .fchart .grid{stroke:var(--line)!important}
+:root:not(#ds1):not(#ds2) .fchart .zero{stroke:var(--line-2)!important}
+:root:not(#ds1):not(#ds2) :is(.fchart .axis,.vlab){fill:var(--muted)!important;font-family:var(--font-mono)!important;font-size:11px!important}
+:root:not(#ds1):not(#ds2) .vlab{fill:var(--ink-2)!important}
+:root:not(#ds1):not(#ds2) #ftip{border-radius:10px!important;background:var(--raised)!important;border:1px solid var(--line-2)!important;box-shadow:0 8px 24px rgba(0,0,0,.35)!important}
+
+/* ---- Motion: colour and surface changes only, one curve ---- */
+:root:not(#ds1):not(#ds2) :is(.kpi,.ftile,.card,.inv,.bk,.ovc,.fcard,.drow,.reset,.seg button,.qviews button,.link){transition:background-color .15s var(--ease),border-color .15s var(--ease),color .15s var(--ease)!important}
+:root:not(#ds1):not(#ds2) section.enter :is(.kpi,.ftile,.card,.inv,.bk,.ovc,.fcard,.drow){animation:none!important}
+:root:not(#ds1):not(#ds2) section.enter{animation:dsIn .3s var(--ease) both!important}
+@keyframes dsIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ---- Phones ---- */
+@media (max-width:700px){
+  :root:not(#ds1):not(#ds2) .wrap{padding:16px 16px 112px!important;margin-left:0!important}
+  :root:not(#ds1):not(#ds2) header{display:block!important}
+  :root:not(#ds1):not(#ds2) header>div{width:100%!important;min-width:0}
+  :root:not(#ds1):not(#ds2) header .eyebrow{display:none}
+  :root:not(#ds1):not(#ds2) header h1#ptitle{font-size:28px!important}
+  :root:not(#ds1):not(#ds2) header .sub,:root:not(#ds1):not(#ds2) #psub{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+  :root:not(#ds1):not(#ds2) header>div+div{margin-top:12px}
+  :root:not(#ds1):not(#ds2) .hstatus{text-align:left!important;margin-top:8px}
+  :root:not(#ds1):not(#ds2) :is(.ftiles,#ov-tiles,#ov-cross){display:grid!important;grid-template-columns:minmax(0,1fr)!important;overflow:visible!important;gap:8px!important}
+  :root:not(#ds1):not(#ds2) :is(.ftiles,#ov-tiles,#ov-cross)>*{width:auto!important;min-width:0!important;flex:none!important}
+  :root:not(#ds1):not(#ds2) :is(.ftile,.kpi){padding:16px!important;min-width:0!important}
+  :root:not(#ds1):not(#ds2) :is(.ftile .n,.kpi .n){font-size:26px!important}
+  :root:not(#ds1):not(#ds2) :is(.ovc){padding:16px!important}
+  :root:not(#ds1):not(#ds2) .takeaway{font-size:15px!important}
+  :root:not(#ds1):not(#ds2) nav.tabs,:root:not(#ds1):not(#ds2) .gnav{background:var(--deep)!important;border:1px solid var(--line)!important;border-radius:16px!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+}
+/* sign-in card: the old tile logo goes */
+:root:not(#ds1):not(#ds2) .a-logo i{display:none}
+
+/* Section headings in sentence case, not small tracked capitals */
+:root:not(#ds1):not(#ds2) h2.fsec{text-transform:none!important;letter-spacing:0!important;color:var(--ink)!important;font-weight:500!important}
+:root:not(#ds1):not(#ds2) .fpi-main>h2.fsec{margin:0 0 4px!important}
+/* Deal stage: quiet outlined word, not a coloured chip */
+:root:not(#ds1):not(#ds2) :is(.stg,.stbadge){background:none!important;border:1px solid var(--line-2)!important;color:var(--ink-2)!important;border-radius:6px!important;font:500 11.5px/1 var(--font-ui)!important;padding:3px 6px!important;height:auto!important;letter-spacing:0!important}
+:root:not(#ds1):not(#ds2) .kpi .bar{height:2px!important;opacity:.9}
+:root:not(#ds1):not(#ds2) .fxchip{font-family:var(--font-ui)!important;border-radius:8px!important;background:var(--panel)!important;border:1px solid var(--line)!important}
+@media (max-width:700px){:root:not(#ds1):not(#ds2) .hstatus{display:flex!important;justify-content:space-between;align-items:center;gap:12px;text-align:left!important}}
+
+/* Selected sub-tabs and primary buttons on the new accent (off-white on dark, ink on light) */
+:root:not(#ds1):not(#ds2) .subtabs button{border-radius:8px!important}
+:root:not(#ds1):not(#ds2) .subtabs button[aria-selected="true"]{background:var(--raised)!important;color:var(--ink)!important;border-color:var(--line-2)!important}
+:root:not(#ds1):not(#ds2) .a-btn{color:var(--accent-ink)!important;font-weight:500!important}
+:root:not(#ds1):not(#ds2) :is(.new,.dname .new,.fn .new,.irow .in .new,.inv .new){background:none!important;color:var(--in)!important;padding:0!important;font-weight:500!important;letter-spacing:0!important}
+:root:not(#ds1):not(#ds2) .busybar{background:var(--in)!important}
+
+/* The hidden toast waits above the screen; its shadow showed as a grey smudge at the top. Shadow only while it is shown */
+:root:not(#ds1):not(#ds2) .toast{box-shadow:none!important;border-radius:12px!important}
+:root:not(#ds1):not(#ds2) .toast:not(.show){opacity:0;visibility:hidden}
+:root:not(#ds1):not(#ds2) .toast.show{box-shadow:0 8px 24px rgba(0,0,0,.25)!important}
+:root:not(#ds1):not(#ds2) nav.tabs{box-shadow:none!important}
+</style>
 </head>
 <body>
 <div class="opener" id="opener" role="dialog" aria-label="Introduction">
@@ -1498,7 +1662,7 @@ body{font-variant-numeric:tabular-nums}
   <p class="note" style="margin:-8px 0 16px" id="kpi-note"></p>
 
   <nav class="tabs" role="tablist" aria-label="Sections">
-    <div class="logo" aria-hidden="true">ICT</div>
+    <div class="logo" title="Indian Capital Tracker"><svg class="logo-mark" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h17M18 6l4 4-4 4"/><path d="M23 18H6M10 14l-4 4 4 4" opacity=".55"/></svg></div>
     <button role="tab" aria-selected="true" data-tab="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Home</button>
     <button role="tab" aria-selected="false" data-tab="feed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7 9h10M7 13h10M7 17h6"/></svg>Feed</button>
     <button role="tab" aria-selected="false" data-tab="investors"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20c-.5-2.5-2-4.2-4-5"/></svg>Investors</button>
@@ -2667,7 +2831,7 @@ async function loadFlows() {
 }
 
 function tile(label, value, sub, sign) {
-  const arrow = sign > 0 ? `<span class="arrow" style="color:var(--in)" aria-hidden="true">▲</span>` : sign < 0 ? `<span class="arrow" style="color:var(--out)" aria-hidden="true">▼</span>` : "";
+  const arrow = sign > 0 ? `<span class="arrow" style="color:var(--in)" aria-hidden="true">↗</span>` : sign < 0 ? `<span class="arrow" style="color:var(--out)" aria-hidden="true">↘</span>` : "";
   return `<div class="ftile"><div class="l">${label}</div><div class="n">${arrow}${value}</div><div class="s">${sub}</div></div>`;
 }
 
@@ -2711,7 +2875,7 @@ function renderFlowTiles() {
 //  kind "pct": the change on the previous period, for levels that stay positive (growth).
 // With Both, bars use the left axis and the line uses its own axis on the right.
 const pctChg = (v, prev) => prev == null || prev === 0 || v == null ? null : (v - prev) / Math.abs(prev) * 100;
-const fmtPct = (c) => c == null ? "–" : `${c >= 0 ? "▲ +" : "▼ −"}${Math.abs(c) >= 100 ? Math.round(Math.abs(c)).toLocaleString("en-IN") : Math.abs(c).toFixed(1)}%`;
+const fmtPct = (c) => c == null ? "–" : `${c >= 0 ? "↗ +" : "↘ −"}${Math.abs(c) >= 100 ? Math.round(Math.abs(c)).toLocaleString("en-IN") : Math.abs(c).toFixed(1)}%`;
 const cumLine = (name = "Running total") => ({ kind: "cum", name, full: (m) => `${m < 0 ? "−" : "+"}${usdBr(Math.abs(m))}` });
 const pctLine = (name = "Change on previous") => ({ kind: "pct", name, full: fmtPct });
 function niceScale(vals) {
@@ -2794,7 +2958,7 @@ function barChart(el, points, opts) {
       const xh = el.querySelector(".xhair"), xc = L + hi * step + step / 2;
       xh.setAttribute("x1", xc); xh.setAttribute("x2", xc); xh.classList.add("on");
       // Direction and change on the previous period, for every chart, under the chart's own rows.
-      const dir = `<div class="row"><span>Direction</span><span style="color:var(--c-${pv >= 0 ? "in" : "out"})">${pv >= 0 ? "▲ Net inflow" : "▼ Net outflow"}</span></div>`;
+      const dir = `<div class="row"><span>Direction</span><span style="color:var(--c-${pv >= 0 ? "in" : "out"})">${pv >= 0 ? "↗ Net inflow" : "↘ Net outflow"}</span></div>`;
       const chg = prev == null || lineSpec.kind !== "cum" ? "" : `<div class="row"><span>Change on previous</span><span>${fmtPct(pctChg(pv, prev))}</span></div>`;
       tipEl.innerHTML = tip(points[hi]) + dir + chg + (lvv == null ? "" : `<div class="row"><span>${esc(lineSpec.name)}</span><span style="color:var(--c-${lineSpec.kind === "cum" ? (lvv >= 0 ? "in" : "out") : "accent"})">${lineSpec.full(lvv)}</span></div>`); tipEl.hidden = false;
       const r = h.getBoundingClientRect(), w = tipEl.offsetWidth, ht = tipEl.offsetHeight;
@@ -4133,19 +4297,19 @@ function drawTabSums() {
     const soon = state.events.filter((e) => e.event_type === "regulation" && e.effective_on && String(e.effective_on) > today).sort((a, b) => String(a.effective_on).localeCompare(String(b.effective_on))).slice(0, 4);
     const recent = state.events.filter((e) => e.event_type === "regulation" && e.issued_on).sort((a, b) => String(b.issued_on).localeCompare(String(a.issued_on))).slice(0, 3);
     const ry = H.rules_by_year || [];
-    $("reg-sum").innerHTML = card("Rule changes by year", "", vbars(ry.map((r) => ({ v: r.n, l: String(r.y), t: `${r.y}: ${r.n} documents. Shows that year`, dim: !!regs.year && regs.year !== String(r.y), a: () => { regs.year = regs.year === String(r.y) ? "" : String(r.y); regs.n = 50; renderRegs(); drawTabSums(); } })), { color: "#b79cf5" }), "SEBI and RBI documents on FPI, FDI, FVCI, ODI and GIFT City. 2021 covers October to December.") +
+    $("reg-sum").innerHTML = card("Rule changes by year", "", vbars(ry.map((r) => ({ v: r.n, l: String(r.y), t: `${r.y}: ${r.n} documents. Shows that year`, dim: !!regs.year && regs.year !== String(r.y), a: () => { regs.year = regs.year === String(r.y) ? "" : String(r.y); regs.n = 50; renderRegs(); drawTabSums(); } })), { color: "var(--bar)" }), "SEBI and RBI documents on FPI, FDI, FVCI, ODI and GIFT City. 2021 covers October to December.") +
       card("Taking effect soon", "", soon.length ? `<div class="soon">${soon.map((e) => `<div><b>${toDMY(String(e.effective_on))}</b>${esc(e.title)}</div>`).join("")}</div>` : (recent.length ? `<div class="s">Nothing scheduled. Most recent rules:</div><div class="soon">${recent.map((e) => `<div><b>${toDMY(String(e.issued_on))}</b>${esc(e.title)}</div>`).join("")}</div>` : '<div class="s">Nothing scheduled.</div>'), "");
   }
   if (state.tab === "gift" && $("regx-sum")) {
     const gy2 = (H.gift_by_year || []).filter((r) => r.y >= 2019), cats = H.gift_by_cat || [];
-    $("regx-sum").innerHTML = card("GIFT City", `${nfmt(H.gift_total)} <small>entities regulated by IFSCA</small>`, hrows(cats.slice(0, 8).map((c) => ({ l: c.c, v: c.n, r: nfmt(c.n), c: "#5cc6b0", t: `${c.c}: ${nfmt(c.n)} entities. Lists them`, a: () => { dir.new30 = false; selSet("icat2", c.c); selFire("icat2"); $("dir-ifsca-filters").scrollIntoView({ block: "center" }); } }))), "By licence category. Click a bar to list them.") +
-      card("New entities by year", "", vbars(gy2.map((r) => ({ v: r.n, l: `'${String(r.y).slice(2)}`, t: `${r.y}: ${nfmt(r.n)} new GIFT City entities`, dim: r.y === CYr })), { color: "#5cc6b0" }), "Entities by IFSCA registration year. The lighter bar is the year in progress.");
+    $("regx-sum").innerHTML = card("GIFT City", `${nfmt(H.gift_total)} <small>entities regulated by IFSCA</small>`, hrows(cats.slice(0, 8).map((c) => ({ l: c.c, v: c.n, r: nfmt(c.n), c: "var(--bar)", t: `${c.c}: ${nfmt(c.n)} entities. Lists them`, a: () => { dir.new30 = false; selSet("icat2", c.c); selFire("icat2"); $("dir-ifsca-filters").scrollIntoView({ block: "center" }); } }))), "By licence category. Click a bar to list them.") +
+      card("New entities by year", "", vbars(gy2.map((r) => ({ v: r.n, l: `'${String(r.y).slice(2)}`, t: `${r.y}: ${nfmt(r.n)} new GIFT City entities`, dim: r.y === CYr })), { color: "var(--bar)" }), "Entities by IFSCA registration year. The lighter bar is the year in progress.");
   } else if (state.tab === "directory" && $("regx-sum")) {
     const ry = (H.reg_by_year || []).filter((r) => r.y >= 2023), cat = H.reg_by_cat || {};
     $("regx-sum").innerHTML = card("FPI register", `${nfmt(H.reg_total)} <small>registered FPIs · Category I ${nfmt(cat.I)} · Category II ${nfmt(cat.II)}</small>`,
-        vbars(ry.map((r) => ({ v: r.n, l: String(r.y), t: `${r.y}: ${nfmt(r.n)} new FPIs. Lists them`, dim: r.y === CYr, a: () => { if (state.tab !== "directory") setTab("directory"); setTimeout(() => { selSet("dyear-f", String(r.y)); selFire("dyear-f"); $("dir-fpi-filters").scrollIntoView({ block: "center" }); }, 400); } })), { color: "#7b9cf5" }), "New registrations by year. Dates are available for registrations since 2023.") +
+        vbars(ry.map((r) => ({ v: r.n, l: String(r.y), t: `${r.y}: ${nfmt(r.n)} new FPIs. Lists them`, dim: r.y === CYr, a: () => { if (state.tab !== "directory") setTab("directory"); setTimeout(() => { selSet("dyear-f", String(r.y)); selFire("dyear-f"); $("dir-fpi-filters").scrollIntoView({ block: "center" }); }, 400); } })), { color: "var(--bar)" }), "New registrations by year. Dates are available for registrations since 2023.") +
       card("Where FPIs are based", "", hrows((H.reg_by_country || []).map((c) => ({ l: titleCase(c.c), v: c.n, r: nfmt(c.n), t: `${titleCase(c.c)}: ${nfmt(c.n)} FPIs. Lists them`, a: () => { if (state.tab !== "directory") setTab("directory"); setTimeout(() => { const o = [...$("dcountry-f").options].find((o) => o.value.toLowerCase() === c.c.toLowerCase() || o.text.toLowerCase().startsWith(titleCase(c.c).toLowerCase())); if (o) { $("dcountry-f").value = o.value; selFire("dcountry-f"); } $("dir-fpi-filters").scrollIntoView({ block: "center" }); }, 400); } }))), "Registered FPIs by country, from NSDL.") +
-      card("GIFT City", `${nfmt(H.gift_total)} <small>entities regulated by IFSCA</small>`, hrows((H.gift_by_cat || []).slice(0, 6).map((c) => ({ l: c.c, v: c.n, r: nfmt(c.n), c: "#5cc6b0", t: `${c.c}: ${nfmt(c.n)} entities. Lists them`, a: () => { if (state.tab !== "gift") setTab("gift"); setTimeout(() => { selSet("icat2", c.c); selFire("icat2"); $("dir-ifsca-filters").scrollIntoView({ block: "center" }); }, 600); } }))), "By licence type.");
+      card("GIFT City", `${nfmt(H.gift_total)} <small>entities regulated by IFSCA</small>`, hrows((H.gift_by_cat || []).slice(0, 6).map((c) => ({ l: c.c, v: c.n, r: nfmt(c.n), c: "var(--bar)", t: `${c.c}: ${nfmt(c.n)} entities. Lists them`, a: () => { if (state.tab !== "gift") setTab("gift"); setTimeout(() => { selSet("icat2", c.c); selFire("icat2"); $("dir-ifsca-filters").scrollIntoView({ block: "center" }); }, 600); } }))), "By licence type.");
   }
 }
 
@@ -4170,7 +4334,11 @@ const actId = (fn) => { if (chartActs.length > 6000) chartActs.length = 0; chart
   document.addEventListener("click", (e) => { const el = e.target.closest?.("[data-a]"); if (el) run(el, e); }, true);
   document.addEventListener("keydown", (e) => { if ((e.key === "Enter" || e.key === " ") && e.target.matches?.("[data-a]")) run(e.target, e); }, true);
 })();
-function vbars(points, { signed = false, color = "#7b9cf5", neg = "#f0884a", labelEvery = 1, W = 300, money = false } = {}) {
+function vbars(points, { signed = false, color = "var(--bar)", neg = "#f0884a", labelEvery = 1, W = 300, money = false } = {}) {
+  // Money in and out keep their pair of colours; counts are neutral.
+  if (signed && color === "var(--bar)") color = "var(--c-in)";
+  if (neg === "#f0884a") neg = "var(--c-out)";
+  if (color === "#f0884a") color = "var(--c-out)";
   const H = signed ? 120 : 90, n = points.length, gap = 3, bw = Math.max(3, (W - gap * (n - 1)) / n);
   const max = Math.max(1, ...points.map((p) => Math.abs(p.v || 0)));
   const mid = signed ? H / 2 : H;
@@ -4184,7 +4352,7 @@ function vbars(points, { signed = false, color = "#7b9cf5", neg = "#f0884a", lab
   }).join("");
   return `<svg viewBox="0 ${labelled ? -12 : 0} ${W} ${H + 16 + (labelled ? 12 : 0)}" role="img" aria-label="Bar chart">${signed ? `<line x1="0" x2="${W}" y1="${mid}" y2="${mid}" stroke="var(--line)"/>` : ""}${bars}</svg>`;
 }
-const hrows = (items) => { const max = Math.max(1, ...items.map((x) => x.v)); return `<div class="rows">${items.map((x) => `<div class="row${x.a ? " act" : ""}" data-tip="${esc(x.t || `${x.l}: ${x.r}`)}"${x.a ? ` data-a="${actId(x.a)}" tabindex="0" role="button"` : ""}><span>${esc(x.l)}</span><span class="bar"><i style="width:${Math.round(x.v / max * 100)}%;background:${x.c || "#7b9cf5"}"></i></span><span>${esc(x.r)}</span></div>`).join("")}</div>`; };
+const hrows = (items) => { const max = Math.max(1, ...items.map((x) => x.v)); return `<div class="rows">${items.map((x) => `<div class="row${x.a ? " act" : ""}" data-tip="${esc(x.t || `${x.l}: ${x.r}`)}"${x.a ? ` data-a="${actId(x.a)}" tabindex="0" role="button"` : ""}><span>${esc(x.l)}</span><span class="bar"><i style="width:${Math.round(x.v / max * 100)}%;background:${x.c || "var(--bar)"}"></i></span><span>${esc(x.r)}</span></div>`).join("")}</div>`; };
 function drawCoverage() {
   const box = $("cov"); if (!box || !home.cov) return;
   const d = (x) => !x ? "–" : /^\d{4}-\d{2}-01$/.test(x) ? monLabel(x) : toDMY(x);
@@ -4233,15 +4401,15 @@ function renderHome() {
   const ry = H.rules_by_year || [];
   const rCur = ry.find((r) => r.y === CYr)?.n || 0;
   cards.push({ go: "regulation", view: "regyear", h: "Rule changes", k: `${nfmt(rCur)} <small>SEBI, RBI and IFSCA documents in ${CYr}</small>`, s: "Documents that change the rules for foreign investment. 2021 covers October to December.",
-    body: vbars(ry.map((r) => ({ v: r.n, l: String(r.y), t: `${r.y}: ${r.n} rule documents`, a: () => { Object.assign(regs, { regulator: "", instrument: "", doc: "", q: "", soon: false, year: String(r.y), n: 50 }); setTab("regulation"); renderRegs(); toTop(); } })), { color: "#b79cf5" }), more: "Open Regulation" });
+    body: vbars(ry.map((r) => ({ v: r.n, l: String(r.y), t: `${r.y}: ${r.n} rule documents`, a: () => { Object.assign(regs, { regulator: "", instrument: "", doc: "", q: "", soon: false, year: String(r.y), n: 50 }); setTab("regulation"); renderRegs(); toTop(); } })), { color: "var(--bar)" }), more: "Open Regulation" });
   // Registrations: FPI and GIFT City
   const ry2 = (H.reg_by_year || []).filter((r) => r.y >= 2023), gy = (H.gift_by_year || []).filter((r) => r.y >= 2019);
   cards.push({ go: "directory", h: "FPI registrations", k: `${nfmt(H.reg_total)} <small>registered FPIs</small>`,
     s: `Category I ${nfmt((H.reg_by_cat || {}).I)} · Category II ${nfmt((H.reg_by_cat || {}).II)}. New FPIs by year: ${ry2.map((r) => `${r.y} ${nfmt(r.n)}`).join(" · ")}.`,
-    body: vbars(ry2.map((r) => ({ v: r.n, l: String(r.y), t: `${r.y}: ${nfmt(r.n)} new FPIs`, a: () => { setTab("directory"); toTop(); }, dim: r.y === CYr })), { color: "#7b9cf5" }), more: "Open the FPI register" });
+    body: vbars(ry2.map((r) => ({ v: r.n, l: String(r.y), t: `${r.y}: ${nfmt(r.n)} new FPIs`, a: () => { setTab("directory"); toTop(); }, dim: r.y === CYr })), { color: "var(--bar)" }), more: "Open the FPI register" });
   cards.push({ go: "gift", h: "GIFT City", k: `${nfmt(H.gift_total)} <small>entities regulated by IFSCA</small>`,
     s: "Fund managers, banks, insurers and others licensed at GIFT IFSC. Bars show new entities by registration year.",
-    body: vbars(gy.map((r) => ({ v: r.n, l: `'${String(r.y).slice(2)}`, t: `${r.y}: ${nfmt(r.n)} new GIFT City entities`, a: () => { setTab("gift"); toTop(); }, dim: r.y === CYr })), { color: "#5cc6b0" }), more: "Open GIFT City" });
+    body: vbars(gy.map((r) => ({ v: r.n, l: `'${String(r.y).slice(2)}`, t: `${r.y}: ${nfmt(r.n)} new GIFT City entities`, a: () => { setTab("gift"); toTop(); }, dim: r.y === CYr })), { color: "var(--bar)" }), more: "Open GIFT City" });
   box.innerHTML = cards.map((c, i) => `<div class="hc" role="link" tabindex="0" data-hc="${i}"><h3>${c.h}</h3><div class="k">${c.k}</div>${c.body}<div class="s">${c.s}</div><div class="go">${c.more} →</div></div>`).join("");
   box.querySelectorAll(".hc").forEach((el) => {
     const c = cards[el.dataset.hc];
@@ -6728,7 +6896,7 @@ function reservesCard() {
   const pts = r.slice(-60).map((x) => ({ v: +x.total_usd_m / 1000, l: x.week.slice(5, 7) === "01" && x.week.slice(8) <= "07" ? x.week.slice(0, 4) : "", t: `${toDMY(x.week)}: USD ${(+x.total_usd_m / 1000).toFixed(1)} billion (week ${+x.wk_change_usd_m >= 0 ? "+" : "−"}${fmtUsd(Math.abs(+x.wk_change_usd_m))})` }));
   const lo = Math.min(...pts.map((p) => p.v)) * 0.98;
   return `<div class="hc" style="cursor:default;margin-top:16px"><h3>India's forex reserves</h3><div class="k">USD ${(+l.total_usd_m / 1000).toFixed(1)} billion <small>week to ${toDMY(l.week)} · ${+l.wk_change_usd_m >= 0 ? "+" : "−"}${fmtUsd(Math.abs(+l.wk_change_usd_m))} on the week${y ? ` · ${(+l.total_usd_m / +y.total_usd_m * 100 - 100).toFixed(1)}% on the year` : ""}</small></div>
-    ${vbars(pts.map((p) => ({ ...p, v: p.v - lo })), { color: "#5cc6b0", W: 900 })}<div class="s">Weekly, from the RBI Weekly Statistical Supplement. Foreign currency assets USD ${(+l.fca_usd_m / 1000).toFixed(1)} billion, gold USD ${(+l.gold_usd_m / 1000).toFixed(1)} billion. Bars start at USD ${lo.toFixed(0)} billion to show the change.</div></div>`;
+    ${vbars(pts.map((p) => ({ ...p, v: p.v - lo })), { color: "var(--bar)", W: 900 })}<div class="s">Weekly, from the RBI Weekly Statistical Supplement. Foreign currency assets USD ${(+l.fca_usd_m / 1000).toFixed(1)} billion, gold USD ${(+l.gold_usd_m / 1000).toFixed(1)} billion. Bars start at USD ${lo.toFixed(0)} billion to show the change.</div></div>`;
 }
 // ---------- Country briefing (Investors tab) ----------
 const cbx = { c: null, cache: {} };
