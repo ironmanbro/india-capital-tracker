@@ -1468,23 +1468,25 @@ body{font-variant-numeric:tabular-nums}
     <p class="takeaway" id="ov-take"></p>
     <div class="ftiles" id="ov-tiles"></div>
     <div class="ftiles" id="ov-cross"></div>
-    <p class="dsrc" data-src="review,nsdl_flows,nsdl_fpi_list" data-what="Sources: news reports, NSE, NSDL and DPIIT. Each section shows its own source and update time" style="margin:-4px 0 14px"></p>
-    <p class="dsrc" id="fx-home" style="margin:-6px 0 14px" hidden></p>
     <div class="ovbanner"><div><b>Sign in to see everything on Home.</b> <span>Free. No subscription, just a login.</span></div><button class="reset" type="button" data-login>Sign in</button></div>
+    <div class="ovgrid">
+      <div class="ovc span2"><div class="ovh"><div><h3>Latest FPI flow</h3><div class="sub" id="ov-flow-sub">NSDL</div></div><button class="link" data-go="flows">Flows ↗</button></div><div class="flowwrap"><div id="ov-flow"></div><div class="fchart" id="ov-fpibars"></div></div></div>
+      <div class="ovc"><div class="ovh"><div><h3>Biggest deals this week</h3><div class="sub">Largest agreed or completed deals, last 7 days</div></div><button class="link" data-go="feed" data-view="week">See these deals ↗</button></div><div id="ov-deals"><!--skel--></div></div>
+      <div class="ovc"><div class="ovh"><div><h3>Latest stories</h3><div class="sub">News collected hourly, reviewed daily at 9am IST</div></div><button class="link" data-go="feed">All stories</button></div><div id="ov-stories"><!--skel--></div></div>
+    </div>
     <div class="hsum-head"><h2>The whole picture</h2><div style="display:flex;gap:8px;align-items:center"><button type="button" class="csvbtn" id="wbrief-open">Weekly brief</button><span class="fxchip" id="fxchip" hidden></span></div></div>
     <div class="hsum" id="hsum"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div>
     <div class="ovgrid">
-      <div class="ovc"><div class="ovh"><div><h3>Biggest deals this week</h3><div class="sub">Largest agreed or completed deals, last 7 days</div></div><button class="link" data-go="feed" data-view="week">See these deals ↗</button></div><div id="ov-deals"><!--skel--></div></div>
-      <div class="ovc"><div class="ovh"><div><h3>Latest stories</h3><div class="sub">News collected hourly, reviewed daily at 9am IST</div></div><button class="link" data-go="feed">All stories</button></div><div id="ov-stories"><!--skel--></div></div>
-      <div class="ovc"><div class="ovh"><div><h3>Indian investment abroad</h3><div class="sub">RBI overseas direct investment, latest month</div></div><button class="link" data-go="odi">Outbound ↗</button></div><div id="ov-odi"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>What changed this month</h3><div class="sub">SEBI, RBI and IFSCA rules for foreign investment</div></div><button class="link" data-go="regulation" data-view="regyear">This year's rules ↗</button></div><div id="ov-regchg"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
-      <div class="ovc"><div class="ovh"><div><h3>Latest FPI flow</h3><div class="sub" id="ov-flow-sub">NSDL</div></div><button class="link" data-go="flows">Flows ↗</button></div><div class="flowwrap"><div id="ov-flow"></div><div class="fchart" id="ov-fpibars"></div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>New FPI registrations</h3><div class="sub">Latest additions to the NSDL register</div></div><button class="link" data-go="directory">FPIs ↗</button></div><div id="ov-regs"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
+      <div class="ovc"><div class="ovh"><div><h3>Indian investment abroad</h3><div class="sub">RBI overseas direct investment, latest month</div></div><button class="link" data-go="odi">Outbound ↗</button></div><div id="ov-odi"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
       <div class="ovc gated"><div class="ovh"><div><h3>Funding and deal news</h3><div class="sub">Startup media and global coverage</div></div><button class="link" data-go="markets">Markets ↗</button></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-news"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
       <div class="ovc gated"><div class="ovh"><div><h3>SEBI filings</h3><div class="sub">Latest takeover and public issue filings</div></div><button class="link" data-go="markets">Markets ↗</button></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-sebi"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
       <div class="ovc gated"><div class="ovh"><div><h3>Where the money comes from</h3><div class="sub">Capital deals in the last 90 days. Tap a row to see them.</div></div></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-break"></div></div>
       <div class="ovc span2 gated"><div class="ovh"><div><h3>The last 30 days</h3><div class="sub">Reported deal value by category, and the most active investors</div></div><button class="link" data-go="investors">Investors ↗</button></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-week"></div></div>
     </div>
+    <p class="dsrc" data-src="review,nsdl_flows,nsdl_fpi_list" data-what="Sources: news reports, NSE, NSDL and DPIIT. Each section shows its own source and update time" style="margin:-4px 0 14px"></p>
+    <p class="dsrc" id="fx-home" style="margin:-6px 0 14px" hidden></p>
   </section>
 
   <section id="tab-feed" hidden>
@@ -1665,10 +1667,10 @@ body{font-variant-numeric:tabular-nums}
   <section id="tab-regulation" hidden>
     <p class="sub" style="margin:0 0 12px"><span class="lg">SEBI, RBI and IFSCA documents that change the rules for foreign investment and for GIFT City: FPI, FVCI, FDI, ODI and IFSC entities. IFSCA items are listed with the official title and a link; they are not summarised. Summaries state only what changed, for whom and from when; always read the official document.</span><span class="sm">SEBI and RBI rule changes for foreign investment. Read the official document.</span></p>
     <div class="tsum" id="reg-sum"></div>
+    <div id="reg-body"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div>
     <section class="watch" id="compcal" aria-label="Compliance calendar"></section>
     <details class="reglib" id="reglib"><summary><h3>Laws and regulations that apply to foreign investment (60)</h3><span>FEMA and RBI, FDI policy, SEBI, anti-money laundering, company law, tax, other laws, GIFT City</span></summary><div id="reglib-body"></div></details>
     <section class="watch" id="whtref" aria-label="Withholding tax reference"></section>
-    <div id="reg-body"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div>
   </section>
 
   <section id="tab-odi" hidden>
@@ -1689,8 +1691,6 @@ body{font-variant-numeric:tabular-nums}
 
   <section id="tab-directory" hidden>
     <div class="tsum" id="regx-sum"></div>
-    <section class="watch" id="fpiwatch" aria-label="FPI watch lists"></section>
-    <section class="watch" id="fpilim" aria-label="Foreign investment limits"></section>
     <div class="fhead" style="margin-bottom:10px">
       <p class="sub" style="margin:0;max-width:640px" id="dir-intro"></p>
       <div class="seg" role="group" aria-label="Directory" id="dirseg" hidden>
@@ -1698,6 +1698,7 @@ body{font-variant-numeric:tabular-nums}
       </div>
     </div>
     <div class="ftiles" id="dir-tiles"></div>
+    <section class="watch" id="fpiwatch" aria-label="FPI watch lists"></section>
     <div class="qviews" id="dqviews" role="group" aria-label="Quick views"></div>
     <div class="qviews" id="gqviews" role="group" aria-label="Quick views" hidden></div>
     <div class="filters" id="dir-fpi-filters">
@@ -1712,10 +1713,11 @@ body{font-variant-numeric:tabular-nums}
       <select id="itype2" aria-label="Type"><option value="">All types</option></select>
       <button class="reset" id="leads-csv" type="button" hidden title="Only visible to you">Download all (CSV)</button>
     </div>
-    <div id="dir-aum"></div>
     <div class="dsum" id="dir-sum"></div>
     <div class="dlist" id="dir-list"></div>
     <button class="reset" id="dir-more" type="button" hidden style="margin-top:10px">Show more</button>
+    <section class="watch" id="fpilim" aria-label="Foreign investment limits"></section>
+    <div id="dir-aum"></div>
     <p class="dsrc" id="dir-src" data-src="nsdl_fpi_list" data-what="NSDL register of SEBI-registered FPIs"></p>
     <details class="more" style="margin-top:12px"><summary>About this data</summary><p class="note" id="dir-note"></p></details>
   </section>
@@ -4043,17 +4045,12 @@ function renderHome() {
     body: vbars(ry.map((r) => ({ v: r.n, l: String(r.y), t: `${r.y}: ${r.n} rule documents`, a: () => { Object.assign(regs, { regulator: "", instrument: "", doc: "", q: "", soon: false, year: String(r.y), n: 200 }); setTab("regulation"); renderRegs(); toTop(); } })), { color: "#b79cf5" }), more: "Open Regulation" });
   // Registrations: FPI and GIFT City
   const ry2 = (H.reg_by_year || []).filter((r) => r.y >= 2023), gy = (H.gift_by_year || []).filter((r) => r.y >= 2019);
-  cards.push({ go: "directory", h: "Registrations", k: `${nfmt(H.reg_total)} <small>FPIs</small> · ${nfmt(H.gift_total)} <small>GIFT City entities</small>`,
-    s: `New FPIs: ${ry2.map((r) => `${r.y} ${nfmt(r.n)}`).join(" · ")}. Bars show new GIFT City registrations by year.`,
-    body: vbars(gy.map((r) => ({ v: r.n, l: `'${String(r.y).slice(2)}`, t: `${r.y}: ${nfmt(r.n)} new GIFT City entities`, a: () => { setTab("gift"); toTop(); }, dim: r.y === CYr })), { color: "#5cc6b0" }), more: "Open Registrations" });
-  // Outbound: Indian investment abroad
-  const oy = (H.odi_by_year || []).filter((r) => r.months >= 6);
-  if (oy.length) {
-    const oc = oy[oy.length - 1];
-    cards.push({ go: "odi", h: "Indian money going abroad", k: `${fmtUsd(oc.usd_m)} <small>${oc.y}, ${oc.months} months</small>`,
-      s: `Committed by Indian companies, from RBI. Top destinations ${CYr}: ${(H.odi_top_country || []).slice(0, 3).map((c) => titleCase(c.c)).join(", ")}.`,
-      body: vbars(oy.map((r) => ({ v: r.usd_m, l: String(r.y), t: `${r.y}: ${fmtUsd(r.usd_m)}${r.months < 12 ? ` (${r.months} months)` : ""}`, a: () => { setTab("odi"); toTop(); } })), { color: "#f0884a", money: true }), more: "Open Outbound" });
-  }
+  cards.push({ go: "directory", h: "FPI registrations", k: `${nfmt(H.reg_total)} <small>registered FPIs</small>`,
+    s: `Category I ${nfmt((H.reg_by_cat || {}).I)} · Category II ${nfmt((H.reg_by_cat || {}).II)}. New FPIs by year: ${ry2.map((r) => `${r.y} ${nfmt(r.n)}`).join(" · ")}.`,
+    body: vbars(ry2.map((r) => ({ v: r.n, l: String(r.y), t: `${r.y}: ${nfmt(r.n)} new FPIs`, a: () => { setTab("directory"); toTop(); }, dim: r.y === CYr })), { color: "#7b9cf5" }), more: "Open the FPI register" });
+  cards.push({ go: "gift", h: "GIFT City", k: `${nfmt(H.gift_total)} <small>entities regulated by IFSCA</small>`,
+    s: "Fund managers, banks, insurers and others licensed at GIFT IFSC. Bars show new entities by registration year.",
+    body: vbars(gy.map((r) => ({ v: r.n, l: `'${String(r.y).slice(2)}`, t: `${r.y}: ${nfmt(r.n)} new GIFT City entities`, a: () => { setTab("gift"); toTop(); }, dim: r.y === CYr })), { color: "#5cc6b0" }), more: "Open GIFT City" });
   box.innerHTML = cards.map((c, i) => `<div class="hc" role="link" tabindex="0" data-hc="${i}"><h3>${c.h}</h3><div class="k">${c.k}</div>${c.body}<div class="s">${c.s}</div><div class="go">${c.more} →</div></div>`).join("");
   box.querySelectorAll(".hc").forEach((el) => {
     const c = cards[el.dataset.hc];
@@ -5820,8 +5817,8 @@ var gnav = { open: null };
 const GNAV = [
   { id: "home", label: "Home", icon: "overview", views: [["overview", "Home", "Latest numbers and stories"]] },
   { id: "deals", label: "Deals", icon: "feed", views: [["feed", "Deals", "Investments, exits, fund launches and moves"]] },
-  { id: "investors", label: "Investors", icon: "investors", views: [["investors", "Investors", "Foreign investors, one profile each"]], also: ["network", "firm", "entity"] },
   { id: "flows", label: "Flows", icon: "flows", views: [["flows", "Flows", "FPI flows, outbound investment and exchange data"]], also: ["odi", "markets"] },
+  { id: "investors", label: "Investors", icon: "investors", views: [["investors", "Investors", "Foreign investors, one profile each"]], also: ["network", "firm", "entity"] },
   { id: "regulation", label: "Regulation", icon: "regulation", views: [["regulation", "Regulation", "SEBI, RBI and IFSCA rule changes for foreign investment"]] },
   { id: "registrations", label: "Registrations", icon: "gift", views: [["directory", "FPI register", "Every SEBI-registered foreign portfolio investor"], ["gift", "GIFT City", "Every entity IFSCA regulates at GIFT IFSC"]] },
 ];
