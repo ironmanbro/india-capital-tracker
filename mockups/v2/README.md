@@ -13,6 +13,8 @@ Open: `python3 -m http.server` in this folder, then `monitor.html` or `flows.htm
 | `monitor.html`, `flows.html` | Home: Today and Markets |
 | `deals.js` | Snapshot for the Deals page (309 deals since 15-Aug-26, ODI series). Generated, do not edit |
 | `deals.html` | Deals landing view: filters, grouped table, weekly chart, ODI |
+| `inv.js` | Snapshot for the Investors directory (1,646 names from stories and shareholding filings). Generated, do not edit |
+| `investors.html` | Investors directory: filters, sortable table, country and activity panels, coverage audit |
 | `company.html` | Company profile: Meesho Ltd |
 | `investor.html` | Investor-group profile: SoftBank Group |
 | `screens/` | Screenshots of the current state |
@@ -26,7 +28,7 @@ Open: `python3 -m http.server` in this folder, then `monitor.html` or `flows.htm
 
 ## Navigation (5 tabs)
 Home (Today, Markets, Weekly brief), Deals, Investors (Directory, Ownership changes, Network, Countries, 13F, plus profile pages), Registrations, Regulations.
-Only Home, Deals and the two profiles are drawn; every other link is a placeholder.
+Only Home, Deals, the Investors directory and the two profiles are drawn; every other link is a placeholder.
 
 ## What the profile pages showed about name matching
 - Meesho exchange deals name 50 distinct clients; 16 (32%) match the NSDL FPI register exactly (registration number shown). 1 group (SVF) links by name pattern; 33 are unlinked. No fuzzy matching was tried.
@@ -53,3 +55,11 @@ Only Home, Deals and the two profiles are drawn; every other link is a placehold
 - Exchange match: a reported deal gets a tag when an exchange deal has the same direction, the same first word of the target, and a date within 2 days. 4 of 249 reported deals match today; this is a name match and unconfirmed.
 - Not built: Exchange, Reported, Outbound and Fund-launch sub-views (links are placeholders); private funding rounds are not a separate view because the data has no flag for them (use the investor-type breakdown).
 - ODI figures are labelled US$ mn, as RBI's workbook reports; not independently re-checked here.
+
+## Investors directory
+- One list of 1,646 names: 551 from news and exchange deals, 1,142 filed holders in shareholding patterns. Names are cleaned (case, punctuation, legal suffixes such as Ltd/LLC/Pte) and then merged.
+- Only 47 names appear in both news and filings after cleaning (9% of news names), and home country is known for 26%, type for 55%. The page states these figures instead of hiding them.
+- Filters (view, 12-month activity, type, home country, name) and sort order are kept in the URL hash. Counts: Bought = entries into India, Sold = exits, over the last 12 months.
+- SoftBank is the only group merged by name pattern (8 names, "SVF…" and "SoftBank…"), tagged unconfirmed. Other duplicates remain, for example two spellings of Goldman Sachs Bank Europe SE, and index-fund families are listed fund by fund.
+- Home country comes from news items or Wikidata profiles; filed holders have no country field, so most show "–".
+- Not built: profile pages for anyone except SoftBank Group, Ownership changes, Network, Countries, 13F.

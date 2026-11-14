@@ -177,3 +177,10 @@ button{font:inherit;color:inherit}
 .stack .p{flex:0 0 auto}
 .more{padding:10px 14px;border-top:1px solid var(--line);text-align:center}
 @media (max-width:980px){.stack{grid-column:span 12}.filters .rs{margin-left:0}}
+
+.filters select{height:24px;border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--surface);color:var(--ink);font:inherit;font-size:var(--t-12);padding:0 6px;max-width:170px}
+.src{display:inline-flex;gap:2px}
+.src i{font:500 var(--t-11)/1 var(--font-mono);font-style:normal;width:17px;height:17px;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--radius);border:1px solid var(--line-strong);color:var(--ink-3)}
+.src i.on{color:var(--ink);border-color:var(--ink-2);background:var(--surface-2)}
+
+.stack .p:last-child{flex:1 1 auto}
