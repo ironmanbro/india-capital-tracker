@@ -1,5 +1,5 @@
 const {chromium,devices}=require('playwright');
-const BASE='http://127.0.0.1:8790', PAGES=['/','/flows','/deals','/investors','/registrations','/regulations'];
+const BASE='http://127.0.0.1:8790', PAGES=['/v2/','/v2/flows','/v2/deals','/v2/investors','/v2/registrations','/v2/regulations'];
 (async()=>{const b=await chromium.launch();let bad=0;
 for(const [dev,opts] of [['desktop',{viewport:{width:1440,height:900}}],['phone',{...devices['iPhone 13']}]]){
  const ctx=await b.newContext(opts);
@@ -16,7 +16,7 @@ for(const [dev,opts] of [['desktop',{viewport:{width:1440,height:900}}],['phone'
   const ok=errs.length===0&&csp.length===0&&r.bad.length===0&&r.overflow<=0&&!r.search&&r.classic&&r.hash===0&&resp.status()===200&&/content-security-policy/i.test(JSON.stringify(hdr));
   if(!ok) bad++;
   console.log((ok?'PASS ':'FAIL ')+dev.padEnd(8)+u.padEnd(18)+'| '+r.title.slice(0,34).padEnd(34)+'| rows '+String(r.rows).padStart(4)+' charts '+r.svgs+' | overflow '+r.overflow+' | nav '+r.nav.length+' sub '+r.sub.length+(errs.length||csp.length||r.bad.length?' | ERR '+JSON.stringify({errs,csp,bad:r.bad}):''));
-  if(dev==='desktop'||u==='/') await p.screenshot({path:`${(process.argv[2]||'/tmp')}/${dev}-${u.replace(/\W+/g,'_')}.png`,fullPage:true});
+  if(dev==='desktop'||u==='/v2/') await p.screenshot({path:`${(process.argv[2]||'/tmp')}/${dev}-${u.replace(/\W+/g,'_')}.png`,fullPage:true});
   await p.close()}
  await ctx.close()}
 await b.close();console.log(bad?`\n${bad} page(s) failed`:'\nall pages passed');process.exit(bad?1:0)})();

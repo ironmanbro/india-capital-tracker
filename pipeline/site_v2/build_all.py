@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Builds every data file of the /v2 pages into --out (default ../../site). All builders run first; files are written only if ALL succeed
+"""Builds every data file of the /v2 pages into --out (default ../../site/v2). All builders run first; files are written only if ALL succeed
 and pass their checks, so a bad fetch leaves the previous files (and the site) as they were. Exit code 1 means nothing was changed.
 Usage: python3 build_all.py [--out DIR] [--only data,deals,inv,reg,regs]"""
 import argparse, importlib, os, sys, time
@@ -9,7 +9,7 @@ from common import write_js, BuildError
 FILES = [("data", "data.js"), ("deals", "deals.js"), ("inv", "inv.js"), ("reg", "reg.js"), ("regs", "regs.js")]
 
 def main():
-    ap = argparse.ArgumentParser(); ap.add_argument("--out", default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "site")); ap.add_argument("--only", default="")
+    ap = argparse.ArgumentParser(); ap.add_argument("--out", default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "site", "v2")); ap.add_argument("--only", default="")
     a = ap.parse_args(); want = set(filter(None, a.only.split(",")))
     built = []
     for mod, fname in FILES:
