@@ -1472,7 +1472,7 @@ body{font-variant-numeric:tabular-nums}
       <div class="ovc"><div class="ovh"><div><h3>Biggest deals this week</h3><div class="sub">Largest agreed or completed deals, last 7 days</div></div><button class="link" data-go="feed" data-view="week">See these deals ↗</button></div><div id="ov-deals"><!--skel--></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Latest stories</h3><div class="sub">News collected hourly, reviewed daily at 9am IST</div></div><button class="link" data-go="feed">All stories</button></div><div id="ov-stories"><!--skel--></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Indian investment abroad</h3><div class="sub">RBI overseas direct investment, latest month</div></div><button class="link" data-go="odi">Outbound ↗</button></div><div id="ov-odi"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
-      <div class="ovc"><div class="ovh"><div><h3>What changed this month</h3><div class="sub">SEBI and RBI rules for foreign investment</div></div><button class="link" data-go="regulation" data-view="regyear">This year's rules ↗</button></div><div id="ov-regchg"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
+      <div class="ovc"><div class="ovh"><div><h3>What changed this month</h3><div class="sub">SEBI, RBI and IFSCA rules for foreign investment</div></div><button class="link" data-go="regulation" data-view="regyear">This year's rules ↗</button></div><div id="ov-regchg"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Latest FPI flow</h3><div class="sub" id="ov-flow-sub">NSDL</div></div><button class="link" data-go="flows">Flows ↗</button></div><div class="flowwrap"><div id="ov-flow"></div><div class="fchart" id="ov-fpibars"></div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>New FPI registrations</h3><div class="sub">Latest additions to the NSDL register</div></div><button class="link" data-go="directory">FPIs ↗</button></div><div id="ov-regs"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
       <div class="ovc gated"><div class="ovh"><div><h3>Funding and deal news</h3><div class="sub">Startup media and global coverage</div></div><button class="link" data-go="markets">Markets ↗</button></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-news"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
@@ -1655,7 +1655,7 @@ body{font-variant-numeric:tabular-nums}
   </section>
 
   <section id="tab-regulation" hidden>
-    <p class="sub" style="margin:0 0 12px"><span class="lg">SEBI and RBI documents that change the rules for foreign investment: FPI, FVCI, FDI, ODI and GIFT City. Summaries state only what changed, for whom and from when; always read the official document.</span><span class="sm">SEBI and RBI rule changes for foreign investment. Read the official document.</span></p>
+    <p class="sub" style="margin:0 0 12px"><span class="lg">SEBI, RBI and IFSCA documents that change the rules for foreign investment and for GIFT City: FPI, FVCI, FDI, ODI and IFSC entities. IFSCA items are listed with the official title and a link; they are not summarised. Summaries state only what changed, for whom and from when; always read the official document.</span><span class="sm">SEBI and RBI rule changes for foreign investment. Read the official document.</span></p>
     <div class="tsum" id="reg-sum"></div>
     <section class="watch" id="compcal" aria-label="Compliance calendar"></section>
     <details class="reglib" id="reglib"><summary><h3>Laws and regulations that apply to foreign investment (60)</h3><span>FEMA and RBI, FDI policy, SEBI, anti-money laundering, company law, tax, other laws, GIFT City</span></summary><div id="reglib-body"></div></details>
@@ -1691,6 +1691,7 @@ body{font-variant-numeric:tabular-nums}
     </div>
     <div class="ftiles" id="dir-tiles"></div>
     <div class="qviews" id="dqviews" role="group" aria-label="Quick views"></div>
+    <div class="qviews" id="gqviews" role="group" aria-label="Quick views" hidden></div>
     <div class="filters" id="dir-fpi-filters">
       <input type="search" id="dq" placeholder="Search FPI name or registration number…" aria-label="Search FPIs">
       <select id="dcountry-f" aria-label="Country"><option value="">All countries</option></select>
@@ -1733,7 +1734,7 @@ body{font-variant-numeric:tabular-nums}
       <a href="https://www.linkedin.com/in/kishansinghania/" target="_blank" rel="noopener">LinkedIn</a> ·
       <button class="link" type="button" data-gloss-open>Jargon explained</button></div>
     <div class="sub" id="fx-foot"></div>
-    <div class="sub"><span class="lg">A personal project tracking cross-border capital in and out of India, built from news reports, NSE, NSDL, SEBI, RBI and DPIIT. Stories can be wrong: check the original. Not affiliated with any employer. Not investment advice.</span><span class="sm">A personal project tracking cross-border capital in and out of India. Stories can be wrong: check the original. Not affiliated with any employer. Not investment advice.</span></div>
+    <div class="sub"><span class="lg">A personal project tracking cross-border capital in and out of India, built from news reports, NSE, NSDL, SEBI, RBI, IFSCA and DPIIT. Stories can be wrong: check the original. Not affiliated with any employer. Not investment advice.</span><span class="sm">A personal project tracking cross-border capital in and out of India. Stories can be wrong: check the original. Not affiliated with any employer. Not investment advice.</span></div>
   </footer>
 </div>
 
@@ -1998,7 +1999,8 @@ function drawSideViews() {
   // The deal quick views and chips belong to the Deals tab only.
   $("qviews").hidden = $("fchips").hidden = state.tab !== "feed";
   row($("iqviews"), INV_VIEWS);
-  const dq = $("dqviews"); if (dq) { dq.hidden = $("dir-fpi-filters").hidden; row(dq, DIR_VIEWS); }
+  const dq = $("dqviews"); if (dq) { dq.hidden = state.tab === "gift" || dir.view === "ifsca"; row(dq, DIR_VIEWS); }
+  try { drawGiftViews(); } catch {}
   const ic = $("ichips"); if (!ic) return;
   const chips = [["icat", ""], ["itype", ""], ["isort", "active"]].filter(([id, d]) => iVal(id) !== d).map(([id, d]) => [$(id).selectedOptions[0].text, id, d]);
   if (iVal("iq").trim()) chips.push([`“${iVal("iq").trim()}”`, "iq", ""]);
@@ -2138,7 +2140,7 @@ function renderRegs(keepFocus) {
   if (regs.soon) chips.push(["Not yet in force", "soon"]);
   if (q) chips.push([`“${regs.q.trim()}”`, "q"]);
   box.innerHTML = `<div class="qviews" role="group" aria-label="Quick views">${REG_VIEWS.map((v, i) => `<button type="button" data-rv="${i}" aria-pressed="${v[2]()}">${v[0]}</button>`).join("")}</div>` +
-    `<div class="filters"><input type="search" id="reg-q" placeholder="Search rules: KYC, custodian, VRR…" aria-label="Search rules" value="${esc(regs.q)}">${sel("reg-r", "Regulator", regs.regulator, [["SEBI", "SEBI"], ["RBI", "RBI"]])}${sel("reg-i", "Applies to", regs.instrument, ["FPI", "FDI", "FVCI", "ODI", "GIFT City"].map((x) => [x, x]))}${sel("reg-d", "Document", regs.doc, Object.entries(DOC_TYPES))}${sel("reg-y", "Year", regs.year, years.map((y) => [y, y]))}</div>` +
+    `<div class="filters"><input type="search" id="reg-q" placeholder="Search rules: KYC, custodian, VRR…" aria-label="Search rules" value="${esc(regs.q)}">${sel("reg-r", "Regulator", regs.regulator, [["SEBI", "SEBI"], ["RBI", "RBI"], ["IFSCA", "IFSCA"]])}${sel("reg-i", "Applies to", regs.instrument, ["FPI", "FDI", "FVCI", "ODI", "GIFT City"].map((x) => [x, x]))}${sel("reg-d", "Document", regs.doc, Object.entries(DOC_TYPES))}${sel("reg-y", "Year", regs.year, years.map((y) => [y, y]))}</div>` +
     `<div class="fchips">${chips.length ? `<span><b>${list.length}</b> ${list.length === 1 ? "document" : "documents"}</span>` + chips.map((c) => `<button type="button" data-rc="${c[1]}" aria-label="Remove filter: ${esc(c[0])}">${esc(c[0])} ✕</button>`).join("") + `<button type="button" class="clr" data-rc="all">Clear all</button>` : ""}</div>` +
     (list.length ? list.slice(0, regs.n).map((e) => `<article class="card scard regcard"><div class="meta">${regMeta(e)}</div>
       <div style="margin:6px 0 4px"><a class="title" href="${safeUrl(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a></div>
@@ -2162,7 +2164,7 @@ function renderOvRegChanges() {
   if (rows.length < 2) { rows = all.filter((e) => d(e) >= since); label = "in the last 30 days"; }
   rows.sort((a, b) => d(b).localeCompare(d(a)));
   box.innerHTML = rows.length ? rows.slice(0, 4).map((e) => `<div class="ovrow"><span class="stripe" style="background:var(--regulation)"></span><div style="min-width:0"><div class="t"><a href="${safeUrl(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a></div><div class="meta" style="margin-top:5px">${regMeta(e)}</div></div></div>`).join("") + (rows.length > 4 ? `<div class="sub">${rows.length - 4} more ${label}.</div>` : "")
-    : `<div class="sub">No SEBI or RBI changes to foreign-investment rules ${label}.</div>`;
+    : `<div class="sub">No SEBI, RBI or IFSCA changes to foreign-investment rules ${label}.</div>`;
 }
 
 // ---------- Story card components (shared by Feed, the board and Home) ----------
@@ -2200,7 +2202,7 @@ const skelCards = (n = 3) => Array.from({ length: n }, () => `<div class="skel" 
 const noRows = (msg, act) => `<div class="nores" role="status"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5M8.5 11h5"/></svg><p>${msg}</p>${act ? `<button class="reset" type="button" data-nores="${act}">${NORES_ACT[act][0]}</button>` : ""}</div>`;
 const NORES_ACT = {
   feed: ["Reset filters", () => $("reset").click()],
-  dir: ["Clear search and filters", () => { ["dq", "iq2", "gq"].forEach((id) => $(id) && ($(id).value = "")); ["dcountry-f", "dcat-f", "dyear-f", "itype2"].forEach((id) => $(id) && ($(id).selectedIndex = 0)); runDirSearch(true); }],
+  dir: ["Clear search and filters", () => { ["dq", "iq2", "gq"].forEach((id) => $(id) && ($(id).value = "")); ["dcountry-f", "dcat-f", "dyear-f", "itype2", "icat2"].forEach((id) => $(id) && ($(id).selectedIndex = 0)); dir.new30 = false; runDirSearch(true); try { drawGiftViews(); } catch {} }],
   net: ["Reset · show all firms", () => $("nreset").click()],
   file: ["Choose other files", () => $("shp-file").click()],
 };
@@ -3767,7 +3769,7 @@ const TITLES = {
   users: ["Users", "Who signs in and what they open (owner only)"],
   flows: ["Flows", "FPI money in and out each day, and where FDI comes from"],
   odi: ["Outbound", "Indian companies investing abroad (RBI overseas direct investment)"],
-  regulation: ["Regulation", "SEBI and RBI rule changes for foreign investment"],
+  regulation: ["Regulation", "SEBI, RBI and IFSCA rule changes for foreign investment"],
   markets: ["Exchange data", "FII/FPI activity, foreign bulk and block deals, FPI debt and sector holdings"],
   directory: ["FPIs", "Every SEBI-registered foreign portfolio investor, and how much they hold by sector"],
   gift: ["GIFT City", "Every entity IFSCA regulates at GIFT IFSC: fund managers, schemes, banks and more"],
@@ -3929,7 +3931,11 @@ function drawTabSums() {
     $("reg-sum").innerHTML = card("Rule changes by year", "", vbars(ry.map((r) => ({ v: r.n, l: String(r.y), t: `${r.y}: ${r.n} documents. Shows that year`, dim: !!regs.year && regs.year !== String(r.y), a: () => { regs.year = regs.year === String(r.y) ? "" : String(r.y); regs.n = 200; renderRegs(); drawTabSums(); } })), { color: "#b79cf5" }), "SEBI and RBI documents on FPI, FDI, FVCI, ODI and GIFT City. 2021 covers October to December.") +
       card("Taking effect soon", "", soon.length ? `<div class="soon">${soon.map((e) => `<div><b>${toDMY(String(e.effective_on))}</b>${esc(e.title)}</div>`).join("")}</div>` : (recent.length ? `<div class="s">Nothing scheduled. Most recent rules:</div><div class="soon">${recent.map((e) => `<div><b>${toDMY(String(e.issued_on))}</b>${esc(e.title)}</div>`).join("")}</div>` : '<div class="s">Nothing scheduled.</div>'), "");
   }
-  if ((state.tab === "directory" || state.tab === "gift") && $("regx-sum")) {
+  if (state.tab === "gift" && $("regx-sum")) {
+    const gy2 = (H.gift_by_year || []).filter((r) => r.y >= 2019), cats = H.gift_by_cat || [];
+    $("regx-sum").innerHTML = card("GIFT City", `${nfmt(H.gift_total)} <small>entities regulated by IFSCA</small>`, hrows(cats.slice(0, 8).map((c) => ({ l: c.c, v: c.n, r: nfmt(c.n), c: "#5cc6b0", t: `${c.c}: ${nfmt(c.n)} entities. Lists them`, a: () => { dir.new30 = false; selSet("icat2", c.c); selFire("icat2"); $("dir-ifsca-filters").scrollIntoView({ block: "center" }); } }))), "By licence category. Click a bar to list them.") +
+      card("New entities by year", "", vbars(gy2.map((r) => ({ v: r.n, l: `'${String(r.y).slice(2)}`, t: `${r.y}: ${nfmt(r.n)} new GIFT City entities`, dim: r.y === CYr })), { color: "#5cc6b0" }), "Entities by IFSCA registration year. The lighter bar is the year in progress.");
+  } else if (state.tab === "directory" && $("regx-sum")) {
     const ry = (H.reg_by_year || []).filter((r) => r.y >= 2023), cat = H.reg_by_cat || {};
     $("regx-sum").innerHTML = card("FPI register", `${nfmt(H.reg_total)} <small>registered FPIs · Category I ${nfmt(cat.I)} · Category II ${nfmt(cat.II)}</small>`,
         vbars(ry.map((r) => ({ v: r.n, l: String(r.y), t: `${r.y}: ${nfmt(r.n)} new FPIs. Lists them`, dim: r.y === CYr, a: () => { if (state.tab !== "directory") setTab("directory"); setTimeout(() => { selSet("dyear-f", String(r.y)); selFire("dyear-f"); $("dir-fpi-filters").scrollIntoView({ block: "center" }); }, 400); } })), { color: "#7b9cf5" }), "New registrations by year. Dates are available for registrations since 2023.") +
@@ -4021,7 +4027,7 @@ function renderHome() {
   // Regulation: rule changes by year
   const ry = H.rules_by_year || [];
   const rCur = ry.find((r) => r.y === CYr)?.n || 0;
-  cards.push({ go: "regulation", view: "regyear", h: "Rule changes", k: `${nfmt(rCur)} <small>SEBI and RBI documents in ${CYr}</small>`, s: "Documents that change the rules for foreign investment. 2021 covers October to December.",
+  cards.push({ go: "regulation", view: "regyear", h: "Rule changes", k: `${nfmt(rCur)} <small>SEBI, RBI and IFSCA documents in ${CYr}</small>`, s: "Documents that change the rules for foreign investment. 2021 covers October to December.",
     body: vbars(ry.map((r) => ({ v: r.n, l: String(r.y), t: `${r.y}: ${r.n} rule documents`, a: () => { Object.assign(regs, { regulator: "", instrument: "", doc: "", q: "", soon: false, year: String(r.y), n: 200 }); setTab("regulation"); renderRegs(); toTop(); } })), { color: "#b79cf5" }), more: "Open Regulation" });
   // Registrations: FPI and GIFT City
   const ry2 = (H.reg_by_year || []).filter((r) => r.y >= 2023), gy = (H.gift_by_year || []).filter((r) => r.y >= 2019);
@@ -4159,7 +4165,7 @@ addEventListener("resize", () => { if (innerWidth === lastResizeW) return; lastR
 
 // ---------- Directory: NSDL's FPI register and IFSCA's directory of GIFT IFSC entities ----------
 // Both lists are too long to load at once, so each search asks the database for one page of matches.
-const dir = { view: "fpi", shown: 0, size: 50, stats: null, meta: false, seq: 0, sort: { col: "registered", desc: true }, isort: { col: "registered", desc: true } };
+const dir = { new30: false, view: "fpi", shown: 0, size: 50, stats: null, meta: false, seq: 0, sort: { col: "registered", desc: true }, isort: { col: "registered", desc: true } };
 // GIFT IFSC table columns that can be sorted.
 const IFSC_SORT = {
   name: [(d) => `name.${d ? "desc" : "asc"}`, false],
@@ -4273,14 +4279,29 @@ async function openDirectory() {
       dir.countryN = new Map(countries.map((c) => [String(c.country || "").toUpperCase(), c.n]));
       const cats = [...new Map(types.map((t) => [t.category, 0])).keys()].filter(Boolean);
       const catN = (c) => types.filter((t) => t.category === c).reduce((a, t) => a + t.n, 0);
-      $("icat2").innerHTML = `<option value="">All categories</option>` + cats.sort((a, b) => catN(b) - catN(a)).map((c) => `<option value="${esc(c)}"${c === "Fund Management" ? " selected" : ""}>${esc(c)} (${nfmt(catN(c))})</option>`).join("");
+      $("icat2").innerHTML = `<option value="">All categories</option>` + cats.sort((a, b) => catN(b) - catN(a)).map((c) => `<option value="${esc(c)}">${esc(c)} (${nfmt(catN(c))})</option>`).join("");
       fillIfscaTypes();
       dir.meta = true;
     } catch (e) { $("dir-list").innerHTML = `<div class="empty">Could not load the directory: ${esc(e.message)}</div>`; return; }
   }
-  renderDirTiles(); renderAum(); runDirSearch(true);
+  renderDirTiles(); renderAum(); runDirSearch(true); try { drawGiftViews(); } catch {}
 }
 
+
+// GIFT City quick views: the biggest licence categories, plus the entities registered in the last 30 days.
+function drawGiftViews() {
+  const box = $("gqviews"); if (!box) return;
+  const on = state.tab === "gift" && dir.meta;
+  box.hidden = !on; if (!on) return;
+  const catN = (c) => (dir.types || []).filter((t) => t.category === c).reduce((a, t) => a + t.n, 0);
+  const cats = [...new Set((dir.types || []).map((t) => t.category).filter(Boolean))].sort((a, b) => catN(b) - catN(a)).slice(0, 6);
+  const cur = $("icat2").value, plain = !$("iq2").value && !$("itype2").value && !dir.new30;
+  const views = [["All entities", "", false, plain && !cur], ...cats.map((c) => [c.replace(/ entities$/i, ""), c, false, plain && cur === c]), ["Registered in the last 30 days", "", true, dir.new30 && !cur]];
+  box.innerHTML = views.map((v, i) => `<button type="button" data-gv="${i}" aria-pressed="${!!v[3]}">${esc(v[0])}</button>`).join("");
+  box.querySelectorAll("button").forEach((b) => b.onclick = () => {
+    const v = views[b.dataset.gv]; dir.new30 = v[2]; $("iq2").value = ""; selSet("itype2", ""); selSet("icat2", v[1]); fillIfscaTypes(); runDirSearch(true); drawGiftViews();
+  });
+}
 function fillIfscaTypes() {
   const cat = $("icat2").value, cur = $("itype2").value;
   const list = (dir.types || []).filter((t) => t.sub_category && (!cat || t.category === cat));
@@ -4327,6 +4348,7 @@ function dirPath() {
   if (q) f.push(`name=ilike.*${enc(q)}*`);
   if ($("icat2").value) f.push(`category=eq.${enc($("icat2").value)}`);
   if ($("itype2").value) f.push(`sub_category=eq.${enc($("itype2").value)}`);
+  if (dir.new30) f.push(`reg_date=gte.${new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10)}`);
   const order = IFSC_SORT[dir.isort.col][0](dir.isort.desc);
   return `ifsca_entities?select=enc_id,name,category,sub_category,reg_no,reg_date,address,website,first_seen,ifsca_contacts(contact_name,phone,email,remarks)&${f.map((x) => x + "&").join("")}order=${order}${off}`;
 }
@@ -4466,7 +4488,9 @@ document.querySelectorAll("#dirseg button").forEach((b) => b.onclick = () => {
 let dirTimer;
 ["dq", "iq2"].forEach((id) => ["input", "search"].forEach((ev) => $(id).addEventListener(ev, () => { clearTimeout(dirTimer); dirTimer = setTimeout(() => runDirSearch(true), 300); })));
 ["dcountry-f", "dcat-f", "dyear-f", "itype2"].forEach((id) => $(id).addEventListener("change", () => runDirSearch(true)));
-$("icat2").addEventListener("change", () => { fillIfscaTypes(); runDirSearch(true); });
+$("icat2").addEventListener("change", () => { dir.new30 = false; fillIfscaTypes(); runDirSearch(true); drawGiftViews(); });
+$("itype2").addEventListener("change", () => { drawGiftViews(); });
+$("iq2").addEventListener("input", () => { drawGiftViews(); });
 $("dir-more").addEventListener("click", () => runDirSearch(false));
 
 // The Sources tab is for the site owner. Opening the site once with the private link (#owner-…) shows it
@@ -5786,7 +5810,7 @@ const GNAV = [
   { id: "deals", label: "Deals", icon: "feed", views: [["feed", "Deals", "Investments, exits, fund launches and moves"]] },
   { id: "investors", label: "Investors", icon: "investors", views: [["investors", "Investors", "Foreign investors, one profile each"]], also: ["network", "firm", "entity"] },
   { id: "flows", label: "Flows", icon: "flows", views: [["flows", "Flows", "FPI flows, outbound investment and exchange data"]], also: ["odi", "markets"] },
-  { id: "regulation", label: "Regulation", icon: "regulation", views: [["regulation", "Regulation", "SEBI and RBI rule changes for foreign investment"]] },
+  { id: "regulation", label: "Regulation", icon: "regulation", views: [["regulation", "Regulation", "SEBI, RBI and IFSCA rule changes for foreign investment"]] },
   { id: "registrations", label: "Registrations", icon: "gift", views: [["directory", "FPI register", "Every SEBI-registered foreign portfolio investor"], ["gift", "GIFT City", "Every entity IFSCA regulates at GIFT IFSC"]] },
 ];
 const gnavOwner = (t) => GNAV.find((g) => gnavViews(g).some((v) => v[0] === t) || (g.also || []).includes(t));
@@ -6465,7 +6489,7 @@ function drawCompCal() {
   const cols = ["Takes effect", "In", "Regulator", "Applies to", "Rule and what changes", "Document"];
   const row = (e) => { const d = Math.round((new Date(e.effective_on) - new Date(today)) / 864e5); return [toDMY(String(e.effective_on)), d === 0 ? "Today" : d > 0 ? `${d} days` : `${-d} days ago`, e.regulator || "", (e.instruments || []).join(", "), e.title, DOC_TYPES[e.doc_type] || e.doc_type || ""]; };
   const rows = [...up, ...done].map(row);
-  box.innerHTML = `<div class="watch-h"><div><h3>Compliance calendar</h3><div class="sub">SEBI and RBI rules by the date they take effect: ${nfmt(up.length)} coming up, ${nfmt(done.length)} in the last 90 days. Check each document for the exact obligations.</div></div><button type="button" class="csvbtn" id="cc-csv">Download CSV</button></div>
+  box.innerHTML = `<div class="watch-h"><div><h3>Compliance calendar</h3><div class="sub">SEBI, RBI and IFSCA rules by the date they take effect: ${nfmt(up.length)} coming up, ${nfmt(done.length)} in the last 90 days. Check each document for the exact obligations.</div></div><button type="button" class="csvbtn" id="cc-csv">Download CSV</button></div>
     <div class="watch-w"><table><thead><tr>${cols.map((c) => `<th>${c}</th>`).join("")}</tr></thead><tbody>${[...up, ...done].map((e, i) => { const r = rows[i]; return `<tr${String(e.effective_on) < today ? ' style="opacity:.6"' : ""}><td class="due${String(e.effective_on) >= today && (new Date(e.effective_on) - new Date(today)) / 864e5 <= 30 ? " soon" : ""}">${esc(r[0])}</td><td>${esc(r[1])}</td><td>${esc(r[2])}</td><td>${esc(r[3])}</td><td><a href="${safeUrl(e.url)}" target="_blank" rel="noopener">${esc(r[4])}</a>${e.summary ? `<div class="sub" style="margin-top:3px">${esc(e.summary)}</div>` : ""}</td><td>${esc(r[5])}</td></tr>`; }).join("") || `<tr><td colspan="6">No dated rules in this window.</td></tr>`}</tbody></table></div>`;
   $("cc-csv").onclick = () => csvDownload(`compliance-calendar-${today}.csv`, [cols, ...rows]);
 }
@@ -6603,7 +6627,7 @@ function drawRegLib() {
       const c = docs.length && r[6] ? count(r[6]) : 0, st = r[8] === "c" ? '<span class="tagc ok">Edition checked</span>' : r[8] === "t" ? '<span class="tagc ok">Seen in the tracker</span>' : '<span class="tagc">As listed</span>', sc = REG_SRC[r[7]];
       return `<tr><td class="n">${r[0]}</td><td><b>${esc(r[1])}</b><div class="cov">${esc(r[2])}. ${esc(r[5])}</div></td><td>${esc(r[3])}</td><td>${c ? `<button class="cnt" type="button" data-rk="${esc(r[6])}">${c} document${c === 1 ? "" : "s"} →</button>` : '<span class="cov">none yet</span>'}</td><td>${st}</td><td><a href="${esc(sc[1])}" target="_blank" rel="noopener">${esc(sc[0])} ↗</a></td></tr>`;
     }).join("") || `<tr><td colspan="6">No match.</td></tr>`}</tbody></table></div>
-    <p class="reglib-note">Links open the regulator's own pages, where you pick the current edition; the tracker does not copy their text. Titles are as given to us; "Edition checked" marks the ones whose title and date we confirmed on the regulator's site. A count shows how many tracked SEBI, RBI, DPIIT, MCA and other documents mention the phrase; it is a search, not a legal mapping. Not legal advice.</p>`;
+    <p class="reglib-note">Links open the regulator's own pages, where you pick the current edition; the tracker does not copy their text. Titles are as given to us; "Edition checked" marks the ones whose title and date we confirmed on the regulator's site. A count shows how many tracked SEBI, RBI, IFSCA, DPIIT, MCA and other documents mention the phrase; it is a search, not a legal mapping. Not legal advice.</p>`;
   box.querySelectorAll("[data-rg]").forEach((b) => b.onclick = () => { rl.group = b.dataset.rg; drawRegLib(); });
   const inp = $("rl-q"); inp.oninput = () => { rl.q = inp.value; const pos = inp.selectionStart; drawRegLib(); const n = $("rl-q"); n.focus(); n.setSelectionRange(pos, pos); };
   box.querySelectorAll("[data-rk]").forEach((b) => b.onclick = () => { regs.q = b.dataset.rk; regs.n = 200; renderRegs(); const t = $("reg-body"); if (t) t.scrollIntoView({ behavior: "smooth", block: "start" }); });
