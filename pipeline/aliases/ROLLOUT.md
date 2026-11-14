@@ -20,6 +20,18 @@ Project `urpphqybqmxlwhjghsmf` (india-capital-tracker, ap-south-1, Postgres 17.1
 
 Tested on PostgreSQL 16.15; live is 17.11. Nothing in the migrations is version-specific, but the first apply is the real test, which is why step 3 re-checks everything.
 
+## Status
+| Step | Done | Evidence |
+|---|---|---|
+| 0 Preflight | 14-Nov-26 | `verify_rollout.py --before` 4 of 4 |
+| 1 Schema (migrations 1 and 2) | 14-Nov-26, migration 2 at about 13:15 UTC | counts 36 tables, 11 views, 173 functions, 42 policies, 13 alias objects; both tables and the view answer the public API with an empty list; `verify_rollout.py --after` 8 of 8 on the live API; reading as the public works; anon cannot write; the function is `security invoker` and the view `security_invoker=true`; security advisors identical to the baseline (1 error, 6 info, 18 warn by finding, none about the new objects) |
+| 2 Permission check | done | see the line above |
+| 3 Review and export | not yet | the owner's job in `alias.html` |
+| 4 Load the decisions | not yet | |
+| 5 Verify the data | not yet | |
+| 6 Switch the pages | not yet | `config.js` still says `local` |
+The first apply of migration 1 had a permissions mistake that was found and fixed the same day (see "What went wrong once").
+
 ## Go / no-go
 Stop and ask before continuing if any of these is true: a `verify` check fails; the advisor counts change; the SQL editor shows an error (nothing is half-applied, each file is one transaction, but find out why first).
 
