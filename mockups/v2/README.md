@@ -11,6 +11,8 @@ Open: `python3 -m http.server` in this folder, then `monitor.html` or `flows.htm
 | `data.js` | Snapshot of live Supabase tables (read-only, public key), built 2026-11-14. Generated, do not edit |
 | `profiles.js` | Snapshot for the two profile pages (Meesho, SoftBank Group). Generated, do not edit |
 | `monitor.html`, `flows.html` | Home: Today and Markets |
+| `deals.js` | Snapshot for the Deals page (309 deals since 15-Aug-26, ODI series). Generated, do not edit |
+| `deals.html` | Deals landing view: filters, grouped table, weekly chart, ODI |
 | `company.html` | Company profile: Meesho Ltd |
 | `investor.html` | Investor-group profile: SoftBank Group |
 | `screens/` | Screenshots of the current state |
@@ -24,7 +26,7 @@ Open: `python3 -m http.server` in this folder, then `monitor.html` or `flows.htm
 
 ## Navigation (5 tabs)
 Home (Today, Markets, Weekly brief), Deals, Investors (Directory, Ownership changes, Network, Countries, 13F, plus profile pages), Registrations, Regulations.
-Only Home and the two profiles are drawn; every other link is a placeholder.
+Only Home, Deals and the two profiles are drawn; every other link is a placeholder.
 
 ## What the profile pages showed about name matching
 - Meesho exchange deals name 50 distinct clients; 16 (32%) match the NSDL FPI register exactly (registration number shown). 1 group (SVF) links by name pattern; 33 are unlinked. No fuzzy matching was tried.
@@ -43,3 +45,11 @@ Only Home and the two profiles are drawn; every other link is a placeholder.
 - FBIL USD/INR runs about a week behind (last point 06-Nov-26).
 - Desks other than Monitor and Flows are placeholders in the nav.
 - Phone layout: tables scroll sideways inside their panel; the first column is not yet pinned.
+
+## Deals landing view
+- One table for exchange deals (A, NSE bulk/block of ₹25 cr+) and reported deals (C, news). A and C values are shown side by side and never added.
+- Filters: period, type (into India / exit / fund launch / abroad), source, stage, size, text search. Filter state lives in the URL hash, so a view can be shared.
+- Exchange deals are grouped by stock and day by default (one block trade had 16 client rows); "Every client" shows the raw legs.
+- Exchange match: a reported deal gets a tag when an exchange deal has the same direction, the same first word of the target, and a date within 2 days. 4 of 249 reported deals match today; this is a name match and unconfirmed.
+- Not built: Exchange, Reported, Outbound and Fund-launch sub-views (links are placeholders); private funding rounds are not a separate view because the data has no flag for them (use the investor-type breakdown).
+- ODI figures are labelled US$ mn, as RBI's workbook reports; not independently re-checked here.

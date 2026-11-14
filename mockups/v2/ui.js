@@ -40,8 +40,9 @@ const gsec=D.ccil_limits.find(l=>/Central/.test(l.ins));
 window.CALC=calc;
 
 /* ---------- shell ---------- */
-const NAV=[['home','Home','monitor.html'],['deals','Deals','#'],['investors','Investors','investor.html'],['reg','Registrations','#'],['regs','Regulations','#']];
-const SUB={home:[['today','Today','monitor.html'],['markets','Markets','flows.html'],['brief','Weekly brief','#']],
+const NAV=[['home','Home','monitor.html'],['deals','Deals','deals.html'],['investors','Investors','investor.html'],['reg','Registrations','#'],['regs','Regulations','#']];
+const SUB={deals:[['all','All deals','deals.html'],['ex','Exchange deals','#'],['rep','Reported deals','#'],['odi','Outbound (ODI)','#'],['fund','Fund launches and moves','#']],
+  home:[['today','Today','monitor.html'],['markets','Markets','flows.html'],['brief','Weekly brief','#']],
   investors:[['dir','Directory','#'],['own','Ownership changes','#'],['net','Network','#'],['ctry','Countries','#'],['f13','13F','#'],['profile','Profile: SoftBank Group','investor.html'],['co','Profile: Meesho','company.html']]};
 function shell(active,sub){
   const el=document.getElementById('shell'); if(!el) return;
