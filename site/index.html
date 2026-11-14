@@ -1085,6 +1085,27 @@ body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-wei
 /* One palette for every chart, in both themes: blue for money in, orange for money out. */
 :root:not(#x){--c-in:#5a82f0;--c-out:#d9682c}
 :root[data-theme="light"]:not(#x){--c-in:#1f5eff;--c-out:#c2410c}
+.ccy{height:38px;max-width:150px;padding:0 10px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+@media (max-width:700px){.ccy{max-width:92px;padding:0 6px}}
+.vlab{fill:var(--ink);font-size:10.5px;font-weight:600;font-variant-numeric:tabular-nums;opacity:.9;pointer-events:none}
+.reglib{border:1px solid var(--line);border-radius:14px;background:var(--panel);margin:0 0 14px;padding:0}
+.reglib>summary{list-style:none;cursor:pointer;padding:16px 18px;display:flex;flex-direction:column;gap:4px}
+.reglib>summary::-webkit-details-marker{display:none}
+.reglib>summary h3{margin:0;font-size:17px}
+.reglib>summary h3::after{content:" ▾";color:var(--muted)}
+.reglib[open]>summary h3::after{content:" ▴"}
+.reglib>summary span{color:var(--muted);font-size:13px}
+#reglib-body{padding:0 18px 16px}
+.reglib table{width:100%;border-collapse:collapse;font-size:13.5px}
+.reglib th{text-align:left;font-size:12px;color:var(--muted);font-weight:600;padding:8px 8px;border-bottom:1px solid var(--line)}
+.reglib td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.reglib td.n{color:var(--muted);width:34px}
+.reglib .cov{color:var(--muted);font-size:12.5px;margin-top:3px}
+.reglib .tagc{display:inline-block;font-size:11.5px;padding:1px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.reglib .tagc.ok{color:var(--c-in);border-color:var(--c-in)}
+.reglib .cnt{background:none;border:0;color:var(--accent);font:inherit;font-weight:600;cursor:pointer;padding:0}
+.reglib-note{color:var(--muted);font-size:12.5px;margin:10px 0 0}
+@media (max-width:760px){.reglib table,.reglib tbody,.reglib tr,.reglib td{display:block}.reglib thead{display:none}.reglib tr{padding:10px 0;border-bottom:1px solid var(--line)}.reglib td{border:0;padding:2px 0}.reglib td.n{width:auto}}
 .qviews{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
 .jump{position:sticky;top:0;z-index:15;margin:0 0 12px;padding:8px 0;background:var(--bg);flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none}
 .jump::-webkit-scrollbar{display:none}
@@ -1355,6 +1376,7 @@ body{font-variant-numeric:tabular-nums}
         <div id="gdrop" role="listbox" hidden></div>
         <button class="cmdk-btn install-btn" id="install-app" type="button" hidden title="Install as an app on this device"><span>Install app</span></button>
         <button class="cmdk-btn" id="cmdk-open" type="button" aria-label="Quick search (Ctrl or Cmd + K)" title="Quick search investors, firms or deals"><span>Quick search</span><kbd>⌘K</kbd></button>
+        <select class="ccy" id="ccy" aria-label="Currency" title="Show every amount in this currency"><option value="USD">USD · US dollar</option><option value="INR">INR · Indian rupee</option><option value="EUR">EUR · Euro</option><option value="GBP">GBP · Pound</option><option value="JPY">JPY · Yen</option><option value="AED">AED · UAE dirham</option></select>
         <button class="ib" id="theme" type="button" aria-label="Switch light or dark" title="Light or dark">&#9788;</button>
       </div>
       <div class="hstatus"><div class="sub" id="updated"><span class="skl-inline" aria-label="Loading"></span></div><div class="sub" id="visits"></div><div class="sub" id="acct"></div></div>
@@ -1455,11 +1477,9 @@ body{font-variant-numeric:tabular-nums}
       <div class="ovc"><div class="ovh"><div><h3>New FPI registrations</h3><div class="sub">Latest additions to the NSDL register</div></div><button class="link" data-go="directory">FPIs ↗</button></div><div id="ov-regs"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
       <div class="ovc gated"><div class="ovh"><div><h3>Funding and deal news</h3><div class="sub">Startup media and global coverage</div></div><button class="link" data-go="markets">Markets ↗</button></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-news"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
       <div class="ovc gated"><div class="ovh"><div><h3>SEBI filings</h3><div class="sub">Latest takeover and public issue filings</div></div><button class="link" data-go="markets">Markets ↗</button></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-sebi"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
-      <div class="ovc gated"><div class="ovh"><div><h3>Following</h3><div class="sub">Firms you follow, on this device</div></div></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-follow"></div></div>
       <div class="ovc gated"><div class="ovh"><div><h3>Where the money comes from</h3><div class="sub">Capital deals in the last 90 days. Tap a row to see them.</div></div></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-break"></div></div>
       <div class="ovc span2 gated"><div class="ovh"><div><h3>The last 30 days</h3><div class="sub">Reported deal value by category, and the most active investors</div></div><button class="link" data-go="investors">Investors ↗</button></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-week"></div></div>
     </div>
-    <div class="cov" id="cov"></div>
   </section>
 
   <section id="tab-feed" hidden>
@@ -1550,7 +1570,7 @@ body{font-variant-numeric:tabular-nums}
 
   <section id="tab-flows" hidden>
     <p class="takeaway" id="fl-take" hidden></p>
-    <p class="sub" style="margin:0 0 12px">Money moving into and out of India in aggregate. FPI figures are daily from NSDL (US$, with ₹ crore in brackets); FDI figures are by financial year from DPIIT's quarterly fact sheet (US$).</p>
+    <p class="sub" style="margin:0 0 12px">Money moving into and out of India in aggregate. FPI figures are daily from NSDL (in the currency you chose, with a second currency in brackets); FDI figures are by financial year from DPIIT's quarterly fact sheet (reported in US$, shown in the currency you chose).</p>
 
     <section class="fxd" id="fxdesk" aria-label="FX desk"></section>
     <section class="watch" id="debtlim" aria-label="FPI debt limits"></section>
@@ -1558,7 +1578,7 @@ body{font-variant-numeric:tabular-nums}
     <section class="watch" id="mktcal" aria-label="Market calendar"></section>
     <div class="tsum" id="fl-sum"></div>
     <h2 class="fsec">FPI · foreign portfolio investment</h2>
-    <p class="note">Shares and bonds bought and sold by foreign funds. Daily from NSDL, in US$ with ₹ crore in brackets.</p>
+    <p class="note">Shares and bonds bought and sold by foreign funds. Daily from NSDL, in the currency you chose, with a second currency in brackets.</p>
     <div class="filters fperiod" aria-label="FPI period">
       <div class="tfseg" id="tfseg" role="group" aria-label="Period"><button type="button" data-v="30">30D</button><button type="button" data-v="90">90D</button><button type="button" data-v="ytd">YTD</button><button type="button" data-v="fy">FY</button><button type="button" data-v="all">All</button></div>
       <select id="fpreset" aria-label="Period">
@@ -1577,7 +1597,7 @@ body{font-variant-numeric:tabular-nums}
     <div class="ftiles" id="ftiles"></div>
 
     <div class="fcard">
-      <div class="fhead"><div><h3>FPI net investment by day<span class="era cur">Current period</span></h3><div class="sub" id="fday-sub">US$</div></div>
+      <div class="fhead"><div><h3>FPI net investment by day<span class="era cur">Current period</span></h3><div class="sub" id="fday-sub">Chosen currency</div></div>
         <div class="seg" role="group" aria-label="Segment" id="fseg">
           <button data-s="Total" aria-pressed="true">All</button><button data-s="Equity" aria-pressed="false">Equity</button><button data-s="Debt" aria-pressed="false">Debt</button>
         </div></div>
@@ -1587,14 +1607,14 @@ body{font-variant-numeric:tabular-nums}
     </div>
 
     <div class="fcard">
-      <div class="fhead"><div><h3>FPI net investment by month<span class="era cur">All available months</span></h3><div class="sub" id="fmonth-sub">US$ · all segments</div></div></div>
+      <div class="fhead"><div><h3>FPI net investment by month<span class="era cur">All available months</span></h3><div class="sub" id="fmonth-sub">Chosen currency · all segments</div></div></div>
       <div class="flegend"><span><i style="background:var(--c-in)"></i>Net inflow</span><span><i style="background:var(--c-out)"></i>Net outflow</span></div>
       <div class="fchart" id="fmonth"></div>
       <p class="dsrc" data-src="nsdl_flows" data-what="NSDL FPI calendar-year report"></p>
     </div>
 
     <div class="fcard">
-      <div class="fhead"><div><h3>FPI net investment over the years</h3><div class="sub" id="fhist-sub">US$ (₹ crore in brackets) · all segments</div></div>
+      <div class="fhead"><div><h3>FPI net investment over the years</h3><div class="sub" id="fhist-sub">In your chosen currency (second currency in brackets) · all segments</div></div>
         <div class="seg" role="group" aria-label="Period" id="fhseg"><button data-v="fy" aria-pressed="true">Yearly</button><button data-v="q" aria-pressed="false">Quarterly</button></div></div>
       <div class="ftiles" id="fhist-tiles"></div>
       <div class="flegend"><span><i style="background:var(--c-in)"></i>Net inflow</span><span><i style="background:var(--c-out)"></i>Net outflow</span></div>
@@ -1606,14 +1626,14 @@ body{font-variant-numeric:tabular-nums}
     <h2 class="fsec">FDI · foreign direct investment</h2>
     <p class="note" id="dpiit-sub">Long-term stakes in Indian companies. From DPIIT's quarterly FDI fact sheet, by financial year.</p>
     <div class="fcard">
-      <div class="fhead"><div><h3>Where FDI comes from<span class="era hist">Financial years</span></h3><div class="sub" id="dcountry-sub">FDI equity inflow by source country · US$</div></div></div>
+      <div class="fhead"><div><h3>Where FDI comes from<span class="era hist">Financial years</span></h3><div class="sub" id="dcountry-sub">FDI equity inflow by source country · chosen currency</div></div></div>
       <div class="flegend" id="dlegend1"></div>
       <div class="hbars" id="dcountry"></div>
       <p class="dsrc" data-src="dpiit_fdi" data-what="DPIIT quarterly FDI fact sheet" data-edition="1"></p>
       <p class="note" style="margin-top:10px"><span class="lg">The ten largest source countries since 2000, ordered by the latest year. Much of the money routed through Singapore and Mauritius comes from funds based elsewhere.</span><span class="sm">Ten largest source countries since 2000, by latest year. Money routed through Singapore and Mauritius often comes from funds based elsewhere.</span></p>
     </div>
     <div class="fcard">
-      <div class="fhead"><div><h3>Where FDI goes</h3><div class="sub" id="dwhere-sub">FDI equity inflow · US$</div></div>
+      <div class="fhead"><div><h3>Where FDI goes</h3><div class="sub" id="dwhere-sub">FDI equity inflow · chosen currency</div></div>
         <div class="seg" role="group" aria-label="Show sectors or states" id="dseg">
           <button data-s="sector" aria-pressed="true">Sectors</button><button data-s="state" aria-pressed="false">States</button>
         </div></div>
@@ -1638,6 +1658,7 @@ body{font-variant-numeric:tabular-nums}
     <p class="sub" style="margin:0 0 12px"><span class="lg">SEBI and RBI documents that change the rules for foreign investment: FPI, FVCI, FDI, ODI and GIFT City. Summaries state only what changed, for whom and from when; always read the official document.</span><span class="sm">SEBI and RBI rule changes for foreign investment. Read the official document.</span></p>
     <div class="tsum" id="reg-sum"></div>
     <section class="watch" id="compcal" aria-label="Compliance calendar"></section>
+    <details class="reglib" id="reglib"><summary><h3>Laws and regulations that apply to foreign investment (60)</h3><span>FEMA and RBI, FDI policy, SEBI, anti-money laundering, company law, tax, other laws, GIFT City</span></summary><div id="reglib-body"></div></details>
     <section class="watch" id="whtref" aria-label="Withholding tax reference"></section>
     <div id="reg-body"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div>
   </section>
@@ -1807,15 +1828,42 @@ function amountCr(e) {
   return e.amount_usd_m ? { cr: e.amount_usd_m * usdInr() / 10, usd: e.amount_usd_m } : null;
 }
 const fmtCr = (cr) => cr >= 1e5 ? `₹${+(cr / 1e5).toFixed(1)} lakh cr` : `₹${cr.toLocaleString("en-IN", { maximumFractionDigits: cr >= 100 ? 0 : cr >= 1 ? 1 : 2 })} cr`;
-const fmtUsd = (u) => u >= 1000 ? `USD ${+(u / 1000).toFixed(u >= 1e4 ? 1 : 2)} billion` : `USD ${u >= 10 ? Math.round(u).toLocaleString("en-US") : +u.toFixed(1)} million`;
-const fmtUsdS = (u) => u >= 1000 ? `$${+(u / 1000).toFixed(1)}bn` : `$${u >= 10 ? Math.round(u) : +u.toFixed(1)}m`;
-const money = (e) => { const a = amountCr(e); return a ? `${fmtUsd(a.usd)} (${fmtCr(a.cr)})` : e.amount_text || ""; };
+// ---------- Currency: one choice for the whole site, kept on this device ----------
+// Amounts are stored in US$ (millions). Every figure is shown in the chosen currency, with a second currency in small brackets:
+// the rupee, or US$ when the rupee is chosen. Rates are units per US$: INR from the ECB reference rate, the others from FBIL's daily reference rates.
+const CCYS = { USD: ["US dollar", "$"], INR: ["Indian rupee", "₹"], EUR: ["Euro", "€"], GBP: ["Pound", "£"], JPY: ["Yen", "¥"], AED: ["UAE dirham", "AED "] };
+let CCY = "USD", CCY_R = {};
+try { const c = localStorage.getItem("ict-ccy"); if (CCYS[c]) CCY = c; CCY_R = JSON.parse(localStorage.getItem("ict-ccy-rates2") || "{}") || {}; } catch {}
+const effCcy = () => CCY === "USD" || CCY === "INR" || CCY_R[CCY] > 0 ? CCY : "USD";   // a currency whose rate has not loaded yet shows as US$
+function fmtBig(code, m) { return m >= 1e6 ? `${code} ${+(m / 1e6).toFixed(2)} trillion` : m >= 1000 ? `${code} ${+(m / 1000).toFixed(m >= 1e4 ? 1 : 2)} billion` : `${code} ${m >= 10 ? Math.round(m).toLocaleString("en-US") : +m.toFixed(1)} million`; }
+const fmtUsd = (u) => { const c = effCcy(); return c === "USD" ? fmtBig("USD", u) : c === "INR" ? fmtCr(u * usdInr() / 10) : fmtBig(c, u * CCY_R[c]); };
+const fmtUsdS = (u) => {
+  const c = effCcy(), sy = CCYS[c][1];
+  if (c === "INR") { const cr = u * usdInr() / 10; return cr >= 1e5 ? `₹${+(cr / 1e5).toFixed(1)}L cr` : `₹${cr >= 100 ? Math.round(cr).toLocaleString("en-IN") : +cr.toFixed(1)}cr`; }
+  const m = c === "USD" ? u : u * CCY_R[c];
+  return m >= 1e6 ? `${sy}${+(m / 1e6).toFixed(1)}tn` : m >= 1000 ? `${sy}${+(m / 1000).toFixed(1)}bn` : `${sy}${m >= 10 ? Math.round(m) : +m.toFixed(1)}m`;
+};
+// The second currency for the small brackets (cr = ₹ crore): the rupee, or US$ when the rupee is the main currency.
+const fmtAlt = (cr) => effCcy() === "INR" ? fmtBig("USD", cr * 10 / usdInr()) : fmtCr(cr);
+async function ccyLoadRates() {
+  try {
+    const rows = await api(`fx_ref?select=day,ccy,rate&ccy=in.(USD,EUR,GBP,JPY,AED)&day=gte.${dayStr(new Date(Date.now() - 20 * 864e5))}&order=day.desc&limit=100`);
+    const by = {}; rows.forEach((r) => { (by[r.day] = by[r.day] || {})[r.ccy] = +r.rate; });
+    const day = Object.keys(by).sort().reverse().find((d) => by[d].USD && ["EUR", "GBP", "JPY", "AED"].every((c) => by[d][c]));
+    if (!day) return false;
+    const u = by[day].USD, r = {}; ["EUR", "GBP", "JPY", "AED"].forEach((c) => { r[c] = u / by[day][c]; });   // units of c per US$
+    CCY_R = { ...r, day }; try { localStorage.setItem("ict-ccy-rates2", JSON.stringify(CCY_R)); } catch {}
+    return true;
+  } catch { return false; }
+}
+const money = (e) => { const a = amountCr(e); return a ? `${fmtUsd(a.usd)} (${fmtAlt(a.cr)})` : e.amount_text || ""; };
 // Amounts are US$ first, with the rupee figure (₹ crore or lakh crore) in small brackets. `cr` is ₹ crore.
 const usdMOf = (cr) => cr * 10 / usdInr();
 const mkUsd = (cr) => cr == null || isNaN(cr) ? "–" : { h: `${cr < 0 ? "−" : ""}${bothH(Math.abs(cr))}` };
-const bothT = (cr) => `${fmtUsd(usdMOf(cr))} (${fmtCr(cr)})`;
-const usdBr = (m) => `${fmtUsd(m)} <small class="inr">(${fmtCr(m * usdInr() / 10)})</small>`;
-const bothH = (cr) => `${fmtUsd(usdMOf(cr))} <small class="inr">(${fmtCr(cr)})</small>`;
+const bothT = (cr) => `${fmtUsd(usdMOf(cr))} (${fmtAlt(cr)})`;
+const usdBr = (m) => `${fmtUsd(m)} <small class="inr">(${fmtAlt(m * usdInr() / 10)})</small>`;
+const bothH = (cr) => `${fmtUsd(usdMOf(cr))} <small class="inr">(${fmtAlt(cr)})</small>`;
+const compactN = (v) => Math.abs(v) >= 1e5 ? `${+(v / 1e5).toFixed(1)}L` : Math.abs(v) >= 1000 ? `${+(v / 1000).toFixed(1)}k` : String(Math.round(v));
 const usdAxis = (v) => v === 0 ? "0" : `${v < 0 ? "−" : ""}${fmtUsdS(Math.abs(v))}`;
 
 // All stories are loaded once; every filter is applied in the page so the tiles, chips,
@@ -2125,7 +2173,7 @@ const typePills = (e) => [...e.event_types].sort((a, b) => Object.keys(TYPES).in
 const amtTag = (e) => {
   const a = amountCr(e);
   if (!a) return e.amount_text ? `<b class="amt-tag">${esc(e.amount_text)}</b>` : "";
-  return `<b class="amt-tag">${fmtUsd(a.usd)}<span>${esc(fmtCr(a.cr))}</span></b>`;
+  return `<b class="amt-tag">${fmtUsd(a.usd)}<span>${esc(fmtAlt(a.cr))}</span></b>`;
 };
 // Where the story came from, with a small icon per kind of source.
 const SRC_ICON = {
@@ -2565,7 +2613,9 @@ function barChart(el, points, opts) {
   const canLine = lvals.length > 1;
   const mode = canLine ? el.dataset.mode || "both" : "bar";
   const showBars = mode !== "line", showLine = mode !== "bar", both = showBars && showLine;
-  const W = Math.max(320, el.clientWidth || 800), H = height, L = 56, R = both ? 56 : 8, T = 10, B = 26;
+  const W = Math.max(320, el.clientWidth || 800), H = height, L = 56, R = both ? 56 : 8, B = 26;
+  // Numbers sit on the bars when each bar has room for one (about 40px); crowded charts keep the hover.
+  const labelled = showBars && opts.vals !== false && (W - L - R) / points.length >= 40, T = labelled ? 22 : 10;
   const fmt = (v) => v === 0 ? "0" : Math.abs(v) >= 1000 ? `${v < 0 ? "−" : ""}${(Math.abs(v) / 1000).toLocaleString("en-IN", { maximumFractionDigits: 1 })}k` : `${v < 0 ? "−" : ""}${Math.abs(v)}`;
   const lfmt = lineSpec.kind === "cum" ? (axis || fmt) : (v) => v === 0 ? "0" : `${v < 0 ? "−" : ""}${Math.abs(Math.round(v))}%`;
   const sBar = niceScale(points.map((p) => p.v)), sLine = niceScale(lvals);
@@ -2585,6 +2635,7 @@ function barChart(el, points, opts) {
         ? `M${x},${z}V${z - h + r}Q${x},${z - h} ${x + r},${z - h}H${x + bw - r}Q${x + bw},${z - h} ${x + bw},${z - h + r}V${z}Z`
         : `M${x},${z}V${z + h - r}Q${x},${z + h} ${x + r},${z + h}H${x + bw - r}Q${x + bw},${z + h} ${x + bw},${z + h - r}V${z}Z`;
       g += `<path class="bar" d="${d}" fill="var(--c-${v >= 0 ? "in" : "out"})"${p.partial ? ' fill-opacity=".55"' : ""}/>`;
+      if (labelled && v != null) g += `<text class="vlab" x="${x + bw / 2}" y="${v >= 0 ? z - h - 4 : z + h + 12}" text-anchor="middle">${esc((axis || fmt)(v))}</text>`;
     }
     g += `<rect class="hit" data-i="${i}" x="${L + i * step}" y="${T}" width="${step}" height="${H - T - B}"/>`;
     const lab = label(p, i);
@@ -2654,14 +2705,14 @@ function renderFlowCharts() {
     label: (p) => `${p.day.slice(8, 10)} ${MON[+p.day.slice(5, 7) - 1]}`,
     tip: (p) => `<b>${toDMY(p.day)}</b><div class="row"><span>All segments</span><span>${crore(p.Total)}</span></div><div class="row"><span>Equity</span><span>${crore(p.Equity)}</span></div><div class="row"><span>Debt</span><span>${crore(p.Debt)}</span></div><div class="row"><span>In US$</span><span>${usdm(p.usd)}</span></div>`,
   });
-  $("fday-sub").textContent = `US$ (₹ crore in brackets) · ${seg === "Total" ? "all segments" : seg.toLowerCase()} · ${d.length} trading day${d.length === 1 ? "" : "s"}${d.length ? ` from ${toDMY(d[0].day)} to ${toDMY(d[d.length - 1].day)}` : " in this period"}`;
+  $("fday-sub").textContent = `In your chosen currency (second currency in brackets) · ${seg === "Total" ? "all segments" : seg.toLowerCase()} · ${d.length} trading day${d.length === 1 ? "" : "s"}${d.length ? ` from ${toDMY(d[0].day)} to ${toDMY(d[d.length - 1].day)}` : " in this period"}`;
   $("fmonth").dataset.title = "FPI net investment by month";
   barChart($("fmonth"), mon.map((m) => ({ ...m, v: usdMOf(m.net) })), {
     axis: usdAxis, line: cumLine(),
     label: (p) => mon.some((m) => m.month.slice(0, 4) !== p.month.slice(0, 4)) ? monLabel(p.month) : MON[+p.month.slice(5, 7) - 1],
     tip: (p) => `<b>${monLabel(p.month)}${p.partial ? " (so far)" : ""}</b><div class="row"><span>Net, all segments</span><span>${crore(p.net)}</span></div>`,
   });
-  $("fmonth-sub").textContent = `US$ (₹ crore in brackets) · all segments${mon.some((m) => m.partial) ? " · lighter bar = month in progress" : ""}`;
+  $("fmonth-sub").textContent = `In your chosen currency (second currency in brackets) · all segments${mon.some((m) => m.partial) ? " · lighter bar = month in progress" : ""}`;
 }
 
 // ---------- DPIIT fact sheet: by country, sector and state, and the long-run total ----------
@@ -2690,9 +2741,9 @@ function renderDpiit() {
   const ed = flows.dpiit[0].edition;
   $("dpiit-sub").textContent = `Long-term stakes in Indian companies. From DPIIT's quarterly FDI fact sheet, by financial year; data up to ${ed}.`;
   const c = hbars($("dcountry"), $("dlegend1"), "country") || {};
-  $("dcountry-sub").textContent = `FDI equity inflow by source country · US$ · FY ${c.cur}${c.prev ? ` vs FY ${c.prev}` : ""}`;
+  $("dcountry-sub").textContent = `FDI equity inflow by source country · chosen currency · FY ${c.cur}${c.prev ? ` vs FY ${c.prev}` : ""}`;
   const w = hbars($("dwhere"), $("dlegend2"), flows.dseg) || {};
-  $("dwhere-sub").textContent = `FDI equity inflow by ${flows.dseg === "state" ? "state" : "sector"} · US$ · FY ${w.cur}${w.prev ? ` vs FY ${w.prev}` : ""}`;
+  $("dwhere-sub").textContent = `FDI equity inflow by ${flows.dseg === "state" ? "state" : "sector"} · chosen currency · FY ${w.cur}${w.prev ? ` vs FY ${w.prev}` : ""}`;
   $("dwhere-note").textContent = flows.dseg === "state"
     ? "Ten states with the most FDI equity since October 2019, when state data began, by latest year."
     : "Ten sectors with the most FDI equity since 2000, by latest year. Services covers banking, insurance, outsourcing, R&D and similar.";
@@ -2705,7 +2756,7 @@ function renderDpiit() {
     label: (p) => `FY${p.fy.slice(5)}`,
     tip: (p) => `<b>FY ${p.fy}${p.partial ? " (provisional)" : ""}</b><div class="row"><span>Total FDI</span><span>${usdBr(p.v)}</span></div><div class="row"><span>of which equity</span><span>${usdBr(p.eq)}</span></div>${p.prev ? `<div class="row"><span>Change on year</span><span>${p.v >= p.prev ? "+" : "−"}${Math.abs(Math.round((p.v / p.prev - 1) * 100))}%</span></div>` : ""}`,
   });
-  $("dannual-sub").textContent = `Total FDI inflow by financial year · US$ million · FY ${yrs[0]} to FY ${yrs[yrs.length - 1]} · lighter bar = provisional`;
+  $("dannual-sub").textContent = `Total FDI inflow by financial year · chosen currency · FY ${yrs[0]} to FY ${yrs[yrs.length - 1]} · lighter bar = provisional`;
 }
 document.querySelectorAll("#dseg button").forEach((b) => b.onclick = () => {
   flows.dseg = b.dataset.s;
@@ -3277,6 +3328,7 @@ const setFollows = (a) => store("ict-follow", JSON.stringify(a));
 const isNew = (e) => state.prevVisit && (e.fetched_at || e.published_at) > state.prevVisit;
 const newest = (a, b) => (b.published_at || b.fetched_at) > (a.published_at || a.fetched_at) ? 1 : -1;
 function renderFollowing() {
+  if (!$("ov-follow")) return;   // the Following card was removed from Home
   const keys = follows();
   if (!keys.length) {
     $("ov-follow").innerHTML = `<div class="sub">Follow a firm from its profile and its new deals appear here. Open any firm in the <button class="link" data-go="network">Network</button> to start.</div>`;
@@ -3623,7 +3675,7 @@ document.querySelectorAll("#nhops button").forEach((b) => b.onclick = () => {
 
 
 // ---------- Jump menu: long tabs get a sticky row of links to their sections ----------
-const JUMP_TABS = ["flows", "markets", "directory", "odi", "investors"];
+const JUMP_TABS = ["flows", "markets", "directory", "odi", "investors", "regulation"];
 function buildJump(t) {
   const sec = $("tab-" + t); if (!sec || sec.hidden || !JUMP_TABS.includes(t)) return;
   const items = [], seen = new Set();
@@ -3650,7 +3702,7 @@ function setTab(t) {
   if (t === "regulation") setTimeout(() => { try { drawCompCal(); } catch {} }, 400);
   if (t === "flows") setTimeout(() => { try { drawFxDesk(); } catch {} }, 300);
   if (t === "directory") setTimeout(() => { try { drawFpiWatch(); drawFpiLimits(); } catch {} }, 300);
-  if (t === "regulation") setTimeout(() => { try { drawWht(); } catch {} }, 300);
+  if (t === "regulation") [300, 1800].forEach((ms) => setTimeout(() => { try { drawWht(); drawRegLib(); } catch {} }, ms));
   setTimeout(() => { try { drawSideViews(); } catch {} }, 0);
   [0, 600, 1500].forEach((ms) => setTimeout(() => { try { drawTabSums(); } catch {} }, ms));
   // Going to Home drops the country, sector and story filters, so the address goes back to plain "/".
@@ -3862,11 +3914,11 @@ function drawTabSums() {
   if (state.tab === "flows" && $("fl-sum")) {
     const fy = []; for (let y = 2002; y <= CYr; y++) fy.push(fpiYears().find((r) => r.y === y) || { y, cr: null });
     const valid = fy.filter((r) => r.cr != null), best = valid.reduce((a, r) => r.cr > a.cr ? r : a, valid[0]), worst = valid.reduce((a, r) => r.cr < a.cr ? r : a, valid[0]);
-    const u = (r) => `${r.cr < 0 ? "−" : "+"}${fmtUsd(Math.abs(usdOfYear(r.cr, r.y)))} (${fmtCr(Math.abs(r.cr))})`;
+    const u = (r) => `${r.cr < 0 ? "−" : "+"}${fmtUsd(Math.abs(usdOfYear(r.cr, r.y)))} (${fmtAlt(Math.abs(r.cr))})`;
     const oy = H.odi_by_year || [];
-    $("fl-sum").innerHTML = card(`FPI net investment, ${fy[0].y} to ${CYr}`, "", vbars(fy.map((r) => r.cr == null ? { v: null, l: `'${String(r.y).slice(2)}`, t: `${r.y}: not available` } : { v: usdOfYear(r.cr, r.y), l: `'${String(r.y).slice(2)}`, t: `${r.y}: ${u(r)}` }), { signed: true, labelEvery: innerWidth < 700 ? 4 : 1, W: innerWidth < 700 ? 300 : 900 }),
+    $("fl-sum").innerHTML = card(`FPI net investment, ${fy[0].y} to ${CYr}`, "", vbars(fy.map((r) => r.cr == null ? { v: null, l: `'${String(r.y).slice(2)}`, t: `${r.y}: not available` } : { v: usdOfYear(r.cr, r.y), l: `'${String(r.y).slice(2)}`, t: `${r.y}: ${u(r)}` }), { signed: true, money: true, labelEvery: innerWidth < 700 ? 4 : 1, W: innerWidth < 700 ? 300 : 900 }),
         `Largest inflow: ${best.y}, ${u(best)}. Largest outflow: ${worst.y}, ${u(worst)}. Past years at that year's average rate.`, true) +
-      card("Indian investment abroad", "", vbars(oy.filter((r) => r.months >= 6).map((r) => ({ v: r.usd_m, l: String(r.y), t: `${r.y}: ${fmtUsd(r.usd_m)}${r.months < 12 ? ` (${r.months} months)` : ""}. Opens the deals`, a: () => { setTab("odi"); toTop(); } })), { color: "#f0884a" }), "Committed each year, from RBI.") +
+      card("Indian investment abroad", "", vbars(oy.filter((r) => r.months >= 6).map((r) => ({ v: r.usd_m, l: String(r.y), t: `${r.y}: ${fmtUsd(r.usd_m)}${r.months < 12 ? ` (${r.months} months)` : ""}. Opens the deals`, a: () => { setTab("odi"); toTop(); } })), { color: "#f0884a", money: true }), "Committed each year, from RBI.") +
       card(`Where it goes, ${CYr}`, "", hrows((H.odi_top_country || []).map((c) => ({ l: titleCase(c.c), v: c.usd_m, r: fmtUsd(c.usd_m), c: "#f0884a" }))), "Top destinations of Indian overseas investment.");
   }
   if (state.tab === "regulation" && $("reg-sum")) {
@@ -3907,17 +3959,19 @@ const actId = (fn) => { if (chartActs.length > 6000) chartActs.length = 0; chart
   document.addEventListener("click", (e) => { const el = e.target.closest?.("[data-a]"); if (el) run(el, e); }, true);
   document.addEventListener("keydown", (e) => { if ((e.key === "Enter" || e.key === " ") && e.target.matches?.("[data-a]")) run(e.target, e); }, true);
 })();
-function vbars(points, { signed = false, color = "#7b9cf5", neg = "#f0884a", labelEvery = 1, W = 300 } = {}) {
+function vbars(points, { signed = false, color = "#7b9cf5", neg = "#f0884a", labelEvery = 1, W = 300, money = false } = {}) {
   const H = signed ? 120 : 90, n = points.length, gap = 3, bw = Math.max(3, (W - gap * (n - 1)) / n);
   const max = Math.max(1, ...points.map((p) => Math.abs(p.v || 0)));
   const mid = signed ? H / 2 : H;
+  const labelled = n <= 12 && bw >= 18;   // numbers on the bars when there is room; hover otherwise
   const bars = points.map((p, i) => {
     const x = i * (bw + gap), h = p.v == null ? 0 : Math.max(1.5, Math.abs(p.v) / max * (signed ? H / 2 - 4 : H - 4));
     const y = p.v < 0 ? mid : mid - h;
     const lab = i % labelEvery === 0 || i === n - 1 ? `<text x="${x + bw / 2}" y="${H + 12}" text-anchor="middle">${esc(p.l)}</text>` : "";
-    return `<g class="cb${p.a ? " act" : ""}" data-tip="${esc(p.t || "")}"${p.a ? ` data-a="${actId(p.a)}" tabindex="0" role="button" aria-label="${esc(p.t || "")}"` : ""}><rect class="hit" x="${x - gap / 2}" y="0" width="${bw + gap}" height="${H}" fill="transparent"/><rect class="v" x="${x}" y="${y}" width="${bw}" height="${h}" rx="2" fill="${p.v < 0 ? neg : color}" opacity="${p.dim ? 0.55 : 1}"/></g>${lab}`;
+    const vl = labelled && p.v != null ? `<text class="vlab" x="${x + bw / 2}" y="${p.v < 0 ? y + h + 10 : y - 3}" text-anchor="middle" style="font-size:9px">${esc(money ? usdAxis(p.v) : compactN(p.v))}</text>` : "";
+    return vl + `<g class="cb${p.a ? " act" : ""}" data-tip="${esc(p.t || "")}"${p.a ? ` data-a="${actId(p.a)}" tabindex="0" role="button" aria-label="${esc(p.t || "")}"` : ""}><rect class="hit" x="${x - gap / 2}" y="0" width="${bw + gap}" height="${H}" fill="transparent"/><rect class="v" x="${x}" y="${y}" width="${bw}" height="${h}" rx="2" fill="${p.v < 0 ? neg : color}" opacity="${p.dim ? 0.55 : 1}"/></g>${lab}`;
   }).join("");
-  return `<svg viewBox="0 0 ${W} ${H + 16}" role="img" aria-label="Bar chart">${signed ? `<line x1="0" x2="${W}" y1="${mid}" y2="${mid}" stroke="var(--line)"/>` : ""}${bars}</svg>`;
+  return `<svg viewBox="0 ${labelled ? -12 : 0} ${W} ${H + 16 + (labelled ? 12 : 0)}" role="img" aria-label="Bar chart">${signed ? `<line x1="0" x2="${W}" y1="${mid}" y2="${mid}" stroke="var(--line)"/>` : ""}${bars}</svg>`;
 }
 const hrows = (items) => { const max = Math.max(1, ...items.map((x) => x.v)); return `<div class="rows">${items.map((x) => `<div class="row${x.a ? " act" : ""}" data-tip="${esc(x.t || `${x.l}: ${x.r}`)}"${x.a ? ` data-a="${actId(x.a)}" tabindex="0" role="button"` : ""}><span>${esc(x.l)}</span><span class="bar"><i style="width:${Math.round(x.v / max * 100)}%;background:${x.c || "#7b9cf5"}"></i></span><span>${esc(x.r)}</span></div>`).join("")}</div>`; };
 function drawCoverage() {
@@ -3930,7 +3984,6 @@ async function loadHome() {
   if (home.loading) return; home.loading = true;
   try { home.data = await api("rpc/home_summary", { method: "POST", body: "{}" }); } catch { home.data = {}; }
   renderHome(); drawTabSums();
-  try { home.cov = await api("rpc/data_coverage", { method: "POST", body: "{}" }); drawCoverage(); } catch {}
 }
 function renderHome() {
   const box = $("hsum"); if (!box) return;
@@ -3949,7 +4002,7 @@ function renderHome() {
     const cur = fy[fy.length - 1];
     cards.push({ go: "flows", h: "FPI money in and out", k: `${cur.cr < 0 ? "−" : "+"}${fmtUsd(Math.abs(usdOfYear(cur.cr, cur.y)))} <small>${cur.y}${cur.months < 12 ? `, Jan to ${MON[cur.months - 1]}${cur.partial ? " so far" : ""}` : ""}</small>`,
       s: `Net FPI investment by year, from NSDL. Orange is money leaving.`,
-      body: vbars(fy.map((r) => r.cr == null ? { v: null, l: `'${String(r.y).slice(2)}`, t: `${r.y}: not available` } : { v: usdOfYear(r.cr, r.y), l: `'${String(r.y).slice(2)}`, a: () => { setTab("flows"); toTop(); }, t: `${r.y}: ${r.cr < 0 ? "−" : "+"}${fmtUsd(Math.abs(usdOfYear(r.cr, r.y)))} (${fmtCr(Math.abs(r.cr))})` }), { signed: true, labelEvery: 2 }), more: "Open Flows" });
+      body: vbars(fy.map((r) => r.cr == null ? { v: null, l: `'${String(r.y).slice(2)}`, t: `${r.y}: not available` } : { v: usdOfYear(r.cr, r.y), l: `'${String(r.y).slice(2)}`, a: () => { setTab("flows"); toTop(); }, t: `${r.y}: ${r.cr < 0 ? "−" : "+"}${fmtUsd(Math.abs(usdOfYear(r.cr, r.y)))} (${fmtCr(Math.abs(r.cr))})` }), { signed: true, money: true, labelEvery: 2 }), more: "Open Flows" });
   }
   // Deals: this year by type, and the biggest
   const yr = state.events.filter((e) => when(e).getFullYear() === CYr && e.event_type !== "regulation");
@@ -3981,7 +4034,7 @@ function renderHome() {
     const oc = oy[oy.length - 1];
     cards.push({ go: "odi", h: "Indian money going abroad", k: `${fmtUsd(oc.usd_m)} <small>${oc.y}, ${oc.months} months</small>`,
       s: `Committed by Indian companies, from RBI. Top destinations ${CYr}: ${(H.odi_top_country || []).slice(0, 3).map((c) => titleCase(c.c)).join(", ")}.`,
-      body: vbars(oy.map((r) => ({ v: r.usd_m, l: String(r.y), t: `${r.y}: ${fmtUsd(r.usd_m)}${r.months < 12 ? ` (${r.months} months)` : ""}`, a: () => { setTab("odi"); toTop(); } })), { color: "#f0884a" }), more: "Open Outbound" });
+      body: vbars(oy.map((r) => ({ v: r.usd_m, l: String(r.y), t: `${r.y}: ${fmtUsd(r.usd_m)}${r.months < 12 ? ` (${r.months} months)` : ""}`, a: () => { setTab("odi"); toTop(); } })), { color: "#f0884a", money: true }), more: "Open Outbound" });
   }
   box.innerHTML = cards.map((c, i) => `<div class="hc" role="link" tabindex="0" data-hc="${i}"><h3>${c.h}</h3><div class="k">${c.k}</div>${c.body}<div class="s">${c.s}</div><div class="go">${c.more} →</div></div>`).join("");
   box.querySelectorAll(".hc").forEach((el) => {
@@ -4169,7 +4222,7 @@ async function countryAum() {
   const rows = t.rows.map((r) => ({ c: r.Country, total: n(r["AUC (INR Cr.)_Total"]), eq: n(r["AUC (INR Cr.)_Equity"]), debt: get(r, /^AUC \(INR Cr\.\)_Debt_/) }));
   const all = rows.find((r) => /^total$/i.test(r.c)), list = rows.filter((r) => r !== all && r.c);
   const max = Math.max(...list.map((r) => r.total), 1);
-  return `<h2 class="fsec">Assets held by country</h2><p class="note">FPI assets under custody for the ten largest countries, in US$ with ₹ crore in brackets (NSDL). ${all ? `All countries: ${bothT(all.total)}.` : ""}</p>
+  return `<h2 class="fsec">Assets held by country</h2><p class="note">FPI assets under custody for the ten largest countries, in the currency you chose, with a second currency in brackets (NSDL). ${all ? `All countries: ${bothT(all.total)}.` : ""}</p>
     <div class="ftable-wrap"><div class="scroll"><table class="ftable"><thead><tr><th>Country</th><th class="num">Equity</th><th class="num">Debt</th><th class="num">Total</th><th class="num">Share</th><th class="num">FPIs registered</th><th></th></tr></thead><tbody>${list.map((r) =>
       `<tr><td>${esc(titleCase(r.c))}</td><td class="num">${bothH(r.eq)}</td><td class="num">${bothH(r.debt)}</td><td class="num">${bothH(r.total)}</td><td class="num">${all ? (r.total / all.total * 100).toFixed(1) + "%" : "–"}</td><td class="num">${dir.countryN?.has(String(r.c).toUpperCase()) ? nfmt(dir.countryN.get(String(r.c).toUpperCase())) : "–"}</td><td style="width:22%"><div style="height:6px;border-radius:3px;background:var(--accent);width:${(r.total / max * 100).toFixed(1)}%"></div></td></tr>`).join("")}</tbody></table></div></div>`;
 }
@@ -4202,7 +4255,7 @@ async function renderAum() {
   const grp = (n) => (SECTORS.find(([, re]) => re.test(n)) || [null])[0];
   const list = rows.filter((r) => r !== grand && r.Sectors).map((r) => { const g = grp(r.Sectors); return { n: r.Sectors, eq: val(r, "Equity"), t: val(r, "Total"), g, k: g ? (state.events || []).filter((e) => sectorOf(e) === g).length : 0 }; }).sort((a, b) => b.t - a.t);
   const max = list[0]?.t || 1;
-  w.innerHTML = country + `<h2 class="fsec">Assets held by sector</h2><p class="note">FPI assets under custody as on ${esc(last)}, in US$ with ₹ crore in brackets (NSDL). ${total ? `All sectors: ${bothT(total)}.` : ""}</p>
+  w.innerHTML = country + `<h2 class="fsec">Assets held by sector</h2><p class="note">FPI assets under custody as on ${esc(last)}, in the currency you chose, with a second currency in brackets (NSDL). ${total ? `All sectors: ${bothT(total)}.` : ""}</p>
     <div class="ftable-wrap"><div class="scroll"><table class="ftable"><thead><tr><th>Sector</th><th class="num">Equity</th><th class="num">Total</th><th class="num">Share</th><th class="num" title="News stories in the same sector group, from the Feed">Stories</th><th></th></tr></thead><tbody>${list.map((r) =>
       `<tr><td>${esc(r.n)}</td><td class="num">${bothH(r.eq)}</td><td class="num">${bothH(r.t)}</td><td class="num">${total ? (r.t / total * 100).toFixed(1) + "%" : "–"}</td><td class="num">${r.g ? `<button class="link" data-sector="${esc(r.g)}" title="Open ${esc(r.g)} stories in the Feed">${nfmt(r.k)}</button>` : "–"}</td><td style="width:22%"><div style="height:6px;border-radius:3px;background:var(--accent);width:${(r.t / max * 100).toFixed(1)}%"></div></td></tr>`).join("")}</tbody></table></div></div>`;
 }
@@ -4580,6 +4633,19 @@ function authBoot() {
   else authAskName();
 }
 // The account line under the header, the lock marks on the tabs, and the phone bar.
+
+// Currency picker: top of every page. Other currencies need a rate; fetch it first, then reload so every figure, chart and table agrees.
+(() => {
+  const sel = $("ccy"); if (!sel) return;
+  sel.value = CCY;
+  ccyLoadRates().then((ok) => { if (ok && CCY !== "USD" && CCY !== "INR" && !(+JSON.parse(localStorage.getItem("ict-ccy-first") || "0"))) { try { localStorage.setItem("ict-ccy-first", "1"); } catch {} location.reload(); } });
+  sel.onchange = async () => {
+    const c = sel.value; sel.disabled = true;
+    if (c !== "USD" && c !== "INR" && !(CCY_R[c] > 0)) { const ok = await ccyLoadRates(); if (!ok) { sel.disabled = false; sel.value = CCY; $("toast-t") && ($("toast-t").textContent = "Could not load that currency's rate. Try again."); return; } }
+    try { localStorage.setItem("ict-ccy", c); } catch {}
+    location.reload();
+  };
+})();
 function authUi() {
   const u = auth.session && auth.session.user, who = u && ((u.user_metadata && u.user_metadata.name) || u.email);
   document.body.classList.toggle("anon", LOGIN_REQUIRED && !auth.session);
@@ -4678,7 +4744,7 @@ const A_PERKS = [
   ["feed", "Live deal feed", "Every foreign investment, exit and fund launch. News is collected hourly and reviewed daily at 9am IST."],
   ["investors", "Investor profiles", "One page per firm: its deals, holdings and sources."],
   ["network", "Network map", "See which firms invest together and how any two are linked."],
-  ["flows", "FPI and FDI flows", "Daily, monthly and yearly since 1992-93, in US$ with ₹ in brackets."],
+  ["flows", "FPI and FDI flows", "Daily, monthly and yearly since 1992-93, in the currency you chose, with a second in brackets."],
   ["markets", "Markets", "FII/FPI activity, bulk and block deals, debt holdings and sector assets."],
   ["directory", "FPI register", "Every SEBI-registered FPI, with assets held by country and sector."],
   ["gift", "GIFT City directory", "Every entity IFSCA regulates there, with contact details."],
@@ -5118,7 +5184,7 @@ async function renderOdi() {
   body.innerHTML = `
     <div class="filters fperiod"><select id="odi-month" aria-label="Month">${odi.months.slice().reverse().map((x) => `<option value="${x.month}"${x.month === odi.month ? " selected" : ""}>${esc(ml(x.month))}</option>`).join("")}</select></div>
     <p class="takeaway">In ${esc(ml(m.month))}, Indian companies committed <b>${fmtUsd(+m.total)}</b> abroad across ${nfmt(m.deals)} investments${chg == null ? "" : `, ${chg >= 0 ? "up" : "down"} ${Math.abs(chg)}% on ${esc(ml(prev.month))}`}. Equity ${fmtUsd(+m.equity)}, loans ${fmtUsd(+m.loan)}, guarantees ${fmtUsd(+m.guarantee)}.</p>
-    ${mkSec("Each month", "Total financial commitment (equity + loans + guarantees), US$.", `<div class="fchart" id="odi-chart"></div>`)}
+    ${mkSec("Each month", "Total financial commitment (equity + loans + guarantees), in the currency you chose.", `<div class="fchart" id="odi-chart"></div>`)}
     ${mkSec("Top destinations", `Where the money went in ${ml(m.month)}. Click a country to filter the list below.`, mkTable(["Country", "Investments", "Amount", "Share"], countries.slice(0, 12).map(([c, x]) => [{ h: `<button class="link" type="button" data-odic="${esc(c)}">${esc(titleCase(c))}</button>` }, nfmt(x.n), fmtUsd(x.v), `${Math.round(x.v / m.total * 100)}%`])))}
     ${mkSec("Every investment", `${nfmt(list.length)} of ${nfmt(odi.rows.length)} in ${ml(m.month)}, largest first. Names of individual investors are not shown.`, `
       <div class="filters"><input id="odi-q" type="search" placeholder="Search company, overseas entity or activity" value="${esc(odi.q)}" aria-label="Search outbound investments">
@@ -5165,9 +5231,9 @@ async function renderMarkets() {
   const byDay = new Map();
   d("fii_dii").forEach((r) => { const e = byDay.get(r.date) || { day: r.date, v: 0, dii: 0 }; e[/^dii$/i.test(r.category) ? "dii" : "v"] = mkNum(r.netValue) || 0; byDay.set(r.date, e); });
   const flowPts = [...byDay.values()].sort((a, b) => dt(a.day) - dt(b.day)).slice(-30);
-  out.push(mkSec("Daily FII and DII net flows", "Net buying (above zero) or selling (below) in the NSE cash market each day, in US$ with ₹ crore in the hover. The line is the running total over the last 30 trading days.",
+  out.push(mkSec("Daily FII and DII net flows", "Net buying (above zero) or selling (below) in the NSE cash market each day, in the currency you chose, with the second currency in the hover. The line is the running total over the last 30 trading days.",
     `<div class="fchart" id="mk-fii-chart"></div>`));
-  out.push(mkSec("FII / FPI activity", "Daily foreign investor buying and selling in the cash market, in US$ with ₹ crore in brackets (NSE).",
+  out.push(mkSec("FII / FPI activity", "Daily foreign investor buying and selling in the cash market, in the currency you chose, with a second currency in brackets (NSE).",
     mkTable(["Date · category", "Buy", "Sell", "Net"], fii.map((r) => [`${r.date} · ${r.category}`, mkUsd(mkNum(r.buyValue)), mkUsd(mkNum(r.sellValue)), mkUsd(mkNum(r.netValue))]))));
   const deals = [
     ...(mk.data.nse_deals || []).filter((r) => /^(BULK|BLOCK)_DEALS\|/.test(r.key)).map((r) => ({ ...r.data, exchange: "NSE", kind: r.key.startsWith("BULK") ? "bulk" : "block" })),
@@ -5188,7 +5254,7 @@ async function renderMarkets() {
     mkTable(["Foreign investor", "Company invested in", "Amount", "Date"], who.map((e) =>
       [xFirm(e.investor), e.target, e.amount_text || "–", (e.published_at || e.fetched_at || "").slice(0, 10)]), 2)));
   const debt = d("fpi_debt_summary");
-  out.push(mkSec("FPI debt limits", "Limit use by instrument, in US$ with ₹ crore in brackets (NSDL).",
+  out.push(mkSec("FPI debt limits", "Limit use by instrument, in the currency you chose, with a second currency in brackets (NSDL).",
     mkTable(["Instrument", "Limit", "Invested", "Used (%)"], debt.map((r) => [r["Instrument Type"], mkUsd(mkNum(r["Upper Limit (Refer to Note 1 &2)_(INR Cr)_(A)"])),
       mkUsd(mkNum(r["Total Investment_(INR Cr)_(D)=(B)+(C)"])), mkFmt(r["% of Limits Utilised_(E)"], 1)]))));
   const cci = (mk.cci || []).map((r) => r.data);
@@ -5199,22 +5265,22 @@ async function renderMarkets() {
   }
   const rs = (mk.rbi || [])[0]?.data;
   if (rs && rs.items) {
-    const both2 = (usdMn, inrCr) => usdMn == null || isNaN(usdMn) ? "–" : { h: `${usdMn < 0 ? "−" : ""}${fmtUsd(Math.abs(usdMn))} <small class="inr">(${inrCr < 0 ? "−" : ""}${fmtCr(Math.abs(inrCr || 0))})</small>` };
-    out.push(mkSec("India's foreign exchange reserves", `As on ${rs.as_on}, from the RBI's Weekly Statistical Supplement, in US$ with ₹ crore in brackets.`,
+    const both2 = (usdMn, inrCr) => usdMn == null || isNaN(usdMn) ? "–" : { h: `${usdMn < 0 ? "−" : ""}${fmtUsd(Math.abs(usdMn))} <small class="inr">(${inrCr < 0 ? "−" : ""}${fmtAlt(Math.abs(inrCr || 0))})</small>` };
+    out.push(mkSec("India's foreign exchange reserves", `As on ${rs.as_on}, from the RBI's Weekly Statistical Supplement, in the currency you chose, with a second currency in brackets.`,
       mkTable(["Item", "Level", "Change in the week", "Change since end-March"], Object.entries(rs.items).map(([k, v]) =>
         [k, both2(mkNum(v.usd_mn), mkNum(v.inr_cr)), both2(mkNum(v.wk_chg_usd_mn), mkNum(v.wk_chg_inr_cr)), both2(mkNum(v.vs_end_mar_usd_mn), mkNum(v.vs_end_mar_inr_cr))]))));
   }
   const gs = [...d("fpi_far_gsec"), ...d("fpi_general_gsec")].sort((a, b) => b["Indicative Value Of Aggregate Holding Of FPIS (INR CR#)"] - a["Indicative Value Of Aggregate Holding Of FPIS (INR CR#)"]).slice(0, 20);
-  out.push(mkSec("Largest FPI government-bond holdings", "Top 20 by value, in US$ with ₹ crore in brackets (NSDL).",
+  out.push(mkSec("Largest FPI government-bond holdings", "Top 20 by value, in the currency you chose, with a second currency in brackets (NSDL).",
     mkTable(["Security", "FPI holding", "Outstanding", "FPI share (%)"], gs.map((r) => [r["Security Description"], mkUsd(mkNum(r["Indicative Value Of Aggregate Holding Of FPIS (INR CR#)"])),
       mkUsd(mkNum(r["Outstanding Position Of Govt# Securities (INR CR#)"])), mkFmt(r["Sec Holdings (%)"], 1)]))));
   const sec = d("fpi_sector").map((r) => { const k = Object.keys(r).find((x) => /Equity$/.test(x)); return [r.Sectors, mkNum(r[k]) || 0, k]; })
     .sort((a, b) => b[1] - a[1]).slice(0, 25);
-  out.push(mkSec("FPI equity by sector", "FPI equity assets under custody by sector, in US$ with ₹ crore in brackets (NSDL).", mkTable(["Sector", "Assets (US$)"], sec.map((r) => [r[0], mkUsd(r[1])]))));
+  out.push(mkSec("FPI equity by sector", "FPI equity assets under custody by sector, in the currency you chose, with a second currency in brackets (NSDL).", mkTable(["Sector", "Assets"], sec.map((r) => [r[0], mkUsd(r[1])]))));
   try { out.push(...xtMarkets(await loadExtra())); } catch {}
   $("mk-body").innerHTML = out.join("");
   const sg = (v) => `${v < 0 ? "−" : "+"}`, usdP = flowPts.map((p) => ({ ...p, cr: p.v, diicr: p.dii, v: usdMOf(p.v), dii: usdMOf(p.dii) }));
-  barChart($("mk-fii-chart"), usdP, { height: 200, label: (p) => p.day.slice(0, 6), axis: (v) => usdAxis(v), line: { kind: "cum", name: "30-day running total", full: (v) => `${v < 0 ? "−" : ""}${fmtUsd(Math.abs(v))}` }, tip: (p) => `<b>${esc(p.day)}</b><div class="row"><span>FII/FPI net</span><span>${sg(p.v)}${fmtUsd(Math.abs(p.v))} <small>(${sg(p.cr)}${fmtCr(Math.abs(p.cr))})</small></span></div><div class="row"><span>DII net</span><span>${sg(p.dii)}${fmtUsd(Math.abs(p.dii))} <small>(${sg(p.diicr)}${fmtCr(Math.abs(p.diicr))})</small></span></div>` });
+  barChart($("mk-fii-chart"), usdP, { height: 200, label: (p) => p.day.slice(0, 6), axis: (v) => usdAxis(v), line: { kind: "cum", name: "30-day running total", full: (v) => `${v < 0 ? "−" : ""}${fmtUsd(Math.abs(v))}` }, tip: (p) => `<b>${esc(p.day)}</b><div class="row"><span>FII/FPI net</span><span>${sg(p.v)}${fmtUsd(Math.abs(p.v))} <small>(${sg(p.cr)}${fmtAlt(Math.abs(p.cr))})</small></span></div><div class="row"><span>DII net</span><span>${sg(p.dii)}${fmtUsd(Math.abs(p.dii))} <small>(${sg(p.diicr)}${fmtAlt(Math.abs(p.diicr))})</small></span></div>` });
   const more = $("mk-more"); if (more) more.onclick = () => { mk.dealsN = (mk.dealsN || 100) + 200; renderMarkets(); };
 }
 
@@ -5319,7 +5385,7 @@ async function xtInit() {
   if (fx > 60 && fx < 140 && window.__fx !== fx) { window.__fx = fx; try { render(); renderOverview(); } catch {} }
   const last = X.fx_usd_inr?.data?.slice(-1)[0];
   if (last && window.__fx) {
-    const t = `Exchange rate used for every US$ and ₹ figure: US$1 = ₹${last.usd_inr.toFixed(2)} (European Central Bank reference rate for ${last.date}, via Frankfurter)`;
+    const t = `Exchange rates: US$1 = ₹${last.usd_inr.toFixed(2)} (European Central Bank reference rate for ${last.date}, via Frankfurter)`;
     $("fx-home").textContent = t; $("fx-home").hidden = false; $("fx-foot").textContent = t + ". Figures reported directly in US$ by NSDL are shown as published.";
   }
   xtHome(X); xtFlows(X); xtSources(X);
@@ -5628,7 +5694,7 @@ async function firmXrefs(n) {
   if (G.length) out.push(eSec(`GIFT City · ${G.length}`, "Entities licensed by IFSCA at GIFT IFSC.",
     mkTable(["Entity", "Type", "Registration", "Since"], G.slice(0, 25).map((r) => [r.name, r.sub_category || r.category || "–", r.reg_no || "–", r.reg_date ? toDMY(r.reg_date) : "–"]), 4)));
   if (D.length) out.push(eDeals(D));
-  if (O.length) out.push(eSec(`Overseas investments · ${O.length}`, "Commitments to joint ventures and subsidiaries abroad, from RBI's monthly ODI data (US$).",
+  if (O.length) out.push(eSec(`Overseas investments · ${O.length}`, "Commitments to joint ventures and subsidiaries abroad, from RBI's monthly ODI data, in the currency you chose.",
     mkTable(["Month", "Overseas entity", "JV / WOS", "Country", "Activity", "Total"], O.slice(0, 25).map((r) => [monLabel(r.month), titleCase(r.jv_name), r.jv_type || "–", titleCase(r.country), titleCase(r.activity), fmtUsd(+r.total)]), 5)));
   el.innerHTML = out.join("") || `<p class="note">Not found in the FPI register, the GIFT City list, exchange deals or RBI's outbound data under this name. These are matched by name, so an entity filed under a different name won't show.</p>`;
 }
@@ -6116,9 +6182,9 @@ route();
       if (!fpi || fpi.net_cr == null) return;
       const n = +fpi.net_cr, day = safeDate(fpi.day).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
       const el = document.getElementById("op-fpi"), b = document.createElement("b");
-      b.textContent = (n >= 0 ? "Net inflow " : "Net outflow ") + fmtCr(Math.abs(n));
+      b.textContent = (n >= 0 ? "Net inflow " : "Net outflow ") + fmtUsd(usdMOf(Math.abs(n)));
       el.textContent = ""; el.append("Foreign portfolio investors (NSDL), " + day, b);
-      document.getElementById("op-ticker").textContent = "FPI net flow " + (n >= 0 ? "+" : "−") + fmtCr(Math.abs(n)) + "   ·   NSDL   ·   " + day;
+      document.getElementById("op-ticker").textContent = "FPI net flow " + (n >= 0 ? "+" : "−") + fmtUsd(usdMOf(Math.abs(n))) + "   ·   NSDL   ·   " + day;
     } catch {}
   }
 
@@ -6495,13 +6561,13 @@ const dl = { view: "FAR" };
 async function drawDebtLimits() {
   const box = $("debtlim"); if (!box || state.tab !== "flows") return;
   if (!dl.data) { if (dl.loading) return; dl.loading = true; try { dl.data = (await api("ccil_fpi?select=day,limits,securities&order=day.desc&limit=1"))[0] || null; } catch { dl.data = null; } dl.loading = false; if (!dl.data) { box.innerHTML = ""; return; } }
-  const D = dl.data, cr = (v) => `₹${Math.round(v).toLocaleString("en-IN")} cr`;
-  const lim = D.limits.map((l) => `<div class="fxc"><div class="c">${esc(l.instrument)} · ${esc(l.route)} limit</div><div class="r">${(+l.used_pct).toFixed(2)}% used</div><div class="bar" style="height:8px;border-radius:4px;background:var(--line);margin:6px 0"><i style="display:block;height:100%;width:${Math.min(100, +l.used_pct)}%;background:#7b9cf5;border-radius:4px"></i></div><div class="d">${cr(l.total_cr)} of ${cr(l.limit_cr)} (${fmtUsd(usdMOf(l.total_cr))} of ${fmtUsd(usdMOf(l.limit_cr))}) · ${cr(l.available_cr)} available${+l.vrr_cr ? ` · VRR ${cr(l.vrr_cr)}` : ""}</div></div>`).join("");
+  const D = dl.data, cr = (v) => fmtUsd(usdMOf(v));   // main currency; the second currency goes in brackets
+  const lim = D.limits.map((l) => `<div class="fxc"><div class="c">${esc(l.instrument)} · ${esc(l.route)} limit</div><div class="r">${(+l.used_pct).toFixed(2)}% used</div><div class="bar" style="height:8px;border-radius:4px;background:var(--line);margin:6px 0"><i style="display:block;height:100%;width:${Math.min(100, +l.used_pct)}%;background:#7b9cf5;border-radius:4px"></i></div><div class="d">${cr(l.total_cr)} of ${cr(l.limit_cr)} (${fmtAlt(l.total_cr)} of ${fmtAlt(l.limit_cr)}) · ${cr(l.available_cr)} available${+l.vrr_cr ? ` · VRR ${cr(l.vrr_cr)}` : ""}</div></div>`).join("");
   const kinds = ["FAR", "G-sec", "SDL", "T-bill"], rows = D.securities.filter((x) => x.kind === dl.view).sort((a, b) => b.fpi_cr - a.fpi_cr);
   const cols = ["Security", "ISIN", "FPI holding (₹ cr)", "Outstanding (₹ cr)", "FPI share"];
   const data = rows.map((x) => [x.security, x.isin, Math.round(x.fpi_cr).toLocaleString("en-IN"), x.outstanding_cr ? Math.round(x.outstanding_cr).toLocaleString("en-IN") : "–", x.outstanding_cr ? `${(+x.pct).toFixed(2)}%` : "–"]);
   const farTot = D.securities.filter((x) => x.kind === "FAR").reduce((a, x) => a + x.fpi_cr, 0);
-  box.innerHTML = `<div class="watch-h"><div><h3>FPI debt limits and FAR bonds</h3><div class="sub">CCIL, ${toDMY(D.day)}. General-route limits for government securities, and FPI holdings by security. FAR (fully accessible route) bonds have no limit; FPIs hold ${cr(farTot)} (${fmtUsd(usdMOf(farTot))}) of them.</div></div><button type="button" class="csvbtn" id="dl-csv">Download CSV</button></div>
+  box.innerHTML = `<div class="watch-h"><div><h3>FPI debt limits and FAR bonds</h3><div class="sub">CCIL, ${toDMY(D.day)}. General-route limits for government securities, and FPI holdings by security. FAR (fully accessible route) bonds have no limit; FPIs hold ${fmtUsd(usdMOf(farTot))} (${fmtAlt(farTot)}) of them.</div></div><button type="button" class="csvbtn" id="dl-csv">Download CSV</button></div>
     <div class="fxd"><div class="fxg" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">${lim}</div></div>
     <div class="qviews" role="group" aria-label="Securities">${kinds.map((k) => `<button type="button" data-dl="${k}" aria-pressed="${dl.view === k}">${k === "FAR" ? "FAR bonds" : k === "SDL" ? "State bonds (SDL)" : k === "T-bill" ? "T-bills" : "G-secs (general route)"}<b>${D.securities.filter((x) => x.kind === k).length}</b></button>`).join("")}</div>
     <div class="watch-w"><table><thead><tr>${cols.map((c, i) => `<th${i > 1 ? ' class="num" style="text-align:right"' : ""}>${c.replace(" (₹ cr)", "")}</th>`).join("")}</tr></thead><tbody>${rows.map((x, ri) => `<tr>${[esc(x.security), esc(x.isin), bothH(x.fpi_cr), x.outstanding_cr ? bothH(x.outstanding_cr) : "–", esc(data[ri][4])].map((v, i) => `<td${i > 1 ? ' style="text-align:right"' : ""}>${v}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
@@ -6517,6 +6583,30 @@ async function drawIndexEvents() {
   box.innerHTML = `<div class="watch-h"><div><h3>Index changes that move foreign money</h3><div class="sub">MSCI, FTSE Russell, J.P. Morgan and Bloomberg decisions and previews for India. Flow estimates are brokers' figures as reported, not official.</div></div><button type="button" class="csvbtn" id="ix-csv">Download CSV</button></div>
     <div class="watch-w"><table><thead><tr>${cols.map((c) => `<th>${c}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr><td>${toDMY(r.day)}</td><td>${esc(r.provider)}</td><td>${esc(r.index_name || "")}</td><td>${esc(r.event)}</td><td class="${r.est_flow_usd_m < 0 ? "due soon" : ""}">${r.est_flow_usd_m == null ? "–" : `${r.est_flow_usd_m < 0 ? "−" : "+"}${fmtUsd(Math.abs(r.est_flow_usd_m))}`}</td><td><a href="${safeUrl(r.url)}" target="_blank" rel="noopener">${esc(r.source || "Source")}</a></td></tr>`).join("")}</tbody></table></div>`;
   $("ix-csv").onclick = () => csvDownload(`index-changes-${dayStr(new Date())}.csv`, [cols, ...rows.map((r) => [r.day, r.provider, r.index_name, r.event, r.est_flow_usd_m ?? "", r.source])]);
+}
+
+// ---------- Reference library: the laws, rules and regulations behind foreign investment in India ----------
+// Links go to the regulator's own pages (not to individual documents: pick the current edition there). "Edition checked" means the title and
+// date were confirmed on the regulator's site; "Seen in the tracker" means the tracker's own rule feed already cites it; otherwise it is as listed.
+const REG_SRC = {"FEMA": ["RBI: FEMA", "https://www.rbi.org.in/Scripts/Fema.aspx"], "RBIMD": ["RBI: Master Directions", "https://www.rbi.org.in/Scripts/BS_ViewMasDirections.aspx"], "DPIIT": ["DPIIT documents", "https://www.dpiit.gov.in/documents"], "SACT": ["SEBI: Acts", "https://www.sebi.gov.in/sebiweb/home/HomeAction.do?doListing=yes&sid=1&ssid=1&smid=0"], "SREG": ["SEBI: Regulations", "https://www.sebi.gov.in/sebiweb/home/HomeAction.do?doListing=yes&sid=1&ssid=3&smid=0"], "SMC": ["SEBI: Master circulars", "https://www.sebi.gov.in/sebiweb/home/HomeAction.do?doListing=yes&sid=1&ssid=6&smid=0"], "SCIR": ["SEBI: Circulars", "https://www.sebi.gov.in/sebiweb/home/HomeAction.do?doListing=yes&sid=1&ssid=7&smid=0"], "FIU": ["FIU-India", "https://fiuindia.gov.in/"], "MCA": ["Ministry of Corporate Affairs", "https://www.mca.gov.in/"], "IT": ["Income Tax Department", "https://incometaxindia.gov.in/"], "IND": ["India Code (all central Acts)", "https://www.indiacode.nic.in/"], "IBBI": ["IBBI", "https://ibbi.gov.in/"], "FCRA": ["FCRA (MHA)", "https://fcraonline.nic.in/"], "SEZ": ["SEZ India", "https://sezindia.nic.in/"], "MEITY": ["MeitY", "https://www.meity.gov.in/"], "IFSCA": ["IFSCA", "https://ifsca.gov.in/"], "IFM": ["IFSCA: Fund Management", "https://ifsca.gov.in/Pages/Contents/Fund_Management"], "ICMI": ["IFSCA: Capital Market Intermediaries", "https://ifsca.gov.in/Pages/Contents/Capital_Market_Intermediaries"]};
+const REG_LIB = [[1, "Foreign Exchange Management Act (FEMA), 1999", "Act", "Parliament; RBI administers", "FEMA and RBI", "The base law for foreign exchange, foreign investment and cross-border payments.", "FEMA", "FEMA", ""], [2, "Foreign Exchange Management (Non-Debt Instruments) Rules, 2019", "Rules", "Ministry of Finance", "FEMA and RBI", "Foreign investment in equity and similar instruments: who may invest, in what, up to what limit.", "Non-Debt Instruments", "FEMA", ""], [3, "Foreign Exchange Management (Mode of Payment and Reporting of Non-Debt Instruments) Regulations, 2019", "Regulations", "RBI", "FEMA and RBI", "How money comes in and how each investment is reported (Forms FC-GPR, FC-TRS and others).", "Reporting of Non-Debt", "FEMA", ""], [4, "Foreign Exchange Management (Debt Instruments) Regulations, 2019", "Regulations", "RBI", "FEMA and RBI", "Foreign investment in government bonds, corporate bonds and other debt.", "Debt Instruments", "FEMA", ""], [5, "RBI Master Direction: Foreign Investment in India", "Master Direction", "RBI", "FEMA and RBI", "RBI's single consolidated direction on foreign investment compliance and reporting.", "Foreign Investment in India", "RBIMD", ""], [6, "RBI Master Direction: Know Your Customer (KYC)", "Master Direction", "RBI", "FEMA and RBI", "KYC rules for banks and other entities regulated by RBI.", "Know Your Customer", "RBIMD", ""], [7, "RBI Master Direction: External Commercial Borrowings, Trade Credits and Structured Obligations", "Master Direction", "RBI", "FEMA and RBI", "Borrowing from abroad by Indian entities: eligible lenders, end use, cost limits, reporting.", "External Commercial Borrowing", "RBIMD", ""], [8, "Consolidated FDI Policy, 2020, as amended", "Policy", "DPIIT", "FDI policy", "Which sectors are open to foreign direct investment, up to what share, and under which route.", "FDI Policy", "DPIIT", ""], [9, "DPIIT Press Notes and FDI Policy amendments", "Press notes", "DPIIT", "FDI policy", "Changes to the FDI policy, issued as numbered press notes.", "Press Note", "DPIIT", ""], [10, "SEBI (Foreign Portfolio Investors) Regulations, 2019", "Regulations", "SEBI", "SEBI", "Registration, categories, investment conditions and obligations of FPIs.", "Foreign Portfolio Investors", "SREG", ""], [11, "SEBI Master Circular for Foreign Portfolio Investors", "Master circular", "SEBI", "SEBI", "SEBI's consolidated operating instructions for FPIs, designated depository participants and custodians.", "Master Circular for Foreign Portfolio", "SMC", ""], [12, "SEBI (Foreign Venture Capital Investors) Regulations, 2000", "Regulations", "SEBI", "SEBI", "Registration and investment conditions for FVCIs.", "Foreign Venture Capital", "SREG", ""], [13, "SEBI FVCI operational guidelines", "Guidelines and circulars", "SEBI", "SEBI", "Day-to-day procedure for FVCI registration and reporting.", "FVCI", "SCIR", ""], [14, "SEBI (Alternative Investment Funds) Regulations, 2012", "Regulations", "SEBI", "SEBI", "Registration and conduct of AIFs, including those with foreign investors.", "Alternative Investment", "SREG", ""], [15, "SEBI (Custodian of Securities) Regulations, 1996", "Regulations", "SEBI", "SEBI", "Custodians, who hold securities and run reporting for FPIs.", "Custodian", "SREG", ""], [16, "SEBI (Depositories and Participants) Regulations, 2018", "Regulations", "SEBI", "SEBI", "Depositories (NSDL, CDSL) and their participants; demat accounts of FPIs.", "Depositories", "SREG", ""], [17, "SEBI (Stock Brokers) Regulations, 1992", "Regulations", "SEBI", "SEBI", "Registration and conduct of stock brokers.", "Stock Broker", "SREG", ""], [18, "SEBI FPI Master Circular and applicable operational circulars (same master circular as no. 11, with the later circulars)", "Master circular and circulars", "SEBI", "SEBI", "Operational circulars that update the FPI master circular between editions.", "Foreign Portfolio Investors", "SCIR", ""], [19, "SEBI (Intermediaries) Regulations, 2008", "Regulations", "SEBI", "SEBI", "Common rules for registered market intermediaries.", "Intermediaries", "SREG", ""], [20, "SEBI (Prohibition of Insider Trading) Regulations, 2015", "Regulations", "SEBI", "SEBI", "Trading on unpublished price-sensitive information and related disclosures.", "Insider Trading", "SREG", ""], [21, "SEBI (Prohibition of Fraudulent and Unfair Trade Practices relating to Securities Market) Regulations, 2003", "Regulations", "SEBI", "SEBI", "Fraud and market manipulation in securities.", "Fraudulent and Unfair", "SREG", ""], [22, "SEBI (Listing Obligations and Disclosure Requirements) Regulations, 2015", "Regulations", "SEBI", "SEBI", "Ongoing disclosures and governance rules for listed companies.", "Listing Obligations", "SREG", ""], [23, "SEBI (Issue of Capital and Disclosure Requirements) Regulations, 2018", "Regulations", "SEBI", "SEBI", "Rules for IPOs, rights issues, preferential issues and QIPs.", "Issue of Capital", "SREG", ""], [24, "SEBI (Substantial Acquisition of Shares and Takeovers) Regulations, 2011", "Regulations", "SEBI", "SEBI", "Disclosure and open-offer triggers when someone acquires a significant stake.", "Takeover", "SREG", ""], [25, "Prevention of Money Laundering Act (PMLA), 2002", "Act", "Parliament; FIU-India and ED administer", "Anti-money laundering", "Money-laundering offences, reporting duties and KYC obligations of financial institutions.", "Money Laundering", "FIU", ""], [26, "Prevention of Money Laundering Rules, 2005", "Rules", "Ministry of Finance", "Anti-money laundering", "Record-keeping, client identification and beneficial ownership under PMLA.", "Money Laundering", "FIU", ""], [27, "Companies Act, 2013", "Act", "Parliament; MCA administers", "Company law", "Companies: share issue, directors, filings and foreign-owned companies.", "Companies Act", "MCA", ""], [28, "Companies (Share Capital and Debentures) Rules, 2014", "Rules", "MCA", "Company law", "How shares and debentures are issued and recorded.", "Share Capital", "MCA", ""], [29, "Companies (Management and Administration) Rules, 2014", "Rules", "MCA", "Company law", "Registers, annual returns and meetings.", "Management and Administration", "MCA", ""], [30, "Companies (Significant Beneficial Owners) Rules, 2018", "Rules", "MCA", "Company law", "Disclosure of the people who ultimately own or control a company.", "Significant Beneficial", "MCA", ""], [31, "Income-tax Act, 2025", "Act", "Parliament; CBDT administers", "Tax", "India's income-tax law (replaces the 1961 Act).", "Income-Tax Act", "IT", "t"], [32, "Income-tax Rules, 2026", "Rules", "CBDT", "Tax", "Procedure, forms and computation rules under the 2025 Act.", "Income-Tax Rules", "IT", "t"], [33, "Double Taxation Avoidance Agreements (DTAAs)", "Treaties", "Government of India", "Tax", "Treaty rates and rules for tax on dividends, interest and gains paid to non-residents.", "DTAA", "IT", ""], [34, "Foreign Account Tax Compliance Act (FATCA)", "US law; India reporting rules", "US; CBDT for India", "Tax", "Reporting of US persons' accounts by Indian financial institutions.", "FATCA", "IT", "t"], [35, "Common Reporting Standard (CRS)", "International standard; India reporting rules", "OECD; CBDT for India", "Tax", "Automatic exchange of account information between tax authorities.", "Common Reporting Standard", "IT", "t"], [36, "Black Money (Undisclosed Foreign Income and Assets) and Imposition of Tax Act, 2015", "Act", "Parliament", "Tax", "Undisclosed foreign income and assets held by Indian residents.", "Black Money", "IND", ""], [37, "Benami Transactions (Prohibition) Act, 1988", "Act", "Parliament", "Other laws", "Prohibits holding property in another person's name; attachment and confiscation.", "Benami", "IND", ""], [38, "Foreign Contribution (Regulation) Act, 2010 (wherever applicable)", "Act", "Ministry of Home Affairs", "Other laws", "Receipt of foreign contributions by organisations; applies only to those covered.", "FCRA", "FCRA", ""], [39, "Insolvency and Bankruptcy Code, 2016", "Code", "Parliament; IBBI administers", "Other laws", "Resolution and liquidation of companies, including foreign creditors' rights.", "Insolvency", "IBBI", ""], [40, "Securities Contracts (Regulation) Act, 1956", "Act", "Parliament", "Other laws", "Regulation of stock exchanges and trading in securities.", "Securities Contracts", "IND", ""], [41, "Securities Contracts (Regulation) Rules, 1957", "Rules", "Ministry of Finance", "Other laws", "Listing conditions and minimum public shareholding.", "Securities Contracts", "IND", ""], [42, "Depositories Act, 1996", "Act", "Parliament", "Other laws", "Holding securities in electronic form.", "Depositories", "IND", ""], [43, "Indian Trusts Act, 1882", "Act", "Parliament", "Other laws", "Private trusts, relevant to trust-structured funds.", "Trusts", "IND", ""], [44, "Indian Contract Act, 1872", "Act", "Parliament", "Other laws", "General law of contracts.", "Contract", "IND", ""], [45, "Information Technology Act, 2000", "Act", "Parliament; MeitY administers", "Other laws", "Electronic records and signatures, cyber offences, data security duties.", "Information Technology", "MEITY", ""], [46, "International Financial Services Centres Authority Act, 2019", "Act", "Parliament", "GIFT City and IFSC", "Creates the IFSCA as the single regulator of financial services in IFSCs.", "IFSCA", "IFSCA", ""], [47, "Special Economic Zones Act, 2005", "Act", "Parliament; Department of Commerce", "GIFT City and IFSC", "The law under which GIFT City is a special economic zone.", "Special Economic Zone", "SEZ", ""], [48, "Special Economic Zones Rules, 2006", "Rules", "Department of Commerce", "GIFT City and IFSC", "Procedure for setting up and running units in an SEZ.", "Special Economic Zone", "SEZ", ""], [49, "IFSCA (Fund Management) Regulations, 2025", "Regulations", "IFSCA", "GIFT City and IFSC", "Fund management entities, schemes and venture capital funds in GIFT City. In force from 19 Feb 2025; replaces the 2022 regulations; amended since.", "Fund Management", "IFM", "c"], [50, "IFSCA (Capital Market Intermediaries) Regulations, 2025", "Regulations", "IFSCA", "GIFT City and IFSC", "Brokers, investment bankers and other capital market intermediaries in IFSC. Gazette date 16 Apr 2025; amended Jan 2026.", "Capital Market Intermediaries", "ICMI", "c"], [51, "IFSCA (Banking) Regulations, 2020", "Regulations", "IFSCA", "GIFT City and IFSC", "IFSC Banking Units: licensing and the business they may do.", "Banking", "IFSCA", ""], [52, "IFSCA (Finance Company) Regulations, 2021", "Regulations", "IFSCA", "GIFT City and IFSC", "Finance companies in IFSC: licensing and permitted business.", "Finance Company", "IFSCA", ""], [53, "IFSCA (Insurance) Regulations, 2022", "Regulations", "IFSCA", "GIFT City and IFSC", "Insurance business in IFSC (title and year as you listed them: check the exact edition).", "Insurance", "IFSCA", ""], [54, "IFSCA (Market Infrastructure Institutions) Regulations, 2021", "Regulations", "IFSCA", "GIFT City and IFSC", "Exchanges, clearing corporations and depositories in IFSC.", "Market Infrastructure", "IFSCA", ""], [55, "IFSCA (Listing) Regulations, 2024", "Regulations", "IFSCA", "GIFT City and IFSC", "Listing of equity, debt and depository receipts on IFSC exchanges. Notified 30 Aug 2024; replaced the 2021 issuance and listing rules.", "Listing", "IFSCA", "c"], [56, "IFSCA (Bullion Exchange) Regulations, 2020", "Regulations", "IFSCA", "GIFT City and IFSC", "Bullion exchange and bullion depository in IFSC (check the exact edition).", "Bullion", "IFSCA", ""], [57, "IFSCA circulars, guidelines, directions and framework notifications", "Circulars and guidelines", "IFSCA", "GIFT City and IFSC", "The ongoing stream of operating rules from IFSCA.", "IFSCA", "IFSCA", ""], [58, "IFSCA Banking Handbook and applicable regulatory requirements", "Handbook", "IFSCA", "GIFT City and IFSC", "IFSCA's practical guide for banking units in IFSC.", "Banking", "IFSCA", ""], [59, "SEZ Rules and the requirements for setting up and running an IFSC unit", "Rules and procedure", "Department of Commerce; IFSCA", "GIFT City and IFSC", "Approval, operation and exit conditions for units in the IFSC.", "Special Economic Zone", "SEZ", ""], [60, "RBI directions and FEMA regulations applicable to IFSC banking units and financial transactions", "Directions and regulations", "RBI", "GIFT City and IFSC", "How FEMA and RBI rules apply to IFSC banking units and to dealings between the IFSC and the rest of India.", "IFSC", "FEMA", ""]];
+const rl = { group: "", q: "" };
+function drawRegLib() {
+  const box = $("reglib-body"); if (!box || state.tab !== "regulation") return;
+  const docs = (state.events || []).filter((e) => e.event_type === "regulation");
+  const count = (k) => { const x = k.toLowerCase(); return docs.filter((e) => ((e.title || "") + " " + (e.summary || "")).toLowerCase().includes(x)).length; };
+  const groups = [...new Set(REG_LIB.map((r) => r[4]))], q = rl.q.trim().toLowerCase();
+  const rows = REG_LIB.filter((r) => (!rl.group || r[4] === rl.group) && (!q || (r[1] + " " + r[3] + " " + r[5]).toLowerCase().includes(q)));
+  box.innerHTML = `<div class="qviews" role="group" aria-label="Group">${[["", "All " + REG_LIB.length], ...groups.map((g) => [g, g + " " + REG_LIB.filter((r) => r[4] === g).length])].map(([g, l]) => `<button type="button" data-rg="${esc(g)}" aria-pressed="${rl.group === g}">${esc(l)}</button>`).join("")}</div>
+    <div class="filters"><input type="search" id="rl-q" placeholder="Search the list: FPI, KYC, GIFT City, tax…" aria-label="Search the list" value="${esc(rl.q)}"></div>
+    <div class="watch-w"><table><thead><tr><th>#</th><th>Law or regulation</th><th>Issued by</th><th>In the tracker</th><th>Status</th><th>Official source</th></tr></thead><tbody>${rows.map((r) => {
+      const c = docs.length && r[6] ? count(r[6]) : 0, st = r[8] === "c" ? '<span class="tagc ok">Edition checked</span>' : r[8] === "t" ? '<span class="tagc ok">Seen in the tracker</span>' : '<span class="tagc">As listed</span>', sc = REG_SRC[r[7]];
+      return `<tr><td class="n">${r[0]}</td><td><b>${esc(r[1])}</b><div class="cov">${esc(r[2])}. ${esc(r[5])}</div></td><td>${esc(r[3])}</td><td>${c ? `<button class="cnt" type="button" data-rk="${esc(r[6])}">${c} document${c === 1 ? "" : "s"} →</button>` : '<span class="cov">none yet</span>'}</td><td>${st}</td><td><a href="${esc(sc[1])}" target="_blank" rel="noopener">${esc(sc[0])} ↗</a></td></tr>`;
+    }).join("") || `<tr><td colspan="6">No match.</td></tr>`}</tbody></table></div>
+    <p class="reglib-note">Links open the regulator's own pages, where you pick the current edition; the tracker does not copy their text. Titles are as given to us; "Edition checked" marks the ones whose title and date we confirmed on the regulator's site. A count shows how many tracked SEBI, RBI, DPIIT, MCA and other documents mention the phrase; it is a search, not a legal mapping. Not legal advice.</p>`;
+  box.querySelectorAll("[data-rg]").forEach((b) => b.onclick = () => { rl.group = b.dataset.rg; drawRegLib(); });
+  const inp = $("rl-q"); inp.oninput = () => { rl.q = inp.value; const pos = inp.selectionStart; drawRegLib(); const n = $("rl-q"); n.focus(); n.setSelectionRange(pos, pos); };
+  box.querySelectorAll("[data-rk]").forEach((b) => b.onclick = () => { regs.q = b.dataset.rk; regs.n = 200; renderRegs(); const t = $("reg-body"); if (t) t.scrollIntoView({ behavior: "smooth", block: "start" }); });
 }
 // ---------- Withholding tax reference (domestic rates for non-residents) ----------
 function drawWht() {
