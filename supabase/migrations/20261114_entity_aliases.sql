@@ -4,7 +4,7 @@
 -- proposals stay in pipeline/aliases/candidates.json until the owner confirms them in the review queue.
 -- Names are compared with norm_name() (already in the project), so every alias also matches its spelling variants.
 --
--- Reading: everyone sees confirmed aliases. Writing: only the owner (is_admin), as for investor_facts.
+-- Reading: everyone sees confirmed aliases. Writing: only the owner (is_admin).
 
 create table if not exists public.entity_group (
   id bigint generated always as identity primary key,
@@ -30,12 +30,22 @@ create index if not exists entity_alias_group on public.entity_alias (group_id);
 
 alter table public.entity_group enable row level security;
 alter table public.entity_alias enable row level security;
--- a group is visible only once it has a confirmed alias, so rejected proposals are never published
-drop policy if exists "read groups" on public.entity_group;
-create policy "read groups" on public.entity_group for select to anon, authenticated
-  using (public.is_admin() or exists (select 1 from public.entity_alias a where a.group_id = entity_group.id and a.status = 'confirmed'));
+-- Reading. A group is visible only once it has a confirmed alias, so rejected proposals are never published.
+-- Anonymous visitors cannot run is_admin() on this project (it is granted to signed-in users only), so their rules must not call it:
+-- one set of read rules for anon (confirmed only) and one for signed-in users (confirmed, or everything for the owner).
+drop policy if exists "read groups" on public.entity_group;                  -- earlier names of these rules
 drop policy if exists "read confirmed aliases" on public.entity_alias;
-create policy "read confirmed aliases" on public.entity_alias for select to anon, authenticated using (status = 'confirmed' or public.is_admin());
+drop policy if exists "read groups (public)" on public.entity_group;
+create policy "read groups (public)" on public.entity_group for select to anon
+  using (exists (select 1 from public.entity_alias a where a.group_id = entity_group.id and a.status = 'confirmed'));
+drop policy if exists "read groups (signed in)" on public.entity_group;
+create policy "read groups (signed in)" on public.entity_group for select to authenticated
+  using (public.is_admin() or exists (select 1 from public.entity_alias a where a.group_id = entity_group.id and a.status = 'confirmed'));
+drop policy if exists "read aliases (public)" on public.entity_alias;
+create policy "read aliases (public)" on public.entity_alias for select to anon using (status = 'confirmed');
+drop policy if exists "read aliases (signed in)" on public.entity_alias;
+create policy "read aliases (signed in)" on public.entity_alias for select to authenticated using (status = 'confirmed' or public.is_admin());
+-- Writing: the owner only (signed in, and is_admin).
 drop policy if exists "owner writes groups" on public.entity_group;
 create policy "owner writes groups" on public.entity_group for all to authenticated using (public.is_admin()) with check (public.is_admin());
 drop policy if exists "owner writes aliases" on public.entity_alias;

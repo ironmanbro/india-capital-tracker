@@ -23,9 +23,13 @@ select has_table_privilege('anon', 'public.entity_group', 'INSERT') as anon_can_
        has_table_privilege('anon', 'public.entity_alias', 'INSERT,UPDATE,DELETE') as anon_can_change_aliases,
        has_table_privilege('anon', 'public.entity_alias_confirmed', 'INSERT,UPDATE,DELETE') as anon_can_change_view;
 
+-- 3b. Read as the public does. This is the check that catches a read rule calling a function the public may not run.
+-- expect: two counts and no error. "permission denied for function is_admin" means a read rule is broken (it happened once: see ROLLOUT.md).
+begin; set local role anon; select count(*) as aliases_anon_can_read from public.entity_alias; select count(*) as groups_anon_can_read from public.entity_group; rollback;
+
 -- 4. Row-level security policies.
--- expect 4 rows: entity_alias "owner writes aliases" (ALL, authenticated) and "read confirmed aliases" (SELECT, anon+authenticated);
---                entity_group "owner writes groups" (ALL, authenticated) and "read groups" (SELECT, anon+authenticated)
+-- expect 6 rows: entity_alias "owner writes aliases" (ALL, authenticated), "read aliases (public)" (SELECT, anon), "read aliases (signed in)" (SELECT, authenticated);
+--                entity_group "owner writes groups" (ALL, authenticated), "read groups (public)" (SELECT, anon), "read groups (signed in)" (SELECT, authenticated)
 select tablename, policyname, cmd, roles from pg_policies where schemaname = 'public' and tablename like 'entity\_%' order by 1, 2;
 
 -- 5. The new function and view run with the caller's rights, so they add no "security definer" findings.

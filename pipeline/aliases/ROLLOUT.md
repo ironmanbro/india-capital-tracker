@@ -37,12 +37,14 @@ In the Supabase SQL editor, run these one at a time, each as a single run, in th
 1. `supabase/migrations/20261114_entity_aliases.sql`
 2. `supabase/migrations/20261115_entity_companies.sql`
 
-Each should end with "Success". Both are safe to run again (tested: 1, 2, 1, 2, 2 with no errors and the data intact). If you use `apply_migration`, name them `entity_aliases` and `entity_companies`.
+Each should end with "Success".
+**If you applied migration 1 before 14-Nov-26 13:15 UTC, run it again now.** The first version had read rules that called `is_admin()`, which the public cannot run on this project, so the website's reads failed with "permission denied for function is_admin" (found by the first check through the public API; nothing leaked, reads were just blocked). The fixed file replaces those rules and is safe to re-run.
+Expected object counts on the live project (read with the counts query in the walkthrough): before **34 tables, 10 views, 172 functions, 36 policies**; after migration 1 **36 · 10 · 173 · 42**; after migration 2 **36 · 11 · 173 · 42**. Both are safe to run again (tested: 1, 2, 1, 2, 2 with no errors and the data intact). If you use `apply_migration`, name them `entity_aliases` and `entity_companies`.
 If the REST API answers 404 for the new view straight afterwards, reload its schema cache and retry: `notify pgrst, 'reload schema';`
 
 ### 2. Check the permissions (you run this; it only reads)
 Run `pipeline/aliases/verify_after_apply.sql` in the SQL editor and compare each result with its `-- expect` line.
-The ones that matter most: anon can only SELECT; anon cannot insert, update or delete; the function is not `security definer`; the view has `security_invoker=true`.
+The ones that matter most: anon can only SELECT; anon cannot insert, update or delete; **query 3b (reading as the public) returns two counts and no error**; the function is not `security definer`; the view has `security_invoker=true`.
 Then:
 ```bash
 python3 pipeline/aliases/verify_rollout.py --after
@@ -88,5 +90,8 @@ The rollback file drops the view, the function and both tables in one statement 
 | `verify_rollout.py --after` fails "missing" | the export was edited, or a name reduces to the same key as another in the same group | the check prints the names; compare with query 7 |
 
 ## What was tested and what was not
-Tested: both migrations (apply, then apply again; data intact), permissions as the real `anon` and `authenticated` roles, the exported SQL (apply, repeat, three deliberate failures that each saved nothing), the rollback, and the verifier (14 of 14 on a correct set-up; each of four injected faults made it fail with a clear message). Pages in database mode against a stand-in API in front of that database: same numbers as local mode, local decisions ignored, and a clean fall back when the database is down, returns an error, or takes longer than 3 seconds.
+Tested: both migrations (apply, then apply again; data intact), permissions for the three kinds of visitor on a test database that mirrors this project's `is_admin()` privileges (the public cannot run it): the public reads only confirmed aliases, a signed-in non-owner is read-only, the owner reads and writes, the exported SQL (apply, repeat, three deliberate failures that each saved nothing), the rollback, and the verifier (14 of 14 on a correct set-up; each of four injected faults made it fail with a clear message). Pages in database mode against a stand-in API in front of that database: same numbers as local mode, local decisions ignored, and a clean fall back when the database is down, returns an error, or takes longer than 3 seconds.
 Not tested: the real Supabase API (PostgREST) in front of the live project, since the migrations are not applied; the first `--after` run is that test. Advisor counts after the rollout are expected, not observed.
+
+## What went wrong once (so it does not repeat)
+On 14-Nov-26 migration 1 was applied and the first read through the public API returned `permission denied for function is_admin`. Cause: this project does not let anonymous visitors run `is_admin()`, but my read rules called it for everyone. My test database had given anonymous visitors that permission, so the tests passed while the live project would not. Fixed by giving the public its own read rules that do not call the function; the test database now copies this project's real privileges; and query 3b in `verify_after_apply.sql` reads as the public so this class of mistake is caught by a check you run, not found by accident.
