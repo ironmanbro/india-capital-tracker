@@ -1111,6 +1111,11 @@ body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-wei
 .cb-pick select{min-width:200px;font-weight:600}
 .cb-chips{margin:0!important;flex:1 1 320px}
 .cb-chips button{min-height:32px!important;padding:0 12px!important;font-size:13px}
+/* Home cards fill each row: two cards share the width when there is room for three, and wide cards take a whole row. */
+:root:not(#x) .ovgrid{grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr))}
+:root:not(#x) .ovgrid>.span2{grid-column:1/-1}
+:root:not(#x) .ovgrid-a{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:900px){:root:not(#x) .ovgrid-a{grid-template-columns:minmax(0,1fr)}}
 .qviews{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
 .jump{position:sticky;top:0;z-index:15;margin:0 0 12px;padding:8px 0;background:var(--bg);flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none}
 .jump::-webkit-scrollbar{display:none}
@@ -1165,6 +1170,8 @@ body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-wei
 .iconst-w .nd{cursor:pointer}
 .iconst-w svg text{font-family:inherit}
 @media (max-width:700px){.iconst-w .nd text{font-size:17px!important}}
+.iconst-w .el{font-size:10px;font-weight:600;fill:var(--muted);paint-order:stroke;stroke:var(--panel);stroke-width:3px;pointer-events:none;font-variant-numeric:tabular-nums}
+@media (max-width:700px){.iconst-w .el{font-size:15px}}
 .iconst-w .nd text{font-size:11px;fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:3px}
 .iconst-w .nd:hover circle{stroke:var(--ink);stroke-width:2px}
 .iconst-k{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
@@ -1469,7 +1476,7 @@ body{font-variant-numeric:tabular-nums}
     <div class="ftiles" id="ov-tiles"></div>
     <div class="ftiles" id="ov-cross"></div>
     <div class="ovbanner"><div><b>Sign in to see everything on Home.</b> <span>Free. No subscription, just a login.</span></div><button class="reset" type="button" data-login>Sign in</button></div>
-    <div class="ovgrid">
+    <div class="ovgrid ovgrid-a">
       <div class="ovc span2"><div class="ovh"><div><h3>Latest FPI flow</h3><div class="sub" id="ov-flow-sub">NSDL</div></div><button class="link" data-go="flows">Flows ↗</button></div><div class="flowwrap"><div id="ov-flow"></div><div class="fchart" id="ov-fpibars"></div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Biggest deals this week</h3><div class="sub">Largest agreed or completed deals, last 7 days</div></div><button class="link" data-go="feed" data-view="week">See these deals ↗</button></div><div id="ov-deals"><!--skel--></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Latest stories</h3><div class="sub">News collected hourly, reviewed daily at 9am IST</div></div><button class="link" data-go="feed">All stories</button></div><div id="ov-stories"><!--skel--></div></div>
@@ -1535,7 +1542,7 @@ body{font-variant-numeric:tabular-nums}
       <div class="iconst-h"><div><h3>Constellation</h3><div class="sub">Who invested in what, and who else is in the same companies. Tap any dot to move to it; tap the centre to open its profile.</div></div>
         <div class="iconst-ctl"><select id="cpick" aria-label="Centre the chart on"></select><select id="chops" aria-label="Hops"><option value="2">2 hops</option><option value="3">3 hops</option></select></div></div>
       <div class="iconst-w" id="iconst"></div>
-      <div class="iconst-k"><span><i style="background:#7b9cf5"></i>Investor</span><span><i style="background:#5cc6b0"></i>Indian company</span><span><i style="background:#f0884a;border-radius:2px"></i>Exit link</span></div>
+      <div class="iconst-k"><span><i style="background:#7b9cf5"></i>Investor</span><span><i style="background:#5cc6b0"></i>Indian company</span><span><i style="background:#f0884a;border-radius:2px"></i>Exit link</span><span>Numbers on the lines: largest agreed or completed deal, and the stake held where a shareholding filing shows one</span></div>
     </section>
   </section>
 
@@ -2380,7 +2387,7 @@ const cst = { center: null, hops: 2 };
 const coKey = (n) => String(n || "").toLowerCase().replace(/['’]s\b/g, "").replace(/\b(ltd|limited|pvt|private|india)\b\.?/g, "").replace(/[^a-z0-9]+/g, " ").trim();
 function constGraph() {
   // Investor ↔ company links from every reviewed deal story (not regulation).
-  const inv = new Map(), co = new Map(), adj = new Map(), link = (a, b, ex) => { (adj.get(a) || adj.set(a, new Map()).get(a)).set(b, ex); (adj.get(b) || adj.set(b, new Map()).get(b)).set(a, ex); };
+  const inv = new Map(), co = new Map(), adj = new Map(), meta = new Map(), link = (a, b, ex) => { (adj.get(a) || adj.set(a, new Map()).get(a)).set(b, ex); (adj.get(b) || adj.set(b, new Map()).get(b)).set(a, ex); };
   state.events.forEach((e) => {
     // Named Indian companies only: no exchanges, no unnamed "hospital chain" or "two assets" targets.
     if (e.event_type === "regulation" || !e.target || /^[a-z]/.test(e.target) || /stock exchange|^bse\b|^nse\b|\b(chain|assets?|company|firm|startup|projects?|portfolio|platform)$/i.test(e.target.trim())) return;
@@ -2388,9 +2395,19 @@ function constGraph() {
     if (!co.has(ck)) co.set(ck, e.target);
     const ppl = e.parties.length ? e.parties : e.investor ? [{ name: e.investor }] : [];
     ppl.forEach((p) => { const k = invKey(p.name || ""); if (!k || GENERIC.test(p.name || "") || "c:" + coKey(p.name) === ck) return; const ik = "i:" + k;
-      if (!inv.has(ik)) inv.set(ik, p.name); link(ik, ck, e.event_types.includes("exit") && !e.event_types.includes("entry")); });
+      if (!inv.has(ik)) inv.set(ik, p.name); link(ik, ck, e.event_types.includes("exit") && !e.event_types.includes("entry"));
+      // The deal value belongs to this investor only if nobody else is on the same side of the deal (e.g. one of several IPO anchors).
+      const mk = ik + "|" + ck, m = meta.get(mk) || { n: 0, usd: 0, pct: 0 }, side = (x) => x.role === "seller" ? "sell" : "buy", am = amountCr(e);
+      m.n++; if (am && FIRM.has(e.deal_stage) && ppl.filter((x) => side(x) === side(p)).length === 1 && am.usd > m.usd) m.usd = am.usd;
+      meta.set(mk, m); });
   });
-  return { inv, co, adj, name: (k) => inv.get(k) || co.get(k) || k.slice(2) };
+  // Stake held, from the shareholding filings (latest period of each company), where the same investor and company are linked above.
+  const latestP = new Map(); (state.holdings || []).forEach((h) => { if (!latestP.has(h.company) || h.period_end > latestP.get(h.company)) latestP.set(h.company, h.period_end); });
+  (state.holdings || []).filter((h) => h.period_end === latestP.get(h.company)).forEach((h) => {
+    const ik = "i:" + invKey(h.holder), ck = "c:" + coKey(h.company), m = meta.get(ik + "|" + ck);
+    if (m && adj.get(ik)?.has(ck)) m.pct = Math.max(m.pct, +h.pct || 0);
+  });
+  return { inv, co, adj, meta, name: (k) => inv.get(k) || co.get(k) || k.slice(2) };
 }
 function drawConst() {
   const box = $("iconst"); if (!box || !state.events.length) return;
@@ -2419,8 +2436,15 @@ function drawConst() {
     const list = ring[h].slice().sort((a, b) => ang(a) - ang(b)), n = list.length;
     list.forEach((k, i) => { const t = -Math.PI / 2 + (i + 0.5) * 2 * Math.PI / n; pos.set(k, [cx + R[h] * Math.cos(t) * 1.45, cy + R[h] * Math.sin(t)]); });
   }
-  const lines = [...parent].map(([b, a]) => { const [x1, y1] = pos.get(a), [x2, y2] = pos.get(b), ex = G.adj.get(a).get(b);
-    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${ex ? "#f0884a" : "var(--line)"}" stroke-width="${ex ? 1.6 : 1.2}"${ex ? ' stroke-dasharray="4 3"' : ""}/>`; }).join("");
+  const edgeInfo = (a, b) => G.meta.get(a.startsWith("i:") ? a + "|" + b : b + "|" + a);
+  const edgeText = (m) => m ? [m.usd > 0 ? fmtUsdS(m.usd) : "", m.pct > 0 ? `${+m.pct.toFixed(m.pct >= 10 ? 1 : 2)}% stake` : ""].filter(Boolean).join(" · ") : "";
+  const lines = [...parent].map(([b, a]) => { const [x1, y1] = pos.get(a), [x2, y2] = pos.get(b), ex = G.adj.get(a).get(b), m = edgeInfo(a, b), t = edgeText(m);
+    const tip = m ? `${G.name(a)} and ${G.name(b)}: ${m.n} stor${m.n === 1 ? "y" : "ies"}${m.usd > 0 ? `, largest agreed or completed deal ${fmtUsd(m.usd)}` : ""}${m.pct > 0 ? `, holds ${(+m.pct).toFixed(2)}% (shareholding filing)` : ""}` : "";
+    // The label sits 58% of the way from the parent toward the child, so labels of neighbouring links rarely meet.
+    const lx = x1 + (x2 - x1) * 0.58, ly = y1 + (y2 - y1) * 0.58;
+    return `<g><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${ex ? "#f0884a" : "var(--line)"}" stroke-width="${ex ? 1.6 : 1.2}"${ex ? ' stroke-dasharray="4 3"' : ""}/>` +
+      (tip ? `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="transparent" stroke-width="10"><title>${esc(tip)}</title></line>` : "") +
+      (t ? `<text class="el" x="${lx}" y="${ly - 3}" text-anchor="middle">${esc(t)}</text>` : "") + `</g>`; }).join("");
   const nodes = [...pos].map(([k, [x, y]]) => {
     const isC = k === cst.center, isInv = k.startsWith("i:"), r = isC ? 16 : Math.min(12, 5 + Math.sqrt(G.adj.get(k)?.size || 1) * 1.6);
     const nm = G.name(k), mx = narrow ? 14 : 22, lab = nm.length > mx ? nm.slice(0, mx - 1) + "…" : nm, right = x >= cx;
