@@ -1,0 +1,29 @@
+name: Daily email
+
+# Builds the morning summary and emails it to the accounts that switched on "Daily email" on the site.
+# Nothing is sent until two secrets exist (Settings, Secrets and variables, Actions): SUPABASE_SERVICE_KEY and RESEND_API_KEY.
+# Without them this job only builds the email (a dry run) and succeeds. DIGEST_FROM (optional) is the sender, e.g. "Indian Capital Tracker <digest@yourdomain>".
+
+on:
+  schedule:
+    - cron: "0 4 * * *"      # 9:30 am IST
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build and send
+        env:
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          DIGEST_FROM: ${{ secrets.DIGEST_FROM }}
+        run: python pipeline/digest/send_digest.py

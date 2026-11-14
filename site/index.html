@@ -1081,7 +1081,16 @@ body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-wei
 @media (display-mode: standalone){.install-btn{display:none!important}}
 
 /* Quick views, active-filter chips and the "More filters" fold */
+
+/* One palette for every chart, in both themes: blue for money in, orange for money out. */
+:root:not(#x){--c-in:#5a82f0;--c-out:#d9682c}
+:root[data-theme="light"]:not(#x){--c-in:#1f5eff;--c-out:#c2410c}
 .qviews{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+.jump{position:sticky;top:0;z-index:15;margin:0 0 12px;padding:8px 0;background:var(--bg);flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none}
+.jump::-webkit-scrollbar{display:none}
+.jump button{flex:none;min-height:32px!important;padding:0 12px!important;font-size:13px}
+.jump-t{scroll-margin-top:56px}
+
 .qviews button,.fchips button{min-height:36px;padding:0 14px;border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--muted);font:inherit;font-weight:600;cursor:pointer}
 .qviews button[aria-pressed=true]{background:var(--chip);color:var(--ink);border-color:var(--ink)}
 .fchips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:-4px 0 12px;font-size:13px;color:var(--muted)}
@@ -1455,7 +1464,7 @@ body{font-variant-numeric:tabular-nums}
 
   <section id="tab-feed" hidden>
     <p class="dsrc" data-src="review,news,nse_bulk" data-what="News via Google News; NSE bulk/block deals of ₹25 cr or more" style="margin:0 0 10px"></p>
-    <div class="fbar"><div class="seg" role="group" aria-label="Feed layout" id="fview"><button data-v="board" aria-pressed="true">Board</button><button data-v="list" aria-pressed="false">List</button></div></div>
+    <div class="fbar"><div class="seg" role="group" aria-label="Feed layout" id="fview"><button data-v="board" aria-pressed="false">Board</button><button data-v="list" aria-pressed="true">List</button></div></div>
     <div id="fnote-slot"></div>
     <div class="board" id="board"><!--skel--></div>
     <div class="list" id="feed"><!--skel--></div>
@@ -1468,13 +1477,6 @@ body{font-variant-numeric:tabular-nums}
       <button type="button" data-v="holders" aria-pressed="false">Filed holders</button>
     </div>
     <div class="isumm" id="isumm"></div>
-    <section class="watch" id="cbrief" aria-label="Country briefing"></section>
-    <section class="iconst" aria-label="Investor constellation">
-      <div class="iconst-h"><div><h3>Constellation</h3><div class="sub">Who invested in what, and who else is in the same companies. Tap any dot to move to it; tap the centre to open its profile.</div></div>
-        <div class="iconst-ctl"><select id="cpick" aria-label="Centre the chart on"></select><select id="chops" aria-label="Hops"><option value="2">2 hops</option><option value="3">3 hops</option></select></div></div>
-      <div class="iconst-w" id="iconst"></div>
-      <div class="iconst-k"><span><i style="background:#7b9cf5"></i>Investor</span><span><i style="background:#5cc6b0"></i>Indian company</span><span><i style="background:#f0884a;border-radius:2px"></i>Exit link</span></div>
-    </section>
     <p class="sub" style="margin:0 0 12px"><button type="button" class="link" data-go="directory">Browse every SEBI-registered FPI →</button></p>
     <div class="qviews" id="iqviews" role="group" aria-label="Quick views"></div>
     <div class="filters">
@@ -1501,6 +1503,13 @@ body{font-variant-numeric:tabular-nums}
     <p class="sub" id="isum" style="margin:0 0 10px"></p>
     <div id="investors"></div>
     <div style="text-align:center;margin-top:12px"><button class="reset" id="imore" hidden>Show more investors</button></div>
+    <section class="watch" id="cbrief" aria-label="Country briefing"></section>
+    <section class="iconst" aria-label="Investor constellation">
+      <div class="iconst-h"><div><h3>Constellation</h3><div class="sub">Who invested in what, and who else is in the same companies. Tap any dot to move to it; tap the centre to open its profile.</div></div>
+        <div class="iconst-ctl"><select id="cpick" aria-label="Centre the chart on"></select><select id="chops" aria-label="Hops"><option value="2">2 hops</option><option value="3">3 hops</option></select></div></div>
+      <div class="iconst-w" id="iconst"></div>
+      <div class="iconst-k"><span><i style="background:#7b9cf5"></i>Investor</span><span><i style="background:#5cc6b0"></i>Indian company</span><span><i style="background:#f0884a;border-radius:2px"></i>Exit link</span></div>
+    </section>
   </section>
 
   <section id="tab-network" hidden>
@@ -1572,14 +1581,14 @@ body{font-variant-numeric:tabular-nums}
         <div class="seg" role="group" aria-label="Segment" id="fseg">
           <button data-s="Total" aria-pressed="true">All</button><button data-s="Equity" aria-pressed="false">Equity</button><button data-s="Debt" aria-pressed="false">Debt</button>
         </div></div>
-      <div class="flegend"><span><i style="background:var(--in)"></i>Net inflow</span><span><i style="background:var(--out)"></i>Net outflow</span></div>
+      <div class="flegend"><span><i style="background:var(--c-in)"></i>Net inflow</span><span><i style="background:var(--c-out)"></i>Net outflow</span></div>
       <div class="fchart" id="fday"></div>
       <p class="dsrc" data-src="nsdl_flows" data-what="NSDL FPI daily trends"></p>
     </div>
 
     <div class="fcard">
       <div class="fhead"><div><h3>FPI net investment by month<span class="era cur">All available months</span></h3><div class="sub" id="fmonth-sub">US$ · all segments</div></div></div>
-      <div class="flegend"><span><i style="background:var(--in)"></i>Net inflow</span><span><i style="background:var(--out)"></i>Net outflow</span></div>
+      <div class="flegend"><span><i style="background:var(--c-in)"></i>Net inflow</span><span><i style="background:var(--c-out)"></i>Net outflow</span></div>
       <div class="fchart" id="fmonth"></div>
       <p class="dsrc" data-src="nsdl_flows" data-what="NSDL FPI calendar-year report"></p>
     </div>
@@ -1588,7 +1597,7 @@ body{font-variant-numeric:tabular-nums}
       <div class="fhead"><div><h3>FPI net investment over the years</h3><div class="sub" id="fhist-sub">US$ (₹ crore in brackets) · all segments</div></div>
         <div class="seg" role="group" aria-label="Period" id="fhseg"><button data-v="fy" aria-pressed="true">Yearly</button><button data-v="q" aria-pressed="false">Quarterly</button></div></div>
       <div class="ftiles" id="fhist-tiles"></div>
-      <div class="flegend"><span><i style="background:var(--in)"></i>Net inflow</span><span><i style="background:var(--out)"></i>Net outflow</span></div>
+      <div class="flegend"><span><i style="background:var(--c-in)"></i>Net inflow</span><span><i style="background:var(--c-out)"></i>Net outflow</span></div>
       <div class="fchart" id="fhist"></div>
       <p class="note" id="fhist-note" style="margin-top:8px"></p>
       <p class="dsrc" data-src="nsdl_flows" data-what="NSDL annual and quarterly FPI net investment reports"></p>
@@ -2134,7 +2143,7 @@ const srcOf = (e) => {
   if (s.includes("rbi")) return ["RBI", "reg"];
   return ["News", "news"];
 };
-const srcTag = (e) => { const [l, k] = srcOf(e); return `<span class="src-tag" title="${esc(e.source_name || l)}"><svg viewBox="0 0 24 24" aria-hidden="true">${SRC_ICON[k]}</svg>${l}</span>`; };
+const srcTag = (e) => { const [l, k] = srcOf(e); const lab = k === "exch" ? `Exchange · ${l}` : l; return `<span class="src-tag ${k === "news" ? "s-news" : ""}" title="${esc(k === "news" ? "Reported in the news: " + (e.source_name || l) : (e.source_name || l) + " filing")}"><svg viewBox="0 0 24 24" aria-hidden="true">${SRC_ICON[k]}</svg>${lab}</span>`; };
 // Placeholder cards shown while stories load, laid out like the real ones.
 const skelCards = (n = 3) => Array.from({ length: n }, () => `<div class="skel" aria-hidden="true"><div class="sk-row"><span class="skb pill" style="width:84px"></span><span class="skb pill" style="width:56px"></span></div><span class="skb line" style="width:92%"></span><span class="skb line" style="width:68%"></span><div class="sk-row"><span class="skb pill" style="width:60px"></span><span class="skb pill" style="width:110px"></span></div></div>`).join("") + `<span class="sr-only">Loading stories</span>`;
 
@@ -2573,7 +2582,7 @@ function barChart(el, points, opts) {
       const d = v >= 0
         ? `M${x},${z}V${z - h + r}Q${x},${z - h} ${x + r},${z - h}H${x + bw - r}Q${x + bw},${z - h} ${x + bw},${z - h + r}V${z}Z`
         : `M${x},${z}V${z + h - r}Q${x},${z + h} ${x + r},${z + h}H${x + bw - r}Q${x + bw},${z + h} ${x + bw},${z + h - r}V${z}Z`;
-      g += `<path class="bar" d="${d}" fill="var(--${v >= 0 ? "in" : "out"})"${p.partial ? ' fill-opacity=".55"' : ""}/>`;
+      g += `<path class="bar" d="${d}" fill="var(--c-${v >= 0 ? "in" : "out"})"${p.partial ? ' fill-opacity=".55"' : ""}/>`;
     }
     g += `<rect class="hit" data-i="${i}" x="${L + i * step}" y="${T}" width="${step}" height="${H - T - B}"/>`;
     const lab = label(p, i);
@@ -2583,7 +2592,7 @@ function barChart(el, points, opts) {
     const cx = (i) => (L + i * step + step / 2).toFixed(1);
     const idx = lv.map((v, i) => [v, i]).filter(([v]) => v != null);
     // Running totals take the colour of where they ended (in or out); percentage lines stay the accent colour.
-    const lc = lineSpec.kind === "cum" ? `var(--${idx[idx.length - 1][0] >= 0 ? "in" : "out"})` : "var(--accent)";
+    const lc = lineSpec.kind === "cum" ? `var(--c-${idx[idx.length - 1][0] >= 0 ? "in" : "out"})` : "var(--accent)";
     const gid = `lg${(barChart.n = (barChart.n || 0) + 1)}`, base = Math.min(H - B, Math.max(T, y2(0)));
     // Strongest at the line, fading toward the zero line: downward for a line above zero, upward below it.
     const below = idx.reduce((a, [v]) => a + v, 0) < 0;
@@ -2612,9 +2621,9 @@ function barChart(el, points, opts) {
       const xh = el.querySelector(".xhair"), xc = L + hi * step + step / 2;
       xh.setAttribute("x1", xc); xh.setAttribute("x2", xc); xh.classList.add("on");
       // Direction and change on the previous period, for every chart, under the chart's own rows.
-      const dir = `<div class="row"><span>Direction</span><span style="color:var(--${pv >= 0 ? "in" : "out"})">${pv >= 0 ? "▲ Net inflow" : "▼ Net outflow"}</span></div>`;
+      const dir = `<div class="row"><span>Direction</span><span style="color:var(--c-${pv >= 0 ? "in" : "out"})">${pv >= 0 ? "▲ Net inflow" : "▼ Net outflow"}</span></div>`;
       const chg = prev == null || lineSpec.kind !== "cum" ? "" : `<div class="row"><span>Change on previous</span><span>${fmtPct(pctChg(pv, prev))}</span></div>`;
-      tipEl.innerHTML = tip(points[hi]) + dir + chg + (lvv == null ? "" : `<div class="row"><span>${esc(lineSpec.name)}</span><span style="color:var(--${lineSpec.kind === "cum" ? (lvv >= 0 ? "in" : "out") : "accent"})">${lineSpec.full(lvv)}</span></div>`); tipEl.hidden = false;
+      tipEl.innerHTML = tip(points[hi]) + dir + chg + (lvv == null ? "" : `<div class="row"><span>${esc(lineSpec.name)}</span><span style="color:var(--c-${lineSpec.kind === "cum" ? (lvv >= 0 ? "in" : "out") : "accent"})">${lineSpec.full(lvv)}</span></div>`); tipEl.hidden = false;
       const r = h.getBoundingClientRect(), w = tipEl.offsetWidth, ht = tipEl.offsetHeight;
       const left = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, document.documentElement.clientWidth - w - 8));
       const top = r.top - ht - 6 >= 0 ? r.top - ht - 6 : r.top + 6;
@@ -3610,7 +3619,30 @@ document.querySelectorAll("#nhops button").forEach((b) => b.onclick = () => {
   renderNetwork();
 });
 
+
+// ---------- Jump menu: long tabs get a sticky row of links to their sections ----------
+const JUMP_TABS = ["flows", "markets", "directory", "odi", "investors"];
+function buildJump(t) {
+  const sec = $("tab-" + t); if (!sec || sec.hidden || !JUMP_TABS.includes(t)) return;
+  const items = [], seen = new Set();
+  const root = sec.querySelector(":scope > #mk-body, :scope > #odi-body") || sec;
+  [...root.children].forEach((c) => {
+    if (c.classList.contains("jump") || !c.getClientRects().length) return;
+    const h = c.matches("h2,h3") ? c : c.querySelector("h2,h3");
+    if (!h || (!c.matches("h2,h3") && c.getBoundingClientRect().height < 80)) return;
+    const label = h.textContent.replace(/\s+/g, " ").trim().replace(/(Current period|All available months|Historical · official|Financial years).*$/, "").trim();
+    if (!label || seen.has(label)) return;
+    seen.add(label); items.push([label.length > 26 ? label.slice(0, 25) + "…" : label, c]);
+  });
+  let nav = sec.querySelector(":scope > .jump");
+  if (items.length < 3) { if (nav) nav.remove(); return; }
+  if (!nav) { nav = document.createElement("nav"); nav.className = "qviews jump"; nav.setAttribute("aria-label", "Jump to a section"); sec.prepend(nav); }
+  nav.innerHTML = items.map(([l], i) => `<button type="button" data-j="${i}">${esc(l)}</button>`).join("");
+  items.forEach(([, el]) => el.classList.add("jump-t"));
+  nav.onclick = (ev) => { const b = ev.target.closest("button[data-j]"); if (b) items[+b.dataset.j][1].scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); };
+}
 function setTab(t) {
+  [700, 2200, 5000].forEach((ms) => setTimeout(() => { try { buildJump(t); } catch {} }, ms));
   if (t === "investors") setTimeout(() => { try { drawCountryBrief(); } catch {} }, 400);
   if (t === "flows") setTimeout(() => { try { drawMktCal(); drawDebtLimits(); drawIndexEvents(); } catch {} }, 400);
   if (t === "regulation") setTimeout(() => { try { drawCompCal(); } catch {} }, 400);
@@ -4031,14 +4063,14 @@ function renderOverview() {
       ${groups.map((x) => `<div class="m30row"><div class="m30l"><b>${x.g.label}</b><span class="sub">${x.n} capital deal${x.n === 1 ? "" : "s"}${x.k ? ` · ${x.k} agreed or completed with an amount` : ""}</span></div>
         <div class="m30bar"><i style="width:${x.cr / top * 100}%;background:${color(x.g.types[0])}"></i></div><div class="m30v">${x.cr ? bothH(x.cr) : "–"}</div></div>`).join("")}
       <p class="note" style="margin:8px 0 0">Sum of amounts for agreed or completed capital deals only: plans, pledges, talks and business-presence news are left out. Many deals disclose no amount.</p></div>
-    <div>${busiest.map((r, i) => `<div class="ovrow"><span class="rank">${i + 1}</span><div style="min-width:0"><div class="t">${esc(r.name)}</div><div class="meta" style="margin-top:4px">${[...r.types].map(tg).join("")}</div></div><span class="side">${r.n} stor${r.n === 1 ? "y" : "ies"}${r.cr ? `<br>${fmtCr(r.cr)}` : ""}</span></div>`).join("") || `<div class="sub">No named investors in the last 30 days.</div>`}</div></div>`;
+    <div>${busiest.map((r, i) => `<div class="ovrow"><span class="rank">${i + 1}</span><div style="min-width:0"><div class="t">${esc(r.name)}</div><div class="meta" style="margin-top:4px">${[...r.types].map(tg).join("")}</div></div><span class="side">${r.n} stor${r.n === 1 ? "y" : "ies"}${r.cr ? `<br>${bothH(r.cr)}` : ""}</span></div>`).join("") || `<div class="sub">No named investors in the last 30 days.</div>`}</div></div>`;
   document.querySelectorAll("#ov-tiles .ftile, #ov-cross .ftile").forEach((t) => { t.hidden = t.querySelector(".n")?.textContent.trim() === "–"; });
   newSinceLastVisit();
   renderTakeaways(); renderFollowing(); renderBreakdown();
 }
 
 // ---------- Feed board: one column per category (desktop); the list stays on phones ----------
-let feedView = load("ict-feed-view") || "board";
+let feedView = load("ict-feed-view") || "list";
 const boardOn = () => feedView === "board" && matchMedia("(min-width:701px)").matches;
 function renderBoard() {
   const on = boardOn();
@@ -4551,10 +4583,11 @@ function authUi() {
   document.body.classList.toggle("anon", LOGIN_REQUIRED && !auth.session);
   const a = $("acct");
   if (a) {
-    a.innerHTML = auth.session ? `Signed in${who ? ` as <b>${esc(who)}</b>` : ""} · <button class="link" id="acct-act" type="button">My activity</button> · <button class="link" id="acct-priv" type="button">Privacy</button> · <button class="link" id="acct-out" type="button">Sign out</button>` : `<button class="reset signin" id="acct-in" type="button">Sign in</button>`;
+    a.innerHTML = auth.session ? `Signed in${who ? ` as <b>${esc(who)}</b>` : ""} · <button class="link" id="acct-act" type="button">My activity</button> · <button class="link" id="acct-mail" type="button">Daily email</button> · <button class="link" id="acct-priv" type="button">Privacy</button> · <button class="link" id="acct-out" type="button">Sign out</button>` : `<button class="reset signin" id="acct-in" type="button">Sign in</button>`;
     const out = $("acct-out"), inn = $("acct-in"), act = $("acct-act"), pv = $("acct-priv");
     if (act) act.onclick = () => { auth.prevScreen = null; openAuth("activity"); };
     if (pv) pv.onclick = () => { auth.prevScreen = null; openAuth("privacy"); };
+    const ml = $("acct-mail"); if (ml) ml.onclick = () => { auth.prevScreen = null; openAuth("digest"); };
     if (out) out.onclick = authOut;
     if (inn) inn.onclick = () => { auth.next = null; openAuth("choose"); };
   }
@@ -4626,6 +4659,12 @@ const A_SCREENS = {
   activity: (d) => `<h1 id="auth-title">My activity</h1><p class="a-sub">Everything recorded about your visits while signed in. Only you and the site owner can see it.</p>
     <div id="a-act" class="a-doc" style="max-height:44vh;overflow:auto"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="a-btn ghost" type="button" id="a-dl" style="flex:1">Download</button><button class="a-btn ghost" type="button" id="a-del" style="flex:1">Delete all</button></div>
+    <button class="a-btn ghost" type="button" data-back="1">← Back</button>`,
+  digest: (d) => `<h1 id="auth-title">Daily email</h1><p class="a-sub">One short email each morning (about 9:30 am IST): yesterday's FPI flow, the biggest deals, new rules and new FPI registrations. Free. Switch it off here at any time.</p>
+    <label class="a-chk"><input type="checkbox" id="dg-on"> <span>Email me the daily summary</span></label>
+    <label class="a-chk"><input type="checkbox" id="dg-follow"> <span>Include news on the ${follows().length} firm${follows().length === 1 ? "" : "s"} I follow</span></label>
+    <div class="a-note" id="dg-note" style="margin:10px 0">Sent to ${esc((auth.session && auth.session.user && auth.session.user.email) || "your sign-in address")}. We use this address only for this email.</div>
+    <button class="a-btn" type="button" id="dg-save">Save</button><div class="a-foot" id="dg-msg" role="status"></div>
     <button class="a-btn ghost" type="button" data-back="1">← Back</button>`,
   sent: (d) => `<div class="a-ok" aria-hidden="true">✉︎</div><h1 id="auth-title">Check your email</h1>
     <p class="a-sub">${({ confirm: "We sent a link to confirm your account to", magic: "We sent a sign-in link to", recover: "If an account exists for", })[d.kind] || "We emailed"} <b style="color:var(--ink)">${esc(d.email)}</b>${d.kind === "recover" ? ", a reset link is on its way" : ""}. Open it on this device. It works once and expires soon.</p>
@@ -4705,6 +4744,7 @@ function authScreen(name, data = {}) {
   });
   card.querySelectorAll("[data-back]").forEach((b) => b.onclick = () => { if (auth.prevScreen && !auth.session) authScreen(auth.prevScreen); else closeAuth(); });
   if (name === "activity") authActivity();
+  if (name === "digest") authDigest();
   card.querySelectorAll("[data-eye]").forEach((b) => b.onclick = () => { const i = b.parentElement.querySelector("input"), show = i.type === "password"; i.type = show ? "text" : "password"; b.textContent = show ? "Hide" : "Show"; b.setAttribute("aria-label", show ? "Hide password" : "Show password"); });
   const pw = $("a-pw"), meter = $("a-meter");
   if (pw && meter) pw.oninput = () => {
@@ -4794,6 +4834,18 @@ function track(kind, page, detail) {
 let searchTimer;
 $("gq").addEventListener("input", () => { clearTimeout(searchTimer); searchTimer = setTimeout(() => { const v = $("gq").value.trim(); if (auth.session && v.length >= 3) track("search", state.tab, v); }, 1500); });
 
+// "Daily email": the choice is kept on the account (user metadata); the morning job reads it. Nothing is sent unless it is switched on here.
+function authDigest() {
+  const m = (auth.session && auth.session.user && auth.session.user.user_metadata) || {};
+  $("dg-on").checked = m.digest === "daily"; $("dg-follow").checked = m.digest_follow === true;
+  $("dg-save").onclick = async () => {
+    const msg = $("dg-msg"); msg.textContent = "Saving…";
+    const data = { digest: $("dg-on").checked ? "daily" : "off", digest_follow: $("dg-follow").checked, digest_firms: $("dg-follow").checked ? follows().slice(0, 50) : [] };
+    if (data.digest === "daily" && !m.digest_consent_at) data.digest_consent_at = new Date().toISOString();
+    try { const u = await authCall("/user", { method: "PUT", token: auth.session.access_token, body: { data } }); auth.session.user = u; store(AUTH_KEY, JSON.stringify(auth.session)); msg.textContent = data.digest === "daily" ? "Saved. You will get the email each morning." : "Saved. The email is off."; }
+    catch (e) { msg.textContent = e.message || "Could not save. Try again."; }
+  };
+}
 // "My activity": see, download or delete your own rows.
 const actWhen = (iso) => new Date(iso).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "numeric", minute: "2-digit", hour12: true });
 async function authActivity() {
@@ -5111,7 +5163,7 @@ async function renderMarkets() {
   const byDay = new Map();
   d("fii_dii").forEach((r) => { const e = byDay.get(r.date) || { day: r.date, v: 0, dii: 0 }; e[/^dii$/i.test(r.category) ? "dii" : "v"] = mkNum(r.netValue) || 0; byDay.set(r.date, e); });
   const flowPts = [...byDay.values()].sort((a, b) => dt(a.day) - dt(b.day)).slice(-30);
-  out.push(mkSec("Daily FII and DII net flows", "Net buying (above zero) or selling (below) in the NSE cash market each day, in ₹ crore. The line is the running total over the last 30 trading days.",
+  out.push(mkSec("Daily FII and DII net flows", "Net buying (above zero) or selling (below) in the NSE cash market each day, in US$ with ₹ crore in the hover. The line is the running total over the last 30 trading days.",
     `<div class="fchart" id="mk-fii-chart"></div>`));
   out.push(mkSec("FII / FPI activity", "Daily foreign investor buying and selling in the cash market, in US$ with ₹ crore in brackets (NSE).",
     mkTable(["Date · category", "Buy", "Sell", "Net"], fii.map((r) => [`${r.date} · ${r.category}`, mkUsd(mkNum(r.buyValue)), mkUsd(mkNum(r.sellValue)), mkUsd(mkNum(r.netValue))]))));
@@ -5159,7 +5211,8 @@ async function renderMarkets() {
   out.push(mkSec("FPI equity by sector", "FPI equity assets under custody by sector, in US$ with ₹ crore in brackets (NSDL).", mkTable(["Sector", "Assets (US$)"], sec.map((r) => [r[0], mkUsd(r[1])]))));
   try { out.push(...xtMarkets(await loadExtra())); } catch {}
   $("mk-body").innerHTML = out.join("");
-  barChart($("mk-fii-chart"), flowPts, { height: 200, label: (p) => p.day.slice(0, 6), axis: (v) => fmtCr(v), line: { kind: "cum", name: "30-day running total", full: (v) => fmtCr(v) }, tip: (p) => `<b>${esc(p.day)}</b><div class="row"><span>FII/FPI net</span><span>${fmtCr(p.v)}</span></div><div class="row"><span>DII net</span><span>${fmtCr(p.dii)}</span></div>` });
+  const sg = (v) => `${v < 0 ? "−" : "+"}`, usdP = flowPts.map((p) => ({ ...p, cr: p.v, diicr: p.dii, v: usdMOf(p.v), dii: usdMOf(p.dii) }));
+  barChart($("mk-fii-chart"), usdP, { height: 200, label: (p) => p.day.slice(0, 6), axis: (v) => usdAxis(v), line: { kind: "cum", name: "30-day running total", full: (v) => `${v < 0 ? "−" : ""}${fmtUsd(Math.abs(v))}` }, tip: (p) => `<b>${esc(p.day)}</b><div class="row"><span>FII/FPI net</span><span>${sg(p.v)}${fmtUsd(Math.abs(p.v))} <small>(${sg(p.cr)}${fmtCr(Math.abs(p.cr))})</small></span></div><div class="row"><span>DII net</span><span>${sg(p.dii)}${fmtUsd(Math.abs(p.dii))} <small>(${sg(p.diicr)}${fmtCr(Math.abs(p.diicr))})</small></span></div>` });
   const more = $("mk-more"); if (more) more.onclick = () => { mk.dealsN = (mk.dealsN || 100) + 200; renderMarkets(); };
 }
 
@@ -6449,7 +6502,7 @@ async function drawDebtLimits() {
   box.innerHTML = `<div class="watch-h"><div><h3>FPI debt limits and FAR bonds</h3><div class="sub">CCIL, ${toDMY(D.day)}. General-route limits for government securities, and FPI holdings by security. FAR (fully accessible route) bonds have no limit; FPIs hold ${cr(farTot)} (${fmtUsd(usdMOf(farTot))}) of them.</div></div><button type="button" class="csvbtn" id="dl-csv">Download CSV</button></div>
     <div class="fxd"><div class="fxg" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">${lim}</div></div>
     <div class="qviews" role="group" aria-label="Securities">${kinds.map((k) => `<button type="button" data-dl="${k}" aria-pressed="${dl.view === k}">${k === "FAR" ? "FAR bonds" : k === "SDL" ? "State bonds (SDL)" : k === "T-bill" ? "T-bills" : "G-secs (general route)"}<b>${D.securities.filter((x) => x.kind === k).length}</b></button>`).join("")}</div>
-    <div class="watch-w"><table><thead><tr>${cols.map((c, i) => `<th${i > 1 ? ' class="num" style="text-align:right"' : ""}>${c}</th>`).join("")}</tr></thead><tbody>${data.map((r) => `<tr>${r.map((v, i) => `<td${i > 1 ? ' style="text-align:right"' : ""}>${esc(v)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+    <div class="watch-w"><table><thead><tr>${cols.map((c, i) => `<th${i > 1 ? ' class="num" style="text-align:right"' : ""}>${c.replace(" (₹ cr)", "")}</th>`).join("")}</tr></thead><tbody>${rows.map((x, ri) => `<tr>${[esc(x.security), esc(x.isin), bothH(x.fpi_cr), x.outstanding_cr ? bothH(x.outstanding_cr) : "–", esc(data[ri][4])].map((v, i) => `<td${i > 1 ? ' style="text-align:right"' : ""}>${v}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
   box.querySelectorAll("[data-dl]").forEach((b) => b.onclick = () => { dl.view = b.dataset.dl; drawDebtLimits(); });
   $("dl-csv").onclick = () => csvDownload(`ccil-fpi-${dl.view}-${D.day}.csv`, [cols, ...data]);
 }
