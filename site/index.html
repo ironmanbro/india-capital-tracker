@@ -1106,6 +1106,11 @@ body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-wei
 .reglib .cnt{background:none;border:0;color:var(--accent);font:inherit;font-weight:600;cursor:pointer;padding:0}
 .reglib-note{color:var(--muted);font-size:12.5px;margin:10px 0 0}
 @media (max-width:760px){.reglib table,.reglib tbody,.reglib tr,.reglib td{display:block}.reglib thead{display:none}.reglib tr{padding:10px 0;border-bottom:1px solid var(--line)}.reglib td{border:0;padding:2px 0}.reglib td.n{width:auto}}
+.cb-pick{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:0 0 14px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.cb-lbl{font-weight:700;font-size:13px}
+.cb-pick select{min-width:200px;font-weight:600}
+.cb-chips{margin:0!important;flex:1 1 320px}
+.cb-chips button{min-height:32px!important;padding:0 12px!important;font-size:13px}
 .qviews{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
 .jump{position:sticky;top:0;z-index:15;margin:0 0 12px;padding:8px 0;background:var(--bg);flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none}
 .jump::-webkit-scrollbar{display:none}
@@ -1572,10 +1577,6 @@ body{font-variant-numeric:tabular-nums}
     <p class="takeaway" id="fl-take" hidden></p>
     <p class="sub" style="margin:0 0 12px">Money moving into and out of India in aggregate. FPI figures are daily from NSDL (in the currency you chose, with a second currency in brackets); FDI figures are by financial year from DPIIT's quarterly fact sheet (reported in US$, shown in the currency you chose).</p>
 
-    <section class="fxd" id="fxdesk" aria-label="FX desk"></section>
-    <section class="watch" id="debtlim" aria-label="FPI debt limits"></section>
-    <section class="watch" id="idxev" aria-label="Index changes"></section>
-    <section class="watch" id="mktcal" aria-label="Market calendar"></section>
     <div class="tsum" id="fl-sum"></div>
     <h2 class="fsec">FPI · foreign portfolio investment</h2>
     <p class="note">Shares and bonds bought and sold by foreign funds. Daily from NSDL, in the currency you chose, with a second currency in brackets.</p>
@@ -1623,6 +1624,9 @@ body{font-variant-numeric:tabular-nums}
       <p class="dsrc" data-src="nsdl_flows" data-what="NSDL annual and quarterly FPI net investment reports"></p>
     </div>
 
+    <section class="fxd" id="fxdesk" aria-label="FX desk"></section>
+    <section class="fxd" id="fxres" aria-label="Forex reserves"></section>
+    <section class="watch" id="debtlim" aria-label="FPI debt limits"></section>
     <h2 class="fsec">FDI · foreign direct investment</h2>
     <p class="note" id="dpiit-sub">Long-term stakes in Indian companies. From DPIIT's quarterly FDI fact sheet, by financial year.</p>
     <div class="fcard">
@@ -1652,6 +1656,10 @@ body{font-variant-numeric:tabular-nums}
     <p class="note">Latest FDI newsletters and fact sheets published by DPIIT, with the original PDFs.</p>
     <div id="dpiit-pubs"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div>
     <div class="ftip" id="ftip" role="tooltip" hidden></div>
+    <section class="fxd" id="fxbig" aria-label="Large deals that will move dollars"></section>
+    <section class="watch" id="idxev" aria-label="Index changes"></section>
+    <section class="watch" id="mktcal" aria-label="Market calendar"></section>
+
   </section>
 
   <section id="tab-regulation" hidden>
@@ -1898,6 +1906,7 @@ async function refresh() {
     state.lastReview = Object.values(state.latest).reduce((a, t) => (!a || new Date(t) > new Date(a) ? t : a), null);
     await loadFlows();
     render();
+    try { if (state.tab === "flows") drawFxDesk(); } catch {}
   } catch (e) {
     // Say so plainly instead of showing zeros that look like real data, and offer a retry.
     $("updated").innerHTML = `Couldn't load the latest data. <button class="link" type="button" id="retry-load">Try again</button>`;
@@ -2088,7 +2097,8 @@ function renderKpis() {
   });
   $("updated").textContent = `Last updated: ${state.lastReview ? `${istTime(state.lastReview)} IST (${ago(state.lastReview)})` : "not yet"}`;
   const shown = filtered().length;
-  $("kpi-note").textContent = `${shown === state.events.length ? `${fmt(shown)} stories` : `Showing ${fmt(shown)} of ${fmt(state.events.length)} stories`}. Tap a box to filter. Counts follow the filters above; a deal reported by several outlets counts once. Data from ${firstMonth()} to date.`;
+  const pool = state.events.filter((e) => e.event_type !== "regulation").length;   // deal stories only: rule documents have their own tab
+  $("kpi-note").textContent = `${shown === pool ? `${fmt(shown)} deal stories` : `Showing ${fmt(shown)} of ${fmt(pool)} deal stories (the rest are outside the filters above: period, deal type, country, and "capital deals only" by default)`}. Tap a box to filter. Counts follow the filters above; a deal reported by several outlets counts once. Data from ${firstMonth()} to date.`;
   // On phones the filters fold away behind one button that shows how many are in use.
   const active = [$("preset").value !== "all", !!$("source").value, !!$("region").value, !!$("stage").value, $("flow").value !== "capital"].filter(Boolean).length;
   $("ftoggle").textContent = active ? `Filters (${active})` : "Filters";
@@ -3705,6 +3715,8 @@ function setTab(t) {
   if (t === "flows") setTimeout(() => { try { drawFxDesk(); } catch {} }, 300);
   if (t === "directory") setTimeout(() => { try { drawFpiWatch(); drawFpiLimits(); } catch {} }, 300);
   if (t === "regulation") [300, 1800].forEach((ms) => setTimeout(() => { try { drawWht(); drawRegLib(); } catch {} }, ms));
+  // The FPI watch lists, investment limits and FPI asset tables belong to the FPI register only; GIFT City keeps its own totals.
+  ["fpiwatch", "fpilim", "dir-aum"].forEach((id) => { const e = $(id); if (e) e.hidden = t === "gift"; });
   setTimeout(() => { try { drawSideViews(); } catch {} }, 0);
   [0, 600, 1500].forEach((ms) => setTimeout(() => { try { drawTabSums(); } catch {} }, ms));
   // Going to Home drops the country, sector and story filters, so the address goes back to plain "/".
@@ -6450,10 +6462,10 @@ function drawFxDesk() {
       <svg viewBox="0 0 ${W} ${H + 18}" role="img" aria-label="USD/INR against monthly FPI flows"><line x1="0" x2="${W}" y1="${mid}" y2="${mid}" stroke="var(--line)"/>${bars}<path d="${line}" fill="none" stroke="var(--ink)" stroke-width="2"/>${ticks}</svg>
       <div class="s">Bars: net FPI investment each month (blue in, orange out). Line: average USD/INR (higher means a weaker rupee). Hover for figures.</div></div>
       <div class="hc" style="cursor:default"><h3>USD/INR forward premia</h3><table><thead><tr><th>Tenor</th><th class="num">Annualised</th><th class="num">₹ premium</th></tr></thead><tbody>${fwdRows.map((r) => `<tr><td>${esc(r.tenor)}</td><td class="num">${(+r.premia_pct).toFixed(2)}%</td><td class="num">${(+r.premia_rs).toFixed(4)}</td></tr>`).join("") || '<tr><td colspan="3">Not available.</td></tr>'}</tbody></table>
-      <div class="s">FBIL, ${fxd.fwdDay ? toDMY(fxd.fwdDay) : "–"}. The annualised premium is the cost of hedging dollars into rupees.</div></div></div>
-    ${reservesCard()}
-    <div class="hc" style="cursor:default;margin-top:16px"><h3>Large deals that will move dollars</h3><div class="s" style="margin-top:-4px">USD 250 million or more, agreed, completed or planned, last 120 days. "In" brings dollars into India; "Out" takes them out.</div>
-      <div class="watch-w" style="max-height:360px"><table><thead><tr><th>Date</th><th>Direction</th><th>Investor</th><th>Company</th><th>Stage</th><th class="num">Amount</th></tr></thead><tbody>${bigFlows().map(({ e, dir, usd }) => `<tr><td>${toDMY(dayStr(when(e)))}</td><td class="${dir === "In" ? "dn" : "up"}" style="font-weight:700">${dir}</td><td>${esc(e.investor || "")}</td><td>${esc(e.target || "")}</td><td>${esc(STAGES[e.deal_stage]?.[0] || "")}</td><td class="num">${fmtUsd(usd)}</td></tr>`).join("") || '<tr><td colspan="6">None in this window.</td></tr>'}</tbody></table></div></div>`;
+      <div class="s">FBIL, ${fxd.fwdDay ? toDMY(fxd.fwdDay) : "–"}. The annualised premium is the cost of hedging dollars into rupees.</div></div></div>`;
+  if ($("fxres")) $("fxres").innerHTML = reservesCard();
+  if ($("fxbig")) $("fxbig").innerHTML = `<div class="hc" style="cursor:default;margin-top:16px"><h3>Large deals that will move dollars</h3><div class="s" style="margin-top:-4px">USD 250 million or more, agreed, completed or planned, last 120 days. "In" brings dollars into India; "Out" takes them out.</div>
+      <div class="watch-w" style="max-height:360px"><table><thead><tr><th>Date</th><th>Direction</th><th>Investor</th><th>Company</th><th>Stage</th><th class="num">Amount</th></tr></thead><tbody>${bigFlows().map(({ e, dir, usd }) => `<tr><td>${toDMY(dayStr(when(e)))}</td><td class="${dir === "In" ? "dn" : "up"}" style="font-weight:700">${dir}</td><td>${esc(e.investor || "")}</td><td>${esc(e.target || "")}</td><td>${esc(STAGES[e.deal_stage]?.[0] || "")}</td><td class="num">${fmtUsd(usd)}</td></tr>`).join("") || `<tr><td colspan="6">${state.events.length ? "No deals of USD 250 million or more in the last 120 days." : "Loading deals…"}</td></tr>`}</tbody></table></div></div>`;
 }
 
 // ---------- Market calendar (NSE): holidays, corporate actions, issues ----------
@@ -6542,10 +6554,13 @@ async function drawCountryBrief() {
   const sum = (a) => a.filter((e) => FIRM.has(e.deal_stage)).reduce((s, e) => s + (amountCr(e)?.usd || 0), 0);
   const top = deals.filter((e) => amountCr(e)).sort((a, b) => amountCr(b).usd - amountCr(a).usd).slice(0, 6);
   const invs = new Map(); deals.forEach((e) => e.investor && invs.set(e.investor, (invs.get(e.investor) || 0) + 1));
-  box.innerHTML = `<div class="watch-h"><div><h3>Country briefing</h3><div class="sub">One page per investor country: registered FPIs, deals in the last 12 months and Indian investment going there.</div></div>
-      <select id="cb-c" aria-label="Country" style="min-height:40px">${list.map((c) => `<option${c === cbx.c ? " selected" : ""}>${esc(c)}</option>`).join("")}</select></div>
-    <div class="cb-g"><div><b>${nfmt(B.fpis || 0)}</b><span>registered FPIs${B.cat ? ` · Cat I ${nfmt(B.cat.I || 0)} · Cat II ${nfmt(B.cat.II || 0)}` : ""}</span></div><div><b>${nfmt(B.new_12m || 0)}</b><span>new FPIs, 12 months · ${nfmt(B.expiring_90 || 0)} due for renewal in 90 days</span></div>
-      <div><b>${nfmt(ins.length)}</b><span>investments into India, 12 months · ${fmtUsd(sum(ins))} agreed or completed</span></div><div><b>${nfmt(outs.length)}</b><span>sales and exits · ${fmtUsd(sum(outs))}</span></div>
+  const topC = [...n].sort((a, b) => b[1] - a[1]).slice(0, 8).map((x) => x[0]), cn = esc(cbx.c);
+  box.innerHTML = `<div class="watch-h"><div><h3>Country briefing: ${cn}</h3><div class="sub">Pick the investor country below. Everything in this briefing is about ${cn}: registered FPIs, deals in the last 12 months and Indian investment going there.</div></div></div>
+    <div class="cb-pick"><label class="cb-lbl" for="cb-c">Country</label>
+      <select id="cb-c" aria-label="Country" style="min-height:40px">${list.map((c) => `<option${c === cbx.c ? " selected" : ""}>${esc(c)}</option>`).join("")}</select>
+      <div class="qviews cb-chips" role="group" aria-label="Most active countries">${topC.map((c) => `<button type="button" data-cc="${esc(c)}" aria-pressed="${c === cbx.c}">${esc(c)}</button>`).join("")}</div></div>
+    <div class="cb-g"><div><b>${nfmt(B.fpis || 0)}</b><span>registered FPIs based in ${cn}${B.cat ? ` · Cat I ${nfmt(B.cat.I || 0)} · Cat II ${nfmt(B.cat.II || 0)}` : ""}</span></div><div><b>${nfmt(B.new_12m || 0)}</b><span>new FPIs from ${cn}, 12 months · ${nfmt(B.expiring_90 || 0)} due for renewal in 90 days</span></div>
+      <div><b>${nfmt(ins.length)}</b><span>investments into India by ${cn} investors, 12 months · ${fmtUsd(sum(ins))} agreed or completed</span></div><div><b>${nfmt(outs.length)}</b><span>sales and exits by ${cn} investors · ${fmtUsd(sum(outs))}</span></div>
       <div><b>${B.odi_12m ? fmtUsd(+B.odi_12m) : "–"}</b><span>Indian investment going to ${esc(cbx.c)}, 12 months (RBI)</span></div></div>
     <div class="cb-2"><div><h4>Largest deals</h4>${top.map((e) => `<div style="padding:5px 0;border-bottom:1px solid var(--line)"><a href="${safeUrl(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a><div class="sub">${toDMY(dayStr(when(e)))} · ${fmtUsd(amountCr(e).usd)}</div></div>`).join("") || '<div class="sub">None with amounts.</div>'}</div>
       <div><h4>Most active investors</h4>${[...invs].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([k, v]) => `<div style="padding:5px 0;border-bottom:1px solid var(--line)">${firmLink(k)} <span class="sub">· ${v} stories</span></div>`).join("") || '<div class="sub">None.</div>'}
@@ -6553,6 +6568,7 @@ async function drawCountryBrief() {
         <h4 style="margin-top:14px">Indian companies investing there</h4>${(B.odi_top || []).map((t) => `<div class="sub">${esc(titleCase(t.p))}: ${fmtUsd(+t.usd_m)}</div>`).join("") || '<div class="sub">None in the last 12 months.</div>'}</div></div>
     <div style="margin-top:10px"><button type="button" class="csvbtn" id="cb-deals">All deals from ${esc(cbx.c)} →</button></div>`;
   $("cb-c").onchange = (ev) => { cbx.c = ev.target.value; drawCountryBrief(); };
+  box.querySelectorAll("[data-cc]").forEach((b) => b.onclick = () => { cbx.c = b.dataset.cc; drawCountryBrief(); });
   $("cb-deals").onclick = () => { clearView(); state.country = cbx.c; render(); setTab("feed"); toTop(); };
 }
 // ---------- Weekly brief: one printable page (Save as PDF from the print dialog) ----------
