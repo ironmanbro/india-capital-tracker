@@ -17,6 +17,8 @@ Open: `python3 -m http.server` in this folder, then `monitor.html` or `flows.htm
 | `investors.html` | Investors directory: filters, sortable table, country and activity panels, coverage audit |
 | `reg.js` | Snapshot for Registrations: full NSDL register (12,364 FPIs), watch lists, IFSCA counts, limit lists. About 1.3 MB because the whole register is embedded so search works offline; production would query the database. Generated, do not edit |
 | `registrations.html` | Registrations tab: watch lists and full register, filters, CSV, analytics and limit panels |
+| `regs.js` | Snapshot for Regulations: 162 SEBI/RBI rules since 2021, 60 latest CCI orders. Generated, do not edit |
+| `regulations.html` | Regulations tab: rules and circulars, compliance calendar, CCI approvals, reference |
 | `company.html` | Company profile: Meesho Ltd |
 | `investor.html` | Investor-group profile: SoftBank Group |
 | `screens/` | Screenshots of the current state |
@@ -30,7 +32,7 @@ Open: `python3 -m http.server` in this folder, then `monitor.html` or `flows.htm
 
 ## Navigation (5 tabs)
 Home (Today, Markets, Weekly brief), Deals, Investors (Directory, Ownership changes, Network, Countries, 13F, plus profile pages), Registrations, Regulations.
-Only Home, Deals, Investors directory, Registrations and the two profiles are drawn; every other link is a placeholder.
+All five tabs are drawn at landing level (Home, Deals, Investors directory, Registrations, Regulations), plus two profile pages; every other link is a placeholder.
 
 ## What the profile pages showed about name matching
 - Meesho exchange deals name 50 distinct clients; 16 (32%) match the NSDL FPI register exactly (registration number shown). 1 group (SVF) links by name pattern; 33 are unlinked. No fuzzy matching was tried.
@@ -73,3 +75,11 @@ Only Home, Deals, Investors directory, Registrations and the two profiles are dr
 - Link to deals: 52 of 12,364 registered names match an investor with deals in the last 12 months after name cleaning; they show a bought/sold tag that opens the Investors directory. Name match, unconfirmed (for example "UBS AG" matches the investor "UBS").
 - "Registered in 2026" (853) is NSDL's own count; the 30-day watch list (73) uses a different date field than the directory's own 30-day figure (68), so only the watch-list figure is shown.
 - Not built: Foreign investment limits, GIFT City and Analytics sub-views (links are placeholders; their summaries are panels on this page); weekly brief.
+
+## Regulations
+- 162 SEBI and RBI rules (105 SEBI, 57 RBI) with issue date, document type, the instruments they affect (FPI 89, FDI 19, FVCI 12, ODI 11, GIFT City 5) and a link to the regulator's own document. Filters: period, regulator, document type, "affects", text; all kept in the URL.
+- Summaries and "affects" labels are written automatically and not reviewed (classifier status "review" on every row), and the page says so; the linked document is the authority.
+- Only 15 of 162 rules carry a stated effective date, so the compliance calendar is short by design; it shows only those.
+- CCI approvals link to reported deals only on an exact normalised name match (whole-word boundary) with a plausible date gap; exchange deals are excluded because block trades need no CCI approval. 10 of 132 orders in the last 12 months match. A first, looser word-match rule gave 101 false links and was dropped.
+- Reference: debt-limit utilisation (CCIL/NSDL) and the withholding-tax table, which comes from Deloitte's India Highlights (August 2026), a secondary source and not the Income-tax Act; marked grade B and flagged on the page.
+- Not built: DPIIT, IFSCA and PIB documents are collected but not yet classified as rules; the sub-views (calendar, CCI, reference) are placeholders; FEMA/FDI sectoral caps are not in the data yet.
