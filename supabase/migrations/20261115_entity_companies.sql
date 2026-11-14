@@ -13,8 +13,11 @@ alter table public.entity_group
   add column if not exists isin text check (isin is null or isin ~ '^IN[A-Z0-9]{10}$');
 create unique index if not exists entity_group_company_symbol on public.entity_group (symbol) where kind = 'company' and symbol is not null;
 create unique index if not exists entity_group_company_isin on public.entity_group (isin) where kind = 'company' and isin is not null;
-alter table public.entity_group drop constraint if exists entity_group_id_kind;
-alter table public.entity_group add constraint entity_group_id_kind unique (id, kind);
+do $$ begin
+  if not exists (select 1 from pg_constraint where conname = 'entity_group_id_kind' and conrelid = 'public.entity_group'::regclass) then
+    alter table public.entity_group add constraint entity_group_id_kind unique (id, kind);
+  end if;
+end $$;
 
 alter table public.entity_alias add column if not exists kind text not null default 'investor' check (kind in ('investor', 'company'));
 -- an alias must be of the same kind as its group

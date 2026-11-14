@@ -62,8 +62,9 @@
 </main>
 <div class="foot"><span>India Capital Monitor · v2 design mockup · Investors directory</span><span>Profile pages exist for SoftBank Group only</span><span>Aliases: names merged only where you confirmed them in the review queue</span></div>
 
-<script src="data.js"></script><script src="inv.js"></script><script src="resolver.js"></script><script src="ui.js"></script>
+<script src="data.js"></script><script src="inv.js"></script><script src="config.js"></script><script src="resolver.js"></script><script src="ui.js"></script>
 <script>
+ALIASES.ready.then(()=>{
 const F=window.F, RAW=INV.rows, dayN=iso=>Date.UTC(+iso.slice(0,4),+iso.slice(5,7)-1,+iso.slice(8,10))/864e5;
 ICTUI.shell('investors','dir');
 document.getElementById('asof').textContent='Data to '+F.dshort(INV.asof)+' · page built '+INV.built;
@@ -142,7 +143,8 @@ document.getElementById('cv').innerHTML='<tbody>'+[
  ['Merged by confirmed aliases',gr.length+' groups','from '+F.inr(gr.reduce((t,r)=>t+r.members.length,0))+' names']].map(r=>'<tr><td class="wrapc">'+r[0]+'</td><td class="n num">'+r[1]+'</td><td class="mut">'+r[2]+'</td></tr>').join('')+'</tbody>';
 }
 coverage(); render();
-window.addEventListener('storage',e=>{ if(e.key==='ict-alias-map-v1'){ ALIASES.reload(); build(); coverage(); render() } });
+window.addEventListener('ict-alias-change',()=>{ build(); coverage(); render() });
+});
 </script>
 </body>
 </html>

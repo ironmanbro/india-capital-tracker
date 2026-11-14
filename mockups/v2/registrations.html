@@ -68,8 +68,9 @@
 </main>
 <div class="foot"><span>India Capital Monitor · v2 design mockup · Registrations</span><span id="dl"></span></div>
 
-<script src="data.js"></script><script src="reg.js"></script><script src="inv.js"></script><script src="resolver.js"></script><script src="ui.js"></script>
+<script src="data.js"></script><script src="reg.js"></script><script src="inv.js"></script><script src="config.js"></script><script src="resolver.js"></script><script src="ui.js"></script>
 <script>
+ALIASES.ready.then(()=>{
 const F=window.F, G=REG, T0='2026-11-14', dayN=iso=>Date.UTC(+iso.slice(0,4),+iso.slice(5,7)-1,+iso.slice(8,10))/864e5, today=dayN(T0);
 ICTUI.shell('reg','reg');
 document.getElementById('asof').textContent='Register updated '+F.dshort(G.stats.fpi_updated)+' · page built '+G.built;
@@ -152,8 +153,9 @@ document.getElementById('gc').innerHTML='<tbody>'+G.ifsca.slice(0,6).map(c=>'<tr
 document.getElementById('gcf').textContent=G.stats.ifsca_new_30d+' added in the last 30 days · '+G.stats.fpi_gift+' FPIs are GIFT City based. Source: IFSCA directory.';
 function dealNote(){ document.getElementById('dl').innerHTML=objs.filter(o=>o.d).length+' of '+F.inr(objs.length)+' registered names match an investor with deals in the last 12 months (same cleaned name, or a confirmed alias). Aliases: '+ALIASES.note()+'.' }
 dealNote();
-window.addEventListener('storage',e=>{ if(e.key==='ict-alias-map-v1'){ ALIASES.reload(); tagDeals(); dealNote(); render() } });
+window.addEventListener('ict-alias-change',()=>{ tagDeals(); dealNote(); render() });
 render();
+});
 </script>
 </body>
 </html>

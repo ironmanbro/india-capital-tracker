@@ -31,10 +31,14 @@ create index if not exists entity_alias_group on public.entity_alias (group_id);
 alter table public.entity_group enable row level security;
 alter table public.entity_alias enable row level security;
 -- a group is visible only once it has a confirmed alias, so rejected proposals are never published
+drop policy if exists "read groups" on public.entity_group;
 create policy "read groups" on public.entity_group for select to anon, authenticated
   using (public.is_admin() or exists (select 1 from public.entity_alias a where a.group_id = entity_group.id and a.status = 'confirmed'));
+drop policy if exists "read confirmed aliases" on public.entity_alias;
 create policy "read confirmed aliases" on public.entity_alias for select to anon, authenticated using (status = 'confirmed' or public.is_admin());
+drop policy if exists "owner writes groups" on public.entity_group;
 create policy "owner writes groups" on public.entity_group for all to authenticated using (public.is_admin()) with check (public.is_admin());
+drop policy if exists "owner writes aliases" on public.entity_alias;
 create policy "owner writes aliases" on public.entity_alias for all to authenticated using (public.is_admin()) with check (public.is_admin());
 revoke all on public.entity_group, public.entity_alias from anon, authenticated;
 grant select on public.entity_group, public.entity_alias to anon, authenticated;

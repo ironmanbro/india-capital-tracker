@@ -12,6 +12,10 @@ directory finds only 50 of 552 news names in the shareholding filings, and the p
 | `aliases_curated.json` | Hand-written patterns, applied first. Only SoftBank is in it today |
 | `../../supabase/migrations/20261114_entity_aliases.sql` | Stores the owner's DECISIONS only (`entity_group`, `entity_alias`, `entity_of()`). **Not yet applied to the live project** |
 | `../../supabase/migrations/20261115_entity_companies.sql` | Run after the first one. Adds symbol and ISIN to company groups, makes aliases unique per kind, adds the `part_of` relation and `entity_of(name, kind)`. **Not yet applied** |
+| `ROLLOUT.md` | The checklist for applying this to the live project: preflight results, steps, checks, rollback, troubleshooting |
+| `verify_rollout.py` | Read-only checks from outside (`--before`, `--after`); never writes |
+| `verify_after_apply.sql` | Read-only checks you run in the SQL editor: permissions, policies, security mode, counts |
+| `../../supabase/rollback/20261115_entity_aliases_down.sql` | Removes everything the two migrations created, nothing else |
 | `../../mockups/v2/alias.html` | Review queue for investors and companies: confirm, reject, untick members, change relations, export SQL |
 
 ## How a name gets proposed
@@ -72,7 +76,7 @@ Not done for companies: unlisted companies (startups) are only grouped by exact 
 
 Two sources, same lookup:
 - **local** (default): every confirm, reject or untick in `alias.html` is published to this browser, and the other pages update at once (even in another open tab). It works before the migrations are applied, and only for the person who made the decisions.
-- **database**: `ALIASES.use('database', {url, key})` pages through the view `entity_alias_confirmed` (added to migration 20261115; tested on PostgreSQL, anonymous users see only confirmed aliases and cannot write to it). The HTTP side was tested against a mock server that pages like the API (2,487 rows in 3 requests, bad URL throws); **it has not been run against the live project.**
+- **database**: set `aliasSource: 'database'` in `mockups/v2/config.js`. The pages wait for the aliases before first paint, ignore local decisions, and fall back to them (with a visible note) if the database is down, errors or takes longer than 3 seconds. It pages through the view `entity_alias_confirmed` (added to migration 20261115; tested on PostgreSQL, anonymous users see only confirmed aliases and cannot write to it). Tested against a stand-in API in front of a real PostgreSQL, with every query run as the `anon` role: same numbers as local mode on all five pages, and a clean fall back when the database is down, returns HTTP 500 or is slow. **It has not been run against the live project**; the first run after applying the migrations is that test (see `ROLLOUT.md`).
 
 Pages using it: the Investors directory (rows merge into confirmed groups; a "N names" tag lists them), Registrations ("in deals" tag), Deals (investor shown under its group name with an "alias" tag, search finds either name, and the count after "+" counts investors not legs), and the SoftBank and Meesho profiles (a link reads "Confirmed" once you confirm it, "Name match" before). Not wired: Regulations (the CCI-to-deal links are still computed from exact names), and the profile pages' underlying data, which is still a SoftBank snapshot.
 
@@ -84,7 +88,7 @@ Each number was recomputed in Python from the saved decisions, without using any
 | News names also found in filings | 50 of 552 | 69 of 552 |
 | Goldman Sachs row | 10 bought / 3 sold (one name) | 26 / 7 (14 names) |
 | Registered FPIs tagged "in deals" | 51 | 519 (Fidelity's funds are now recognised) |
-| 13-Nov Meesho buyers (Deals) | SOCIETE GENERALE +10 | +7 (11 legs are 8 investors) |
+| 13-Nov Meesho buyers (Deals) | SOCIETE GENERALE +9 (11 legs, 10 distinct names) | +7 (8 investors) |
 | SoftBank profile | 8 names, "Name match" | 8 names, "Confirmed" |
 Clearing the decisions returned every page to its original numbers.
 

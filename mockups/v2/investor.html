@@ -53,8 +53,9 @@
 </main>
 <div class="foot"><span>India Capital Monitor · v2 design mockup · investor profile</span></div>
 
-<script src="data.js"></script><script src="profiles.js"></script><script src="resolver.js"></script><script src="ui.js"></script>
+<script src="data.js"></script><script src="profiles.js"></script><script src="config.js"></script><script src="resolver.js"></script><script src="ui.js"></script>
 <script>
+ALIASES.ready.then(()=>{
 const F=window.F, I=PROF.investor, P=I.profile;
 ICTUI.shell('investors','profile');
 document.getElementById('bc').textContent=I.name;
@@ -95,6 +96,7 @@ const confirmed=n=>{const r=ALIASES.resolve(n,'investor'); return !!r&&r.canonic
 document.getElementById('al').innerHTML='<thead><tr><th>Name as found</th><th>Seen in</th><th>Link to this group</th><th>Basis</th></tr></thead><tbody>'+
  [...ents.values()].map(e=>{const names=[...e.names], n=names[0], s=svf(n), ok=names.some(confirmed);return '<tr><td>'+names.join(' / ')+'</td><td>'+[...e.src].join(', ')+'</td><td>'+(ok?'<span class="tag a">Confirmed</span>':'<span class="tag c">Name match</span>')+'</td><td>'+(ok?'You confirmed this alias in the review queue':s?'Name starts with "SVF" (SoftBank Vision Fund naming); not yet confirmed':'Group name used in news; not yet confirmed')+'</td></tr>'}).join('')+'</tbody>';
 document.getElementById('aln').textContent=ALIASES.note()+'.';
+});
 </script>
 </body>
 </html>

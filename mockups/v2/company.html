@@ -59,8 +59,9 @@
 </main>
 <div class="foot"><span>India Capital Monitor · v2 design mockup · company profile</span></div>
 
-<script src="data.js"></script><script src="profiles.js"></script><script src="resolver.js"></script><script src="ui.js"></script>
+<script src="data.js"></script><script src="profiles.js"></script><script src="config.js"></script><script src="resolver.js"></script><script src="ui.js"></script>
 <script>
+ALIASES.ready.then(()=>{
 const F=window.F, C=PROF.company, I=PROF.investor;
 ICTUI.shell('investors','co');
 document.getElementById('bc').textContent=C.name; 
@@ -111,6 +112,7 @@ document.getElementById('au').innerHTML='<thead><tr><th>Step</th><th class="n">C
   ['Linked to an investor group by a confirmed alias',cf,ALIASES.note()],
   ['Linked to an investor group by name pattern',sv,'Name starts with "SVF"; not yet confirmed'],
   ['Not linked',nm-ex-sv-cf,'May be domestic funds, unregistered entities or spelling variants']].map(r=>'<tr><td>'+r[0]+'</td><td class="n num">'+r[1]+'</td><td>'+r[2]+'</td></tr>').join('')+'</tbody>';
+});
 </script>
 </body>
 </html>
