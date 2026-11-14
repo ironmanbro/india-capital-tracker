@@ -1,0 +1,7 @@
+{
+  "_note": "Hand-written rules, applied before the automatic prefix rule. Every rule only PROPOSES; nothing counts until the owner confirms it in the review queue.",
+  "patterns": [
+    {"regex": "^svf\\b", "group": "SoftBank Group", "relation": "vehicle_of", "note": "SoftBank Vision Fund vehicles are named SVF ..."},
+    {"regex": "softbank", "group": "SoftBank Group", "relation": "related", "note": "Name contains SoftBank"}
+  ]
+}
