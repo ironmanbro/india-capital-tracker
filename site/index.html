@@ -1545,6 +1545,91 @@ body{font-variant-numeric:tabular-nums}
 :root:not(#ds1):not(#ds2) .toast:not(.show){opacity:0;visibility:hidden}
 :root:not(#ds1):not(#ds2) .toast.show{box-shadow:0 8px 24px rgba(0,0,0,.25)!important}
 :root:not(#ds1):not(#ds2) nav.tabs{box-shadow:none!important}
+
+/* ===== Density pass: one rhythm of 8 / 12 / 16 / 24, no slack space ===== */
+@media (min-width:701px){
+  :root:not(#ds1):not(#ds2) .wrap{padding:20px 32px 48px!important}
+  :root:not(#ds1):not(#ds2) header{margin-bottom:12px!important;gap:4px 16px!important;align-items:flex-start!important}
+  :root:not(#ds1):not(#ds2) header .eyebrow{display:none!important}
+  :root:not(#ds1):not(#ds2) header h1#ptitle{font-size:28px!important;margin:0 0 2px!important}
+  :root:not(#ds1):not(#ds2) header .sub,:root:not(#ds1):not(#ds2) #psub{font-size:13px!important}
+  :root:not(#ds1):not(#ds2) header .htools{padding:4px!important}
+  :root:not(#ds1):not(#ds2) .hstatus{margin-top:6px!important;display:flex;justify-content:flex-end;align-items:center;gap:12px}
+  :root:not(#ds1):not(#ds2) .hstatus .sub{margin:0!important}
+}
+:root:not(#ds1):not(#ds2) .takeaway{margin:0 0 16px!important;font-size:15px!important;line-height:1.55!important;max-width:none!important}
+:root:not(#ds1):not(#ds2) p.sub,:root:not(#ds1):not(#ds2) .note{margin-top:0!important}
+:root:not(#ds1):not(#ds2) :is(.ovgrid,.ftiles,.hsum,.tsum,.board,.fxg,.kpis){gap:12px!important}
+:root:not(#ds1):not(#ds2) .ovgrid{align-items:start!important;margin-bottom:12px}
+:root:not(#ds1):not(#ds2) .ovc{padding:20px!important}
+:root:not(#ds1):not(#ds2) .ovh{margin-bottom:12px!important}
+:root:not(#ds1):not(#ds2) :is(.ftile,.kpi){padding:16px!important}
+:root:not(#ds1):not(#ds2) :is(.ftile,.kpi) .n{margin:2px 0 0!important}
+:root:not(#ds1):not(#ds2) .ftiles{margin:0 0 12px!important}
+:root:not(#ds1):not(#ds2) .fcard{padding:16px!important;margin-bottom:12px!important}
+:root:not(#ds1):not(#ds2) .fhead{margin-bottom:8px!important}
+:root:not(#ds1):not(#ds2) .hsum-head{margin:20px 0 8px!important}
+:root:not(#ds1):not(#ds2) .hc{padding:16px 18px!important}
+:root:not(#ds1):not(#ds2) h2.fsec{margin:20px 0 4px!important}
+:root:not(#ds1):not(#ds2) .dsrc{margin:0 0 8px!important}
+:root:not(#ds1):not(#ds2) .acc{margin:0 0 8px!important}
+:root:not(#ds1):not(#ds2) .acc>summary{padding:14px 16px!important}
+:root:not(#ds1):not(#ds2) .acc-body{padding:0 16px 16px!important}
+:root:not(#ds1):not(#ds2) .fpi-main{padding:16px!important;margin:0 0 8px!important}
+:root:not(#ds1):not(#ds2) .fnav{gap:8px!important;margin:0 0 12px!important}
+:root:not(#ds1):not(#ds2) .fnav button{padding:10px 12px!important}
+:root:not(#ds1):not(#ds2) .fnav-h{margin:0 0 6px!important}
+:root:not(#ds1):not(#ds2) .viewseg{margin:0 0 8px!important}
+:root:not(#ds1):not(#ds2) .filters,:root:not(#ds1):not(#ds2) .filterbar{gap:8px!important;margin:0 0 8px!important}
+:root:not(#ds1):not(#ds2) .qviews{gap:6px!important;margin:0 0 8px!important}
+:root:not(#ds1):not(#ds2) .scard{padding:12px 14px!important}
+:root:not(#ds1):not(#ds2) .watch{padding:16px!important;margin:0 0 12px!important}
+:root:not(#ds1):not(#ds2) .watch-h{margin-bottom:8px!important}
+:root:not(#ds1):not(#ds2) .pf-head{padding:16px 18px!important;margin:8px 0 12px!important}
+:root:not(#ds1):not(#ds2) .cb-pick{margin:0 0 10px!important;padding:10px 12px!important}
+:root:not(#ds1):not(#ds2) .iconst{padding:16px!important;margin-bottom:12px!important}
+:root:not(#ds1):not(#ds2) .reglib>summary{padding:14px 16px!important}
+:root:not(#ds1):not(#ds2) section.enter{animation-duration:.25s!important}
+@media (max-width:700px){
+  :root:not(#ds1):not(#ds2) .wrap{padding:12px 12px 96px!important}
+  :root:not(#ds1):not(#ds2) header{margin-bottom:8px!important}
+  :root:not(#ds1):not(#ds2) header h1#ptitle{font-size:24px!important}
+  :root:not(#ds1):not(#ds2) header .htools{margin-top:8px}
+  :root:not(#ds1):not(#ds2) .hstatus{margin-top:6px!important}
+  :root:not(#ds1):not(#ds2) .takeaway{font-size:14px!important;margin-bottom:12px!important}
+  :root:not(#ds1):not(#ds2) :is(.ftile,.kpi){padding:14px!important}
+  :root:not(#ds1):not(#ds2) :is(.ftile .n,.kpi .n){font-size:22px!important}
+  :root:not(#ds1):not(#ds2) :is(.ovc,.fcard,.watch,.fpi-main,.pf-head){padding:14px!important}
+  :root:not(#ds1):not(#ds2) :is(.ovgrid,.ftiles,.hsum,.tsum,.board){gap:8px!important}
+  :root:not(#ds1):not(#ds2) .fnav{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  :root:not(#ds1):not(#ds2) .fnav span{display:none!important}
+  :root:not(#ds1):not(#ds2) .fnav button{padding:10px 12px!important}
+  :root:not(#ds1):not(#ds2) .acc>summary{padding:12px 14px!important}
+}
+
+@media (max-width:700px){
+  :root:not(#ds1):not(#ds2) :is(.ftiles,#ov-tiles,#ov-cross){padding:0!important;margin:0 0 8px!important}
+  :root:not(#ds1):not(#ds2) header>div:nth-child(2){margin-top:8px!important;gap:6px!important}
+  :root:not(#ds1):not(#ds2) .htools{height:40px!important;padding:3px!important;margin:6px 0 0!important}
+  :root:not(#ds1):not(#ds2) .htools #ccy{height:34px!important;font-size:14px!important;font-weight:500!important;padding:0 28px 0 10px!important}
+  :root:not(#ds1):not(#ds2) .htools .cmdk-btn,:root:not(#ds1):not(#ds2) .htools .ib{height:34px!important}
+  :root:not(#ds1):not(#ds2) .hstatus{margin:6px 0 0!important}
+  :root:not(#ds1):not(#ds2) .hstatus .sub{font-size:12px!important;line-height:1.35}
+  :root:not(#ds1):not(#ds2) .hstatus .reset{min-height:32px!important;padding:0 12px!important;font-size:13px!important}
+  :root:not(#ds1):not(#ds2) header .sub,:root:not(#ds1):not(#ds2) #psub{font-size:13px!important;line-height:1.4!important}
+  :root:not(#ds1):not(#ds2) .ftile .l,:root:not(#ds1):not(#ds2) .kpi .l{font-size:12.5px!important}
+  :root:not(#ds1):not(#ds2) .ftile .s{font-size:12px!important}
+}
+
+@media (max-width:700px){
+  :root:not(#ds1):not(#ds2) .htools{background:none!important;border:0!important;box-shadow:none!important;padding:0!important;height:auto!important;gap:8px!important;margin:8px 0 0!important}
+  :root:not(#ds1):not(#ds2) .htools .cmdk-btn{width:40px!important;height:40px!important;border-radius:10px!important;flex:none}
+  :root:not(#ds1):not(#ds2) .htools #ccy{flex:1;height:40px!important;max-width:none!important;border-radius:10px!important;background:var(--panel)!important;border:1px solid var(--line)!important}
+  :root:not(#ds1):not(#ds2) .htools .ib{width:40px!important;height:40px!important;border-radius:10px!important;border:1px solid var(--line)!important;background:var(--panel)!important;margin:0!important;flex:none}
+  :root:not(#ds1):not(#ds2) .hstatus{width:100%!important;justify-content:space-between!important;gap:8px!important}
+  :root:not(#ds1):not(#ds2) .hstatus .sub{flex:1;min-width:0}
+  :root:not(#ds1):not(#ds2) .hstatus #acct{flex:none}
+}
 </style>
 </head>
 <body>
