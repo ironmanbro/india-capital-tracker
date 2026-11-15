@@ -6,7 +6,7 @@
 <title>Indian Capital Tracker</title>
 <meta name="description" content="Track foreign capital moving into and out of India: investments, exits, FPI and FDI flows, and offshore and GIFT City fund launches, in one place.">
 <meta name="author" content="Kishan Singhania">
-<meta name="theme-color" content="#0f1115">
+<meta name="theme-color" content="#0b0d12">
 <link rel="canonical" href="https://india-capital-tracker.ironmanbro.workers.dev/">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
@@ -1629,6 +1629,54 @@ body{font-variant-numeric:tabular-nums}
   :root:not(#ds1):not(#ds2) .hstatus{width:100%!important;justify-content:space-between!important;gap:8px!important}
   :root:not(#ds1):not(#ds2) .hstatus .sub{flex:1;min-width:0}
   :root:not(#ds1):not(#ds2) .hstatus #acct{flex:none}
+}
+
+/* ===== Phone layer: swipe rows, short Home, slim hint, sticky title, 44px targets ===== */
+.m-dots,.m-more,#mbar{display:none}
+@media (max-width:700px){
+  /* 1. Figure tiles swipe sideways, one card and a peek of the next */
+  :root:not(#ds1):not(#ds2) :is(#ov-tiles,#ov-cross,#ftiles){display:flex!important;overflow-x:auto!important;scroll-snap-type:x mandatory;gap:8px!important;scrollbar-width:none;margin:0 -12px 4px!important;padding:0 12px!important;-webkit-overflow-scrolling:touch}
+  :root:not(#ds1):not(#ds2) :is(#ov-tiles,#ov-cross,#ftiles)::-webkit-scrollbar{display:none}
+  :root:not(#ds1):not(#ds2) :is(#ov-tiles,#ov-cross,#ftiles)>*{flex:0 0 86%!important;scroll-snap-align:start;scroll-margin-left:12px}
+  :root:not(#ds1):not(#ds2) .m-dots{display:flex;justify-content:center;gap:6px;margin:0 0 10px}
+  :root:not(#ds1):not(#ds2) .m-dots i{width:6px;height:6px;border-radius:50%;background:var(--line-2);transition:background-color .15s var(--ease),width .15s var(--ease)}
+  :root:not(#ds1):not(#ds2) .m-dots i.on{width:16px;border-radius:3px;background:var(--ink-2)}
+  /* 2. Home is short on a phone: the day's flow, the week's deals and a few stories; the rest opens on request */
+  :root:not(#ds1):not(#ds2) body:not(.home-more) #tab-overview :is(.hsum-head,#hsum,.ovgrid:not(.ovgrid-a),.dsrc,#fx-home){display:none!important}
+  :root:not(#ds1):not(#ds2) #tab-overview #ov-stories>*:nth-child(n+4),:root:not(#ds1):not(#ds2) #tab-overview #ov-deals>*:nth-child(n+4){display:none}
+  :root:not(#ds1):not(#ds2) body.home-more #tab-overview #ov-stories>*,:root:not(#ds1):not(#ds2) body.home-more #tab-overview #ov-deals>*{display:revert}
+  :root:not(#ds1):not(#ds2) .m-more{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;margin:4px 0 12px;border:1px solid var(--line-2);border-radius:12px;background:var(--panel);color:var(--ink);font:500 15px var(--font-ui);cursor:pointer}
+  :root:not(#ds1):not(#ds2) body.home-more .m-more{display:none}
+  :root:not(#ds1):not(#ds2) #tab-overview:not(.x) .ovgrid-a .ovc{min-height:0}
+  /* 3. The install hint is a slim bar at the top, once */
+  :root:not(#ds1):not(#ds2) .ios-hint{top:calc(8px + env(safe-area-inset-top))!important;bottom:auto!important;left:12px!important;right:12px!important;padding:8px 40px 8px 12px!important;font-size:12.5px!important;border-radius:10px!important;box-shadow:none!important}
+  /* 5. Sticky title bar once you scroll */
+  :root:not(#ds1):not(#ds2) #mbar{display:flex;position:fixed;top:0;left:0;right:0;height:44px;z-index:55;align-items:center;justify-content:space-between;padding:0 14px;padding-top:env(safe-area-inset-top);background:var(--deep);border-bottom:1px solid var(--line);transform:translateY(-110%);transition:transform .2s var(--ease);font-weight:500;font-size:15px}
+  :root:not(#ds1):not(#ds2) #mbar.show{transform:none}
+  :root:not(#ds1):not(#ds2) #mbar .u{font-size:12px;color:var(--muted);font-weight:400}
+  /* 6. Charts: vertical scroll still works, a horizontal drag scrubs the values */
+  :root:not(#ds1):not(#ds2) .fchart svg,:root:not(#ds1):not(#ds2) .fxrow svg{touch-action:pan-y}
+  /* 7. Search fields are one line, not tall boxes */
+  :root:not(#ds1):not(#ds2) :is(.watch,.filters,.dirbar) input[type=search],:root:not(#ds1):not(#ds2) :is(.watch,.filters) input[type=text]{height:44px!important;min-height:0!important;font-size:16px!important}
+  /* 8. 44px targets */
+  :root:not(#ds1):not(#ds2) :is(.reset,.csvbtn,.seg button,.tfseg button,.qviews button,.fchips button,.acc>summary,.cb-chips button,.fnav button){min-height:44px!important}
+  :root:not(#ds1):not(#ds2) button.link,:root:not(#ds1):not(#ds2) .sharebtn{display:inline-flex;align-items:center;min-height:44px;padding:0 4px}
+  :root:not(#ds1):not(#ds2) select{min-height:44px;font-size:16px}
+  :root:not(#ds1):not(#ds2) .totop{width:44px!important;height:44px!important;bottom:calc(100px + env(safe-area-inset-bottom))!important;right:12px!important}
+}
+
+@media (max-width:700px){
+  /* In a stacked filter row the old "grow to 220px" rule made fields 220px tall */
+  :root:not(#ds1):not(#ds2) .filters{flex-direction:column!important}
+  :root:not(#ds1):not(#ds2) .filters>*{flex:0 0 auto!important;width:100%!important;max-width:100%!important}
+  :root:not(#ds1):not(#ds2) .filters>.seg,:root:not(#ds1):not(#ds2) .filters>.tfseg{width:100%!important}
+}
+
+@media (max-width:700px){
+  :root:not(#ds1):not(#ds2) #feed .scard{gap:6px!important;padding:12px 14px!important;row-gap:6px!important}
+  :root:not(#ds1):not(#ds2) #feed .scard .scard-foot{margin:0!important}
+  :root:not(#ds1):not(#ds2) #feed .scard:not(.mx)::after{margin-top:0!important}
+  :root:not(#ds1):not(#ds2) #feed .scard .meta{margin:0!important}
 }
 </style>
 </head>
@@ -4126,6 +4174,37 @@ function drawFlowsNav() {
   box.querySelectorAll("[data-n]").forEach((b) => b.onclick = () => { const el = $(b.dataset.n); if (!el) return; if (el.tagName === "DETAILS") el.open = true; setTimeout(() => el.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }), 60); });
 }
 drawFlowsNav();
+
+// ---------- Phone behaviour ----------
+(() => {
+  const phone = () => matchMedia("(max-width:700px)").matches;
+  // dots under swipe rows
+  const dots = (row) => {
+    if (!row || row.nextElementSibling?.classList.contains("m-dots")) return;
+    const d = document.createElement("div"); d.className = "m-dots"; row.after(d);
+    const draw = () => { const n = row.children.length; d.hidden = n < 2; if (n < 2) return; const i = Math.round(row.scrollLeft / (row.scrollWidth / n)); d.innerHTML = Array.from({ length: n }, (_, k) => `<i class="${k === Math.min(i, n - 1) ? "on" : ""}"></i>`).join(""); };
+    row.addEventListener("scroll", draw, { passive: true }); new MutationObserver(draw).observe(row, { childList: true }); draw();
+  };
+  ["ov-tiles", "ov-cross", "ftiles"].forEach((id) => dots($(id)));
+  // Home: one button opens the rest
+  const first = document.querySelector("#tab-overview .ovgrid-a");
+  if (first && !$("m-more")) { const b = document.createElement("button"); b.id = "m-more"; b.type = "button"; b.className = "m-more"; b.textContent = "Show everything on Home"; b.onclick = () => { document.body.classList.add("home-more"); }; first.after(b); }
+  // sticky title bar
+  const bar = document.createElement("div"); bar.id = "mbar"; bar.setAttribute("role", "banner"); bar.innerHTML = '<span id="mbar-t"></span><span class="u" id="mbar-u"></span>'; document.body.append(bar);
+  bar.onclick = () => window.scrollTo({ top: 0, behavior: "smooth" });
+  let tick = false;
+  addEventListener("scroll", () => { if (tick) return; tick = true; requestAnimationFrame(() => { tick = false; if (!phone()) return; const on = scrollY > 140; if (on) { $("mbar-t").textContent = $("ptitle")?.textContent || ""; const u = $("updated")?.textContent.replace(/^Last updated:\s*/, "") || ""; $("mbar-u").textContent = u.replace(/\s*\(.*\)$/, ""); } bar.classList.toggle("show", on); }); }, { passive: true });
+  // charts: drag a finger across a chart to read each bar
+  document.addEventListener("pointermove", (ev) => {
+    if (ev.pointerType !== "touch") return;
+    const svg = ev.target.closest?.(".fchart svg"); if (!svg) return;
+    const el = document.elementFromPoint(ev.clientX, ev.clientY);
+    if (el && el.classList && el.classList.contains("hit")) el.dispatchEvent(new MouseEvent("mouseenter", { bubbles: false }));
+  }, { passive: true });
+  // the install hint shows once, for a few seconds
+  const hint = () => { const h = document.querySelector(".ios-hint"); if (h && !h.dataset.t) { h.dataset.t = "1"; setTimeout(() => { h.remove(); try { localStorage.setItem("ict-ios-hint", "1"); } catch {} }, 9000); } };
+  setTimeout(hint, 1500); setTimeout(hint, 4000);
+})();
 // ---------- Jump menu: long tabs get a sticky row of links to their sections ----------
 const JUMP_TABS = ["directory", "investors", "regulation"];
 function buildJump(t) {
