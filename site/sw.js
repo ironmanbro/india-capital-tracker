@@ -3,6 +3,7 @@
 const CACHE = "ict-v1";
 const SHELL = ["/", "/manifest.webmanifest", "/favicon.svg", "/icon-192.png"];
 const DATA = "https://urpphqybqmxlwhjghsmf.supabase.co/rest/v1/";
+const EDGE = "/sb/rest/v1/";
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -47,7 +48,7 @@ self.addEventListener("fetch", (e) => {
   if (req.mode === "navigate") { e.respondWith(networkFirst(req, "/")); return; }
   // Public data reads (stories, flows): latest from the network, last copy when offline.
   // Requests carrying a sign-in token (a signed-in user's own lists) are never stored.
-  if (req.url.startsWith(DATA) && !req.headers.has("authorization")) { e.respondWith(dataFetch(req)); return; }
+  if ((req.url.startsWith(DATA) || url.pathname.startsWith(EDGE)) && !req.headers.has("authorization")) { e.respondWith(dataFetch(req)); return; }
   // Same-origin files (icons, scripts in /vendor): cached copy first, refreshed in the background.
   if (url.origin === location.origin) {
     e.respondWith(caches.open(CACHE).then(async (c) => {

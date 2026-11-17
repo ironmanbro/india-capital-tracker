@@ -6,6 +6,21 @@
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://urpphqybqmxlwhjghsmf.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
 
+/
+  Cache-Control: public, max-age=120, stale-while-revalidate=604800
+
+/index.html
+  Cache-Control: public, max-age=120, stale-while-revalidate=604800
+
+/vendor/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/*.png
+  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+
+/favicon.svg
+  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+
 /sw.js
   Cache-Control: no-cache
   Service-Worker-Allowed: /

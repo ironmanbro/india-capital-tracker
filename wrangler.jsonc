@@ -1,9 +1,13 @@
 {
   // Cloudflare Worker settings: publish only the public website in site/.
+  // worker.js answers /sb/* (cached public data reads); every other request is served straight from site/.
   "name": "india-capital-tracker",
+  "main": "./worker.js",
   "compatibility_date": "2026-10-01",
   "assets": {
-    "directory": "./site"
+    "directory": "./site",
+    "binding": "ASSETS",
+    "run_worker_first": ["/sb/*"]
   },
   "previews": {}
 }
