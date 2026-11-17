@@ -9,5 +9,5 @@
     "binding": "ASSETS",
     "run_worker_first": ["/sb/*"]
   },
-  "previews": {}
+  "kv_namespaces":[{"binding":"CACHE","id":"293b9a61a87845deacde9e894766f412"}],"previews": {}
 }

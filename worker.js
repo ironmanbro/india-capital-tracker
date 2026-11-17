@@ -46,34 +46,36 @@ async function handle(req, env, ctx) {
     }
 
     const body = req.method === "POST" ? await req.clone().text() : "";
-    const key = new Request(`https://edge-cache.invalid${path}${url.search}#${rpc ? await sha(body) : ""}${req.headers.get("prefer") || ""}${req.headers.get("range") || ""}`);
-    const cache = caches.default;
-    const hit = await cache.match(key);
+    const key = "v1:" + await sha(`${path}${url.search}#${rpc ? body : ""}|${req.headers.get("prefer") || ""}|${req.headers.get("range") || ""}`);
+    const kv = env.CACHE;
+    const hit = await kv.getWithMetadata(key, { type: "arrayBuffer", cacheTtl: 60 });
     const now = Date.now();
 
     const refresh = async () => {
       const r = await forward();
       if (!r.ok) return r;
       const buf = await r.arrayBuffer();
-      const headers = new Headers({ "content-type": r.headers.get("content-type") || "application/json", "x-cached-at": String(Date.now()), "cache-control": `public, max-age=${STALE}` });
-      for (const k of ["content-range", "content-profile"]) { const v = r.headers.get(k); if (v) headers.set(k, v); }
-      const res = new Response(buf, { status: r.status, headers });
-      ctx.waitUntil(cache.put(key, res.clone()));
-      return res;
+      const meta = { ct: r.headers.get("content-type") || "application/json", at: Date.now(), cr: r.headers.get("content-range") || "" };
+      if (buf.byteLength < 24 * 1024 * 1024) ctx.waitUntil(kv.put(key, buf, { metadata: meta, expirationTtl: STALE }));
+      const headers = new Headers({ "content-type": meta.ct });
+      if (meta.cr) headers.set("content-range", meta.cr);
+      return new Response(buf, { status: r.status, headers });
     };
 
     const send = (res, state) => {
       const out = new Response(res.body, res);
       out.headers.set("Cache-Control", `public, max-age=${FRESH}`);
       out.headers.set("x-edge", state);
-      out.headers.delete("x-cached-at");
       return out;
     };
 
-    if (hit) {
-      const age = (now - Number(hit.headers.get("x-cached-at") || 0)) / 1000;
+    if (hit.value) {
+      const m = hit.metadata || {};
+      const age = (now - Number(m.at || 0)) / 1000;
       if (age > FRESH) ctx.waitUntil(refresh().catch(() => {}));
-      return send(hit, age > FRESH ? "STALE" : "HIT");
+      const headers = new Headers({ "content-type": m.ct || "application/json" });
+      if (m.cr) headers.set("content-range", m.cr);
+      return send(new Response(hit.value, { status: m.cr ? 206 : 200, headers }), age > FRESH ? "STALE" : "HIT");
     }
     const r = await refresh();
     return r.ok ? send(r, "MISS") : r;
