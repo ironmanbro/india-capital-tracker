@@ -27,3 +27,10 @@
 
 /manifest.webmanifest
   Content-Type: application/manifest+json
+
+/terms.html
+  Cache-Control: public, max-age=3600
+/privacy.html
+  Cache-Control: public, max-age=3600
+/disclaimer.html
+  Cache-Control: public, max-age=3600
