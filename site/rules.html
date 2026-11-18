@@ -10,7 +10,7 @@ a{color:var(--ac)}h1{font-size:30px;line-height:1.2;margin:8px 0 6px}h2{font-siz
 section{border:1px solid var(--line);border-radius:14px;padding:18px 18px 8px;margin:18px 0;background:var(--card);scroll-margin-top:64px}
 ul{padding-left:20px;margin:6px 0}li{margin:5px 0}.src{list-style:none;padding:0}.src li{padding:8px 0;border-top:1px solid var(--line)}.src li:first-child{border-top:0}.src small{display:block;color:var(--mut)}
 .chg{border-top:1px solid var(--line);padding:10px 0}.chg:first-child{border-top:0}.chg b{display:block}.chg .d{font-size:13px;color:var(--mut)}
-.btn{display:inline-block;margin:10px 0 14px;padding:9px 16px;border-radius:8px;background:var(--ac);color:#fff;text-decoration:none;font-weight:600}@media(prefers-color-scheme:dark){.btn{color:#0f1218}}
+.all{margin-top:10px}.all summary{cursor:pointer;font-weight:600;color:var(--ac)}.all input{width:100%;margin:10px 0;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);font:inherit}.all h4{margin:16px 0 2px;font-size:14px;color:var(--mut)}.btn{display:inline-block;margin:10px 0 14px;padding:9px 16px;border-radius:8px;background:var(--ac);color:#fff;text-decoration:none;font-weight:600}@media(prefers-color-scheme:dark){.btn{color:#0f1218}}
 .note{border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-size:14px;color:var(--mut);margin:14px 0}
 </style></head><body><main>
 <div class="top"><a href="/">&larr; India Capital Tracker</a><span><a href="/?tab=regulation">All regulation news</a> · <a href="/disclaimer.html">Disclaimer</a></span></div>
@@ -30,7 +30,7 @@ ul{padding-left:20px;margin:6px 0}li{margin:5px 0}.src{list-style:none;padding:0
 <li><a href="https://www.sebi.gov.in/legal/regulations/aug-2025/securities-and-exchange-board-of-india-foreign-portfolio-investors-regulations-2019-last-amended-on-august-12-2025-_96167.html" target="_blank" rel="noopener">SEBI (Foreign Portfolio Investors) Regulations, 2019, as last amended 12 August 2025</a><small>SEBI. The main rulebook. A later amendment may exist: check SEBI's regulations page.</small></li>
 <li><a href="https://www.rbi.org.in/scripts/NotificationUser.aspx?Id=13483&Mode=0" target="_blank" rel="noopener">RBI: Liberalisation of Foreign Portfolio Investment under Schedule III of the FEMA Non-debt Instruments Rules (15 June 2026)</a><small>RBI. The foreign-exchange rules for FPI equity.</small></li>
 <li><a href="https://www.sebi.gov.in/sebiweb/home/HomeAction.do?doListing=yes&sid=1&ssid=6&smid=0" target="_blank" rel="noopener">SEBI master circulars (find the FPI master circular)</a><small>SEBI. The consolidated operating instructions for FPIs, DDPs and custodians.</small></li></ul>
-<h3>Latest changes</h3><div id="chg-FPI" class="m">Loading&hellip;</div><a class="btn" href="/?tab=regulation&ri=FPI">All FPI rules in the tracker</a></section>
+<h3>Latest changes and full list</h3><div id="chg-FPI" class="m">Loading&hellip;</div><a class="btn" href="/?tab=regulation&ri=FPI">All FPI rules in the tracker</a></section>
 
 <section id="fdi"><h2>FDI: foreign direct investment</h2><p class="m">A non-resident taking a lasting stake in an Indian company or LLP. Governed by the FEMA Non-debt Instruments Rules, 2019, the government's FDI policy from DPIIT, and its Press Notes, with RBI handling reporting.</p>
 <h3>In short</h3><ul>
@@ -43,7 +43,7 @@ ul{padding-left:20px;margin:6px 0}li{margin:5px 0}.src{list-style:none;padding:0
 <li><a href="https://www.rbi.org.in/Scripts/Fema.aspx" target="_blank" rel="noopener">RBI: FEMA Acts, Rules and Regulations</a><small>RBI. Find the Foreign Exchange Management (Non-debt Instruments) Rules, 2019 and their amendments.</small></li>
 <li><a href="https://www.dpiit.gov.in/documents" target="_blank" rel="noopener">DPIIT: Consolidated FDI Policy and Press Notes</a><small>DPIIT. The policy by sector, routes and caps.</small></li>
 <li><a href="https://www.rbi.org.in/Scripts/BS_ViewMasDirections.aspx" target="_blank" rel="noopener">RBI Master Directions</a><small>RBI. The Master Direction on foreign investment in India and the reporting instructions.</small></li></ul>
-<h3>Latest changes</h3><div id="chg-FDI" class="m">Loading&hellip;</div><a class="btn" href="/?tab=regulation&ri=FDI">All FDI rules in the tracker</a></section>
+<h3>Latest changes and full list</h3><div id="chg-FDI" class="m">Loading&hellip;</div><a class="btn" href="/?tab=regulation&ri=FDI">All FDI rules in the tracker</a></section>
 
 <section id="fvci"><h2>FVCI: foreign venture capital investors</h2><p class="m">Overseas venture capital and private funds that register with SEBI to invest in Indian start-ups, venture capital undertakings and venture funds. Governed by the SEBI (Foreign Venture Capital Investors) Regulations, 2000.</p>
 <h3>In short</h3><ul>
@@ -58,15 +58,21 @@ ul{padding-left:20px;margin:6px 0}li{margin:5px 0}.src{list-style:none;padding:0
 <li><a href="https://www.sebi.gov.in/legal/master-circulars/mar-2023/master-circular-for-foreign-venture-capital-investors-fvcis-_68650.html" target="_blank" rel="noopener">Master Circular for FVCIs (March 2023)</a><small>SEBI. Consolidated operating instructions; later circulars may have changed parts.</small></li>
 <li><a href="https://www.sebi.gov.in/legal/circulars/sep-2024/operational-guidelines-for-foreign-venture-capital-investors-fvcis-and-designated-depository-participants-ddps-_87032.html" target="_blank" rel="noopener">Operational guidelines for FVCIs and DDPs (September 2024)</a><small>SEBI.</small></li>
 <li><a href="https://www.sebi.gov.in/legal/circulars/sep-2024/reporting-by-foreign-venture-capital-investors_86680.html" target="_blank" rel="noopener">Reporting by FVCIs (September 2024)</a><small>SEBI.</small></li></ul>
-<h3>Latest changes</h3><div id="chg-FVCI" class="m">Loading&hellip;</div><a class="btn" href="/?tab=regulation&ri=FVCI">All FVCI rules in the tracker</a></section>
+<h3>Latest changes and full list</h3><div id="chg-FVCI" class="m">Loading&hellip;</div><a class="btn" href="/?tab=regulation&ri=FVCI">All FVCI rules in the tracker</a></section>
 
-<p class="m">Latest changes come from the tracker's daily review of SEBI and RBI publications. Each summary says what changed, who it covers and when it takes effect; the official document is always the authority. See also the <a href="/disclaimer.html">disclaimer</a> and <a href="/terms.html">terms</a>.</p>
+<p class="m">The full lists hold every SEBI and RBI document the tracker has reviewed since October 2021, and grow with each daily review. Documents from before that, such as the original 2019 FPI Regulations, are reached through the core document links. Each summary says what changed, who it covers and when it takes effect; the official document is always the authority. See also the <a href="/disclaimer.html">disclaimer</a> and <a href="/terms.html">terms</a>.</p>
 </main>
 <script>
-const KEY="sb_publishable_zSo8W_FfT_fZEcfMWoumOw_Yv9mmVWB",B="/sb/rest/v1/stories?select=id,title,summary,regulator,issued_on,effective_on,doc_type,url&event_type=eq.regulation&order=issued_on.desc&limit=8&instruments=cs.%7B";
+const KEY="sb_publishable_zSo8W_FfT_fZEcfMWoumOw_Yv9mmVWB",B="/sb/rest/v1/stories?select=id,title,summary,regulator,issued_on,effective_on,doc_type,url&event_type=eq.regulation&order=issued_on.desc&limit=1000&instruments=cs.%7B";
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const safe=u=>/^https:\/\//.test(u||"")?u:"#";
 async function get(i){let r;try{r=await fetch(B+i+"%7D",{headers:{apikey:KEY}});if(!r.ok)throw 0}catch{r=await fetch("https://urpphqybqmxlwhjghsmf.supabase.co"+B.slice(3)+i+"%7D",{headers:{apikey:KEY}})}return r.json()}
-for(const i of ["FPI","FDI","FVCI"]){get(i).then(rows=>{const el=document.getElementById("chg-"+i);
- el.className="";el.innerHTML=rows.length?rows.map(e=>`<div class="chg"><b><a href="${esc(safe(e.url))}" target="_blank" rel="noopener">${esc(e.title)}</a></b><div class="d">${esc(e.regulator)} · ${esc(e.doc_type||"")} · issued ${esc(e.issued_on||"")}${e.effective_on?" · effective "+esc(e.effective_on):""}</div>${e.summary?`<p>${esc(e.summary)}</p>`:""}</div>`).join(""):"<p class=m>No items yet.</p>"}).catch(()=>{document.getElementById("chg-"+i).innerHTML='<p class="m">Could not load. See <a href="/?tab=regulation">the Regulation tab</a>.</p>'})}
+const row=e=>`<div class="chg"><b><a href="${esc(safe(e.url))}" target="_blank" rel="noopener">${esc(e.title)}</a></b><div class="d">${esc(e.regulator)} · ${esc(e.doc_type||"")} · issued ${esc(e.issued_on||"")}${e.effective_on?" · effective "+esc(e.effective_on):""}</div>${e.summary?`<p>${esc(e.summary)}</p>`:""}</div>`;
+for(const i of ["FPI","FDI","FVCI"]){get(i).then(rows=>{const el=document.getElementById("chg-"+i);el.className="";
+ if(!rows.length){el.innerHTML="<p class=m>No items yet.</p>";return}
+ const yrs={};rows.forEach(e=>{const y=(e.issued_on||"").slice(0,4)||"Undated";(yrs[y]||(yrs[y]=[])).push(e)});
+ el.innerHTML=rows.slice(0,8).map(row).join("")+`<details class="all"><summary>Show all ${rows.length} ${i} documents, newest first</summary><input type="search" placeholder="Search ${i} documents: KYC, custodian, limit…" aria-label="Search ${i} documents"><div class="list"></div></details>`;
+ const d=el.querySelector("details"),inp=d.querySelector("input"),box=d.querySelector(".list");
+ const draw=()=>{const q=inp.value.trim().toLowerCase();let n=0;box.innerHTML=Object.keys(yrs).sort().reverse().map(y=>{const r=yrs[y].filter(e=>!q||((e.title||"")+" "+(e.summary||"")).toLowerCase().includes(q));n+=r.length;return r.length?`<h4>${esc(y)} (${r.length})</h4>`+r.map(row).join(""):""}).join("")||"<p class=m>No match.</p>"};
+ inp.oninput=draw;d.addEventListener("toggle",()=>{if(d.open&&!box.innerHTML)draw()})}).catch(()=>{document.getElementById("chg-"+i).innerHTML='<p class="m">Could not load. See <a href="/?tab=regulation">the Regulation tab</a>.</p>'})}
 </script></body></html>
