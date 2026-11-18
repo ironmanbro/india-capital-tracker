@@ -3241,6 +3241,7 @@ function render() {
   renderKpis(); renderFeed(); renderBoard(); renderInvestors(); renderRuns(); renderFlows(); renderOverview(); setTitle(); renderSources(); try { drawTabSums(); drawCompCal(); } catch {}
   if (state.tab === "network") renderNetwork();
   if (state.tab === "firm") renderFirm();
+  if (state.tab === "regulation" && !document.querySelector("#reg-body .regcard, #reg-body .qviews")) renderRegs();
   syncUrl(); glossifyPage();
 }
 
