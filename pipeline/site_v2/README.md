@@ -18,7 +18,10 @@ Pages carry `noindex` so search engines do not list `/v2` next to the main page.
 | Cap Radar `limits.html` | NSDL red-flag and breach lists with room left, plus what changed between reports. `build_limits.py` writes `limits.js` and **appends each report to the history inside the committed file** (NSDL keeps only its latest report), so history starts on the first build and grows; it is never invented |
 | Watchlist `watchlist.html`, `watch.js` | Follow companies, investors, countries, topics. Kept in the browser only; "new" means not seen since the follow was baselined; export and import as a file; a count beside Watchlist in the nav |
 | Alerts when away | `push-sw.js`, `supabase/functions/push-subscribe`, `pipeline/alerts/`. **Off until switched on**: see `pipeline/alerts/README.md` |
-Extra tests: `node pipeline/site_v2/tests/parity.js` (browser and alert sender find identical items), `python3 pipeline/alerts/tests/test_send_push.py`.
+| Deal Outcomes `scorecard.html` | What the share price did 30, 90 and 180 days after named clients traded in NSE bulk and block deals, against the Nifty 500, adjusted for splits and bonuses. `build_scorecard.py` + `nse_prices.py`. Prices come from NSE's bhavcopy and index files, corporate actions from NSE's bhavcopy MCP server (`get_corporate_actions`), cached in `pipeline/site_v2/cache/` (committed by the refresh job; first fill about 8 minutes, later runs only fetch new days) |
+Extra tests: `node pipeline/site_v2/tests/parity.js` (browser and alert sender find identical items), `python3 pipeline/alerts/tests/test_send_push.py`, `python3 pipeline/site_v2/tests/test_scorecard.py` (classification, split arithmetic, stale holiday files, blocked responses).
+
+Deal Outcomes rules worth knowing: NSE's archive serves the previous day's file on a holiday, so a file counts only if the date inside it matches; a blocked (403) answer is never remembered as "no trading"; individuals and HUFs are never published; the deal files cover only the days the collector ran (see `coverage` in `scorecard.js`).
 
 ## How it stays current
 `.github/workflows/refresh_v2.yml` runs after each run of "Sync NSE and NSDL data" (and daily at 10:00 IST as a fallback, and on demand):

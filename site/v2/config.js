@@ -6,7 +6,7 @@ window.ICT_CONFIG = {
   supabaseKey: 'sb_publishable_zSo8W_FfT_fZEcfMWoumOw_Yv9mmVWB',
   aliasTimeoutMs: 3000,
   pushPublicKey: '',   /* the VAPID public key switches watchlist alerts on; empty keeps them off (see pipeline/alerts/README.md) */
-  shipped: ['monitor.html', 'flows.html', 'deals.html', 'investors.html', 'registrations.html', 'regulations.html', 'limits.html', 'watchlist.html'],
+  shipped: ['monitor.html', 'flows.html', 'deals.html', 'investors.html', 'registrations.html', 'regulations.html', 'limits.html', 'watchlist.html', 'scorecard.html'],
   homeHref: './',
   classicUrl: '/'
 };

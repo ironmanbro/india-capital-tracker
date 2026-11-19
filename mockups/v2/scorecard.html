@@ -87,6 +87,7 @@ try{new URLSearchParams(location.hash.slice(1)).forEach((v,k)=>{if(k in def)S[k]
 const push=()=>{try{const p=new URLSearchParams();for(const k in S) if(S[k]!==def[k]&&k!=='n') p.set(k,S[k]); history.replaceState(null,'','#'+p)}catch(e){}};
 const MINN=5;                      // fewest measured trades before a name's figures are treated as more than indicative
 let cur=[];
+function setStat(id,v){ const e=document.getElementById(id); e.textContent=pc(v); e.className=v==null?'':v>0?'pos':v<0?'neg':'' }
 function pool(){ const h=+S.h, big=+S.big, ql=S.q.trim().toLowerCase();
   return OB.filter(o=>(S.cls==='all'||o.e.c===S.cls)&&o.cr>=big&&(!ql||o.e.n.toLowerCase().includes(ql)||o.sym.toLowerCase().includes(ql))) }
 function stats(list,h){ const m=list.filter(o=>o.r[h]!=null), r=m.map(o=>o.r[h]), x=m.map(o=>ex(o,h)); return {n:m.length,all:list.length,med:med(r),medx:med(x),p25:q(x,.25),p75:q(x,.75),pos:x.length?x.filter(v=>v>0).length/x.length:null} }
@@ -96,9 +97,9 @@ function render(){
   const h=+S.h, hd=H[h], P=pool(), B=P.filter(o=>o.s==='B'), Sl=P.filter(o=>o.s==='S'), sb=stats(B,h), ss=stats(Sl,h);
   /* summary figures */
   document.getElementById('s1').textContent=F.inr(sb.n+ss.n); document.getElementById('s1s').textContent=F.inr(B.length+Sl.length)+' trades in the selection; '+F.inr(B.length+Sl.length-sb.n-ss.n)+' not yet measurable at '+hd+' days';
-  document.getElementById('l2').textContent='Median excess move after buys, '+hd+' days'; document.getElementById('s2').innerHTML=cpc(sb.medx);
+  document.getElementById('l2').textContent='Median excess move after buys, '+hd+' days'; setStat('s2',sb.medx);
   document.getElementById('s2s').textContent=sb.n?sb.n+' trades · '+Math.round(sb.pos*100)+'% beat the Nifty 500':'No measured trades';
-  document.getElementById('l3').textContent='Median excess move after sales, '+hd+' days'; document.getElementById('s3').innerHTML=cpc(ss.medx);
+  document.getElementById('l3').textContent='Median excess move after sales, '+hd+' days'; setStat('s3',ss.medx);
   document.getElementById('s3s').textContent=ss.n?ss.n+' trades · '+Math.round((1-ss.pos)*100)+'% then lagged the Nifty 500':'No measured trades';
   const pend=P.filter(o=>o.r[h]==null).length; document.getElementById('s4').textContent=F.inr(pend); document.getElementById('s4s').textContent='Trades less than '+hd+' days old, or not measurable (see Method)';
   /* cohort table */
@@ -124,23 +125,24 @@ function render(){
   const ent=S.sel&&G.ents.find(e=>e.k===S.sel), dts=ent?OB.filter(o=>o.e===ent):P.slice().sort((a,b)=>b.cr-a.cr).slice(0,12);
   document.getElementById('h-d').textContent=ent?ent.n:'Largest trades in the selection'; document.getElementById('du').textContent=ent?dts.length+' trades':'by value';
   const sorted=ent?dts.slice().sort((a,b)=>a.d<b.d?1:-1):dts;
-  document.getElementById('dt').innerHTML='<thead><tr><th>Date</th><th>Share</th><th>Side</th><th class="n">₹ cr</th><th class="n">Price</th><th class="n">'+hd+' d move</th><th class="n">Excess</th></tr></thead><tbody>'+sorted.map(o=>'<tr><td class="num">'+F.dshort(o.d)+'</td><td>'+esc(o.sym)+(o.blk?' <span class="ind" title="Block deal">blk</span>':'')+'</td><td>'+(o.s==='B'?'Buy':'Sell')+'</td><td class="n num">'+F.inr(o.cr,{dp:1})+'</td><td class="n num">'+F.inr(o.px,{dp:2})+(o.adj?' <span class="ind" title="Adjusted for a split or bonus in the period">adj</span>':'')+'</td><td class="n">'+cpc(o.r[h])+'</td><td class="n">'+cpc(ex(o,h))+'</td></tr>').join('')+'</tbody>';
-  document.getElementById('df').textContent=ent?'Every trade by this name in the NSE bulk and block files. Price is the deal\'s average price; "adj" marks a split or bonus adjustment.':'Click a name to see all of its trades.';
+  document.getElementById('dt').innerHTML='<thead><tr><th>Date</th><th>Share</th><th class="n">₹ cr</th><th class="n">'+hd+' d move</th><th class="n">Excess</th></tr></thead><tbody>'+sorted.map(o=>'<tr title="Average price '+F.inr(o.px,{dp:2})+(o.blk?' · block deal':' · bulk deal')+'"><td class="num">'+F.dshort(o.d)+'</td><td>'+esc(o.sym)+' <span class="ind">'+(o.s==='B'?'buy':'sell')+'</span></td><td class="n num">'+F.inr(o.cr,{dp:1})+'</td><td class="n">'+cpc(o.r[h])+((o.adj>>h)&1?' <span class="ind" title="Adjusted for a split or bonus between the trade and this date">adj</span>':'')+'</td><td class="n">'+cpc(ex(o,h))+'</td></tr>').join('')+'</tbody>';
+  document.getElementById('df').textContent=ent?'Every trade by this name in the NSE bulk and block files. Hover a row for the deal\'s average price and type; "adj" marks a split or bonus adjustment.':'Click a name to see all of its trades.';
   push();
 }
 const reset=()=>{S=Object.assign({},def);render()};
 document.querySelectorAll('.seg').forEach(g=>g.querySelectorAll('button').forEach(b=>b.onclick=()=>{S[g.dataset.k]=b.dataset.v;S.sort='';S.asc='';S.n='25';render()}));
 document.getElementById('q').oninput=e=>{S.q=e.target.value;S.n='25';render()}; document.getElementById('reset').onclick=reset;
 document.getElementById('csv').onclick=()=>{const e=x=>'"'+String(x==null?'':x).replace(/"/g,'""')+'"'; const h=+S.h;
-  const lines=['name,type,date,share,side,value_cr,avg_price,block_deal,split_or_bonus_adjusted,move_pct_'+H[h]+'d,nifty500_pct_'+H[h]+'d'];
-  const ks=new Set(cur.map(r=>r.e.k)); pool().filter(o=>ks.has(o.e.k)).forEach(o=>lines.push([o.e.n,o.e.c,o.d,o.sym,o.s==='B'?'buy':'sell',o.cr,o.px,o.blk,o.adj,o.r[h],o.b[h]].map(e).join(',')));
+  const lines=['name,type,date,share,side,value_cr,avg_price,block_deal,split_or_bonus_adjusted_at_this_horizon,move_pct_'+H[h]+'d,nifty500_pct_'+H[h]+'d'];
+  const ks=new Set(cur.map(r=>r.e.k)); pool().filter(o=>ks.has(o.e.k)).forEach(o=>lines.push([o.e.n,o.e.c,o.d,o.sym,o.s==='B'?'buy':'sell',o.cr,o.px,o.blk,(o.adj>>h)&1,o.r[h],o.b[h]].map(e).join(',')));
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/csv'})); a.download='deal-outcomes-'+T0+'.csv'; a.click()};
 
 const c=G.counts, dr=Object.values(G.dropped).reduce((s,v)=>s+v,0);
-document.getElementById('lead').innerHTML='What happened to the share price <b>after</b> a named institution traded in an NSE bulk or block deal. A record of public trades and their outcomes, not a signal: it says nothing about what the next trade will do.';
+document.getElementById('lead').innerHTML='<p style="margin:0">What happened to the share price <b>after</b> a named institution traded in an NSE bulk or block deal. A record of public trades and their outcomes, not a signal: it says nothing about what the next trade will do.</p>';
 document.getElementById('how').innerHTML=
  '<li><b>Source.</b> NSE bulk and block deal files ('+F.inr(c.deals)+' trades, combined into '+F.inr(c.observations)+' client-share-day-side records) and NSE end-of-day closes. Benchmark: '+esc(G.bench)+'.</li>'+
  '<li><b>Move</b> is the close on the first trading day on or after 30, 90 or 180 calendar days later, against the deal\'s average price, <b>adjusted for splits and bonuses</b> with NSE\'s corporate-action factors. Dividends are not included. Rights issues, demergers and mergers are not adjusted: a trade is left out of a horizon if one falls inside it.</li>'+
+ '<li><b>Coverage.</b> The bulk and block deal files were collected on '+G.coverage.deal_days+' days between '+F.dshort(G.coverage.first)+' and '+F.dshort(G.coverage.last)+' (about '+G.coverage.weekdays+' weekdays), so this is a sample of NSE deal days, not all of them. Most recorded trades are recent and still maturing, so the longer horizons rest on the older, thinner part of the record.</li>'+
  '<li><b>Left out, not guessed:</b> trades not yet old enough; shares with no close that day; shares whose corporate-action list NSE did not return; adjusted moves below −90% or above +300%. For the horizons shown, '+F.inr(dr)+' measurements were dropped for these reasons.</li>'+
  '<li><b>Who is who.</b> Names are put in four types by <i>name rules</i>, not by confirmed identity: '+Object.entries(CL).map(([k,v])=>'<b>'+CS[k]+'</b> ('+v.toLowerCase()+')').join('; ')+'. Individuals and HUFs ('+F.inr(c.not_published_individual_or_unclassified||0)+' trades) and names that fit no type are not published. Market makers and bank desks trade for liquidity or to hedge other positions, so their outcomes say little about conviction.</li>'+
  '<li><b>Read with care.</b> A bulk deal is not always a new position: a fund can be reducing or rebalancing. Offshore derivative (ODI) trades are made for unnamed clients. Trades are equally weighted, not by size, and trades by the same name in the same share are not independent. With few trades per name, see the count beside each figure. *"Right way" means a buy that then beat the index, or a sale after which the share lagged it.</li>'+

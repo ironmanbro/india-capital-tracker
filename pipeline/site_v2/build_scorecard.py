@@ -5,6 +5,7 @@ Method (also printed on the page; keep both in step):
     a trade that appears in both the bulk and the block file is counted once.
   * Return = close on the first trading day on or after (deal date + 30, 90 or 180 calendar days) against the deal's weighted average price,
     adjusted for splits and bonuses with NSE's own corporate-action factors. Excess = that return minus the Nifty 500 move over the same days.
+  * adj (last field) is a bit mask: 1 = the 30-day, 2 = the 90-day, 4 = the 180-day figure was adjusted for a split or bonus.
   * An observation is left out of a horizon (never guessed) when the horizon has not been reached, the share has no close that day,
     NSE's corporate-action list for the share is unavailable, a corporate action NSE does not give a price factor for (rights, demerger...) falls
     inside the window, or the adjusted move is implausible (below -90% or above +300%): these are counted in meta.
@@ -78,8 +79,8 @@ def build():
         px = o["val"] / o["qty"]
         d0 = P.on_or_before(day, 0)                      # the deal day itself (a trading day)
         b0 = P.bench(d0) if d0 else None
-        r_, b_, adjusted = [], [], False
-        for h in HORIZONS:
+        r_, b_, adjusted = [], [], 0
+        for hi, h in enumerate(HORIZONS):
             t = P.on_or_after(day + dt.timedelta(days=h))
             if t is None or d0 is None: pend[h] += 1; r_.append(None); b_.append(None); continue
             pt, b1 = P.px(sym, t), P.bench(t)
@@ -90,15 +91,17 @@ def build():
             if odd: drop[("other_corporate_action", h)] += 1; r_.append(None); b_.append(None); continue
             ret = pt / (px * f) - 1
             if ret < -0.9 or ret > 3.0: drop[("implausible", h)] += 1; r_.append(None); b_.append(None); continue
-            adjusted |= f != 1.0
+            if f != 1.0: adjusted |= 1 << hi          # bit per horizon: only the horizons whose window held a split or bonus
             r_.append(round(ret * 100, 1)); b_.append(round((b1 / b0 - 1) * 100, 1))
-        ent["o"].append([day.isoformat(), sym, side, o["qty"], round(px, 2), round(o["val"] / 1e7, 2), 1 if o["block"] else 0, *r_, *b_, 1 if adjusted else 0])
+        ent["o"].append([day.isoformat(), sym, side, o["qty"], round(px, 2), round(o["val"] / 1e7, 2), 1 if o["block"] else 0, *r_, *b_, adjusted])
     P.save()
     ents = sorted(out_ents.values(), key=lambda e: -len(e["o"]))
     for e in ents: e["o"].sort(reverse=True)
     last = max((d for d, v in P.days.items() if v), default=None)
     cls_n = collections.Counter(e["c"] for e in ents)
+    dd = sorted({r["day"] for r in rows}); wk = sum(1 for i in range((dd[-1] - dd[0]).days + 1) if (dd[0] + dt.timedelta(days=i)).weekday() < 5)
     return "SC", dict(
+        coverage=dict(deal_days=len(dd), first=dd[0].isoformat(), last=dd[-1].isoformat(), weekdays=wk),
         ents=ents, last_price_day=last, universe=len(syms), cached_actions=len(A.data),
         counts=dict(deals=len(rows), observations=len(obs), published_clients=len(ents), classes=dict(cls_n), **{k: v for k, v in cnt.items()}),
         pending={str(h): pend[h] for h in HORIZONS},
