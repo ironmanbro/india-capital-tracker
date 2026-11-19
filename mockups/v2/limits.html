@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cap Radar · India Capital Monitor</title>
+<meta name="description" content="Indian companies where foreign portfolio investors are near or over the foreign investment limit, from the NSDL red-flag and breach lists, with the room left and what changed.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#f3f3ef">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="tokens.css">
+<style>.cl{max-width:260px;overflow:hidden;text-overflow:ellipsis}.how li{margin:0 0 6px}.how{margin:0;padding-left:18px;font-size:var(--t-13);color:var(--ink-2)}</style>
+</head>
+<body>
+<div id="shell"></div>
+<main class="wrap">
+  <div class="pagehead"><h1>Cap Radar</h1>
+    <div class="meta"><span class="tag a">A</span> NSDL red-flag and breach lists &nbsp;·&nbsp; <b id="asof"></b></div></div>
+
+  <div class="grid">
+    <div class="p c3 stat"><span>Companies on the lists</span><b id="s1"></b><small id="s1s"></small></div>
+    <div class="p c3 stat"><span>Red flag: approaching the cap</span><b id="s2"></b><small id="s2s"></small></div>
+    <div class="p c3 stat"><span>Breach: over the cap</span><b id="s3"></b><small id="s3s"></small></div>
+    <div class="p c3 stat"><span>Least room left</span><b id="s4"></b><small id="s4s"></small></div>
+
+    <section class="p c12" aria-label="Filters">
+      <div class="filters">
+        <div><label>List</label><span class="seg" data-k="list"><button data-v="R">Red flag</button><button data-v="B">Breach</button><button data-v="all">Both</button></span></div>
+        <div><label>Room left</label><span class="seg" data-k="room"><button data-v="all">Any</button><button data-v="1">≤ 1 pt</button><button data-v="2">≤ 2 pts</button></span></div>
+        <div><label for="q">Company or ISIN</label><input id="q" type="search" placeholder="e.g. Shukra or INE551C01044"></div>
+        <button class="link-btn rs" id="reset">Reset filters</button>
+      </div>
+    </section>
+
+    <section class="p c8" aria-labelledby="h-t">
+      <div class="ph"><h2 id="h-t"><span id="tt">Cap Radar</span></h2><span class="u"><span id="cnt"></span> <button class="link-btn" id="csv">Download CSV</button></span></div>
+      <div class="tw"><table class="tbl" id="tbl"></table></div>
+      <div class="more" id="more"></div>
+      <div class="pf"><span id="ft"></span></div>
+    </section>
+
+    <div class="stack">
+      <section class="p" aria-labelledby="h-c">
+        <div class="ph"><h2 id="h-c">What changed</h2><span class="u">between NSDL reports</span></div>
+        <div class="pb"><ul class="wl" id="ev"></ul></div>
+        <div class="pf"><span id="evf"></span></div>
+      </section>
+      <section class="p" aria-labelledby="h-g">
+        <div class="ph"><h2 id="h-g">Closest to the cap, over time</h2><span class="u">share of cap used, %</span></div>
+        <div class="pb"><div id="c-tr"></div></div>
+        <div class="pf"><span id="trf"></span></div>
+      </section>
+      <section class="p" aria-labelledby="h-h">
+        <div class="ph"><h2 id="h-h">How to read this</h2></div>
+        <div class="pb"><ul class="how">
+          <li><b>Held</b> is the aggregate foreign portfolio investment in the company as a percentage of its paid-up capital. <b>Cap</b> is the permissible limit that applies to it.</li>
+          <li><b>Room</b> is the cap minus held, in percentage points; <b>room in shares</b> is NSDL's figure for how many more shares FPIs can still buy.</li>
+          <li>A company on the <b>breach</b> list is already above its limit, so room is negative and no share count is given.</li>
+          <li>Star a company to follow it: you will see it on your <a href="watchlist.html">Watchlist</a> when it enters, leaves or changes list.</li>
+          <li>This is a record of what NSDL publishes, not a view on any company. It does not say whether a price will rise or fall.</li>
+        </ul></div>
+      </section>
+    </div>
+  </div>
+</main>
+<div class="foot"><span>India Capital Monitor (beta) · Cap Radar</span><span id="dl"></span></div>
+
+<script src="data.js"></script><script src="limits.js"></script><script src="config.js"></script><script src="resolver.js"></script><script src="watch.js"></script><script src="ui.js"></script>
+<script>
+ALIASES.ready.then(()=>{
+const F=window.F, G=LIM, T0=F.todayIST(), dayN=iso=>Date.UTC(+iso.slice(0,4),+iso.slice(5,7)-1,+iso.slice(8,10))/864e5;
+const MON={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+const isoOf=s=>{const m=/^(\d{1,2})-([A-Za-z]{3})-(\d{4})$/.exec(s||'');return m&&MON[m[2]]?m[3]+'-'+String(MON[m[2]]).padStart(2,'0')+'-'+m[1].padStart(2,'0'):null};
+const esc=WATCH.esc, nice=s=>s.replace(/ LIMITED$| LTD\.?$/i,'');
+ICTUI.shell('reg','lim');
+const rows=G.rows.map(r=>Object.assign({},r,{used:r.agg/r.cap,sinceIso:isoOf(r.since)})), by=Object.fromEntries(rows.map(r=>[r.isin,r]));
+const R=rows.filter(r=>r.l==='R'), B=rows.filter(r=>r.l==='B'), nSnap=G.hist.snaps.length, stale=dayN(T0)-dayN(G.asof);
+document.getElementById('asof').textContent='NSDL report of '+F.dshort(G.asof)+(stale>7?' (over a week old)':'')+' · page built '+G.built;
+
+const near=R.slice().sort((a,b)=>a.room-b.room)[0];
+s1.textContent=rows.length; s1s.textContent='Equity listed on NSE and/or BSE';
+s2.textContent=R.length; s2s.textContent=R.filter(r=>r.room<=1).length+' with 1 point or less of room';
+s3.textContent=B.length; s3s.textContent=B.length?'Highest: '+nice(B.slice().sort((a,b)=>b.used-a.used)[0].co)+', '+B.slice().sort((a,b)=>b.used-a.used)[0].agg.toFixed(1)+'% held':'None on the list';
+s4.textContent=near?near.room.toFixed(2)+' pts':'–'; s4s.textContent=near?nice(near.co)+' ('+near.agg.toFixed(2)+'% of '+near.cap.toFixed(0)+'%)':'';
+
+const def={list:'R',room:'all',q:'',sort:'',asc:'',n:'25'};
+let S=Object.assign({},def);
+try{new URLSearchParams(location.hash.slice(1)).forEach((v,k)=>{if(k in def)S[k]=v})}catch(e){}
+const push=()=>{try{const p=new URLSearchParams();for(const k in S) if(S[k]!==def[k]&&k!=='n') p.set(k,S[k]); history.replaceState(null,'','#'+p)}catch(e){}};
+const dflt={R:['room','1'],B:['used','0'],all:['used','0']};
+const val=(r,k)=>k==='co'?r.co.toLowerCase():k==='since'?(r.sinceIso||''):r[k]==null?-1e12:r[k];
+let cur=[];
+function render(){
+  document.querySelectorAll('.seg').forEach(g=>g.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(S[g.dataset.k]===b.dataset.v))));
+  document.getElementById('q').value=S.q;
+  const q=S.q.trim().toLowerCase(), mx=S.room==='all'?1e9:+S.room;
+  let list=rows.filter(r=>(S.list==='all'||r.l===S.list)&&(S.room==='all'||(r.l==='R'&&r.room<=mx))&&(!q||r.co.toLowerCase().includes(q)||r.isin.toLowerCase().includes(q)));
+  const [sk,sa]=S.sort?[S.sort,S.asc]:dflt[S.list], dir=sa==='1'?1:-1;
+  list=list.slice().sort((a,b)=>{const x=val(a,sk),y=val(b,sk); return dir*(x<y?-1:x>y?1:0)||a.co.localeCompare(b.co)});
+  cur=list; const n=+S.n, arr=k=>sk===k?(dir===1?' ↑':' ↓'):'';
+  document.getElementById('tt').textContent={R:'Red flag: approaching the cap',B:'Breach: over the cap',all:'All companies on the lists'}[S.list];
+  document.getElementById('cnt').textContent=list.length+' companies ';
+  document.getElementById('tbl').innerHTML='<thead><tr><th></th><th><button data-s="co">Company'+arr('co')+'</button></th><th>List</th><th class="n"><button data-s="agg">Held %'+arr('agg')+'</button></th><th class="n">Cap %</th><th class="n"><button data-s="room">Room, pts'+arr('room')+'</button></th><th>Cap used</th><th class="n">Room, shares</th><th class="n"><button data-s="since">On list since'+arr('since')+'</button></th></tr></thead><tbody>'+
+   (list.slice(0,n).map(r=>{const days=r.sinceIso?Math.round(dayN(T0)-dayN(r.sinceIso)):null, pct=Math.min(100,r.used*100), over=r.used>=1;
+     return '<tr><td>'+WATCH.star('company',nice(r.co),r.isin)+'</td><td class="cl" title="'+esc(r.co)+' · '+esc(r.isin)+(r.exch?' · '+esc(r.exch):'')+'">'+esc(nice(r.co))+'</td><td>'+(r.l==='B'?'<span class="tag neg">Breach</span>':'<span class="tag warn">Red flag</span>')+'</td><td class="n num">'+r.agg.toFixed(2)+'</td><td class="n num">'+r.cap.toFixed(0)+'</td><td class="n num">'+(r.room<0?F.MINUS+Math.abs(r.room).toFixed(2):r.room.toFixed(2))+'</td><td><span class="gauge'+(over?' over':r.used>=.9?' hot':'')+'" title="'+(r.used*100).toFixed(0)+'% of the cap"><i style="width:'+pct+'%"></i></span></td><td class="n num">'+(r.qty!=null?F.inr(r.qty):'<span class="mut">–</span>')+'</td><td class="n num" title="'+(days!=null?F.inr(days)+' days':'')+'">'+(r.sinceIso?F.dshort(r.sinceIso):'<span class="mut">–</span>')+'</td></tr>'}).join('')||'<tr><td colspan="9" class="mut" style="height:60px">No companies match. <button class="link-btn" id="r2">Reset filters</button></td></tr>')+'</tbody>';
+  document.getElementById('more').innerHTML=list.length>n?'<button class="tbtn" id="mb">Show '+Math.min(25,list.length-n)+' more ('+(list.length-n)+' left)</button>':'';
+  document.getElementById('ft').textContent='NSDL report of '+F.dshort(G.asof)+'. Room in shares is NSDL\'s figure; "–" where NSDL gives none (breach list).';
+  document.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{const k=b.dataset.s; if(sk===k) S.asc=dir===1?'0':'1'; else {S.sort=k;S.asc=k==='co'?'1':k==='since'?'1':'0'} S.n='25'; render()});
+  const mb=document.getElementById('mb'); if(mb) mb.onclick=()=>{S.n=String(n+25);render()}; const r2=document.getElementById('r2'); if(r2) r2.onclick=reset;
+  push();
+}
+const reset=()=>{S=Object.assign({},def);render()};
+document.querySelectorAll('.seg').forEach(g=>g.querySelectorAll('button').forEach(b=>b.onclick=()=>{S[g.dataset.k]=b.dataset.v;S.sort='';S.asc='';S.n='25';render()}));
+document.getElementById('q').oninput=e=>{S.q=e.target.value;S.n='25';render()}; document.getElementById('reset').onclick=reset;
+document.getElementById('csv').onclick=()=>{const e=x=>'"'+String(x==null?'':x).replace(/"/g,'""')+'"';
+  const csv=['company,isin,list,held_pct,cap_pct,room_pts,room_shares,on_list_since,nsdl_report'].concat(cur.map(r=>[r.co,r.isin,r.l==='B'?'breach':'red_flag',r.agg,r.cap,r.room,r.qty,r.since,r.asof].map(e).join(','))).join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='cap-radar-'+G.asof+'.csv'; a.click()};
+
+/* what changed */
+const TXT={in:'entered the red-flag list',up:'moved from red flag to breach',down:'moved from breach to red flag',out:'left the lists'};
+const evs=G.ev.slice(0,8);
+document.getElementById('ev').innerHTML=evs.length?evs.map(e=>'<li><b>'+esc(nice(G.hist.names[e.i]||e.i))+'</b> '+TXT[e.t]+'<span class="sub2">'+F.dshort(e.d)+' · '+e.agg.toFixed(2)+'% held</span></li>').join(''):'<li class="mut">No change between reports yet.</li>';
+document.getElementById('evf').textContent='Tracking since '+F.dshort(G.since)+' ('+nSnap+' report'+(nSnap>1?'s':'')+'). NSDL keeps only its latest report, so earlier days cannot be shown.';
+/* trend */
+const top=R.slice().sort((a,b)=>b.used-a.used).slice(0,5).map(r=>r.isin), sn=G.hist.snaps;
+const cols=['--s1','--s3','--s2','--neg','--pos'], trend=top.map((i,k)=>({color:cols[k],pts:sn.filter(s=>s.c[i]).map(s=>[s.d,+(s.c[i][1]/s.c[i][2]*100).toFixed(1)])})).filter(l=>l.pts.length>1);
+if(nSnap>=2&&trend.length){
+  ICTUI.lines('c-tr',trend,{h:170,label:'Share of cap used, five companies closest to their cap',yfmt:v=>v+'%',tfmt:v=>v+'% of cap'});
+  document.getElementById('trf').textContent='The five red-flag companies with the least room today.'; }
+else { document.getElementById('c-tr').innerHTML='<p class="mut" style="margin:0;font-size:13px">The chart appears after the second NSDL report. This page records each report as it is published, so the line starts on '+F.dshort(G.since)+'.</p>'; document.getElementById('trf').textContent=''; }
+document.getElementById('dl').textContent='Source: NSDL FPI Monitor. Informational only; not investment advice.';
+window.addEventListener('ict-watch-change',()=>{});
+render();
+});
+</script>
+</body>
+</html>

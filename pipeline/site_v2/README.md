@@ -12,6 +12,14 @@
 
 Pages carry `noindex` so search engines do not list `/v2` next to the main page. Remove that line from the six pages when the new design is promoted.
 
+## Cap Radar and Watchlist (added 19-Nov-26)
+| | |
+|---|---|
+| Cap Radar `limits.html` | NSDL red-flag and breach lists with room left, plus what changed between reports. `build_limits.py` writes `limits.js` and **appends each report to the history inside the committed file** (NSDL keeps only its latest report), so history starts on the first build and grows; it is never invented |
+| Watchlist `watchlist.html`, `watch.js` | Follow companies, investors, countries, topics. Kept in the browser only; "new" means not seen since the follow was baselined; export and import as a file; a count beside Watchlist in the nav |
+| Alerts when away | `push-sw.js`, `supabase/functions/push-subscribe`, `pipeline/alerts/`. **Off until switched on**: see `pipeline/alerts/README.md` |
+Extra tests: `node pipeline/site_v2/tests/parity.js` (browser and alert sender find identical items), `python3 pipeline/alerts/tests/test_send_push.py`.
+
 ## How it stays current
 `.github/workflows/refresh_v2.yml` runs after each run of "Sync NSE and NSDL data" (and daily at 10:00 IST as a fallback, and on demand):
 1. `package_site.py` runs `build_all.py`, which fetches everything and checks it. **If any fetch or check fails, nothing is written** and the job fails, so the site keeps its last good data. Checks include: daily NSDL flows no more than 10 days old, at least 10,000 register rows, at least 100 rules and CCI orders, at least 50 deals in 90 days, and the exchange deals of the latest day.

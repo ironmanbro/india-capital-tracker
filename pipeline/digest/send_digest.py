@@ -61,6 +61,20 @@ def build(follow_names=()):
     if regs:
         parts.append("<h2>New rules this week</h2><ul>" + "".join(f'<li><a href="{esc(r["url"] or SITE)}">{esc(r["title"])}</a> <small>{esc(r.get("regulator") or "")} · {esc(str(r["issued_on"]))}</small></li>' for r in regs) + "</ul>")
         text += [f"- {r['title']}" for r in regs]
+    # 3b. Cap Radar: companies closest to their foreign investment limit (NSDL red-flag list) and the breach count
+    try:
+        lim = get("fpi_limits?select=list,as_of,company,raw&limit=1000")
+        rows = []
+        for r in lim:
+            try: rows.append((r["list"], r["company"], float(r["raw"]["aggregate investment (%)"]), float(r["raw"]["aggregate permissible limit (%)"]), r["as_of"]))
+            except (KeyError, TypeError, ValueError): pass
+        red = sorted([x for x in rows if x[0] == "red_flag"], key=lambda x: x[3] - x[2])[:3]
+        if red:
+            nb = sum(1 for x in rows if x[0] == "breach")
+            items = "".join(f"<li>{esc(x[1].title())}: {x[2]:.2f}% held of a {x[3]:.0f}% cap ({x[3]-x[2]:.2f} points of room)</li>" for x in red)
+            parts.append(f'<h2>Closest to the foreign limit</h2><ul>{items}</ul><p><small>NSDL red-flag list as of {esc(red[0][4])}; {nb} more companies are already over their limit. <a href="{SITE}/v2/limits">Cap Radar</a></small></p>')
+            text += [f"- {x[1].title()}: {x[2]:.2f}% of {x[3]:.0f}% cap" for x in red]
+    except Exception: pass
     # 4. followed firms (opt-in)
     if follow_names:
         try:

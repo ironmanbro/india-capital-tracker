@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Watchlist · India Capital Monitor</title>
+<meta name="description" content="Follow companies, investors, countries and topics and see what is new about them since your last visit. Kept in your browser only.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#f3f3ef">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="tokens.css">
+</head>
+<body>
+<div id="shell"></div>
+<main class="wrap">
+  <div class="pagehead"><h1>Watchlist</h1>
+    <div class="meta">Kept in this browser only · nothing about your list is sent to a server</div></div>
+  <div class="grid">
+    <div class="p c4 stat"><span>Following</span><b id="s1"></b><small id="s1s"></small></div>
+    <div class="p c4 stat"><span>New since your last visit</span><b id="s2"></b><small id="s2s"></small></div>
+    <div class="p c4 stat"><span>Data as of</span><b id="s3"></b><small id="s3s"></small></div>
+
+    <section class="p c12" aria-labelledby="h-a">
+      <div class="ph"><h2 id="h-a">Follow something</h2></div>
+      <div class="pb"><form class="wadd" id="add">
+        <div><label for="k">What</label><select id="k"><option value="company">Company</option><option value="investor">Investor</option><option value="country">Investor country</option><option value="topic">Topic or keyword</option></select></div>
+        <div><label for="v" id="vl">Name</label><input id="v" type="text" maxlength="80" list="dl-c" placeholder="e.g. Blackstone" style="min-width:240px" required></div>
+        <datalist id="dl-c"></datalist>
+        <button class="tbtn" type="submit">Follow</button>
+        <span class="mut" id="hint" style="font-size:12px"></span>
+      </form></div>
+    </section>
+
+    <section class="p c8" aria-labelledby="h-l">
+      <div class="ph"><h2 id="h-l">What is new</h2><span class="u"><button class="link-btn" id="seen">Mark all as seen</button></span></div>
+      <div class="pb" id="list"></div>
+      <div class="pf"><span>Matches are by name and keyword on deals reported in the last year, new rules, and the NSDL foreign-limit lists. A name match is not proof it is the same entity: check the source.</span></div>
+    </section>
+
+    <div class="stack">
+      <section class="p" aria-labelledby="h-b">
+        <div class="ph"><h2 id="h-b">Back up or move your list</h2></div>
+        <div class="pb"><p class="mut" style="margin:0 0 8px;font-size:13px">Your list lives in this browser. Clearing site data or switching device loses it, so export it to a file and import it elsewhere.</p>
+          <button class="tbtn" id="exp">Export file</button> <label class="tbtn" style="display:inline-flex;align-items:center;cursor:pointer">Import file<input id="imp" type="file" accept="application/json,.json" hidden></label>
+          <p id="bm" class="mut" style="margin:8px 0 0;font-size:12px" role="status"></p></div>
+      </section>
+      <section class="p" aria-labelledby="h-r">
+        <div class="ph"><h2 id="h-r">While you are away</h2></div>
+        <div class="pb" id="away"></div>
+      </section>
+    </div>
+  </div>
+</main>
+<div class="foot"><span>India Capital Monitor (beta) · Watchlist</span><span>Informational only; not investment advice.</span></div>
+
+<script src="data.js"></script><script src="config.js"></script><script src="resolver.js"></script><script src="watch.js"></script><script src="ui.js"></script>
+<script>
+ALIASES.ready.then(()=>WATCH.loadAll()).then(()=>{
+const F=window.F, W=WATCH, esc=W.esc;
+ICTUI.shell('watch','');
+const HINT={company:'Type a company name to match deal targets. To follow its NSDL cap status, star it on Cap Radar.',investor:'Matches the investor name on deals, ignoring Ltd, Inc, Pte and similar words.',country:'The home country of the investor, as shown on the Deals page, e.g. Japan.',topic:'Any word or phrase in a deal headline or a rule title, e.g. GIFT City or Press Note 3.'};
+const PH={company:'e.g. Indira IVF',investor:'e.g. Blackstone',country:'e.g. Japan',topic:'e.g. GIFT City'};
+const k=document.getElementById('k'), v=document.getElementById('v');
+const countries=[...new Set(((window.DEALS&&DEALS.rows)||[]).map(r=>r.ic).filter(Boolean))].sort();
+function kind(){ document.getElementById('hint').textContent=HINT[k.value]; v.placeholder=PH[k.value];
+  document.getElementById('dl-c').innerHTML=k.value==='country'?countries.map(c=>'<option value="'+esc(c)+'">').join(''):'' }
+k.onchange=kind; kind();
+document.getElementById('add').onsubmit=e=>{ e.preventDefault(); const t=v.value.trim(); if(!t) return; if(k.value==='topic'&&t.length<3){ document.getElementById('hint').textContent='Use at least 3 characters so the match is meaningful.'; return } W.add(k.value,t); v.value='' };
+
+const ICON={company:'Company',investor:'Investor',country:'Country',topic:'Topic'};
+const SUGGEST=[['topic','GIFT City'],['topic','Press Note 3'],['topic','FVCI'],['country','Japan']];
+function draw(){
+  const res=W.compute(), items=W.items();
+  document.getElementById('s1').textContent=items.length; document.getElementById('s1s').textContent=items.length?items.length+' item'+(items.length>1?'s':'')+' on your list':'Nothing followed yet';
+  document.getElementById('s2').textContent=res.fresh; document.getElementById('s2s').textContent=res.fresh?'Marked as seen when you leave this page':'Nothing new';
+  const L=window.LIM; document.getElementById('s3').textContent=L?F.dshort(L.asof):'–'; document.getElementById('s3s').textContent='NSDL limits; deals and rules as published';
+  const box=document.getElementById('list');
+  if(!items.length){ box.innerHTML='<p style="margin:0 0 10px">You are not following anything yet. Follow a company, an investor, a country or a topic above, or press the ☆ beside a name on <a href="limits.html">Cap Radar</a> or <a href="investors.html">Investors</a>.</p><p class="mut" style="margin:0 0 6px;font-size:13px">Try one:</p><p style="margin:0">'+SUGGEST.map(s=>'<button class="tbtn sg" data-k="'+s[0]+'" data-v="'+esc(s[1])+'">'+esc(s[1])+'</button> ').join('')+'</p>'; box.querySelectorAll('.sg').forEach(b=>b.onclick=()=>W.add(b.dataset.k,b.dataset.v)); return res }
+  box.innerHTML='<ul class="wl">'+res.groups.map(g=>{ const it=g.item, shown=g.hits.slice(0,5);
+    return '<li><div style="display:flex;align-items:center;gap:6px">'+W.star(it.k,it.label,it.key)+'<b>'+esc(it.label)+'</b> <span class="tag">'+ICON[it.k]+'</span>'+(g.fresh?'<span class="fresh">'+g.fresh+' new</span>':'')+'</div>'+
+      (g.status?'<span class="sub2" style="margin-left:34px">'+esc(g.status)+'</span>':'')+
+      (shown.length?'<ul class="wl" style="margin:6px 0 0 34px">'+shown.map(h=>'<li style="padding:5px 0">'+(h.isNew?'<span class="fresh">New</span>':'')+'<span class="num">'+F.dshort(h.d)+'</span> · <span class="mut">'+esc(h.kind)+'</span> · '+(h.url?'<a href="'+esc(h.url)+'" rel="noopener">'+esc(h.text)+'</a>':esc(h.text))+(h.sub?'<span class="sub2">'+esc(h.sub)+'</span>':'')+'</li>').join('')+(g.hits.length>5?'<li class="mut" style="padding:5px 0;font-size:12px">'+(g.hits.length-5)+' older match'+(g.hits.length-5>1?'es':'')+' not shown</li>':'')+'</ul>':'<span class="sub2" style="margin-left:34px">No matches in the data yet.</span>')+'</li>' }).join('')+'</ul>';
+  return res }
+let last=draw();
+window.addEventListener('ict-watch-change',()=>{ last=draw() });
+document.getElementById('seen').onclick=()=>{ W.markSeen(last); last=draw() };
+/* what you have seen on this page counts as seen when you leave it */
+addEventListener('pagehide',()=>{ try{ W.markSeen(W.compute()) }catch(e){} });
+
+document.getElementById('exp').onclick=()=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([W.exportJson()],{type:'application/json'})); a.download='ict-watchlist.json'; a.click() };
+document.getElementById('imp').onchange=e=>{ const f=e.target.files[0]; if(!f) return; const bm=document.getElementById('bm');
+  if(f.size>200000){ bm.textContent='That file is too large to be a watchlist.'; return }
+  f.text().then(t=>{ try{ const n=W.importJson(t); bm.textContent='Added '+n+' item'+(n===1?'':'s')+'.' }catch(x){ bm.textContent='Could not read that file: '+x.message } }); e.target.value='' };
+const away=document.getElementById('away');
+function drawAway(){ const P=W.push;
+  if(!P.available()) { away.innerHTML='<p class="mut" style="margin:0;font-size:13px">Phone and desktop alerts are not switched on for this site yet. Until then this page shows what is new each time you open it, and the <a href="/">daily email</a> on the main site covers the day\'s headline flows, deals and rules.</p>'; return }
+  const on=P.on();
+  away.innerHTML='<p class="mut" style="margin:0 0 8px;font-size:13px">'+(on?'Alerts are on for this browser. You get at most one notification per update, naming the items that changed.':'Get one notification when something new matches your list, even when this site is closed.')+' Turning alerts on sends your browser\'s push address and your followed items to our server; turning them off deletes them. See the <a href="/privacy.html">privacy notice</a>.</p><button class="tbtn" id="pbtn">'+(on?'Turn alerts off':'Turn alerts on')+'</button><p id="pmsg" class="mut" style="margin:8px 0 0;font-size:12px" role="status"></p>';
+  document.getElementById('pbtn').onclick=async e=>{ const b=e.currentTarget, m=document.getElementById('pmsg'); b.disabled=true; try{ on?await P.disable():await P.enable(); drawAway() }catch(x){ m.textContent=x.message; b.disabled=false } } }
+drawAway();
+});
+</script>
+</body>
+</html>

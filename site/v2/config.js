@@ -5,7 +5,8 @@ window.ICT_CONFIG = {
   supabaseUrl: 'https://urpphqybqmxlwhjghsmf.supabase.co',
   supabaseKey: 'sb_publishable_zSo8W_FfT_fZEcfMWoumOw_Yv9mmVWB',
   aliasTimeoutMs: 3000,
-  shipped: ['monitor.html', 'flows.html', 'deals.html', 'investors.html', 'registrations.html', 'regulations.html'],
+  pushPublicKey: '',   /* the VAPID public key switches watchlist alerts on; empty keeps them off (see pipeline/alerts/README.md) */
+  shipped: ['monitor.html', 'flows.html', 'deals.html', 'investors.html', 'registrations.html', 'regulations.html', 'limits.html', 'watchlist.html'],
   homeHref: './',
   classicUrl: '/'
 };

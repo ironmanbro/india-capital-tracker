@@ -32,6 +32,8 @@ jobs:
         with:
           python-version: "3.12"
       - name: Build the data files and package the pages
+        env:
+          ICT_PUSH_PUBLIC_KEY: ${{ vars.ICT_PUSH_PUBLIC_KEY }}    # public VAPID key; empty keeps watchlist alerts off (pipeline/alerts/README.md)
         run: python pipeline/site_v2/package_site.py
       - name: Keep the result only if the data really changed
         run: python pipeline/site_v2/keep_if_changed.py site/v2
@@ -44,3 +46,14 @@ jobs:
           git commit -m "Refresh /v2 data ($(date -u +'%Y-%m-%d %H:%M UTC'))"
           for i in 1 2 3; do git push origin HEAD:main && exit 0; git pull --rebase origin main; sleep 5; done
           echo "could not push after 3 tries"; exit 1
+      - name: Send watchlist alerts
+        # Only runs once the alert secrets exist (see pipeline/alerts/README.md). A failure here never fails the data refresh.
+        continue-on-error: true
+        env:
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+          VAPID_SUBJECT: ${{ vars.VAPID_SUBJECT }}
+        run: |
+          if [ -z "$VAPID_PRIVATE_KEY" ] || [ -z "$SUPABASE_SERVICE_KEY" ] || [ -z "$VAPID_SUBJECT" ]; then echo "alert secrets not set: skipped"; exit 0; fi
+          pip install --quiet pywebpush
+          python pipeline/alerts/send_push.py

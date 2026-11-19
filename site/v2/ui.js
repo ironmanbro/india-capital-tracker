@@ -42,9 +42,9 @@ const gsec=D.ccil_limits.find(l=>/Central/.test(l.ins));
 window.CALC=calc;
 
 /* ---------- shell ---------- */
-const NAV=[['home','Home','monitor.html'],['deals','Deals','deals.html'],['investors','Investors','investors.html'],['reg','Registrations','registrations.html'],['regs','Regulations','regulations.html']];
+const NAV=[['home','Home','monitor.html'],['deals','Deals','deals.html'],['investors','Investors','investors.html'],['reg','Registrations','registrations.html'],['regs','Regulations','regulations.html'],['watch','Watchlist','watchlist.html']];
 const SUB={regs:[['feed','Rules and circulars','regulations.html'],['cal','Compliance calendar','#'],['cci','CCI approvals','#'],['ref','Reference','#']],
-  reg:[['reg','Register and watch lists','registrations.html'],['lim','Foreign investment limits','#'],['gift','GIFT City / IFSCA','#'],['an','Analytics','#']],
+  reg:[['reg','Register and watch lists','registrations.html'],['lim','Cap Radar','limits.html'],['gift','GIFT City / IFSCA','#'],['an','Analytics','#']],
   deals:[['all','All deals','deals.html'],['ex','Exchange deals','#'],['rep','Reported deals','#'],['odi','Outbound (ODI)','#'],['fund','Fund launches and moves','#']],
   home:[['today','Today','monitor.html'],['markets','Markets','flows.html'],['brief','Weekly brief','#']],
   investors:[['dir','Directory','investors.html'],['own','Ownership changes','#'],['net','Network','#'],['ctry','Countries','#'],['f13','13F','#'],['profile','Profile: SoftBank Group','investor.html'],['co','Profile: Meesho','company.html']]};
@@ -57,7 +57,7 @@ function shell(active,sub){
   const t=(l,v,s)=>'<div class="tick-i"><span>'+l+'</span><b>'+v+'</b>'+(s?'<small>'+s+'</small>':'')+'</div>';
   el.innerHTML=
    '<header class="top"><div class="top-in"><a class="brand" href="'+home+'"><i>ICT</i><span>India Capital Monitor</span></a>'+
-   '<nav class="nav" aria-label="Desks">'+NAV.filter(keepLink).map(n=>'<a href="'+hrefOf(n)+'"'+(n[0]===active?' aria-current="page"':'')+(n[2]==='#'?' title="Not in the mockups yet"':'')+'>'+n[1]+'</a>').join('')+'</nav>'+
+   '<nav class="nav" aria-label="Desks">'+NAV.filter(keepLink).map(n=>'<a href="'+hrefOf(n)+'"'+(n[0]==='watch'?' data-w="1"':'')+(n[0]===active?' aria-current="page"':'')+(n[2]==='#'?' title="Not in the mockups yet"':'')+'>'+n[1]+'</a>').join('')+'</nav>'+
    (shipped?'<span style="margin-left:auto"></span>':'<div class="search" role="search">Search company, FPI, ISIN, circular<kbd>⌘K</kbd></div>')+
    (CFG.classicUrl?'<a class="tbtn classic" href="'+CFG.classicUrl+'">Classic site</a>':'')+
    '<button class="tbtn" id="theme" aria-label="Switch light or dark theme">Dark</button></div></header>'+
@@ -72,6 +72,7 @@ function shell(active,sub){
    t('G-sec limit used, CCIL, '+dshort(D.ccil_day),'<span class="num">'+gsec.pct.toFixed(2)+'%</span>')+
    '</div></div>';
   if(CFG.classicUrl){ const ft=document.querySelector('.foot'); if(ft) ft.insertAdjacentHTML('beforeend','<span class="classic-foot"><a href="'+CFG.classicUrl+'">Classic site</a></span>') }
+  if(window.WATCH) WATCH.badge();
   const root=document.documentElement;
   try{const s=localStorage.getItem('ict-theme'); if(s) root.setAttribute('data-theme',s);}catch(e){}
   const b=document.getElementById('theme');
