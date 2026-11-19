@@ -47,7 +47,7 @@ const SUB={regs:[['feed','Rules and circulars','regulations.html'],['cal','Compl
   reg:[['reg','Register and watch lists','registrations.html'],['lim','Cap Radar','limits.html'],['gift','GIFT City / IFSCA','#'],['an','Analytics','#']],
   deals:[['all','All deals','deals.html'],['ex','Exchange deals','#'],['rep','Reported deals','#'],['odi','Outbound (ODI)','#'],['fund','Fund launches and moves','#']],
   home:[['today','Today','monitor.html'],['markets','Markets','flows.html'],['brief','Weekly brief','#']],
-  investors:[['dir','Directory','investors.html'],['own','Ownership changes','#'],['net','Network','#'],['ctry','Countries','#'],['f13','13F','#'],['profile','Profile: SoftBank Group','investor.html'],['co','Profile: Meesho','company.html']]};
+  investors:[['dir','Directory','investors.html'],['sc','Deal outcomes','scorecard.html'],['own','Ownership changes','#'],['net','Network','#'],['ctry','Countries','#'],['f13','13F','#'],['profile','Profile: SoftBank Group','investor.html'],['co','Profile: Meesho','company.html']]};
 /* Public build (config.js lists the pages that exist): hide links to pages that are not built, and the placeholder search box. */
 const CFG=window.ICT_CONFIG||{}, shipped=CFG.shipped||null, home=CFG.homeHref||'monitor.html';
 const keepLink=n=>!shipped||shipped.indexOf(n[2])>=0, hrefOf=n=>n[2]==='monitor.html'?home:n[2];

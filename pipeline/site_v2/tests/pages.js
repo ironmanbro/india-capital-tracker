@@ -1,5 +1,5 @@
 const {chromium,devices}=require('playwright');
-const BASE='http://127.0.0.1:8790', PAGES=['/v2/','/v2/flows','/v2/deals','/v2/investors','/v2/registrations','/v2/regulations','/v2/limits','/v2/watchlist'];
+const BASE='http://127.0.0.1:8790', PAGES=['/v2/','/v2/flows','/v2/deals','/v2/investors','/v2/registrations','/v2/regulations','/v2/limits','/v2/watchlist','/v2/scorecard'];
 (async()=>{const b=await chromium.launch();let bad=0;
 for(const [dev,opts] of [['desktop',{viewport:{width:1440,height:900}}],['phone',{...devices['iPhone 13']}]]){
  const ctx=await b.newContext(opts);
