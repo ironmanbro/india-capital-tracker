@@ -56,6 +56,7 @@ class Prices:
         if d.weekday() >= 5: self.days[iso] = 0; return False
         if self.fetched >= self.budget: return None
         k = d.strftime("%d%m%Y"); self.fetched += 1
+        if self.fetched % 40 == 0: self.save(); print(f"  price files fetched: {self.fetched} (at {iso})", flush=True)
         try:
             txt = _get(BHAV % k)
             itxt = _get(IDX % k)
@@ -142,7 +143,8 @@ class Actions:
                 self.data[s] = {"at": self.today.isoformat(), "partial": bool(r.get("warning")),
                                 "a": [[a["exDate"], a["actionType"], a["adjustmentFactor"], a.get("purpose", "")[:90]] for a in r["actions"] if a["actionType"] in ("SPLIT", "BONUS") or a["adjustmentFactor"] != 1.0 or a["actionType"] not in ("DIVIDEND", "OTHER")]}
             except Exception: continue      # noqa: BLE001
-            time.sleep(0.15)
+            if self.calls % 60 == 0: _save("actions.json", self.data); print(f"  corporate-action lookups: {self.calls}/{len(todo)}", flush=True)
+            time.sleep(0.1)
         _save("actions.json", self.data)
         return len(todo)
 
