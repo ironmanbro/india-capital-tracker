@@ -19,18 +19,22 @@ FIELDS = {"date": ("BD_DT_DATE", "date"), "symbol": ("BD_SYMBOL", "symbol"), "na
           "buySell": ("BD_BUY_SELL", "buySell"), "qty": ("BD_QTY_TRD", "quantityTraded"), "watp": ("BD_TP_WATP", "tradePrice"), "remarks": ("BD_REMARKS", "remarks")}
 
 
-# 7-day windows: the API has returned far fewer rows than the daily files for 30-day windows (0 bulk deals in 45 days on
-# 20-Nov-26), which looks like a cap on rows per request. Every window logs its raw row count so a cap or an empty answer shows.
-WINDOW_DAYS = 7
+# One trading day per request: the API returns at most 70 rows per request (every 7-day bulk window came back with exactly 70
+# rows on 20-Nov-26), so longer windows silently lose deals. A day that still returns the cap is logged as CAPPED.
+WINDOW_DAYS = 1
+API_CAP = 70
 
 def deals_history():
     s = requests.Session(); s.headers.update(H)
     s.get("https://www.nseindia.com/", timeout=30)
     out = {"BULK_DEALS_DATA": [], "BLOCK_DEALS_DATA": []}
     raw = {"BULK_DEALS_DATA": 0, "BLOCK_DEALS_DATA": 0}
+    capped = 0
     d, today = START, dt.date.today()
     while d <= today:
         end = min(d + dt.timedelta(days=WINDOW_DAYS - 1), today)
+        if WINDOW_DAYS == 1 and d.weekday() >= 5:      # no trading on Saturday or Sunday
+            d = end + dt.timedelta(days=1); continue
         for opt, key in (("bulk_deals", "BULK_DEALS_DATA"), ("block_deals", "BLOCK_DEALS_DATA")):
             r = s.get("https://www.nseindia.com/api/historicalOR/bulk-block-short-deals", params={"optionType": opt, "from": f"{d:%d-%m-%Y}", "to": f"{end:%d-%m-%Y}"}, timeout=90)
             r.raise_for_status()
@@ -41,16 +45,17 @@ def deals_history():
             if rows and not raw[key]:
                 print(f"  {opt} sample row keys:", sorted(rows[0])[:12])
             raw[key] += len(rows)
-            print(f"  {opt} {d}..{end}: {len(rows)} rows", flush=True)
+            capped += len(rows) >= API_CAP
+            print(f"  {opt} {d}..{end}: {len(rows)} rows" + ("  CAPPED: more deals exist than the API returned" if len(rows) >= API_CAP else ""), flush=True)
             for x in rows:
                 n = {k: next((x[a] for a in alts if x.get(a) not in (None, "")), "") for k, alts in FIELDS.items()}
                 n["buySell"] = {"B": "BUY", "S": "SELL"}.get(str(n["buySell"]).strip().upper()[:1], str(n["buySell"]).upper())
                 n["qty"] = str(n["qty"]).replace(",", "")
                 if n["clientName"]:
                     out[key].append(n)
-            time.sleep(1)
+            time.sleep(0.7)
         d = end + dt.timedelta(days=1)
-    print(f"deals {START} to {today}: {raw['BULK_DEALS_DATA']} bulk and {raw['BLOCK_DEALS_DATA']} block rows from the API", flush=True)
+    print(f"deals {START} to {today}: {raw['BULK_DEALS_DATA']} bulk and {raw['BLOCK_DEALS_DATA']} block rows from the API; {capped} requests hit the {API_CAP}-row cap", flush=True)
     # Bulk deals happen on almost every trading day; none over more than a week means the API answer is wrong, not the market.
     if (today - START).days >= 7 and not raw["BULK_DEALS_DATA"]:
         print("WARNING: the NSE history API returned no bulk deals at all; history for this range is incomplete")
