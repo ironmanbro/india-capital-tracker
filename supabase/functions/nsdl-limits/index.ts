@@ -32,9 +32,12 @@ async function latest(url: string) {
   return { date: isoMDY(opts[0].t) || opts[0].t, label: opts[0].t, rows: rows.filter((r) => r.length >= 3) };
 }
 
+// Constant-time key comparison: the time taken does not hint at how much of a guessed key was right.
+const sameKey = (a: string | null, b: string) => { if (a === null || a.length !== b.length) return false; let d = 0; for (let i = 0; i < b.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i); return d === 0; };
+
 Deno.serve(async (req) => {
   const { data: secret } = await db.from("app_secrets").select("value").eq("name", "ingest_key").single();
-  if (!secret || req.headers.get("x-ingest-key") !== secret.value) return new Response("unauthorized", { status: 401 });
+  if (!secret || !sameKey(req.headers.get("x-ingest-key"), secret.value)) return new Response("unauthorized", { status: 401 });
   const debug = new URL(req.url).searchParams.get("debug") === "1";
   const out: Record<string, unknown> = {};
   for (const [list, url] of Object.entries(PAGES)) {

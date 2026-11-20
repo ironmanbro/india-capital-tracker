@@ -23,10 +23,16 @@ jobs:
           python-version: "3.12"
       - run: pip install -r pipeline/collectors/requirements.txt openpyxl
       - name: Collect
+        id: collect
+        # Do not stop here: whatever was collected is still loaded below. The last step turns the run red if a collector failed
+        # unexpectedly, so GitHub emails the owner instead of the failure hiding behind a green tick (Milestone 0 finding).
+        continue-on-error: true
         working-directory: pipeline/collectors
         env:
+          # BSE answers GitHub's servers with HTTP 403; its deals arrive from the owner's own computer (pipeline/push_bse.py).
+          ICT_ACCEPTED_FAILURES: "bse_deals.py"
           SEC_USER_AGENT: "IndianCapitalTracker kishansinghania18@gmail.com"
-        run: python run_all.py || echo "some scripts failed (see above)"
+        run: python run_all.py
       - name: Load into Supabase
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -38,3 +44,8 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: python pipeline/enrich_profiles.py
+      - name: Fail the run if a collector failed unexpectedly
+        if: steps.collect.outcome == 'failure'
+        run: |
+          echo "A collector failed (see the Collect step). Data that did load was still saved."
+          exit 1

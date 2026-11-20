@@ -1,0 +1,23 @@
+name: Data freshness check
+
+# Read-only. Reads the same public tables the website reads and fails (red run, GitHub email) when a dataset or collector is older
+# than its allowed age. Limits and reasons live in pipeline/ops/check_freshness.py. Nothing is written to any database.
+
+on:
+  schedule:
+    - cron: "20 */6 * * *"     # every 6 hours
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  freshness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python pipeline/ops/check_freshness.py

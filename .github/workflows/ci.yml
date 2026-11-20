@@ -1,0 +1,57 @@
+name: CI
+
+# Runs on every push and pull request. No secrets, no deployment, no writes to any database.
+#  1. Python unit tests (collectors, loaders, freshness monitor)
+#  2. The schema baseline must build in an empty Postgres and match the recorded object counts (supabase/baseline/verify.sh)
+#  3. Workflow files must be valid YAML; no obvious secret patterns in tracked files
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  python-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r pipeline/collectors/requirements.txt openpyxl pytest
+      - run: python -m pytest pipeline/tests -q
+
+  schema-baseline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: ci
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGUSER: postgres
+      PGPASSWORD: ci
+    steps:
+      - uses: actions/checkout@v4
+      - run: supabase/baseline/verify.sh
+
+  hygiene:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Workflow files are valid YAML
+        run: python3 -c "import glob,yaml;[yaml.safe_load(open(f)) for f in glob.glob('.github/workflows/*.yml')];print('ok')"
+      - name: No secret-looking strings in tracked files
+        run: |
+          if git grep -nIE "sb_secret_|service_role[\"' ]*[:=][\"' ]*eyJ|ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-ant-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}" -- . ':!.claude' ':!.agents' ':!supabase/baseline/README.md'; then
+            echo "Possible secret committed"; exit 1
+          fi

@@ -158,9 +158,12 @@ async function runArchive(months: number, dry: boolean) {
   return { kept: uniq.length, added, errors };
 }
 
+// Constant-time key comparison: the time taken does not hint at how much of a guessed key was right.
+const sameKey = (a: string | null, b: string) => { if (a === null || a.length !== b.length) return false; let d = 0; for (let i = 0; i < b.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i); return d === 0; };
+
 Deno.serve(async (req) => {
   const { data: secret } = await db.from("app_secrets").select("value").eq("name", "ingest_key").single();
-  if (!secret || req.headers.get("x-ingest-key") !== secret.value) return new Response("unauthorized", { status: 401 });
+  if (!secret || !sameKey(req.headers.get("x-ingest-key"), secret.value)) return new Response("unauthorized", { status: 401 });
   const q = new URL(req.url).searchParams, dry = q.get("dry") === "1";
   if (q.has("archive")) return Response.json(await runArchive(Math.min(Number(q.get("months")) || 0, 60), dry));
   const out: Record<string, unknown> = {};

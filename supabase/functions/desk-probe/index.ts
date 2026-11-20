@@ -3,9 +3,12 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36";
+// Constant-time key comparison: the time taken does not hint at how much of a guessed key was right.
+const sameKey = (a: string | null, b: string) => { if (a === null || a.length !== b.length) return false; let d = 0; for (let i = 0; i < b.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i); return d === 0; };
+
 Deno.serve(async (req) => {
   const { data: secret } = await db.from("app_secrets").select("value").eq("name", "ingest_key").single();
-  if (!secret || req.headers.get("x-ingest-key") !== secret.value) return new Response("unauthorized", { status: 401 });
+  if (!secret || !sameKey(req.headers.get("x-ingest-key"), secret.value)) return new Response("unauthorized", { status: 401 });
   const { urls, nse, n } = await req.json();
   let cookie = "";
   if (nse) { const h = await fetch("https://www.nseindia.com/", { headers: { "user-agent": UA, accept: "text/html" } }); cookie = (h.headers.getSetCookie?.() || []).map((c: string) => c.split(";")[0]).join("; "); }

@@ -27,5 +27,11 @@ if "bse_deals.py" in failed and os.path.isdir("downloads"):
     if subprocess.run([sys.executable, "bse_offline.py"]).returncode == 0:
         failed.remove("bse_deals.py")
 
+# Failures that are understood and handled elsewhere (e.g. BSE blocks GitHub's servers with HTTP 403; its deals are pushed from the
+# owner's computer). Named in ICT_ACCEPTED_FAILURES (comma separated). They are still printed, but do not fail the run.
+accepted = {x.strip() for x in os.environ.get("ICT_ACCEPTED_FAILURES", "").split(",") if x.strip()}
+unexpected = [f for f in failed if f not in accepted]
 print("\nFailed:", failed or "none")
-sys.exit(1 if failed else 0)
+if failed and not unexpected:
+    print("All failures are in ICT_ACCEPTED_FAILURES:", sorted(accepted))
+sys.exit(1 if unexpected else 0)
