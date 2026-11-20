@@ -303,6 +303,24 @@ async function rerunRules() {
 const FOREIGN = /\b(PTE|LLC|L\.?P\.?|PLC|SICAV|ICAV|S\.?A\.?|SARL|GMBH|AG|INC|N\.?V\.?|B\.?V\.?|MAURITIUS|SINGAPORE|CAYMAN|IRELAND|LUXEMBOURG|NORWAY|ABU DHABI|DUBAI|QATAR|KUWAIT|SAUDI|JAPAN|KOREA|TAIWAN|HONG KONG|CANADA|AUSTRALIA|MASTER FUND|FEEDER|OFFSHORE|EMERGING MARKETS?|GOVERNMENT OF|MONETARY AUTHORITY|INVESTMENT AUTHORITY|PENSION|SOVEREIGN|ODI|FPI|GOLDMAN SACHS|MORGAN STANLEY|CITIGROUP|BNP PARIBAS|SOCIETE GENERALE|J\.?P\.? ?MORGAN|BOFA|MERRILL|NOMURA|UBS|CLSA|VANGUARD|BLACKROCK|GIC|NORGES|TEMASEK|FIDELITY|ABERDEEN|MACQUARIE|HSBC|BARCLAYS|CITADEL|JANE STREET|SOCIETE)\b/i;
 const DOMESTIC = /(MUTUAL FUND|\bMF\b|INSURANCE|\bHUF\b|PRIVATE LIMITED|PVT\.? LTD|BROKING|SHARE BROKERS)/i;
 
+// A client is also foreign when SEBI's FPI register has exactly that name (after norm_name(), the SQL function's twin): this
+// catches registered funds with plain names such as "3 SIGMA GLOBAL FUND" (Mauritius). Read once per run; if the read fails
+// the name test above still applies. Same rule as pipeline/load_feeds.py.
+const normName = (t: string) => (t || "").replace(/[^a-zA-Z0-9]+/g, " ").toLowerCase()
+  .replace(/\b(ltd|limited|inc|llc|llp|plc|pte|pcc|vcc|the|co|corp|corporation|sa|ag|nv|bv|fund|funds|trust|lp)\b/g, " ").replace(/\s+/g, " ").trim();
+async function fpiKeys(): Promise<Set<string>> {
+  const out = new Set<string>();
+  for (let from = 0; from < 100_000; from += 1000) {
+    const { data, error } = await db.from("fpi_registry").select("name").order("reg_no").range(from, from + 999);
+    if (error) break;
+    data?.forEach((r) => { const k = normName(r.name); if (k) out.add(k); });
+    if (!data || data.length < 1000) break;
+  }
+  return out;
+}
+const isForeign = (client: string, reg: Set<string>) =>
+  !!client && ((FOREIGN.test(client) && !DOMESTIC.test(client)) || reg.has(normName(client)));
+
 function parseCsv(text: string): string[][] {
   return text.trim().split(/\r?\n/).map((line) => {
     const cells: string[] = [];
@@ -319,6 +337,8 @@ function parseCsv(text: string): string[][] {
 
 async function runNse() {
   const out: Record<string, unknown> = {};
+  const reg = await fpiKeys();
+  out.fpi_register = reg.size;
   for (const f of NSE_FILES) {
     const started = new Date();
     try {
@@ -333,7 +353,7 @@ async function runNse() {
         [/date/, /symbol|security code/, /security name|company/, /client/, /buy|sell|deal type/, /quantity/, /price/].map(col);
       if (cClient < 0) throw new Error(`unexpected header: ${rows[0].join(",")}`);
 
-      const events = rows.slice(1).filter((r) => r[cClient] && FOREIGN.test(r[cClient]) && !DOMESTIC.test(r[cClient]))
+      const events = rows.slice(1).filter((r) => isForeign(r[cClient], reg))
         .map((r) => {
           const buy = /^b/i.test(r[cSide]);
           const qty = parseFloat((r[cQty] || "0").replace(/,/g, ""));

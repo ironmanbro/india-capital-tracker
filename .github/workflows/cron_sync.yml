@@ -6,6 +6,11 @@ on:
     - cron: "30 12 * * 1-5"  # 6:00 pm IST on trading days: NSE bulk and block deals are out after the close
     - cron: "30 15 * * 1-5"  # 9:00 pm IST: second try, because the deals file only ever holds the latest day
   workflow_dispatch:
+    inputs:
+      history_from:
+        description: "Backfill NSE deals from this date (YYYY-MM-DD); empty = the usual last 45 days"
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -26,6 +31,7 @@ jobs:
         working-directory: pipeline/collectors
         env:
           SEC_USER_AGENT: "IndianCapitalTracker kishansinghania18@gmail.com"
+          HISTORY_FROM: ${{ inputs.history_from }}
         run: python run_all.py || echo "some scripts failed (see above)"
       - name: Load into Supabase
         env:

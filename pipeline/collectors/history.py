@@ -1,4 +1,4 @@
-"""Recent NSE bulk/block deals with foreign-looking clients, and NSDL FPI monthly net investment by calendar year.
+"""Recent NSE bulk/block deals (every client; pipeline/load_feeds.py decides which are foreign), and NSDL FPI monthly net investment by calendar year.
 By default only the last 45 days are fetched: earlier deals are already in feed_records and the loader only upserts.
 Set HISTORY_FROM=2025-04-01 for a full backfill.
 Output: data/history/bulk_block_deals_history.json and data/history/fpi_monthly_history.json (loaded by pipeline/load_feeds.py)."""
@@ -6,7 +6,6 @@ import os, re, sys, json, time, datetime as dt, requests
 from bs4 import BeautifulSoup
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
-from load_feeds import FOREIGN, DOMESTIC  # same foreign-name test as the live feed
 import nsdl_all
 
 START = dt.date.fromisoformat(os.environ["HISTORY_FROM"]) if os.environ.get("HISTORY_FROM") else dt.date.today() - dt.timedelta(days=45)
@@ -20,30 +19,42 @@ FIELDS = {"date": ("BD_DT_DATE", "date"), "symbol": ("BD_SYMBOL", "symbol"), "na
           "buySell": ("BD_BUY_SELL", "buySell"), "qty": ("BD_QTY_TRD", "quantityTraded"), "watp": ("BD_TP_WATP", "tradePrice"), "remarks": ("BD_REMARKS", "remarks")}
 
 
+# 7-day windows: the API has returned far fewer rows than the daily files for 30-day windows (0 bulk deals in 45 days on
+# 20-Nov-26), which looks like a cap on rows per request. Every window logs its raw row count so a cap or an empty answer shows.
+WINDOW_DAYS = 7
+
 def deals_history():
     s = requests.Session(); s.headers.update(H)
     s.get("https://www.nseindia.com/", timeout=30)
     out = {"BULK_DEALS_DATA": [], "BLOCK_DEALS_DATA": []}
+    raw = {"BULK_DEALS_DATA": 0, "BLOCK_DEALS_DATA": 0}
     d, today = START, dt.date.today()
     while d <= today:
-        end = min(d + dt.timedelta(days=29), today)
+        end = min(d + dt.timedelta(days=WINDOW_DAYS - 1), today)
         for opt, key in (("bulk_deals", "BULK_DEALS_DATA"), ("block_deals", "BLOCK_DEALS_DATA")):
             r = s.get("https://www.nseindia.com/api/historicalOR/bulk-block-short-deals", params={"optionType": opt, "from": f"{d:%d-%m-%Y}", "to": f"{end:%d-%m-%Y}"}, timeout=90)
             r.raise_for_status()
             j = r.json()
             rows = j["data"] if isinstance(j, dict) and "data" in j else j
-            if not out[key] and rows and d == START:
-                print("sample row keys:", sorted(rows[0])[:12])
+            if not isinstance(rows, list):
+                print(f"  {opt} {d}..{end}: unexpected answer {str(j)[:200]}"); rows = []
+            if rows and not raw[key]:
+                print(f"  {opt} sample row keys:", sorted(rows[0])[:12])
+            raw[key] += len(rows)
+            print(f"  {opt} {d}..{end}: {len(rows)} rows", flush=True)
             for x in rows:
                 n = {k: next((x[a] for a in alts if x.get(a) not in (None, "")), "") for k, alts in FIELDS.items()}
                 n["buySell"] = {"B": "BUY", "S": "SELL"}.get(str(n["buySell"]).strip().upper()[:1], str(n["buySell"]).upper())
                 n["qty"] = str(n["qty"]).replace(",", "")
-                if n["clientName"] and FOREIGN.search(n["clientName"]) and not DOMESTIC.search(n["clientName"]):
+                if n["clientName"]:
                     out[key].append(n)
             time.sleep(1)
-        print(f"deals {d} to {end}: {len(out['BULK_DEALS_DATA'])} bulk, {len(out['BLOCK_DEALS_DATA'])} block so far", flush=True)
         d = end + dt.timedelta(days=1)
-    assert out["BULK_DEALS_DATA"] or out["BLOCK_DEALS_DATA"], "no foreign deals found"
+    print(f"deals {START} to {today}: {raw['BULK_DEALS_DATA']} bulk and {raw['BLOCK_DEALS_DATA']} block rows from the API", flush=True)
+    # Bulk deals happen on almost every trading day; none over more than a week means the API answer is wrong, not the market.
+    if (today - START).days >= 7 and not raw["BULK_DEALS_DATA"]:
+        print("WARNING: the NSE history API returned no bulk deals at all; history for this range is incomplete")
+    assert out["BULK_DEALS_DATA"] or out["BLOCK_DEALS_DATA"], "no deals found"
     json.dump(out, open("data/history/bulk_block_deals_history.json", "w"), indent=1, ensure_ascii=False)
 
 

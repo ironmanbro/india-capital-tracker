@@ -9,7 +9,33 @@ BATCH = 500
 # Same foreign-client heuristic as supabase/functions/ingest/index.ts; keep the two in step.
 FOREIGN = re.compile(r"\b(PTE|LLC|L\.?P\.?|PLC|SICAV|ICAV|S\.?A\.?|SARL|GMBH|AG|INC|N\.?V\.?|B\.?V\.?|MAURITIUS|SINGAPORE|CAYMAN|IRELAND|LUXEMBOURG|NORWAY|ABU DHABI|DUBAI|QATAR|KUWAIT|SAUDI|JAPAN|KOREA|TAIWAN|HONG KONG|CANADA|AUSTRALIA|MASTER FUND|FEEDER|OFFSHORE|EMERGING MARKETS?|GOVERNMENT OF|MONETARY AUTHORITY|INVESTMENT AUTHORITY|PENSION|SOVEREIGN|ODI|FPI|GOLDMAN SACHS|MORGAN STANLEY|CITIGROUP|BNP PARIBAS|SOCIETE GENERALE|J\.?P\.? ?MORGAN|BOFA|MERRILL|NOMURA|UBS|CLSA|VANGUARD|BLACKROCK|GIC|NORGES|TEMASEK|FIDELITY|ABERDEEN|MACQUARIE|HSBC|BARCLAYS|CITADEL|JANE STREET|SOCIETE)\b", re.I)
 DOMESTIC = re.compile(r"(MUTUAL FUND|\bMF\b|INSURANCE|\bHUF\b|PRIVATE LIMITED|PVT\.? LTD|BROKING|SHARE BROKERS)", re.I)
-INR_PER_USD = 88
+INR_PER_USD = 94   # fallback only: main() uses the latest rate from fx_usd_inr.json
+
+# A client is foreign if its name looks foreign (FOREIGN and not DOMESTIC), or if it is in SEBI's FPI register under exactly that
+# name (after norm_name()). The register catches registered funds with plain names, e.g. "3 SIGMA GLOBAL FUND" or
+# "ELYSIAN WEALTH FUND" (both Mauritius). Filled by main() from the fpi_registry table; empty means names only.
+FPI_KEYS = set()
+_DROP = r"\b(ltd|limited|inc|llc|llp|plc|pte|pcc|vcc|the|co|corp|corporation|sa|ag|nv|bv|fund|funds|trust|lp)\b"
+def norm_name(t):   # same as the SQL function norm_name() and pipeline/site_v2/common.py norm()
+    t = re.sub(r"[^a-zA-Z0-9]+", " ", t or "").lower()
+    return re.sub(r"\s+", " ", re.sub(_DROP, " ", t)).strip()
+
+def is_foreign(client):
+    if not client: return False
+    if FOREIGN.search(client) and not DOMESTIC.search(client): return True
+    k = norm_name(client)
+    return bool(k) and k in FPI_KEYS
+
+def load_fpi_keys(url, key):
+    """Every registered FPI name, normalised. Paged: the API returns at most 1,000 rows a request."""
+    out = set()
+    for off in range(0, 100_000, 1000):
+        req = urllib.request.Request(f"{url}/rest/v1/fpi_registry?select=name&order=reg_no&limit=1000&offset={off}",
+                                     headers={"apikey": key, "Authorization": f"Bearer {key}"})
+        part = json.load(urllib.request.urlopen(req, timeout=60))
+        out.update(k for k in (norm_name(r.get("name")) for r in part) if k)
+        if len(part) < 1000: break
+    return out
 EXTRA = ("startup_funding_news", "sec_13f_filings_index", "sec_13f_holdings_latest", "dpiit_fdi_publications", "gdelt_india_investments", "fx_usd_inr", "nse_announcements", "pib_releases")
 # dataset -> (file, key function). Time series keep the date in the key so history accumulates;
 # snapshots are keyed by entity and overwritten.
@@ -177,7 +203,7 @@ def collect(directory):
 
 def _event(r, kind, exch, page):
     client = r.get("clientName") or ""
-    if not (FOREIGN.search(client) and not DOMESTIC.search(client)):
+    if not is_foreign(client):
         return None
     buy = (r.get("buySell") or "").upper().startswith("B")
     try:
@@ -239,6 +265,11 @@ def main(argv):
         rows = json.load(open(fx))
         if rows and 60 < rows[-1]["usd_inr"] < 140:
             INR_PER_USD = rows[-1]["usd_inr"]
+    if url and key:
+        try:
+            FPI_KEYS.update(load_fpi_keys(url, key)); print(f"FPI register: {len(FPI_KEYS)} names")
+        except Exception as e:   # the name test still works; say so instead of failing the whole load
+            print(f"FPI register not loaded ({e}); foreign clients are found by name only")
     data = collect(directory)
     for name, recs in data.items():
         print(f"{name}: {len(recs)} records")
