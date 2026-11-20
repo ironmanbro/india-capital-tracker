@@ -30,7 +30,6 @@
     <section class="p c12" aria-label="Filters">
       <div class="filters">
         <div><label>View</label><span class="seg" data-k="view"><button data-v="all">All</button><button data-v="news">In news or exchange deals</button><button data-v="filed">Filed holders</button></span></div>
-        <div><label>Investors</label><span class="seg" data-k="who"><button data-v="f">Foreign investors</button><button data-v="all">Include intermediaries and domestic</button></span></div>
         <div><label>Activity, 12 months</label><span class="seg" data-k="act"><button data-v="any">Any</button><button data-v="active">Active</button><button data-v="buy">Net buyers</button><button data-v="sell">Net sellers</button></span></div>
         <div><label for="ty">Type</label><select id="ty"></select></div>
         <div><label for="co">Home country</label><select id="co"></select></div>
@@ -60,7 +59,7 @@
       <section class="p" aria-labelledby="h-cv">
         <div class="ph"><h2 id="h-cv">Coverage and matching</h2><span class="u">whole directory</span></div>
         <div class="tw"><table class="tbl" id="cv"></table></div>
-        <div class="pf"><span>Bank trading desks, market makers and P-note issuers (they trade for clients) and Indian institutions are hidden unless "Include intermediaries and domestic" is on.</span><span>Funds are listed by the name filed. Managers with many funds (for example index funds) are not combined yet.</span></div>
+        <div class="pf"><span>Funds are listed by the name filed. Managers with many funds (for example index funds) are not combined yet.</span></div>
       </section>
     </div>
   </div>
@@ -84,7 +83,7 @@ function build(){
     if(!o){ o=Object.assign({},r,{members:[r],grp:!!res}); if(res) o.n=res.canonical; g.set(key,o); return }
     o.members.push(r); o.e+=r.e; o.x+=r.x; o.o+=r.o; o.uc+=r.uc; o.ua+=r.ua; o.tot+=r.tot; o.h+=r.h; o.al+=r.al;
     if(r.ld&&(!o.ld||r.ld>o.ld)) o.ld=r.ld; if((r.hp||0)>(o.hp||0)){o.hp=r.hp;o.hc=r.hc}
-    if(r.ro==='foreign') o.ro='foreign'; if(!o.t&&r.t) o.t=r.t; if(!o.c&&r.c) o.c=r.c; o.p=o.p||r.p; o.fl=[...new Set((o.fl+r.fl).split(''))].sort().join('') });
+    if(!o.t&&r.t) o.t=r.t; if(!o.c&&r.c) o.c=r.c; o.p=o.p||r.p; o.fl=[...new Set((o.fl+r.fl).split(''))].sort().join('') });
   R=[...g.values()]; newsLinked=RAW.filter(r=>/[na]/.test(r.fl)&&/f/.test(g.get(of.get(r)).fl)).length; R.forEach(r=>{r.act=r.e+r.x+r.o; r.inNews=/[na]/.test(r.fl); r.filed=/f/.test(r.fl); r.both=r.inNews&&r.filed; r.k=r.n.toLowerCase()});
   CC={}; R.forEach(r=>{if(r.c) CC[r.c]=(CC[r.c]||0)+1}); topC=Object.keys(CC).sort((a,b)=>CC[b]-CC[a]).slice(0,16);
   const cur=document.getElementById('co').value;
@@ -94,12 +93,12 @@ document.getElementById('ty').innerHTML='<option value="all">All types</option>'
 const bothRaw=RAW.filter(r=>/f/.test(r.fl)&&/[na]/.test(r.fl)).length;   // before any alias
 build();
 
-const def={who:'f',view:'all',act:'any',ty:'all',co:'all',q:'',sort:'a',asc:'0',n:'30'};
+const def={view:'all',act:'any',ty:'all',co:'all',q:'',sort:'a',asc:'0',n:'30'};
 let S=Object.assign({},def);
 try{new URLSearchParams(location.hash.slice(1)).forEach((v,k)=>{if(k in def)S[k]=v})}catch(e){}
 const pushHash=()=>{try{const p=new URLSearchParams();for(const k in S) if(S[k]!==def[k]&&k!=='n') p.set(k,S[k]); history.replaceState(null,'','#'+p)}catch(e){}};
 const filt=()=>{const q=S.q.trim().toLowerCase();
-  return R.filter(r=>(S.who==='all'||r.ro==='foreign')&&(S.view==='all'||(S.view==='news'?r.inNews:r.filed))&&(S.act==='any'||(S.act==='active'?r.act>0:S.act==='buy'?r.e>r.x:r.x>r.e))&&(S.ty==='all'||(S.ty==='none'?!r.t:r.t===S.ty))&&(S.co==='all'||(S.co==='none'?!r.c:r.c===S.co))&&(!q||r.k.includes(q)))};
+  return R.filter(r=>(S.view==='all'||(S.view==='news'?r.inNews:r.filed))&&(S.act==='any'||(S.act==='active'?r.act>0:S.act==='buy'?r.e>r.x:r.x>r.e))&&(S.ty==='all'||(S.ty==='none'?!r.t:r.t===S.ty))&&(S.co==='all'||(S.co==='none'?!r.c:r.c===S.co))&&(!q||r.k.includes(q)))};
 const pc=(a,b)=>b?Math.round(a/b*100)+'%':'–';
 
 function render(){

@@ -30,8 +30,7 @@
         <div><label>Period</label><span class="seg" data-k="win"><button data-v="7">7 days</button><button data-v="30">30 days</button><button data-v="91" id="allbtn">All</button></span></div>
         <div><label>Type</label><span class="seg" data-k="dir"><button data-v="all">All</button><button data-v="in">Into India</button><button data-v="out">Exits</button><button data-v="fund">Fund launches and moves</button><button data-v="abroad">Abroad</button></span></div>
         <div><label>Source</label><span class="seg" data-k="g"><button data-v="all">All</button><button data-v="A">Exchange (A)</button><button data-v="C">Reported (C)</button></span></div>
-        <div><label>Stage</label><span class="seg" data-k="stage"><button data-v="np">Completed + announced</button><button data-v="done">Completed</button><button data-v="announced">Agreed or talks</button><button data-v="pledge">Plans and pledges</button><button data-v="all">All</button></span></div>
-        <div><label>Investors</label><span class="seg" data-k="who"><button data-v="f">Foreign investors</button><button data-v="all">Include intermediaries and domestic</button></span></div>
+        <div><label>Stage</label><span class="seg" data-k="stage"><button data-v="all">All</button><button data-v="completed">Completed</button><button data-v="agreed">Agreed</button><button data-v="plan">Plan</button><button data-v="talks">Talks</button></span></div>
         <div><label>Size, US$ mn</label><span class="seg" data-k="size"><button data-v="0">Any</button><button data-v="10">10+</button><button data-v="100">100+</button><button data-v="1000">1,000+</button></span></div>
         <div><label>Exchange deals</label><span class="seg" data-k="grp"><button data-v="1">Group by stock and day</button><button data-v="0">Every client</button></span></div>
         <div><label for="q">Investor or target</label><input id="q" type="search" placeholder="e.g. Blackstone"></div>
@@ -43,7 +42,7 @@
       <div class="ph"><h2 id="h-t">Deals</h2><span class="u" id="cnt"></span></div>
       <div class="tw"><table class="tbl" id="tbl"></table></div>
       <div class="more" id="more"></div>
-      <div class="pf"><span>Exchange (A): NSE bulk and block deals of ₹25 cr or more; "Group" combines all clients buying or selling the same stock on the same day (hover a row for the clients). Reported (C): classified automatically from news; sizes not verified. A reported deal that matches an exchange deal is folded into it (shown as "+ news").</span><span>US$ totals count completed deals only; plans and pledges are never added. Bank trading desks, market makers and P-note issuers, and Indian institutions, are hidden unless "Include intermediaries and domestic" is on.</span><span>A and C values are never added together.</span></div>
+      <div class="pf"><span>Exchange (A): NSE bulk and block deals of ₹25 cr or more; "Group" combines all clients buying or selling the same stock on the same day (hover a row for the clients). Reported (C): classified automatically from news; sizes not verified.</span><span>A and C values are never added together.</span></div>
     </section>
 
     <div class="stack">
@@ -67,7 +66,7 @@
     </div>
   </div>
 </main>
-<div class="foot"><span>India Capital Monitor (beta) · Deals</span><span>Verified trail: a reported deal is linked to an exchange deal in the same company (matched on the company's name, word by word) within 3 days, whichever side of the trade it reports (name match, unconfirmed)</span></div>
+<div class="foot"><span>India Capital Monitor (beta) · Deals</span><span>Verified trail: a reported deal gets an exchange match when an exchange deal has the same direction, a similar target name and a date within 2 days (name match, unconfirmed)</span></div>
 
 <script src="data.js"></script><script src="deals.js"></script><script src="config.js"></script><script src="resolver.js"></script><script src="ui.js"></script>
 <script>
@@ -79,8 +78,7 @@ document.getElementById('asof').textContent='Deals to '+F.dshort(maxD)+' · page
 const allDays=Math.max(31,Math.ceil(dayN(maxD)-dayN(DEALS.since))+1), allBtn=document.getElementById('allbtn'); allBtn.dataset.v=String(allDays); allBtn.textContent='All (since '+F.dnum(DEALS.since)+')';
 const dirOf=e=>e==='entry'?'in':e==='exit'?'out':e==='outbound'?'abroad':'fund';
 const DL={in:'Into India',out:'Exit',fund:'Fund / move',abroad:'Abroad'};
-const SL={completed:'Completed',agreed:'Agreed',plan:'Plan',talks:'Talks',pledge:'Pledge'};
-const RL={intermediary:'Intermediary: bank desk, market maker or P-note issuer; trades for clients, not its own India allocation',domestic:'Indian institution, not foreign capital'};
+const SL={completed:'Completed',agreed:'Agreed',plan:'Plan',talks:'Talks'};
 const TL={pe_vc:'PE / VC',strategic:'Strategic',fpi:'FPI',asset_manager:'Asset manager',sovereign:'Sovereign',bank:'Bank',pension:'Pension',government:'Government',other:'Other'};
 /* Names are resolved through confirmed aliases (resolver.js): an investor shows under its group's name, and a target that is a
    confirmed company alias matches by company, not by first word. Without confirmed aliases it behaves as before. */
@@ -92,33 +90,24 @@ function prep(){
     r.icanon=ri?ri.canonical:null; r.invd=r.icanon||r.inv; r.ig=ALIASES.groupOf(r.inv||'','investor');
     r.k=rt?'c:'+(rt.symbol||rt.canonical):'k:'+firstTok(r.tgt); r.kok=!!rt||firstTok(r.tgt).length>=4 });
   A=R.filter(r=>r.g==='A');
-  /* the build links a reported deal to its exchange deal by company name and date (pipeline/site_v2/deal_match.py: any direction, 3 days);
-     a confirmed company alias is the fallback for rows the build did not link */
-  R.forEach(r=>{ if(r.g!=='C') return; r.m=r.mk?A.find(a=>a.d===r.mk.d&&a.tgt===r.mk.tgt)||null:null;
-    if(!r.m&&r.kok&&r.k.startsWith('c:')) r.m=A.find(a=>a.k===r.k&&Math.abs(a.dn-r.dn)<=3)||null; });
+  R.forEach(r=>{ if(r.g==='C'&&r.kok) r.m=A.find(a=>a.dir===r.dir&&a.k===r.k&&Math.abs(a.dn-r.dn)<=2)||null; });
   const m=new Map(), out=[];
   R.forEach(r=>{ if(r.g!=='A'){out.push(r);return} const k=r.d+'|'+r.k+'|'+r.dir; let o=m.get(k);
-    if(!o){o=Object.assign({},r,{usd:0,legs:[]});delete o.news;m.set(k,o);out.push(o)} o.usd+=r.usd||0; o.legs.push(r)});
-  out.forEach(o=>{ if(o.legs){o.legs.sort((a,b)=>(b.usd||0)-(a.usd||0)); o.inv=o.legs[0].inv; o.invd=o.legs[0].invd; o.icanon=o.legs[0].icanon; o.extra=new Set(o.legs.map(l=>l.ig)).size-1; o.n=o.legs.length; o.usd=Math.round(o.usd*10)/10; o.t=o.legs.map(l=>l.inv+' '+F.west(l.usd||0)).join(', '); const fl=o.legs.filter(l=>l.role==='foreign'); o.role=fl.length?'foreign':o.legs[0].role; if(fl.length&&fl.length<o.legs.length){o.fusd=Math.round(fl.reduce((s,l)=>s+(l.usd||0),0)*10)/10} o.all=o.legs.map(l=>l.inv+' '+(l.icanon||'')).join(' ')} });
-  /* a reported deal matched to an exchange deal is the same deal: fold it into the exchange group instead of listing it twice */
-  const gOf=new Map(); out.forEach(o=>{ if(o.legs) o.legs.forEach(l=>gOf.set(l,o)) });
-  GRP=out.filter(r=>{ if(r.g!=='C'||!r.m) return true; const o=gOf.get(r.m); if(!o) return true; (o.news||(o.news=[])).push(r); return false });
-  nC=R.filter(r=>r.g==='C').length; nM=R.filter(r=>r.m).length;
+    if(!o){o=Object.assign({},r,{usd:0,legs:[]});m.set(k,o);out.push(o)} o.usd+=r.usd||0; o.legs.push(r)});
+  out.forEach(o=>{ if(o.legs){o.legs.sort((a,b)=>(b.usd||0)-(a.usd||0)); o.inv=o.legs[0].inv; o.invd=o.legs[0].invd; o.icanon=o.legs[0].icanon; o.extra=new Set(o.legs.map(l=>l.ig)).size-1; o.n=o.legs.length; o.usd=Math.round(o.usd*10)/10; o.t=o.legs.map(l=>l.inv+' '+F.west(l.usd||0)).join(', '); o.all=o.legs.map(l=>l.inv+' '+(l.icanon||'')).join(' ')} });
+  GRP=out; nC=R.filter(r=>r.g==='C').length; nM=R.filter(r=>r.m).length;
   const n=document.getElementById('mnote'); if(n) n.textContent='Exchange match found for '+nM+' of '+nC+' reported deals in this period. Aliases: '+ALIASES.note()+'.';
 }
 prep();
 
-const def={grp:'1',win:'30',dir:'all',g:'all',stage:'np',who:'f',size:'0',q:'',sort:'d',asc:'0',n:'30'};
+const def={grp:'1',win:'30',dir:'all',g:'all',stage:'all',size:'0',q:'',sort:'d',asc:'0',n:'30'};
 let S=Object.assign({},def);
 try{new URLSearchParams(location.hash.slice(1)).forEach((v,k)=>{if(k in def)S[k]=v})}catch(e){}
-S.stage=({completed:'done',agreed:'announced',talks:'announced',plan:'pledge'})[S.stage]||S.stage; /* links saved before the stage buckets */
 const pushHash=()=>{try{const p=new URLSearchParams();for(const k in S) if(S[k]!==def[k]&&k!=='n') p.set(k,S[k]); history.replaceState(null,'', '#'+p)}catch(e){}};
 
 function base(skipDir){ const cut=dayN(maxD)-(+S.win)+1, q=S.q.trim().toLowerCase();
-  return (S.grp==='1'?GRP:R).filter(r=>r.dn>=cut&&(S.g==='all'||r.g===S.g)&&(S.stage==='all'||(S.stage==='np'?r.sg!=='pledge':r.sg===S.stage))&&(S.who==='all'||r.role==='foreign')&&(r.usd||0)>=+S.size&&(skipDir||S.dir==='all'||r.dir===S.dir)&&(!q||((r.all||((r.inv||'')+' '+(r.icanon||'')))+' '+(r.tgt||'')).toLowerCase().includes(q))); }
-/* money totals: completed deals only, and only the foreign legs of a group when "Foreign investors" is on */
-const val=r=>S.who==='f'&&r.fusd!=null?r.fusd:(r.usd||0);
-const sum=(a,g)=>a.filter(r=>r.g===g&&r.sg==='done').reduce((s,r)=>s+val(r),0);
+  return (S.grp==='1'?GRP:R).filter(r=>r.dn>=cut&&(S.g==='all'||r.g===S.g)&&(S.stage==='all'||r.stage===S.stage)&&(r.usd||0)>=+S.size&&(skipDir||S.dir==='all'||r.dir===S.dir)&&(!q||((r.all||((r.inv||'')+' '+(r.icanon||'')))+' '+(r.tgt||'')).toLowerCase().includes(q))); }
+const sum=(a,g)=>a.filter(r=>r.g===g).reduce((s,r)=>s+(r.usd||0),0);
 const cnt=(a,g)=>a.filter(r=>r.g===g).length;
 
 function render(){
@@ -128,8 +117,8 @@ function render(){
   const st=(id,rows,val)=>{document.getElementById(id).textContent=rows.length; if(val) document.getElementById(id+'s').innerHTML='US$ mn · A '+F.west(sum(rows,'A'))+' · C '+F.west(sum(rows,'C'))+' (as reported)'};
   s1.textContent=nd.length; s1s.textContent='Exchange (A) '+cnt(nd,'A')+' · Reported (C) '+cnt(nd,'C');
   const inn=nd.filter(r=>r.dir==='in'), ex=nd.filter(r=>r.dir==='out');
-  s2.textContent=inn.length; s2s.innerHTML='US$ mn, completed · A '+F.west(sum(inn,'A'))+' · C '+F.west(sum(inn,'C'));
-  s3.textContent=ex.length; s3s.innerHTML='US$ mn, completed · A '+F.west(sum(ex,'A'))+' · C '+F.west(sum(ex,'C'));
+  s2.textContent=inn.length; s2s.innerHTML='US$ mn · A '+F.west(sum(inn,'A'))+' · C '+F.west(sum(inn,'C'));
+  s3.textContent=ex.length; s3s.innerHTML='US$ mn · A '+F.west(sum(ex,'A'))+' · C '+F.west(sum(ex,'C'));
   s4.textContent=nd.filter(r=>r.dir==='fund'||r.dir==='abroad').length;
   /* table */
   const dirn=S.asc==='1'?1:-1, key=S.sort==='u'?(r=>r.usd||0):(r=>r.dn);
@@ -138,7 +127,7 @@ function render(){
   const arrow=k=>S.sort===k?(S.asc==='1'?' ↑':' ↓'):'';
   document.getElementById('cnt').textContent=rows.length+' deals · US$ mn';
   document.getElementById('tbl').innerHTML='<thead><tr><th><button data-s="d">Date'+arrow('d')+'</button></th><th>Investor</th><th>Type</th><th>Target</th><th>Stage</th><th class="n"><button data-s="u">US$ mn'+arrow('u')+'</button></th><th>Source</th><th>Matched</th></tr></thead><tbody>'+
-   (shown.map(r=>'<tr title="'+(r.t||'').replace(/"/g,'&quot;')+'"><td class="num">'+F.dshort(r.d)+'</td><td class="cl" title="'+(r.icanon&&r.icanon!==r.inv?'Written as: '+(r.inv||'').replace(/"/g,''):'')+'">'+(r.invd||'–')+(r.icanon?' <span class="tag a" title="Confirmed alias">alias</span>':'')+(r.extra?' <span class="mut num">+'+r.extra+'</span>':'')+(r.ic?' <span class="mut">· '+r.ic+'</span>':'')+(r.role&&r.role!=='foreign'?' <span class="tag c" title="'+RL[r.role]+'">'+(r.role==='domestic'?'domestic':'intermediary')+'</span>':'')+(r.news?' <span class="tag c" title="Also reported: '+r.news.map(x=>x.src+': '+x.t).join(' | ').replace(/"/g,'&quot;')+'">+ news</span>':'')+'</td><td><span class="dir '+r.dir+'">'+DL[r.dir]+'</span></td><td class="cl">'+(r.tgt||'–')+'</td><td>'+(SL[r.stage]||'–')+'</td><td class="n num"'+(r.chk?' title="Check amount: '+r.chk+'"':r.fix?' title="Corrected from US$ '+r.usd0+' mn: the headline amount was converted 10x too small"':'')+'>'+(r.chk?'<span class="tag c">check</span> ':'')+(r.fix?'<span class="mut">corrected</span> ':'')+(r.usd!=null&&r.usd!==0?F.west(val(r)):'<span class="mut">–</span>')+'</td><td><span class="tag '+(r.g==='A'?'a':'c')+'">'+r.g+'</span> <span class="mut num">'+(r.g==='A'&&r.n>1?r.n+' clients':r.g==='C'&&r.n>1?r.n+' reports':'')+'</span></td><td>'+(r.g==='C'?(r.m?'<span class="tag c" title="Name match, unconfirmed: exchange deal '+r.m.inv+', '+F.dshort(r.m.d)+', US$ '+F.west(r.m.usd||0)+' mn">Exchange</span>':'<span class="mut">none</span>'):'<span class="mut">–</span>')+'</td></tr>').join('')||'<tr><td colspan="8" class="mut" style="height:60px">No deals match these filters. <button class="link-btn" id="r2">Reset filters</button></td></tr>')+'</tbody>';
+   (shown.map(r=>'<tr title="'+(r.t||'').replace(/"/g,'&quot;')+'"><td class="num">'+F.dshort(r.d)+'</td><td class="cl" title="'+(r.icanon&&r.icanon!==r.inv?'Written as: '+(r.inv||'').replace(/"/g,''):'')+'">'+(r.invd||'–')+(r.icanon?' <span class="tag a" title="Confirmed alias">alias</span>':'')+(r.extra?' <span class="mut num">+'+r.extra+'</span>':'')+(r.ic?' <span class="mut">· '+r.ic+'</span>':'')+'</td><td><span class="dir '+r.dir+'">'+DL[r.dir]+'</span></td><td class="cl">'+(r.tgt||'–')+'</td><td>'+(SL[r.stage]||'–')+'</td><td class="n num">'+(r.usd!=null&&r.usd!==0?F.west(r.usd):'<span class="mut">–</span>')+'</td><td><span class="tag '+(r.g==='A'?'a':'c')+'">'+r.g+'</span> <span class="mut num">'+(r.g==='A'&&r.n>1?r.n+' clients':r.g==='C'&&r.n>1?r.n+' reports':'')+'</span></td><td>'+(r.g==='C'?(r.m?'<span class="tag c" title="Name match, unconfirmed: exchange deal '+r.m.inv+', '+F.dshort(r.m.d)+', US$ '+F.west(r.m.usd||0)+' mn">Exchange</span>':'<span class="mut">none</span>'):'<span class="mut">–</span>')+'</td></tr>').join('')||'<tr><td colspan="8" class="mut" style="height:60px">No deals match these filters. <button class="link-btn" id="r2">Reset filters</button></td></tr>')+'</tbody>';
   document.getElementById('more').innerHTML=rows.length>n?'<button class="tbtn" id="mb">Show '+Math.min(30,rows.length-n)+' more ('+(rows.length-n)+' left)</button>':'';
   document.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{const k=b.dataset.s; if(S.sort===k) S.asc=S.asc==='1'?'0':'1'; else {S.sort=k;S.asc='0'} change()});
   const mb=document.getElementById('mb'); if(mb) mb.onclick=()=>{S.n=String(+S.n+30); render()};
