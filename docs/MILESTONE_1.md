@@ -6,9 +6,9 @@ Branch `milestone-1-foundations`. Repo-only changes; **nothing was applied to pr
 | Item (audit ref) | What | Verified how |
 |---|---|---|
 | Schema baseline (C2) | `supabase/baseline/`: 36 tables, 11 views, 24 functions, 42 policies, 69 indexes, 2 triggers, 21 cron jobs captured from production | Built in an empty Postgres 16; counts match production exactly (`verify.sh`). The build caught one capture error (generated column) which is fixed |
-| CI (H7) | `ci.yml`: 29 Python tests (24 existing + 5 new), baseline build in Postgres 17, YAML + secret-pattern scan | Python tests and baseline run locally; workflow YAML parsed. The workflow itself has not run on GitHub yet |
-| Freshness monitor (C5) | `pipeline/ops/check_freshness.py` + `freshness.yml`: 14 dataset checks + 18 collector checks, with documented limits; parses mixed `as_of` formats | Run against production read-only: 32 checks, 0 failing, 1 warning (Wikidata profiles, known) |
-| Hidden failures (C5) | `cron_sync.yml` no longer swallows collector failures (`|| echo`); `run_all.py` accepts a named list of known failures (BSE 403) | Logic reviewed; workflow YAML parsed; not yet run on GitHub |
+| CI (H7) | `ci.yml`: 29 Python tests (24 existing + 5 new), baseline build in Postgres 17, YAML + secret-pattern scan | Ran green on GitHub (branch push, commit d6a87f6): python-tests, schema-baseline (Postgres 17), hygiene |
+| Freshness monitor (C5) | `pipeline/ops/check_freshness.py` + `freshness.yml`: 14 dataset checks + 18 collector checks, with documented limits; parses mixed `as_of` formats. Scheduled runs start only after merge to `main` | Run against production read-only: 32 checks, 0 failing, 1 warning (Wikidata profiles, known) |
+| Hidden failures (C5) | `cron_sync.yml` no longer swallows collector failures (`|| echo`); `run_all.py` accepts a named list of known failures (BSE 403) | Logic reviewed; YAML parsed. Takes effect only after this branch is merged to `main` (scheduled workflows run from the default branch) |
 | Key comparison (H5) | 17 collector functions use a constant-time key check (helper inlined per file so single-file deploys keep working) | Helper unit-checked in Node; all 22 TS files strip-parse without syntax errors; not run in Deno |
 | Docs (TD-11) | `SECURITY_MAP.md` rewritten to match reality; `docs/licensing/SOURCE_DECISIONS.md` decision log (all PENDING) | |
 
