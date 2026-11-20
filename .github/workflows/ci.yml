@@ -52,6 +52,6 @@ jobs:
         run: python3 -c "import glob,yaml;[yaml.safe_load(open(f)) for f in glob.glob('.github/workflows/*.yml')];print('ok')"
       - name: No secret-looking strings in tracked files
         run: |
-          if git grep -nIE "sb_secret_|service_role[\"' ]*[:=][\"' ]*eyJ|ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-ant-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}" -- . ':!.claude' ':!.agents' ':!supabase/baseline/README.md'; then
+          if git grep -nIE "sb_secret_|service_role[\"' ]*[:=][\"' ]*eyJ|ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-ant-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}" -- . ':!.claude' ':!.agents' ':!supabase/baseline/README.md' ':!.github/workflows/ci.yml'; then
             echo "Possible secret committed"; exit 1
           fi
