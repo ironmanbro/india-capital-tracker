@@ -46,7 +46,7 @@ export const PRIORITY: Record<string, number> = {
   irrelevant: 0,
 };
 
-const INR_PER_USD = 88; // approximate; only used to rank deal size
+export const INR_PER_USD = 94; // approximate (FBIL USD/INR ~94 in Nov 2026); review when the rupee moves more than ~3%
 
 // ---------------------------------------------------------------------------
 // Rules: free, always available, decent on headlines. Used when no API key.
@@ -252,8 +252,13 @@ export async function classifyLLM(
     const item = batch[r.i];
     if (!item) continue;
     const amt = parseAmount(`${item.title} ${item.summary}`);
+    // An amount written in the text wins over the model's own arithmetic: the model has stored rupee amounts 10x too small
+    // and merged several reports into one figure. The model's value is used only when the text states no amount.
+    const head = parseAmount(item.title);
+    const ruled = head.usd_m ?? amt.usd_m;
     out.set(item.key, {
       ...r,
+      amount_usd_m: ruled ?? r.amount_usd_m,
       event_type: r.relevant ? r.event_type : "irrelevant",
       event_types: r.relevant ? [r.event_type] : null,
       parties: r.relevant && r.investor ? [{ name: r.investor, role: r.event_type === "exit" ? "seller" : "investor", type: r.investor_type }] : null,

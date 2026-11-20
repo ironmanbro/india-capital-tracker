@@ -12,7 +12,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import Anthropic from "npm:@anthropic-ai/sdk";
 import { googleNewsUrl, indiaCapital, NEWS_QUERIES, NSE_FILES, RSS_FEEDS, SHP_FEED, type NewsQuery } from "./sources.ts";
 import { parseFeed, parseShp } from "./shp.ts";
-import { classifyLLM, classifyRules, PRIORITY, type Classified, type RawItem } from "./classify.ts";
+import { classifyLLM, classifyRules, INR_PER_USD, PRIORITY, type Classified, type RawItem } from "./classify.ts";
 import { dedupe } from "./dedupe.ts";
 
 const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
@@ -354,7 +354,7 @@ async function runNse() {
             investor: r[cClient],
             investor_type: "fpi",
             target: r[cName] || r[cSym],
-            amount_usd_m: Math.round((qty * px) / 88 / 1e6 * 10) / 10,
+            amount_usd_m: Math.round((qty * px) / INR_PER_USD / 1e6 * 10) / 10,
             amount_text: `₹${crore.toFixed(1)} cr`,
             priority: buy ? PRIORITY.entry : PRIORITY.exit,
             confidence: 0.9,

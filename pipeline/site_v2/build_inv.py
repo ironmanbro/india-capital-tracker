@@ -2,6 +2,7 @@
 Names are not merged here beyond norm_name(); confirmed aliases group them at view time (resolver.js) (Investors page)."""
 import collections, datetime as dt, re
 from common import paged, stories, norm, today, built_stamp, BuildError
+import deal_quality
 
 def build():
     T = today(); cut = (T - dt.timedelta(days=365)).isoformat()
@@ -39,8 +40,8 @@ def build():
     for k, o in I.items():
         t = o["types"].most_common(1)[0][0] if o["types"] else ("fpi" if o["hcat"].most_common(1) and o["hcat"].most_common(1)[0][0] == "Foreign portfolio investor" else None)
         rows.append(dict(nk=k, n=o["names"].most_common(1)[0][0], t=t, c=(o["ctry"].most_common(1) or [[None]])[0][0], e=o["e"], x=o["x"], o=o["o"], tot=o["tot"], ld=o["ld"], h=len(o["h"]),
-                         hp=o["hp"] or None, hc=o["hc"], fl="".join(sorted(o["fl"])), p=1 if k in pn else 0, al=len(o["names"])))
-    rows.sort(key=lambda r: (-(r["e"] + r["x"] + r["o"]), -r["tot"], r["n"].lower()))
+                         hp=o["hp"] or None, hc=o["hc"], fl="".join(sorted(o["fl"])), p=1 if k in pn else 0, al=len(o["names"]), ro=deal_quality.role(o["names"].most_common(1)[0][0])))
+    rows.sort(key=lambda r: (r["ro"] != "foreign", -(r["e"] + r["x"] + r["o"]), -r["tot"], r["n"].lower()))
     if len(rows) < 800: raise BuildError(f"only {len(rows)} investor names")
     asof = max(s["published_at"][:10] for s in st)
     return "INV", dict(rows=rows, news_strings=len({s["investor"] for s in st}), shp_strings=len({r["holder"] for r in latest.values()}), cut=cut, asof=asof, built=built_stamp())
