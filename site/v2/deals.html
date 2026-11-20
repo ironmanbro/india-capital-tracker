@@ -67,7 +67,7 @@
     </div>
   </div>
 </main>
-<div class="foot"><span>India Capital Monitor (beta) · Deals</span><span>Verified trail: a reported deal gets an exchange match when an exchange deal has the same direction, a similar target name and a date within 2 days (name match, unconfirmed)</span></div>
+<div class="foot"><span>India Capital Monitor (beta) · Deals</span><span>Verified trail: a reported deal is linked to an exchange deal in the same company (matched on the company's name, word by word) within 3 days, whichever side of the trade it reports (name match, unconfirmed)</span></div>
 
 <script src="data.js"></script><script src="deals.js"></script><script src="config.js"></script><script src="resolver.js"></script><script src="ui.js"></script>
 <script>
@@ -92,7 +92,10 @@ function prep(){
     r.icanon=ri?ri.canonical:null; r.invd=r.icanon||r.inv; r.ig=ALIASES.groupOf(r.inv||'','investor');
     r.k=rt?'c:'+(rt.symbol||rt.canonical):'k:'+firstTok(r.tgt); r.kok=!!rt||firstTok(r.tgt).length>=4 });
   A=R.filter(r=>r.g==='A');
-  R.forEach(r=>{ if(r.g==='C'&&r.kok) r.m=A.find(a=>a.dir===r.dir&&a.k===r.k&&Math.abs(a.dn-r.dn)<=2)||null; });
+  /* the build links a reported deal to its exchange deal by company name and date (pipeline/site_v2/deal_match.py: any direction, 3 days);
+     a confirmed company alias is the fallback for rows the build did not link */
+  R.forEach(r=>{ if(r.g!=='C') return; r.m=r.mk?A.find(a=>a.d===r.mk.d&&a.tgt===r.mk.tgt)||null:null;
+    if(!r.m&&r.kok&&r.k.startsWith('c:')) r.m=A.find(a=>a.k===r.k&&Math.abs(a.dn-r.dn)<=3)||null; });
   const m=new Map(), out=[];
   R.forEach(r=>{ if(r.g!=='A'){out.push(r);return} const k=r.d+'|'+r.k+'|'+r.dir; let o=m.get(k);
     if(!o){o=Object.assign({},r,{usd:0,legs:[]});delete o.news;m.set(k,o);out.push(o)} o.usd+=r.usd||0; o.legs.push(r)});

@@ -1,7 +1,7 @@
 """deals.js: every deal of the last 90 days (exchange deals grade A, news deals grade C) and the monthly ODI series (Deals page)."""
 import collections, datetime as dt
 from common import get, paged, stories, today, built_stamp, BuildError
-import deal_quality
+import deal_quality, deal_match
 
 def build():
     T = today(); since = (T - dt.timedelta(days=90)).isoformat()
@@ -14,6 +14,7 @@ def build():
                          g="A" if x["source"] in ("nse_block", "nse_bulk") else "C", src=x["source_name"], t=x["title"]))
     fxr = get("fx_ref?select=rate&ccy=eq.USD&order=day.desc&limit=1"); fx = fxr[0]["rate"] if fxr else None
     for r in rows: deal_quality.apply(r, inr_per_usd=fx)
+    deal_match.match([r for r in rows if r["g"] == "C"], [r for r in rows if r["g"] == "A"])
     rows.sort(key=lambda r: (r["d"], r["usd"] or 0), reverse=True)
     if len(rows) < 50: raise BuildError(f"only {len(rows)} deals in the last 90 days")
     if (T - dt.date.fromisoformat(rows[0]["d"])).days > 10: raise BuildError("newest deal is more than 10 days old: " + rows[0]["d"])
