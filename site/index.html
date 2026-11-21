@@ -4465,8 +4465,9 @@ async function loadOverviewCross() {
     ]);
     const out = [];
     const val = (r) => mkNum(r.qty) * mkNum(r.watp) / 1e7;
-    const buys = deals.filter((r) => /^((BULK|BLOCK)_DEALS|BSE_(BULK|BLOCK))\|/.test(r.key)).map((r) => r.data)
-      .filter((r, i, a) => a.findIndex((x) => mkTrade(x) === mkTrade(r)) === i)
+    // mkOnce keeps the first row per trade in one pass. The old findIndex check compared every trade with every other one:
+    // about 39 million key builds for 6,245 deal records, which froze the page for about 15 seconds.
+    const buys = mkOnce(deals.filter((r) => /^((BULK|BLOCK)_DEALS|BSE_(BULK|BLOCK))\|/.test(r.key)).map((r) => r.data), mkTrade)
       .filter((r) => mkForeign(r.clientName) && /^b/i.test(r.buySell || "") && !isNaN(val(r)));
     const day = buys.map((r) => r.date).sort((a, b) => safeDate(b) - safeDate(a))[0];
     const top = buys.filter((r) => r.date === day).sort((a, b) => val(b) - val(a))[0];
