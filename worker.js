@@ -21,8 +21,31 @@ export default {
   },
 };
 
+// POST /sb/bundle {paths: ["rest/v1/stories?select=...", ...]}: many public reads in one round trip, each answered through
+// handle() exactly as if the page had asked for it (same cache, same freshness). Only plain table reads; no RPC, no sign-in token.
+// Answer: {path: body text} for every path that succeeded; a path left out is simply fetched by the page on its own.
+const BUNDLE_MAX = 60;
+async function bundle(req, env, ctx) {
+  if (req.method !== "POST" || req.headers.has("authorization")) return new Response("not found", { status: 404 });
+  let paths;
+  try { paths = (await req.json()).paths; } catch { paths = null; }
+  if (!Array.isArray(paths)) return new Response("bad request", { status: 400 });
+  paths = [...new Set(paths.filter((p) => typeof p === "string" && p.length < 4000 && /^rest\/v1\/[a-z_0-9]+(\?|$)/.test(p)))].slice(0, BUNDLE_MAX);
+  const apikey = req.headers.get("apikey") || "";
+  const base = new URL(req.url).origin + "/sb/";
+  const out = {};
+  await Promise.all(paths.map(async (p) => {
+    try {
+      const r = await handle(new Request(base + p, { headers: { apikey, accept: "application/json" } }), env, ctx);
+      if (r.ok) out[p] = await r.text();      // cached answers come back as 206 (the database always sends a row range)
+    } catch {}
+  }));
+  return new Response(JSON.stringify(out), { headers: { "content-type": "application/json", "cache-control": "no-store" } });
+}
+
 async function handle(req, env, ctx) {
     const url = new URL(req.url);
+    if (url.pathname === "/sb/bundle") return bundle(req, env, ctx);
     const path = url.pathname.slice(3); // drop "/sb"
     if (!path.startsWith("/rest/v1/")) return new Response("not found", { status: 404 });
 

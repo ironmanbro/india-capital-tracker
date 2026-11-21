@@ -2182,6 +2182,25 @@ function load(k) { try { return localStorage.getItem(k); } catch { return null; 
 })();
 
 
+// One round trip for the opening data: the page asks the edge (worker.js /sb/bundle) for every query it made on the last visit in
+// this browser (or the default list below on a first visit), then each api() call is answered from that bundle. Anything not in it
+// is fetched on its own as before, so a stale or empty bundle only costs the old speed, never wrong data: the bundle's answers
+// come from the same edge cache as single requests.
+// The default list is what a first visit asked for on 21-Nov-26; entries with a date in them simply stop matching and are fetched alone.
+const PRELOAD_KEY = "ict-preload-v1", PRELOAD_DEFAULT = ["rest/v1/fx_ref?select=day,ccy,rate&ccy=in.(USD,EUR,GBP,JPY,AED)&day=gte.2026-11-01&order=day.desc&limit=100", "rest/v1/fpi_flows?select=day,segment,route,net_cr,net_usd_m&route=in.(Sub-total,Total)&day=gte.2025-10-17&order=day.asc&limit=20000", "rest/v1/fpi_monthly?select=month,segment,net_cr&segment=eq.Total&order=month.asc", "rest/v1/dpiit_fdi?select=kind,name,fy,usd_m,edition&order=fy.asc", "rest/v1/stories?select=id,source,source_name,url,title,summary,published_at,fetched_at,event_type,investor,investor_type,investor_country,origin_jurisdiction,target,amount_usd_m,amount_text,priority,classifier,reports,event_types,parties,deal_stage,flow_kind,region,regulator,instruments,doc_type,issued_on,effective_on,reg_doc_url,reg_doc_title&order=published_at.desc.nullslast,id&limit=1000&offset=0", "rest/v1/runs?select=*&order=started_at.desc&limit=60", "rest/v1/runs_latest?select=source,finished_at", "rest/v1/runs?select=finished_at&source=eq.review&order=finished_at.desc&limit=1", "rest/v1/shareholdings?select=company,symbol,period_end,holder,category,pct,source&order=period_end.desc,company,holder&limit=1000&offset=0", "rest/v1/directory_stats?select=*", "rest/v1/fpi_registry?select=name,country,category,registered_on&registered_on=not.is.null&order=registered_on.desc,serial.desc&limit=4", "rest/v1/feed_records?select=key,data,loaded_at&dataset=eq.extra&limit=50", "rest/v1/odi_monthly?select=*&order=month.desc&limit=2", "rest/v1/fpi_flows?select=day,net_cr&route=eq.Total&order=day.desc&limit=1", "rest/v1/stories?select=id,source,source_name,url,title,summary,published_at,fetched_at,event_type,investor,investor_type,investor_country,origin_jurisdiction,target,amount_usd_m,amount_text,priority,classifier,reports,event_types,parties,deal_stage,flow_kind,region,regulator,instruments,doc_type,issued_on,effective_on,reg_doc_url,reg_doc_title&order=published_at.desc.nullslast,id&limit=1000&offset=1000", "rest/v1/shareholdings?select=company,symbol,period_end,holder,category,pct,source&order=period_end.desc,company,holder&limit=1000&offset=1000", "rest/v1/odi_deals?select=indian_party,jv_name,country,total&month=eq.2026-09-01&is_individual=eq.false&order=total.desc&limit=4", "rest/v1/stories?select=id,source,source_name,url,title,summary,published_at,fetched_at,event_type,investor,investor_type,investor_country,origin_jurisdiction,target,amount_usd_m,amount_text,priority,classifier,reports,event_types,parties,deal_stage,flow_kind,region,regulator,instruments,doc_type,issued_on,effective_on,reg_doc_url,reg_doc_title&order=published_at.desc.nullslast,id&limit=1000&offset=2000", "rest/v1/shareholdings?select=company,symbol,period_end,holder,category,pct,source&order=period_end.desc,company,holder&limit=1000&offset=2000", "rest/v1/feed_records?select=key,data&dataset=in.(nse_deals,bse_deals)&order=key&limit=1000&offset=0", "rest/v1/feed_records?select=data&dataset=eq.nsdl&key=eq.fpi_auc_country_top10&limit=1", "rest/v1/fpi_country_counts?select=country,n", "rest/v1/holder_registry?select=*&limit=1000", "rest/v1/investor_profiles?select=*&limit=1000", "rest/v1/feed_records?select=key,data&dataset=in.(nse_deals,bse_deals)&order=key&limit=1000&offset=1000", "rest/v1/feed_records?select=key,data&dataset=in.(nse_deals,bse_deals)&order=key&limit=1000&offset=2000", "rest/v1/feed_records?select=key,data&dataset=in.(nse_deals,bse_deals)&order=key&limit=1000&offset=3000", "rest/v1/feed_records?select=key,data&dataset=in.(nse_deals,bse_deals)&order=key&limit=1000&offset=4000", "rest/v1/feed_records?select=key,data&dataset=in.(nse_deals,bse_deals)&order=key&limit=1000&offset=5000", "rest/v1/feed_records?select=key,data&dataset=in.(nse_deals,bse_deals)&order=key&limit=1000&offset=6000", "rest/v1/feed_records?select=key,data&dataset=in.(nse_deals,bse_deals)&order=key&limit=1000&offset=7000", "rest/v1/feed_records?select=key,data&dataset=in.(nse_deals,bse_deals)&order=key&limit=1000&offset=8000", "rest/v1/feed_records?select=key,data&dataset=in.(nse_deals,bse_deals)&order=key&limit=1000&offset=9000"];
+const apiSeen = new Set();
+const preload = (() => {
+  let list = null;
+  try { list = JSON.parse(localStorage.getItem(PRELOAD_KEY) || "null"); } catch {}
+  if (!Array.isArray(list) || !list.length) list = PRELOAD_DEFAULT;
+  if (!list.length) return Promise.resolve({});
+  const req = fetch("/sb/bundle", { method: "POST", headers: { apikey: KEY, "Content-Type": "application/json" }, body: JSON.stringify({ paths: list.slice(0, 60) }) })
+    .then((r) => (r.ok ? r.json() : {})).catch(() => ({}));
+  // Never let a slow bundle hold the page up: after 2.5 s every query goes out on its own.
+  return Promise.race([req, new Promise((r) => setTimeout(() => r({}), 2500))]);
+})();
+addEventListener("load", () => setTimeout(() => { try { localStorage.setItem(PRELOAD_KEY, JSON.stringify([...apiSeen].slice(0, 60))); } catch {} }, 8000));
+
 // A thin bar at the top of the page shows while any data request is in flight.
 const busy = { n: 0, set(d) { this.n = Math.max(0, this.n + d); document.documentElement.classList.toggle("busy", this.n > 0); $("busybar")?.setAttribute("aria-hidden", this.n ? "false" : "true"); } };
 async function api(path, opts = {}) {
@@ -2193,6 +2212,11 @@ let edgeOk = true;
 async function apiRaw(path, opts = {}) {
   const init = { ...opts, headers: { apikey: KEY, "Content-Type": "application/json", ...(opts.headers || {}) } };
   let res;
+  if (!opts.method && !init.headers.Authorization) {
+    apiSeen.add(`rest/v1/${path}`);
+    const b = await preload, hit = b[`rest/v1/${path}`];
+    if (hit !== undefined) { try { return JSON.parse(hit); } catch {} }
+  }
   if (edgeOk && !init.headers.Authorization) {
     try { res = await fetch(`/sb/rest/v1/${path}`, init); if (res.status === 404 || res.status >= 500) { res = null; edgeOk = res !== null; } } catch { res = null; edgeOk = false; }
   }
@@ -5116,7 +5140,8 @@ async function countVisit() {
   let id = load("ict-visitor");
   if (!id) { id = Math.random().toString(36).slice(2) + Date.now().toString(36); store("ict-visitor", id); }
   try {
-    const v = await api("rpc/record_visit", { method: "POST", body: JSON.stringify({ p_visitor: id }) });
+    // apiRaw, not api: counting a visit is not data the reader waits for, so it must not keep the loading bar on.
+    const v = await apiRaw("rpc/record_visit", { method: "POST", body: JSON.stringify({ p_visitor: id }) });
     const n = (x) => Number(x).toLocaleString("en-IN");
     visitText = `Last 24 hours: ${n(v.visitors)} visitor${v.visitors === 1 ? "" : "s"} · ${n(v.page_views)} visit${v.page_views === 1 ? "" : "s"}`
       + (v.total_visitors ? ` · All time: ${n(v.total_visitors)} visitor${v.total_visitors === 1 ? "" : "s"} · ${n(v.total_views)} visit${v.total_views === 1 ? "" : "s"} since ${dmy(v.since)}` : "");
@@ -6779,8 +6804,10 @@ route();
 
   size(); window.addEventListener("resize", size);
   draw(); figures();
-  // Stays until the visitor clicks. The Enter button gets focus so keyboard users can close it too.
+  // Closes by itself after 2 seconds (the data loads underneath meanwhile), or earlier on a click. The Enter button gets focus so
+  // keyboard users can close it too.
   op.addEventListener("click", dismiss);
+  setTimeout(dismiss, 2000);
   document.getElementById("op-enter").focus({ preventScroll: true });
 })();
 </script>
