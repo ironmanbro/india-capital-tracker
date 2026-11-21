@@ -2276,6 +2276,8 @@ async function refresh() {
   try {
     // A cold database can answer the first request slowly or time out; try again twice before giving up.
     let events, runs, latest, reviewed;
+    // The flows charts load alongside the stories instead of after them.
+    const flowsReady = loadFlows();
     for (let attempt = 0; ; attempt++) {
       try {
         [events, runs, latest, reviewed] = await Promise.all([
@@ -2298,7 +2300,9 @@ async function refresh() {
     state.latest = Object.fromEntries(latest.map((r) => [r.source, r.finished_at]));
     // Show the newest collection run, not the (rarely run) review pass.
     state.lastReview = Object.values(state.latest).reduce((a, t) => (!a || new Date(t) > new Date(a) ? t : a), null);
-    await loadFlows();
+    // One draw once both are in: every US$ figure uses the exchange rate that comes with the flows (usdInr), so drawing earlier
+    // would show amounts that change a moment later.
+    await flowsReady;
     render();
     try { if (state.tab === "flows") drawFxDesk(); } catch {}
   } catch (e) {
