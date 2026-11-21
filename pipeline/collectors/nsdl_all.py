@@ -126,8 +126,15 @@ def scrape_quarterly():
     """Quarterly page: year dropdown 'ddl' posts back (ASP.NET __doPostBack); default view is the newest year."""
     url = B + "Reports/QuarterlyWise.aspx"
     s = requests.Session(); s.headers.update(H)
-    page = s.get(url, timeout=45).text
-    years = [o.get("value") for o in BeautifulSoup(page, "html.parser").find("select", {"name": "ddl"}).find_all("option")]
+    # NSDL sometimes answers 200 with an error or holding page that has no year picker; wait and ask again before giving up.
+    for attempt in range(3):
+        page = s.get(url, timeout=45).text
+        sel = BeautifulSoup(page, "html.parser").find("select", {"name": "ddl"})
+        if sel: break
+        time.sleep(15 * (attempt + 1))
+    else:
+        raise RuntimeError("NSDL quarterly page has no year picker after 3 tries: " + re.sub(r"\s+", " ", BeautifulSoup(page, "html.parser").get_text())[:150])
+    years = [o.get("value") for o in sel.find_all("option")]
     out = {}
     for y in years:
         form = hidden_fields(page)

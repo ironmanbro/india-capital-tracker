@@ -22,7 +22,7 @@ def fetch(flag):
 
 if __name__ == "__main__":
     os.makedirs("data", exist_ok=True)
-    bad = False
+    bad = refused = False
     for flag in ("Bulk", "Block"):
         try:
             rows = fetch(flag)
@@ -32,4 +32,6 @@ if __name__ == "__main__":
         except Exception as e:
             print("FAILED", e)
             bad = True
-    sys.exit(1 if bad else 0)
+            refused = refused or "HTTP 403" in str(e)
+    # BSE answers "Access Denied" (HTTP 403) to GitHub's servers whatever the request; exit 3 tells run_all.py it is blocked, not broken.
+    sys.exit(3 if bad and refused else 1 if bad else 0)
