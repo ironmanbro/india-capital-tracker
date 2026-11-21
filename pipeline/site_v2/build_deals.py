@@ -1,7 +1,7 @@
 """deals.js: every deal of the last 90 days (exchange deals grade A, news deals grade C) and the monthly ODI series (Deals page)."""
 import collections, datetime as dt
 from common import get, paged, stories, today, built_stamp, BuildError
-import deal_quality, deal_match
+import deal_quality, deal_match, deal_history
 
 def build():
     T = today(); since = (T - dt.timedelta(days=90)).isoformat()
@@ -15,6 +15,10 @@ def build():
     fxr = get("fx_ref?select=rate&ccy=eq.USD&order=day.desc&limit=1"); fx = fxr[0]["rate"] if fxr else None
     for r in rows: deal_quality.apply(r, inr_per_usd=fx)
     deal_match.match([r for r in rows if r["g"] == "C"], [r for r in rows if r["g"] == "A"])
+    # "added" vs "first seen" for exchange buys: earlier shareholding filings, and every exchange buy on record (not only 90 days)
+    past = [dict(d=x["published_at"][:10], inv=x["investor"], tgt=x["target"]) for x in stories()
+            if x["source"] in ("nse_bulk", "nse_block", "bse_bulk", "bse_block") and x["event_type"] == "entry" and x["published_at"]]
+    deal_history.label(rows, paged("shareholdings?select=company,period_end,holder,pct"), past)
     rows.sort(key=lambda r: (r["d"], r["usd"] or 0), reverse=True)
     if len(rows) < 50: raise BuildError(f"only {len(rows)} deals in the last 90 days")
     if (T - dt.date.fromisoformat(rows[0]["d"])).days > 10: raise BuildError("newest deal is more than 10 days old: " + rows[0]["d"])
