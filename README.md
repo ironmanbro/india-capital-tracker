@@ -17,3 +17,7 @@ Built by [Kishan Singhania](https://www.linkedin.com/in/kishansinghania/).
 
 - **Website:** push to `main`; Cloudflare deploys `site/` automatically (no build step). `wrangler.jsonc` limits what is published to that folder.
 - **Collector:** deployed to Supabase as the `ingest` edge function.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
