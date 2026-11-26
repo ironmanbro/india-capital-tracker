@@ -1058,6 +1058,8 @@ button,.reset,select,summary,.link,.kpi,.card,.bk,.ovrow,.ftable tbody tr,nav.ta
 @media (prefers-reduced-motion:reduce){.opener{display:none}}
 .stack-h{display:none}
 body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-weight:600;margin:40px 0 8px;padding-top:24px;border-top:1px solid var(--line)}
+/* Readability floor: the second-currency brackets scale with their parent and fell to 9px; never below 11px. */
+:root:not(#ds1):not(#ds2):not(#fl) .inr,:root:not(#ds1):not(#ds2):not(#fl) small.inr,:root:not(#ds1):not(#ds2):not(#fl) .amt-tag span{font-size:max(11px,.75em)!important}
 </style>
 <script src="vendor/lenis.min.js" integrity="sha384-HW3Ly4XWKJet3D65KqJnRL8BXjzJvMnPqdFMx+d3/VIFGc7APZsMC2Z6KNvLgwO6" crossorigin="anonymous" defer></script>
 <style>
@@ -1416,7 +1418,7 @@ body{font-variant-numeric:tabular-nums}
 :root:not(#ds1):not(#ds2) :is(.rstats b,.cb-g b,.isumm b){font-family:var(--font-ui)!important;font-feature-settings:"tnum" 1}
 :root:not(#ds1):not(#ds2) :is(.ftile,.kpi) .l{font-size:13px;color:var(--ink-2);font-weight:400}
 :root:not(#ds1):not(#ds2) :is(.ftile,.kpi) .s{font-size:12.5px;color:var(--muted)}
-:root:not(#ds1):not(#ds2) small.inr,:root:not(#ds1):not(#ds2) .amt-tag span{font-size:.62em!important;color:var(--muted)!important;font-weight:400!important;margin-left:4px}
+:root:not(#ds1):not(#ds2) small.inr,:root:not(#ds1):not(#ds2) .amt-tag span{font-size:.75em!important;color:var(--muted)!important;font-weight:400!important;margin-left:4px}
 :root:not(#ds1):not(#ds2) .arrow{font-family:var(--font-mono);font-size:.62em;margin-right:4px;vertical-align:.18em}
 
 /* ---- Surfaces: hairlines and surface steps, no glass, no glow, no lift ---- */
@@ -2085,8 +2087,8 @@ body{font-variant-numeric:tabular-nums}
 
   <dialog class="gloss" id="gloss" data-lenis-prevent aria-labelledby="gloss-h"><div class="fhead"><h3 id="gloss-h" style="margin:0">Jargon explained</h3><button class="reset" id="gloss-x" type="button">Close</button></div><dl id="gloss-list"></dl></dialog>
   <footer class="byline">
-    <div><strong>Built by Kishan Singhania</strong> ·
-      <a href="https://www.linkedin.com/in/kishansinghania/" target="_blank" rel="noopener">LinkedIn</a> ·
+    <div><strong>Indian Capital Tracker</strong> ·
+      <a href="/about.html">About and methodology</a> ·
       <button class="link" type="button" data-gloss-open>Jargon explained</button> ·
       <a href="/rules">Rulebook</a> · <a href="/terms.html">Terms</a> · <a href="/privacy.html">Privacy</a> · <a href="/disclaimer.html">Disclaimer</a></div>
     <div class="sub" id="fx-foot"></div>
@@ -2227,7 +2229,7 @@ const fmtCr = (cr) => cr >= 1e5 ? `₹${+(cr / 1e5).toFixed(1)} lakh cr` : `₹$
 // Amounts are stored in US$ (millions). Every figure is shown in the chosen currency, with a second currency in small brackets:
 // the rupee, or US$ when the rupee is chosen. Rates are units per US$: INR from the ECB reference rate, the others from FBIL's daily reference rates.
 const CCYS = { USD: ["US dollar", "$"], INR: ["Indian rupee", "₹"], EUR: ["Euro", "€"], GBP: ["Pound", "£"], JPY: ["Yen", "¥"], AED: ["UAE dirham", "AED "] };
-let CCY = "USD", CCY_R = {};
+let CCY = "INR", CCY_R = {};   // the rupee is the default; a visitor's own choice (kept on their device) wins
 try { const c = localStorage.getItem("ict-ccy"); if (CCYS[c]) CCY = c; CCY_R = JSON.parse(localStorage.getItem("ict-ccy-rates2") || "{}") || {}; } catch {}
 const effCcy = () => CCY === "USD" || CCY === "INR" || CCY_R[CCY] > 0 ? CCY : "USD";   // a currency whose rate has not loaded yet shows as US$
 function fmtBig(code, m) { return m >= 1e6 ? `${code} ${+(m / 1e6).toFixed(2)} trillion` : m >= 1000 ? `${code} ${+(m / 1000).toFixed(m >= 1e4 ? 1 : 2)} billion` : `${code} ${m >= 10 ? Math.round(m).toLocaleString("en-US") : +m.toFixed(1)} million`; }
@@ -2307,7 +2309,9 @@ async function refresh() {
   }
 }
 
-const toDMY = (iso) => iso ? `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}` : "";
+// One date format across the site: 26 Nov 2026 (Indian day-first, month spelled out so it cannot be misread).
+const MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const toDMY = (iso) => iso && /^\d{4}-\d{2}-\d{2}/.test(iso) ? `${+iso.slice(8, 10)} ${MONTH_ABBR[+iso.slice(5, 7) - 1]} ${iso.slice(0, 4)}` : (iso || "");
 function fromDMY(t) {
   const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(t.trim());
   if (!m) return null;
@@ -4314,18 +4318,18 @@ document.querySelectorAll("[data-go]").forEach((b) => b.onclick = () => {
 // ---------- Page titles ----------
 // Page titles are the question each page answers; the line under it says what this view shows.
 const TITLES = {
-  feed: ["Who is investing in India?", "Deals: every investment, sale and new fund involving foreign money, newest first"],
-  investors: ["Who is investing in India?", "Investors: one page per foreign investor, from the news and from company filings"],
-  network: ["Who is investing in India?", "Connections: which investors and companies show up on the same deals"],
+  feed: ["Deals", "Every investment, sale and new fund involving foreign money, newest first"],
+  investors: ["Investors", "One page per foreign investor, from the news and from company filings"],
+  network: ["Connections", "Which investors and companies show up on the same deals"],
   firm: ["Investor profile", "One investor's deals, connections and sources"],
   entity: ["Profile", "Everything the site holds on one name"],
   users: ["Users", "Who signs in and what they open (owner only)"],
-  flows: ["Is foreign money coming in or going out?", "How much foreign funds bought or sold in Indian shares and bonds, day by day"],
-  markets: ["Is foreign money coming in or going out?", "Stock-market detail: big trades by foreign funds, and daily buying and selling on the exchange"],
-  odi: ["Which Indian companies are investing abroad?", "Money Indian companies sent overseas each month, and where it went (RBI data)"],
-  regulation: ["What are the rules?", "The rules for foreign money in India, in plain English, and what changed recently"],
-  directory: ["Who is investing in India?", "Registered funds: every foreign fund SEBI allows to invest in Indian markets (FPIs), and what they hold"],
-  gift: ["What is happening in GIFT City?", "India's international finance hub in Gujarat: every fund manager, fund and bank registered there"],
+  flows: ["FPI flows", "Is foreign money coming in or going out? Foreign funds' purchases and sales of Indian shares and bonds, day by day"],
+  markets: ["Market data", "Big trades by foreign funds, and daily buying and selling on the exchange"],
+  odi: ["Outbound investment", "Money Indian companies sent overseas each month, and where it went (RBI data)"],
+  regulation: ["Rules and circulars", "The rules for foreign money in India, in plain English, and what changed recently"],
+  directory: ["FPI register", "Every foreign fund SEBI allows to invest in Indian markets (FPIs), and what they hold"],
+  gift: ["GIFT City", "India's international finance hub in Gujarat: every fund manager, fund and bank registered there"],
   health: ["Sources", "When each source last ran"],
 };
 function setTitle() {
@@ -5857,7 +5861,7 @@ async function renderMarkets() {
 const xt = { p: null };
 const loadExtra = () => xt.p ||= api("feed_records?select=key,data,loaded_at&dataset=eq.extra&limit=50").then((rows) => Object.fromEntries(rows.map((r) => [r.key, r]))).catch(() => { xt.p = null; return {}; });
 const xtT = (v) => { const m = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})/.exec(String(v)); return m ? Date.UTC(+m[1], m[2] - 1, +m[3], +m[4], +m[5]) : new Date(v).getTime() || 0; };
-const xtD = (ms) => ms ? new Date(ms).toISOString().slice(0, 10) : "–";
+const xtD = (ms) => ms ? toDMY(new Date(ms).toISOString().slice(0, 10)) : "–";
 const xtA = (url, text) => url ? { h: `<a href="${safeUrl(url)}" target="_blank" rel="noopener">${esc(text)}</a>` } : text;
 const xtSrc = (label, url, row) => `<p class="dsrc">Source: <a href="${safeUrl(url)}" target="_blank" rel="noopener">${esc(label)}</a>${row?.loaded_at ? ` · collected ${esc(istTime(row.loaded_at))} IST` : ""}</p>`;
 const SRC_NAME = { entrackr: "Entrackr", inc42: "Inc42", yourstory: "YourStory", economic_times_startups: "ET Startups", pr_newswire_apac: "PR Newswire" };
