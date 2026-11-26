@@ -206,7 +206,7 @@ td.num{font-variant-numeric:tabular-nums;text-align:right}
 .ftable a:hover{text-decoration:underline}
 .ftable tbody tr.x{cursor:pointer}
 .ftable tbody tr.open td{background:var(--chip)}
-.fcat{display:block;font-size:12px;opacity:.8;margin-top:2px}
+.fcat{display:block;font-size:12px;margin-top:2px}
 .h-person{font-size:13px;min-width:120px}
 .freach{font-size:12.5px;line-height:1.5}
 .freach a{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
@@ -1070,12 +1070,25 @@ body.home-more #d-more{display:none}
 .pg-tools{margin-top:2px}.pg-tools,.pg-tools .link{font-size:12px;color:var(--muted)}.pg-tools .link:hover{color:var(--accent)}
 @media print{.pg-tools{display:none!important}}
 body[data-dirview="ifsca"] #acc-fpilim,body[data-dirview="ifsca"] #acc-aum{display:none}
-.irow .ic.nil b{color:var(--muted);font-weight:400}.irow .ic.nil span{opacity:.45}
+.irow .ic.nil b{color:var(--muted);font-weight:400}
 .alerts{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin:0 0 14px}
 .alert{display:block;text-align:left;padding:10px 14px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:var(--r-sm,8px);background:var(--panel);color:var(--ink);cursor:pointer;font:inherit}
 .alert.warn{border-left-color:var(--warn,#9a6700)}.alert:hover{border-color:var(--line-2,var(--line));border-left-color:inherit}
 .alert b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}.alert .at{display:block;font-weight:600;margin:2px 0}.alert .as{display:block;font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media print{.alerts{display:none}}
+:root[data-theme="light"] .due.soon,:root[data-theme="light"] .watch-w td.due.soon{color:#a04a00!important}
+/* Reserve the space the opening content will fill, so the page does not jump when data arrives (layout shift was 0.37 on desktop, 1.4 on a phone). */
+.alerts[hidden]{display:none}
+.alerts{min-height:80px}
+.alerts:empty,#ov-tiles:empty{border:1px solid var(--line);border-radius:var(--r-sm,10px);background:var(--panel);opacity:.55}
+#ov-take{min-height:47px}#ov-tiles{min-height:125px}
+.hstatus #updated{min-height:1.4em}
+@media(max-width:700px){#ov-take{min-height:152px}#ov-tiles{min-height:109px}.hstatus #updated{min-height:3.1em}.alerts{min-height:84px}}
+/* Long lists: rows below the screen are not laid out or painted until they scroll near (large drop in start-up work on a phone). */
+.irow,#feed>*,#investors>.irow,.dlist>*{content-visibility:auto;contain-intrinsic-size:auto 96px}
+#feed>.scard,#feed>article{contain-intrinsic-size:auto 120px}
+/* Keep the footer below the first screen while a page is still loading, so it does not jump down when the content arrives. */
+#main{min-height:100vh;min-height:100dvh}
 </style>
 <script src="vendor/lenis.min.js" integrity="sha384-HW3Ly4XWKJet3D65KqJnRL8BXjzJvMnPqdFMx+d3/VIFGc7APZsMC2Z6KNvLgwO6" crossorigin="anonymous" defer></script>
 <style>
@@ -1345,7 +1358,7 @@ body{font-variant-numeric:tabular-nums}
 .watch-h{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
 .watch-h h3{margin:0;font-size:16px}
 .watch .qviews{margin:0 0 10px}
-.watch .qviews b{margin-left:6px;font-weight:700;opacity:.8}
+.watch .qviews b{margin-left:6px;font-weight:700}
 .watch-w{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
 .watch table{width:100%;border-collapse:collapse;font-size:13px;background:none;border:0;box-shadow:none}
 .watch th{position:sticky;top:0;background:var(--panel);text-align:left;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);padding:9px 12px;border-bottom:1px solid var(--line);font-weight:600}
@@ -1395,7 +1408,7 @@ body{font-variant-numeric:tabular-nums}
    ===================================================================================================== */
 :root:not([data-theme="light"]):not(#x){
   --bg:#0b0d12;--page:#0b0d12;--deep:#08090d;--panel:#11141b;--panel-2:#161a22;--raised:#1b1f28;--glass:var(--panel);--glass-bg:var(--panel);
-  --ink:#eceef3;--ink-2:#a6acba;--muted:#7c8497;--line:rgba(236,238,243,.08);--line-2:rgba(236,238,243,.14);--chip:rgba(236,238,243,.05);
+  --ink:#eceef3;--ink-2:#a6acba;--muted:#8d95a8;--line:rgba(236,238,243,.08);--line-2:rgba(236,238,243,.14);--chip:rgba(236,238,243,.05);
   --accent:#eceef3;--accent-ink:#0b0d12;--link:#c9cfdc;
   --in:#5b8cff;--out:#e8a33a;--c-in:#5b8cff;--c-out:#e8a33a;--good:#4cc38a;--bad:#e5484d;
   --entry:#5b8cff;--exit:#e8a33a;--fund_launch:#4fb3a9;--relocation:#9d90f0;--outbound:#c98a5e;--regulation:#a6acba;--other:#7c8497;
@@ -1403,10 +1416,10 @@ body{font-variant-numeric:tabular-nums}
 }
 :root[data-theme="light"]:not(#x){
   --bg:#f5f6f8;--page:#f5f6f8;--deep:#eceef2;--panel:#ffffff;--panel-2:#f7f8fa;--raised:#eef0f4;--glass:var(--panel);--glass-bg:var(--panel);
-  --ink:#12151c;--ink-2:#4b5565;--muted:#6b7487;--line:rgba(18,21,28,.08);--line-2:rgba(18,21,28,.14);--chip:rgba(18,21,28,.04);
+  --ink:#12151c;--ink-2:#4b5565;--muted:#5c6577;--line:rgba(18,21,28,.08);--line-2:rgba(18,21,28,.14);--chip:rgba(18,21,28,.04);
   --accent:#12151c;--accent-ink:#ffffff;--link:#2a3242;
-  --in:#2f5fd0;--out:#b46b00;--c-in:#2f5fd0;--c-out:#b46b00;--good:#16a34a;--bad:#dc2626;
-  --entry:#2f5fd0;--exit:#b46b00;--fund_launch:#0f8a80;--relocation:#6b5bd6;--outbound:#a35f2c;--regulation:#4b5565;--other:#6b7487;
+  --in:#2f5fd0;--out:#8f5300;--c-in:#2f5fd0;--c-out:#8f5300;--good:#16a34a;--bad:#dc2626;
+  --entry:#2f5fd0;--exit:#8f5300;--fund_launch:#0b7a70;--relocation:#5b4bc4;--outbound:#8f4f20;--regulation:#4b5565;--other:#6b7487;
   --shadow:none;--bar:#a3abbb;
 }
 :root:not(#x){--font-ui:Geist,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--font-mono:Geist,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--font-code:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
@@ -1700,7 +1713,7 @@ body{font-variant-numeric:tabular-nums}
   <button class="op-enter" id="op-enter" type="button">Enter the tracker</button>
 </div>
 <a class="skip" href="#main">Skip to content</a>
-<div class="wrap" role="main" id="main" tabindex="-1">
+<div class="wrap">
   <header>
     <div>
       <div class="eyebrow">Indian Capital Tracker</div>
@@ -1713,13 +1726,14 @@ body{font-variant-numeric:tabular-nums}
         <input type="search" id="gq" title="Press / to search" placeholder="Search firms, FPIs, deals…" aria-label="Search everything" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="gdrop">
         <div id="gdrop" role="listbox" hidden></div>
         <button class="cmdk-btn install-btn" id="install-app" type="button" hidden title="Install as an app on this device"><span>Install app</span></button>
-        <button class="cmdk-btn" id="cmdk-open" type="button" aria-label="Quick search (Ctrl or Cmd + K)" title="Quick search investors, firms or deals"><span>Quick search</span><kbd>⌘K</kbd></button>
+        <button class="cmdk-btn" id="cmdk-open" type="button" aria-label="Quick search ⌘K" title="Quick search investors, firms or deals (Ctrl or Cmd + K)"><span>Quick search</span><kbd>⌘K</kbd></button>
         <select class="ccy" id="ccy" aria-label="Currency" title="Show every amount in this currency"><option value="USD">USD · US dollar</option><option value="INR">INR · Indian rupee</option><option value="EUR">EUR · Euro</option><option value="GBP">GBP · Pound</option><option value="JPY">JPY · Yen</option><option value="AED">AED · UAE dirham</option></select>
         <button class="ib" id="theme" type="button" aria-label="Switch light or dark" title="Light or dark">&#9788;</button>
       </div>
-      <div class="hstatus"><div class="sub" id="updated"><span class="skl-inline" aria-label="Loading"></span></div><div class="sub" id="visits"></div><div class="sub" id="acct"></div></div>
+      <div class="hstatus"><div class="sub" id="updated"><span class="skl-inline" aria-hidden="true"></span></div><div class="sub" id="visits"></div><div class="sub" id="acct"></div></div>
     </div>
   </header>
+  <main id="main" tabindex="-1">
   <button class="totop" id="totop" type="button" aria-label="Back to top" title="Back to top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
   <div class="busybar" id="busybar" role="progressbar" aria-label="Loading data" aria-hidden="true"></div>
   <div class="sr-only" id="sr-status" role="status" aria-live="polite"></div>
@@ -1798,7 +1812,7 @@ body{font-variant-numeric:tabular-nums}
 
   <section id="tab-overview">
     <a class="rulebook" href="/rules">Rulebook: FPI, FDI and FVCI &mdash; plain-English summaries, official documents and the latest changes <span aria-hidden="true">&rarr;</span></a>
-    <div class="alerts" id="ov-alerts" role="region" aria-label="Alerts" hidden></div>
+    <div class="alerts" id="ov-alerts" role="region" aria-label="Alerts"></div>
     <p class="takeaway" id="ov-take"></p>
     <div class="ftiles" id="ov-tiles"></div>
     <div class="ftiles" id="ov-cross"></div>
@@ -1809,11 +1823,11 @@ body{font-variant-numeric:tabular-nums}
       <div class="ovc"><div class="ovh"><div><h3>Latest stories</h3><div class="sub">News collected hourly, reviewed daily at 9am IST<span class="asof" id="asof-stories"></span></div></div><button class="link" data-go="feed">All stories</button></div><div id="ov-stories"><!--skel--></div></div>
     </div>
     <div class="hsum-head"><h2>The whole picture</h2><div style="display:flex;gap:8px;align-items:center"><button type="button" class="csvbtn" id="wbrief-open">Weekly brief</button><span class="fxchip" id="fxchip" hidden></span></div></div>
-    <div class="hsum" id="hsum"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div>
+    <div class="hsum" id="hsum"><div class="skl" aria-busy="true"><i></i><i></i><i></i></div></div>
     <div class="ovgrid">
-      <div class="ovc"><div class="ovh"><div><h3>What changed this month</h3><div class="sub">SEBI, RBI and IFSCA rules for foreign investment</div></div><button class="link" data-go="regulation" data-view="regyear">This year's rules ↗</button></div><div id="ov-regchg"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
-      <div class="ovc"><div class="ovh"><div><h3>New FPI registrations</h3><div class="sub">Latest additions to the NSDL register</div></div><button class="link" data-go="directory">FPIs ↗</button></div><div id="ov-regs"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
-      <div class="ovc more-d"><div class="ovh"><div><h3>Indian investment abroad</h3><div class="sub">RBI overseas direct investment, latest month</div></div><button class="link" data-go="odi">Outbound ↗</button></div><div id="ov-odi"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
+      <div class="ovc"><div class="ovh"><div><h3>What changed this month</h3><div class="sub">SEBI, RBI and IFSCA rules for foreign investment</div></div><button class="link" data-go="regulation" data-view="regyear">This year's rules ↗</button></div><div id="ov-regchg"><div class="skl" aria-busy="true"><i></i><i></i><i></i></div></div></div>
+      <div class="ovc"><div class="ovh"><div><h3>New FPI registrations</h3><div class="sub">Latest additions to the NSDL register</div></div><button class="link" data-go="directory">FPIs ↗</button></div><div id="ov-regs"><div class="skl" aria-busy="true"><i></i><i></i><i></i></div></div></div>
+      <div class="ovc more-d"><div class="ovh"><div><h3>Indian investment abroad</h3><div class="sub">RBI overseas direct investment, latest month</div></div><button class="link" data-go="odi">Outbound ↗</button></div><div id="ov-odi"><div class="skl" aria-busy="true"><i></i><i></i><i></i></div></div></div>
       <div class="ovc more-d gated"><div class="ovh"><div><h3>Where the money comes from</h3><div class="sub">Capital deals in the last 90 days. Tap a row to see them.<span class="asof" id="asof-where"></span></div></div></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-break"></div></div>
       <div class="ovc more-d span2 gated"><div class="ovh"><div><h3>The last 30 days</h3><div class="sub">Reported deal value by category, and the most active investors<span class="asof" id="asof-30"></span></div></div><button class="link" data-go="investors">Investors ↗</button></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-week"></div></div>
       <button id="d-more" type="button">Show 3 more panels from today</button>
@@ -2014,7 +2028,7 @@ body{font-variant-numeric:tabular-nums}
     </div>
     <details class="acc acc-in" id="acc-dpiit"><summary><span class="acc-t">DPIIT reports</span><span class="acc-s">Latest FDI newsletters and fact sheets, with the original PDFs</span></summary><div class="acc-body">
     <p class="note">Latest FDI newsletters and fact sheets published by DPIIT, with the original PDFs.</p>
-    <div id="dpiit-pubs"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div>
+    <div id="dpiit-pubs"><div class="skl" aria-busy="true"><i></i><i></i><i></i></div></div>
     </div></details>
     </div></details>
     <details class="acc" id="acc-big"><summary><span class="acc-t">Large deals and index changes</span><span class="acc-s">Deals of USD 250 million or more that move dollars, and index decisions that move foreign money</span></summary><div class="acc-body">
@@ -2028,7 +2042,7 @@ body{font-variant-numeric:tabular-nums}
     <a class="rulebook" href="/rules">Rulebook: FPI, FDI and FVCI &mdash; plain-English summaries, official documents and the latest changes <span aria-hidden="true">&rarr;</span></a>
     <p class="sub" style="margin:0 0 12px"><span class="lg">SEBI, RBI and IFSCA documents that change the rules for foreign investment and for GIFT City: FPI, FVCI, FDI, ODI and IFSC entities. IFSCA items are listed with the official title and a link; they are not summarised. Summaries state only what changed, for whom and from when; always read the official document.</span><span class="sm">SEBI and RBI rule changes for foreign investment. Read the official document.</span></p>
     <div class="tsum" id="reg-sum"></div>
-    <div id="reg-body"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div>
+    <div id="reg-body"><div class="skl" aria-busy="true"><i></i><i></i><i></i></div></div>
     <details class="acc" id="acc-cal"><summary><span class="acc-t">Compliance calendar</span><span class="acc-s">Rules by the date they take effect: what is coming up and what changed in the last 90 days</span></summary><div class="acc-body"><section class="watch" id="compcal" aria-label="Compliance calendar"></section></div></details>
     <details class="reglib" id="reglib"><summary><h3>Laws and regulations that apply to foreign investment (60)</h3><span>FEMA and RBI, FDI policy, SEBI, anti-money laundering, company law, tax, other laws, GIFT City</span></summary><div id="reglib-body"></div></details>
     <details class="acc" id="acc-wht"><summary><span class="acc-t">Withholding tax on payments to non-residents</span><span class="acc-s">Domestic rates before treaty relief</span></summary><div class="acc-body"><section class="watch" id="whtref" aria-label="Withholding tax reference"></section></div></details>
@@ -2037,18 +2051,18 @@ body{font-variant-numeric:tabular-nums}
   <section id="tab-odi" hidden>
     <details class="acc" id="acc-odi"><summary><span class="acc-t">Indian investment abroad</span><span class="acc-s">What Indian companies committed overseas each month: by month, by destination, and every investment</span></summary><div class="acc-body">
     <p class="sub" style="margin:0 0 12px"><span class="lg">Money Indian companies commit to joint ventures (JV) and wholly owned subsidiaries (WOS) abroad: equity, loans and guarantees. Monthly from RBI's Overseas Direct Investment data, in US$.</span><span class="sm">Indian companies investing abroad, monthly from RBI (US$).</span></p>
-    <div id="odi-body"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div>
+    <div id="odi-body"><div class="skl" aria-busy="true"><i></i><i></i><i></i></div></div>
     </div></details>
   </section>
 
   <section id="tab-markets" hidden>
     <details class="acc" id="acc-mk"><summary><span class="acc-t">Exchange data</span><span class="acc-s">Daily FII and DII flows, bulk and block deals, FPI holdings, derivatives, SEBI filings and more</span></summary><div class="acc-body">
     <p class="sub" style="margin:0 0 12px"><span class="lg">Daily exchange and NSDL data: FII/FPI activity, bulk and block deals with foreign investors, FPI debt holdings and sector allocations.</span><span class="sm">Daily FII/FPI activity, foreign bulk and block deals, FPI debt and sector holdings.</span></p>
-    <div id="mk-body"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div>
+    <div id="mk-body"><div class="skl" aria-busy="true"><i></i><i></i><i></i></div></div>
     </div></details>
   </section>
 
-  <section id="tab-users" hidden><div id="us-body"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></section>
+  <section id="tab-users" hidden><div id="us-body"><div class="skl" aria-busy="true"><i></i><i></i><i></i></div></div></section>
 
   <section id="tab-entity" hidden><div id="entity-body"></div></section>
 
@@ -2102,6 +2116,7 @@ body{font-variant-numeric:tabular-nums}
   <p class="note">News is collected hourly and reviewed once a day, at 9am IST, before it appears as a story. Exchange deals appear within the hour.</p>
 
   <dialog class="gloss" id="gloss" data-lenis-prevent aria-labelledby="gloss-h"><div class="fhead"><h3 id="gloss-h" style="margin:0">Jargon explained</h3><button class="reset" id="gloss-x" type="button">Close</button></div><dl id="gloss-list"></dl></dialog>
+  </main>
   <footer class="byline">
     <div><strong>Indian Capital Tracker</strong> ·
       <a href="/about.html">About and methodology</a> ·
@@ -2640,7 +2655,7 @@ function renderFeed() {
   const rows = filtered();
   $("fnote-slot").innerHTML = feedNotice();
   // While the stories are still loading, show the loading placeholder, not "no match".
-  if (!rows.length && !state.eventsLoaded) { $("feed").innerHTML = `<div class="skl" aria-busy="true" aria-label="Loading deals"><i></i><i></i><i></i></div>`; return; }
+  if (!rows.length && !state.eventsLoaded) { $("feed").innerHTML = `<div class="skl" aria-busy="true"><i></i><i></i><i></i></div>`; return; }
   if (!rows.length) { $("feed").innerHTML = noRows("No stories match these filters, so try a wider date range or reset them.", "feed"); return; }
   // The list shows 50 stories and adds more on request: 1,000+ cards at once made the page 58,000px tall, and 400 was the hard limit before.
   const sig = `${rows.length}:${rows[0]?.id}:${state.sort}`;
@@ -2869,10 +2884,10 @@ function drawConst() {
   const nodes = [...pos].map(([k, [x, y]]) => {
     const isC = k === cst.center, isInv = k.startsWith("i:"), r = isC ? 16 : Math.min(12, 5 + Math.sqrt(G.adj.get(k)?.size || 1) * 1.6);
     const nm = G.name(k), mx = narrow ? 14 : 22, lab = nm.length > mx ? nm.slice(0, mx - 1) + "…" : nm, right = x >= cx;
-    return `<g class="nd" data-k="${esc(k)}" tabindex="0" role="button" aria-label="${esc(nm)}"><title>${esc(nm)} · ${G.adj.get(k)?.size || 0} links · click to open the profile</title><circle cx="${x}" cy="${y}" r="${r}" fill="${isInv ? "#7b9cf5" : "#5cc6b0"}"${isC ? ' stroke="var(--ink)" stroke-width="2"' : ""}/>` +
+    return `<g class="nd" data-k="${esc(k)}" tabindex="0" role="button"><title>${esc(nm)} · ${G.adj.get(k)?.size || 0} links · click to open the profile</title><circle cx="${x}" cy="${y}" r="${r}" fill="${isInv ? "#7b9cf5" : "#5cc6b0"}"${isC ? ' stroke="var(--ink)" stroke-width="2"' : ""}/>` +
       `<text x="${isC ? x : x + (right ? r + 4 : -r - 4)}" y="${isC ? y + r + 14 : y + 4}" text-anchor="${isC ? "middle" : right ? "start" : "end"}"${isC ? ' style="font-weight:700;font-size:13px"' : ""}>${esc(lab)}</text></g>`;
   }).join("");
-  box.innerHTML = `<svg viewBox="-70 0 ${W + 140} ${H}" role="img" aria-label="Constellation centred on ${esc(G.name(cst.center))}">${lines}${nodes}</svg>`;
+  box.innerHTML = `<svg viewBox="-70 0 ${W + 140} ${H}" role="group" aria-label="Constellation centred on ${esc(G.name(cst.center))}">${lines}${nodes}</svg>`;
   box.querySelectorAll(".nd").forEach((g) => { const go = (ev) => {
     const k = g.dataset.k, nm = G.name(k);
     // Holding Shift, Ctrl or Alt while clicking moves the chart to that dot; a plain click opens its profile.
@@ -2928,7 +2943,7 @@ function renderInvestors() {
   if (!rows.length) { $("investors").innerHTML = `${state.holdings.length ? `<div class="empty">No investors match these filters.</div>` : `<div class="skel"></div><div class="skel"></div><div class="skel"></div>`}`; $("imore").hidden = true; return; }
   $("investors").innerHTML = rows.slice(0, invShown).map((r) => {
     const n = r.news, h = r.hold, facts = n ? [n.country, INV_TYPES[n.type]].filter(Boolean).map(esc).join(" · ") : (() => { const g = state.registry.get(r.key); return g ? [countryName(g.country), g.sub_category].filter(Boolean).map(esc).join(" · ") : "Foreign holder named in filings"; })();
-    return `<a class="irow" href="#firm/${encodeURIComponent(r.key)}" aria-label="Open profile of ${esc(r.name)}">
+    return `<a class="irow" href="#firm/${encodeURIComponent(r.key)}" >
       <div class="in"><b>${esc(r.name)}</b>${n && n.first >= monthAgo ? `<span class="new" title="First appeared on this tracker in the last 30 days">NEW</span>` : ""}<div class="sub">${facts}</div>
         ${n ? `<div class="cats">${Object.keys(TYPES).filter((t) => n.cats[t]).map((t) => `<span class="cat" style="color:${color(t)}">${TYPES[t]}${n.cats[t] > 1 ? ` × ${n.cats[t]}` : ""}</span>`).join("")}</div>` : ""}</div>
       <div class="ic${n ? "" : " nil"}"><b>${n ? n.stories.length : "–"}</b><span>In the news</span></div>
@@ -3130,7 +3145,7 @@ function barChart(el, points, opts) {
   // The switch lives inside the chart box, so it never becomes a cell of the card's own grid.
   const tog = canLine ? `<div class="seg ctog" role="group" aria-label="Chart type">${[["bar", "Bars"], ["line", "Line"], ["both", "Both"]].map(([m, l]) => `<button data-m="${m}" aria-pressed="${m === mode}">${l}</button>`).join("")}</div>` : "";
   g += `<line class="xhair" x1="0" x2="0" y1="${T}" y2="${H - B}"/>`;
-  el.innerHTML = tog + `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(el.dataset.title || "")}">${g}</svg>` + (canLine ? `<div class="fchg">${key}${latest}</div>` : "");
+  el.innerHTML = tog + `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(el.dataset.title || el.closest("section,.fcard,.ovc")?.querySelector("h2,h3,.acc-t")?.textContent?.trim() || "Chart")}">${g}</svg>` + (canLine ? `<div class="fchg">${key}${latest}</div>` : "");
   el.querySelectorAll(".ctog button").forEach((b) => b.onclick = () => { el.dataset.mode = b.dataset.m; barChart(el, ...el._args); });
   // The tooltip sits in page coordinates just above the chosen column, so it scrolls with the chart.
   const tipEl = $("ftip");
@@ -3432,12 +3447,12 @@ function renderNetwork() {
     const max = sm ? 14 : 24, label = n.name.length > max ? n.name.slice(0, max - 1) + "…" : n.name;
     const right = ring === 0 || Math.cos(a) >= -0.2, dx = ring === 0 ? 0 : right ? r + 5 : -r - 5;
     const anchor = ring === 0 ? "middle" : right ? "start" : "end", ty = ring === 0 ? y + r + 16 * f : y + 4 * f;
-    return `<g class="nn" data-k="${esc(k)}" tabindex="0" role="button" aria-label="Centre on ${esc(n.name)}">
+    return `<g class="nn" data-k="${esc(k)}" tabindex="0" role="button">
       ${ring === 0 ? `<circle cx="${x}" cy="${y}" r="${r + 9}" fill="${fill}" fill-opacity=".18"/>` : ""}
       <circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" stroke="var(--panel)" stroke-width="2"/>
       <text x="${x + dx}" y="${ty}" text-anchor="${anchor}" font-size="${(ring === 2 ? 11 : 12.5) * f}" font-weight="${ring === 2 ? 400 : 600}" fill="${ring === 2 ? "var(--muted)" : "var(--ink)"}">${esc(label)}</text></g>`;
   };
-  $("net-graph").innerHTML = `${backToAll}<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Deal links around ${esc(c.name)}">
+  $("net-graph").innerHTML = `${backToAll}<svg viewBox="0 0 ${W} ${H}" role="group" aria-label="Deal links around ${esc(c.name)}">
     ${hop2.map((x) => line(x.p, x.k, x.ed)).join("")}${hop1.map((h) => line(c.key, h.k, h.ed)).join("")}
     ${hop2.map((x) => dot(x.k, 2)).join("")}${hop1.map((h) => dot(h.k, 1)).join("")}${dot(c.key, 0)}</svg>
     <div class="flegend" style="padding:0 16px 12px"><span><i style="background:var(--entry)"></i>Investor or buyer</span><span><i style="background:var(--node-co,var(--muted))"></i>Company invested in</span><span><i class="dashkey"></i>Holds 1% or more (filing)</span></div>`;
@@ -3503,11 +3518,11 @@ function egoMap(key, el) {
     ly.set(n.key, pick);
   });
   const fillOf = (n) => isCompany(n) ? "var(--node-co,var(--muted))" : "var(--entry)";
-  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(me.name)} and the ${ranked.length} firms it is most linked to">
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="group" aria-label="${esc(me.name)} and the ${ranked.length} firms it is most linked to">
     <g stroke="var(--muted)" stroke-linecap="round">${lines.map((e) => { const a = at.get(e.a), b = at.get(e.b), c = e.a === key || e.b === key;
       return `<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" stroke-opacity="${c ? 0.55 : 0.2}" stroke-width="${(0.8 + wt(e) / mxe * 3.5).toFixed(1)}"${e.stories.size ? "" : ' stroke-dasharray="4 3"'}/>`; }).join("")}</g>
     ${list.map((n) => { const { q, r, label, anchor, lx } = info(n), c = n.key === key;
-      return `<g ${c ? "" : `class="gm" data-k="${esc(n.key)}" tabindex="0" role="link" style="cursor:pointer"`} aria-label="${esc(n.name)}${c ? " (this profile)" : `: ${deg(n.key)} linked firms, open profile`}">
+      return `<g ${c ? "" : `class="gm" data-k="${esc(n.key)}" tabindex="0" role="link" style="cursor:pointer"`}>
         <circle cx="${q.x.toFixed(1)}" cy="${q.y.toFixed(1)}" r="${r.toFixed(1)}" fill="${fillOf(n)}" stroke="${c ? "var(--ink)" : "var(--panel)"}" stroke-width="${c ? 3 : 2}"><title>${esc(n.name)} · ${deg(n.key)} linked firm${deg(n.key) === 1 ? "" : "s"}${c ? "" : " · click to open"}</title></circle>
         <text x="${lx.toFixed(1)}" y="${ly.get(n.key).toFixed(1)}" text-anchor="${anchor}" font-size="${sm ? 11 : 12}" font-weight="${c ? 800 : 600}" fill="var(--ink)" paint-order="stroke" stroke="var(--panel)" stroke-width="3">${esc(label)}</text></g>`; }).join("")}
   </svg>
@@ -3583,7 +3598,7 @@ function renderFirm() {
     <div class="fpane" data-p="h" hidden>${stakes}</div>
     <div class="fpane" data-p="l" hidden><div class="fcard" style="margin-top:4px"><div class="fhead"><div><h3>Linked firms</h3><div class="sub">Named on the same deal stories, or holding a stake. Click one to open its profile.</div></div></div>
       <ul class="pf-links">${links.map(([k, ed]) => `<li><a href="#firm/${encodeURIComponent(k)}">${esc(net.g.nodes.get(k).name)}</a><div class="sub">${esc(edgeLabel(ed))}</div></li>`).join("")}</ul></div></div>
-    <div class="fpane" data-p="x" hidden><div id="firm-x"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
+    <div class="fpane" data-p="x" hidden><div id="firm-x"><div class="skl" aria-busy="true"><i></i><i></i><i></i></div></div></div>
     <p class="note">Built from news stories, which may contain errors; check the original article. A link is not an ownership record.</p>`;
   paneSwitch("firm-views", (v) => showPane(box, v));
   egoMap(n.key, $("ego-map"));
@@ -4042,11 +4057,11 @@ function renderPath() {
   const sm = innerWidth < 700, f = sm ? 1.9 : 1, W = sm ? 700 : 1000, n = path.length, H = sm ? 120 + n * 120 : 360;
   const pos = path.map((k, i) => sm ? [W / 2 + (i % 2 ? 90 : -90), 70 + i * 120] : [60 + i * ((W - 120) / Math.max(n - 1, 1)), H / 2 + (i % 2 ? 60 : -60)]);
   const edgeOf = (i) => adj.get(path[i]).get(path[i + 1]);
-  $("net-graph").innerHTML = `${backToAll}<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Chain of links from ${esc(a.name)} to ${esc(b.name)}">
+  $("net-graph").innerHTML = `${backToAll}<svg viewBox="0 0 ${W} ${H}" role="group" aria-label="Chain of links from ${esc(a.name)} to ${esc(b.name)}">
     ${path.slice(1).map((_, i) => { const [x1, y1] = pos[i], [x2, y2] = pos[i + 1], ed = edgeOf(i); return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--accent)" stroke-width="${2 + Math.log2(edgeW(ed))}"${ed.stories.size ? "" : ' stroke-dasharray="6 4"'}/>
       <text x="${(x1 + x2) / 2}" y="${(y1 + y2) / 2 - 8}" text-anchor="middle" font-size="${11 * f}" fill="var(--muted)" paint-order="stroke" stroke="var(--panel)" stroke-width="3">${ed.stories.size ? `${ed.stories.size} stor${ed.stories.size === 1 ? "y" : "ies"}` : ""}${ed.stories.size && ed.stakes.length ? " + " : ""}${ed.stakes.length ? "stake" : ""}</text>`; }).join("")}
     ${path.map((k, i) => { const nd = nodes.get(k), [x, y] = pos[i], ends = i === 0 || i === n - 1;
-      return `<g class="nn" data-k="${esc(k)}" tabindex="0" role="button" aria-label="Centre on ${esc(nd.name)}"><circle cx="${x}" cy="${y}" r="${(ends ? 15 : 11) * (sm ? 1.3 : 1)}" fill="${isCompany(nd) ? "var(--node-co,var(--muted))" : "var(--entry)"}" stroke="var(--panel)" stroke-width="2"/>
+      return `<g class="nn" data-k="${esc(k)}" tabindex="0" role="button"><circle cx="${x}" cy="${y}" r="${(ends ? 15 : 11) * (sm ? 1.3 : 1)}" fill="${isCompany(nd) ? "var(--node-co,var(--muted))" : "var(--entry)"}" stroke="var(--panel)" stroke-width="2"/>
         <text x="${x}" y="${y + (ends ? 34 : 30) * (sm ? 1.2 : 1)}" text-anchor="middle" font-size="${(ends ? 13 : 12) * f}" font-weight="600" fill="var(--ink)">${esc(nd.name.length > 22 ? nd.name.slice(0, 21) + "…" : nd.name)}</text></g>`; }).join("")}</svg>
     <div class="flegend" style="padding:0 16px 12px"><span>${n - 1} step${n === 2 ? "" : "s"} from ${esc(a.name)} to ${esc(b.name)}</span><span><i class="dashkey"></i>Filed stake</span></div>`;
   $("net-panel").innerHTML = `<h3>${esc(a.name)} → ${esc(b.name)}</h3><div class="sub">${n - 1 ? `${n - 1} step${n === 2 ? "" : "s"}. Each step is a shared story or a filed stake.` : "Same firm."}</div>` +
@@ -4134,11 +4149,11 @@ function renderAllFirms() {
     }
     ly.set(n.key, pick);
   });
-  $("net-graph").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="The ${hubSet.size} most linked firms and their strongest links">
+  $("net-graph").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="group" aria-label="The ${hubSet.size} most linked firms and their strongest links">
     <g stroke="var(--muted)" stroke-linecap="round">${lines.map((e) => { const p = at.get(e.a), q = at.get(e.b), on = !f || e.a === f || e.b === f;
       return `<line x1="${p.x.toFixed(1)}" y1="${p.y.toFixed(1)}" x2="${q.x.toFixed(1)}" y2="${q.y.toFixed(1)}" stroke-opacity="${on ? 0.5 : 0.07}" stroke-width="${(0.8 + wt(e) / mxe * 3.5).toFixed(1)}"${e.stories.size ? "" : ' stroke-dasharray="4 3"'}/>`; }).join("")}</g>
     ${top.map((n) => { const { p, r, label, anchor, lx } = info(n), on = !f || nb.has(n.key);
-      return `<g class="gn" data-k="${esc(n.key)}" tabindex="0" role="button" aria-label="${esc(n.name)}: ${deg(n.key)} linked firms" opacity="${on ? 1 : 0.2}" style="cursor:pointer">
+      return `<g class="gn" data-k="${esc(n.key)}" tabindex="0" role="button" opacity="${on ? 1 : 0.2}" style="cursor:pointer">
         <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${r.toFixed(1)}" fill="${fillOf(n)}" stroke="${f === n.key ? "var(--ink)" : "var(--panel)"}" stroke-width="${f === n.key ? 3 : 2}"><title>${esc(n.name)} · ${deg(n.key)} linked firm${deg(n.key) === 1 ? "" : "s"}</title></circle>
         ${named(n) ? `<text x="${lx.toFixed(1)}" y="${ly.get(n.key).toFixed(1)}" text-anchor="${anchor}" font-size="${sm ? 11 : 12}" font-weight="600" fill="var(--ink)" paint-order="stroke" stroke="var(--panel)" stroke-width="3">${esc(label)}</text>` : ""}</g>`; }).join("")}
   </svg>
@@ -4595,7 +4610,7 @@ function vbars(points, { signed = false, color = "var(--bar)", neg = "#f0884a", 
     const vl = labelled && p.v != null ? `<text class="vlab" x="${x + bw / 2}" y="${p.v < 0 ? y + h + 10 : y - 3}" text-anchor="middle" style="font-size:9px">${esc(money ? usdAxis(p.v) : compactN(p.v))}</text>` : "";
     return vl + `<g class="cb${p.a ? " act" : ""}" data-tip="${esc(p.t || "")}"${p.a ? ` data-a="${actId(p.a)}" tabindex="0" role="button" aria-label="${esc(p.t || "")}"` : ""}><rect class="hit" x="${x - gap / 2}" y="0" width="${bw + gap}" height="${H}" fill="transparent"/><rect class="v" x="${x}" y="${y}" width="${bw}" height="${h}" rx="2" fill="${p.v < 0 ? neg : color}" opacity="${p.dim ? 0.55 : 1}"/></g>${lab}`;
   }).join("");
-  return `<svg viewBox="0 ${labelled ? -12 : 0} ${W} ${H + 16 + (labelled ? 12 : 0)}" role="img" aria-label="Bar chart">${signed ? `<line x1="0" x2="${W}" y1="${mid}" y2="${mid}" stroke="var(--line)"/>` : ""}${bars}</svg>`;
+  return `<svg viewBox="0 ${labelled ? -12 : 0} ${W} ${H + 16 + (labelled ? 12 : 0)}" role="group" aria-label="Bar chart">${signed ? `<line x1="0" x2="${W}" y1="${mid}" y2="${mid}" stroke="var(--line)"/>` : ""}${bars}</svg>`;
 }
 const hrows = (items) => { const max = Math.max(1, ...items.map((x) => x.v)); return `<div class="rows">${items.map((x) => `<div class="row${x.a ? " act" : ""}" data-tip="${esc(x.t || `${x.l}: ${x.r}`)}"${x.a ? ` data-a="${actId(x.a)}" tabindex="0" role="button"` : ""}><span>${esc(x.l)}</span><span class="bar"><i style="width:${Math.round(x.v / max * 100)}%;background:${x.c || "var(--bar)"}"></i></span><span>${esc(x.r)}</span></div>`).join("")}</div>`; };
 function drawCoverage() {
@@ -4690,6 +4705,20 @@ function renderAlerts() {
   box.hidden = !items.length;
   box.innerHTML = items.map((a) => `<button type="button" class="alert ${a.tone}" data-go="${a.go}"><b>${esc(a.k)}</b><span class="at">${esc(a.t)}</span><span class="as">${esc(a.s)}</span></button>`).join("");
   box.querySelectorAll("[data-go]").forEach((b) => b.onclick = () => { setTab(b.dataset.go); toTop(); });
+}
+// Card titles are h3; where a page has no h2 above them, they are announced as level 2 so heading levels never skip.
+function fixHeadingLevels() {
+  document.querySelectorAll("section[id^=tab-]").forEach((sec) => {
+    let last = 1, shift = null;
+    sec.querySelectorAll("h1,h2,h3,h4").forEach((h) => {
+      if (h.closest("[hidden]")) return;
+      const lv = +h.tagName[1];
+      if (shift === null && lv > 2) shift = lv - 2;   // the first heading below the page title skips a level: lower every level from there by the same amount
+      const want = Math.min(shift && lv > 2 ? lv - shift : lv, last + 1);
+      if (want !== lv) h.setAttribute("aria-level", String(want)); else h.removeAttribute("aria-level");
+      last = want;
+    });
+  });
 }
 function renderOverview() {
   renderHome();
@@ -5145,7 +5174,7 @@ $("leads-csv").addEventListener("click", async () => {
 });
 
 async function runDirSearch(reset) {
-  if (reset) { dir.shown = 0; $("dir-list").innerHTML = `<div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div>`; }
+  if (reset) { dir.shown = 0; $("dir-list").innerHTML = `<div class="skl" aria-busy="true"><i></i><i></i><i></i></div>`; }
   const seq = ++dir.seq;
   try {
     const { rows, total } = await apiPage(dirPath());
@@ -5421,7 +5450,7 @@ const A_SCREENS = {
     <h3>How long</h3><p>Activity is deleted automatically after 12 months. Your account stays until you ask for it to be deleted.</p></div>
     <button class="a-btn ghost" type="button" data-back="1">← Back</button>`,
   activity: (d) => `<h1 id="auth-title">My activity</h1><p class="a-sub">Everything recorded about your visits while signed in. Only you and the site owner can see it.</p>
-    <div id="a-act" class="a-doc" style="max-height:44vh;overflow:auto"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div>
+    <div id="a-act" class="a-doc" style="max-height:44vh;overflow:auto"><div class="skl" aria-busy="true"><i></i><i></i><i></i></div></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="a-btn ghost" type="button" id="a-dl" style="flex:1">Download</button><button class="a-btn ghost" type="button" id="a-del" style="flex:1">Delete all</button></div>
     <button class="a-btn ghost" type="button" data-back="1">← Back</button>`,
   digest: (d) => `<h1 id="auth-title">Daily email</h1><p class="a-sub">One short email each morning (about 9:30 am IST): yesterday's FPI flow, the biggest deals, new rules and new FPI registrations. Free. Switch it off here at any time.</p>
@@ -5673,7 +5702,7 @@ function usPerson(u, rows) {
 async function renderUsers() {
   const box = $("us-body");
   if (!auth.admin) { box.innerHTML = `<p class="note">This view is for the site owner.</p>`; return; }
-  box.innerHTML = `<div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div>`;
+  box.innerHTML = `<div class="skl" aria-busy="true"><i></i><i></i><i></i></div>`;
   try {
     const [sm, users] = await Promise.all([usRpc("activity_summary", { days: usDays }), usRpc("activity_users", {})]);
     const tl = new Map(await Promise.all(users.slice(0, 80).map((u) => usRpc("activity_timeline", { uid: u.id, lim: 1000 }).then((r) => [u.id, r]).catch(() => [u.id, []]))));
@@ -6473,7 +6502,7 @@ async function openEntity(kind, ref) {
   setTab("entity");
   track("open", "entity", `${ref.name} (${kind})`);
   const box = $("entity-body");
-  box.innerHTML = `<div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div>`;
+  box.innerHTML = `<div class="skl" aria-busy="true"><i></i><i></i><i></i></div>`;
   try {
     const name = ref.name, n = gNorm(name);
     const deals = await dealsAll(), X = await loadExtra();
@@ -7365,6 +7394,12 @@ function drawWht() {
   box.innerHTML = `<div class="watch-h"><div><h3>Withholding tax on payments to non-residents</h3><div class="sub">Domestic rates before treaty relief, plus surcharge where applicable and cess. Treaty rates can be lower: check the treaty for the investor's country.</div></div></div>
     <div class="watch-w" style="max-height:none"><table><thead><tr><th>Payment</th><th>Rate</th><th>Notes</th></tr></thead><tbody>${rows.map((r) => `<tr><td>${esc(r[0])}</td><td><b>${esc(r[1])}</b></td><td>${esc(r[2])}</td></tr>`).join("")}</tbody></table></div>
     <div class="sub" style="margin-top:8px">Source: Deloitte, International Tax: India Highlights 2026 (updated August 2026). Country-by-country treaty rates are not shown because the official treaty pages could not be read automatically. Not tax advice.</div>`;
+}
+// Keep heading levels in order as pages fill in (see fixHeadingLevels). Runs at most once every 0.7 s, even while the page keeps changing.
+{
+  let headT = 0;
+  new MutationObserver(() => { if (headT) return; headT = setTimeout(() => { headT = 0; try { fixHeadingLevels(); } catch {} }, 700); }).observe(document.body, { childList: true, subtree: true });
+  setTimeout(() => { try { fixHeadingLevels(); } catch {} }, 1500);
 }
 </script>
 </body>

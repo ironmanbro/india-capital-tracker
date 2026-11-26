@@ -1,0 +1,15 @@
+{
+  "name": "indian-capital-tracker-tests",
+  "private": true,
+  "description": "Automated checks for the public site: script syntax, a smoke test of every page, and an accessibility scan.",
+  "scripts": {
+    "syntax": "node syntax.js",
+    "smoke": "node smoke.js",
+    "a11y": "node a11y.js",
+    "test": "node syntax.js && node smoke.js && node a11y.js"
+  },
+  "devDependencies": {
+    "axe-core": "4.14.1",
+    "playwright": "1.63.0"
+  }
+}

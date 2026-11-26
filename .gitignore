@@ -8,3 +8,5 @@ data/
 
 .wrangler/
 pipeline/digest/digest_preview.html
+
+node_modules/

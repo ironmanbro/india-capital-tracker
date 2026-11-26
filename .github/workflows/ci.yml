@@ -1,0 +1,39 @@
+name: Site checks
+
+# Runs on every branch push and pull request except main (main deploys straight to Cloudflare, and the data-refresh jobs commit there).
+# Checks: every inline script parses; every page opens without script errors or sideways scrolling; the accessibility scan is clean.
+on:
+  push:
+    branches-ignore: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: tests
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: tests/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Inline scripts parse
+        run: npm run syntax
+      - name: Every page opens cleanly (desktop and phone)
+        run: npm run smoke
+      - name: Accessibility scan (WCAG 2.1 AA, dark and light)
+        run: npm run a11y
