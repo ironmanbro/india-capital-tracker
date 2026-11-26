@@ -1697,6 +1697,16 @@ body{font-variant-numeric:tabular-nums}
   :root:not(#ds1):not(#ds2) #feed .scard:not(.mx)::after{margin-top:0!important}
   :root:not(#ds1):not(#ds2) #feed .scard .meta{margin:0!important}
 }
+/* ---- Unslop pass: custom blue, tinted light surfaces, body-face labels, no card lift, no stripes ---- */
+:root:not(#a):not(#b):not(#c){--in:#3f95e0;--c-in:#3f95e0;--entry:#3f95e0}
+:root[data-theme="light"]:not(#a):not(#b):not(#c){--in:#1f6fb8;--c-in:#1f6fb8;--entry:#1f6fb8;--panel:#fbfcfd;--bg:#f3f5f7;--page:#f3f5f7;--muted:#5d6678}
+:root:not(#a):not(#b):not(#c) :is(.kpi,.card,.inv,.ovc,.scard):hover{transform:none!important;box-shadow:none!important;border-color:var(--line-2)!important}
+:root:not(#a):not(#b):not(#c) .rstats div{border-left:1px solid var(--line)!important}
+:root:not(#a):not(#b):not(#c) :is(.amt-tag,.tpill,.stbadge,.dname .new,.tfseg button){font-family:var(--font-ui)!important;letter-spacing:0!important;text-transform:none!important}
+:root:not(#a):not(#b):not(#c) .fmore td{color:var(--ink-2)!important}
+:root:not(#a):not(#b):not(#c) :is(button,input,select,a):focus-visible{outline:2px solid var(--in)!important;outline-offset:2px;box-shadow:none!important}
+:root:not(#a):not(#b):not(#c) header .eyebrow{display:none!important}
+:root:not(#a):not(#b):not(#c) .csvbtn{background:none!important;border-color:var(--line-2)!important}
 </style>
 </head>
 <body>
