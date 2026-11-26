@@ -41,9 +41,6 @@ async function networkFirst(req, key) {
 self.addEventListener("fetch", (e) => {
   const req = e.request, url = new URL(req.url);
   if (req.method !== "GET") return;
-  // The new design under /v2/ refreshes its data files several times a day and has its own pages. Never answer it from this app's
-  // cache: that would show stale data on the first view, and an offline visit to "/" could open a /v2/ page instead of the app shell.
-  if (url.origin === location.origin && /^\/v2(\/|$)/.test(url.pathname)) return;
   // The site itself: any page address opens the cached app shell when offline.
   if (req.mode === "navigate") { e.respondWith(networkFirst(req, "/")); return; }
   // Public data reads (stories, flows): latest from the network, last copy when offline.

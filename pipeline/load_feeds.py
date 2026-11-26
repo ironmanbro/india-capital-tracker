@@ -16,7 +16,7 @@ INR_PER_USD = 94   # fallback only: main() uses the latest rate from fx_usd_inr.
 # "ELYSIAN WEALTH FUND" (both Mauritius). Filled by main() from the fpi_registry table; empty means names only.
 FPI_KEYS = set()
 _DROP = r"\b(ltd|limited|inc|llc|llp|plc|pte|pcc|vcc|the|co|corp|corporation|sa|ag|nv|bv|fund|funds|trust|lp)\b"
-def norm_name(t):   # same as the SQL function norm_name() and pipeline/site_v2/common.py norm()
+def norm_name(t):   # same as the SQL function norm_name()
     t = re.sub(r"[^a-zA-Z0-9]+", " ", t or "").lower()
     return re.sub(r"\s+", " ", re.sub(_DROP, " ", t)).strip()
 
