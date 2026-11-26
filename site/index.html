@@ -288,20 +288,6 @@ h1,h2,h3{text-wrap:balance}
 .byline a{color:var(--accent);text-decoration:none;overflow-wrap:anywhere}
 .byline a:hover{text-decoration:underline}
 @media (max-width:600px){.card{grid-template-columns:1fr}.actions{order:3}}
-.welcome{position:fixed;inset:0;z-index:50;background:rgba(10,12,16,.62);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px}
-.welcome[hidden]{display:none}
-.welcome .box{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:14px;max-width:520px;width:100%;max-height:calc(100vh - 32px);overflow:auto;padding:24px 22px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
-.welcome .eyebrow{font-size:12px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--accent)}
-.welcome h2{margin:6px 0 4px;font-size:22px;letter-spacing:0}
-.welcome .lead{color:var(--muted);margin:0 0 16px}
-.welcome .who{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:10px;margin-bottom:16px}
-.welcome .avatar{width:40px;height:40px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;font-weight:600;flex:none}
-.welcome .who a{color:var(--accent);text-decoration:none;font-size:13px}
-.welcome h3{font-size:13px;margin:0 0 6px;text-transform:none;letter-spacing:0;color:var(--muted)}
-.welcome ul{margin:0 0 18px;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:13.5px}
-.welcome .enter{width:100%;border:0;border-radius:10px;background:var(--ink);color:var(--bg);font:inherit;font-weight:600;font-size:15px;padding:12px;cursor:pointer}
-.welcome .enter:hover{opacity:.9}
-.welcome .fine{font-size:12px;color:var(--muted);text-align:center;margin:10px 0 0}
 body.locked{overflow:hidden}
 /* ---------- Glass layout: icon sidebar, rounded glass cards ---------- */
 body{background:var(--page);background-attachment:fixed}
@@ -1036,7 +1022,6 @@ button,.reset,select,summary,.link,.kpi,.card,.bk,.ovrow,.ftable tbody tr,nav.ta
   background:var(--material)!important;-webkit-backdrop-filter:blur(12px) saturate(160%)!important;backdrop-filter:blur(12px) saturate(160%)!important;
   border:1px solid var(--line)!important;box-shadow:inset 0 1px 0 var(--material-edge),0 18px 48px -12px rgba(0,0,0,.55)!important}
 :root:not(#x) :is(.cmdk-box,.welcome .box,#gsheet){-webkit-backdrop-filter:blur(24px) saturate(170%)!important;backdrop-filter:blur(24px) saturate(170%)!important}
-.welcome{background:rgba(5,8,14,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 
 @media (prefers-reduced-motion:reduce){
   :root{--t-spring:160ms;--spring:ease-out;--spring-bounce:ease-out}
@@ -1076,7 +1061,6 @@ body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-wei
 <script src="vendor/lenis.min.js" integrity="sha384-HW3Ly4XWKJet3D65KqJnRL8BXjzJvMnPqdFMx+d3/VIFGc7APZsMC2Z6KNvLgwO6" crossorigin="anonymous" defer></script>
 <style>
 .install-btn{margin-right:8px}
-.ntc{position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:55;max-width:560px;margin:0 auto;background:var(--panel,#14171c);color:var(--ink,#e8ebf0);border:1px solid var(--line,#2a2f3a);border-radius:12px;padding:12px 14px;font-size:13px;line-height:1.5;box-shadow:0 8px 28px rgba(0,0,0,.35);display:flex;gap:12px;align-items:center}.ntc a{color:inherit;text-decoration:underline}.ntc button{flex:none;font:inherit;font-weight:600;padding:8px 14px;border-radius:8px;border:0;background:var(--ink,#e8ebf0);color:var(--panel,#14171c);cursor:pointer}@media(max-width:700px){.ntc{bottom:calc(84px + env(safe-area-inset-bottom))}}
 .rulebook{display:block;margin:0 0 14px;padding:12px 16px;border:1px solid var(--line,#2a2f3a);border-radius:12px;background:var(--panel,#14171c);color:var(--ink,#e8ebf0);font-weight:600;text-decoration:none}.rulebook:hover{border-color:var(--accent,#3b82f6)}
 .ios-hint{position:fixed;left:16px;right:16px;bottom:calc(90px + env(safe-area-inset-bottom));z-index:60;background:var(--panel,#14171c);color:var(--ink,#e8ebf0);border:1px solid var(--line,#2a2f38);border-radius:14px;padding:12px 40px 12px 14px;font-size:14px;line-height:1.4;box-shadow:0 8px 30px rgba(0,0,0,.35)}
 .ios-hint button{position:absolute;top:6px;right:8px;background:none;border:0;color:inherit;font-size:20px;cursor:pointer}
@@ -1697,26 +1681,6 @@ body{font-variant-numeric:tabular-nums}
   <button class="op-enter" id="op-enter" type="button">Enter the tracker</button>
 </div>
 <a class="skip" href="#main">Skip to content</a>
-<div class="welcome" id="welcome" data-lenis-prevent role="dialog" aria-modal="true" aria-labelledby="welcome-title" hidden>
-  <div class="box">
-    <div class="eyebrow">Welcome</div>
-    <h2 id="welcome-title">Indian Capital Tracker</h2>
-    <p class="lead">Cross-border money around India, as it happens: foreign investments and exits, offshore and GIFT City fund launches, funds changing jurisdiction, and Indian companies investing abroad.</p>
-    <div class="who">
-      <div class="avatar" aria-hidden="true">KS</div>
-      <div><div><strong>Built by Kishan Singhania</strong></div>
-        <a href="https://www.linkedin.com/in/kishansinghania/" target="_blank" rel="noopener">Connect on LinkedIn →</a></div>
-    </div>
-    <h3>Before you continue</h3>
-    <ul>
-      <li>A <strong>personal project</strong>, not affiliated with or endorsed by any employer or financial institution.</li>
-      <li>Built from <strong>public sources</strong>: news reports, NSE, NSDL, SEBI, RBI and DPIIT. Stories can be incomplete, late or wrong, so check the original before relying on one.</li>
-      <li>Not <strong>investment, legal or tax advice</strong>, and not a recommendation to buy or sell.</li>
-      <li>Headlines and links belong to their publishers.</li>
-    </ul>
-    <button class="enter" id="welcome-enter">I understand, enter the tracker</button>
-  </div>
-</div>
 <div class="wrap" role="main" id="main" tabindex="-1">
   <header>
     <div>
@@ -2174,14 +2138,6 @@ const color = (t) => `var(--${TYPES[t] ? t : "other"})`;
 
 function store(k, v) { try { v === undefined ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch {} }
 function load(k) { try { return localStorage.getItem(k); } catch { return null; } }
-(function(){ if (load("ict-notice") === "1") return;
-  const d = document.createElement("div"); d.className = "ntc"; d.setAttribute("role", "region"); d.setAttribute("aria-label", "Notice");
-  d.innerHTML = '<span>A personal project, not investment advice, not linked to any employer. Data may contain errors: check the source. We keep an anonymous visitor ID in your browser to count visits. <a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a> · <a href="/disclaimer.html">Disclaimer</a></span><button type="button">Got it</button>';
-  d.querySelector("button").onclick = () => { store("ict-notice", "1"); d.remove(); };
-  document.body.appendChild(d);
-})();
-
-
 // One round trip for the opening data: the page asks the edge (worker.js /sb/bundle) for every query it made on the last visit in
 // this browser (or the default list below on a first visit), then each api() call is answered from that bundle. Anything not in it
 // is fetched on its own as before, so a stale or empty bundle only costs the old speed, never wrong data: the bundle's answers
@@ -5151,17 +5107,6 @@ async function countVisit() {
   } catch {}
 }
 
-// The welcome notice shows on a first visit and again after 30 days (Indian time), not every day.
-function showWelcome() {
-  const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
-  const seen = load("ict-welcome");
-  if (seen && (new Date(today) - new Date(seen)) / 864e5 < 30) return;
-  const w = $("welcome");
-  w.hidden = false; document.body.classList.add("locked");
-  $("welcome-enter").focus();
-  $("welcome-enter").onclick = () => { store("ict-welcome", today); w.hidden = true; document.body.classList.remove("locked"); };
-}
-
 // ---------- Sign-in (Supabase Auth). Only Home is open to everyone; every other tab asks you to sign in. ----------
 var auth = { session: null, next: null, timer: null, notice: "", recovery: false };
 // Login is optional for now. Set LOGIN_REQUIRED to true to lock every tab but Home again.
@@ -5719,7 +5664,6 @@ setTab("overview");
 refresh();
 loadHoldings();
 loadOverviewRegs();
-showWelcome();
 countVisit();
 setInterval(refresh, 5 * 60 * 1000);
 
