@@ -1069,6 +1069,8 @@ body.home-more #d-more{display:none}
 .asof{color:var(--muted);white-space:nowrap}
 .pg-tools{margin-top:2px}.pg-tools,.pg-tools .link{font-size:12px;color:var(--muted)}.pg-tools .link:hover{color:var(--accent)}
 @media print{.pg-tools{display:none!important}}
+body[data-dirview="ifsca"] #acc-fpilim,body[data-dirview="ifsca"] #acc-aum{display:none}
+.irow .ic.nil b{color:var(--muted);font-weight:400}.irow .ic.nil span{opacity:.45}
 </style>
 <script src="vendor/lenis.min.js" integrity="sha384-HW3Ly4XWKJet3D65KqJnRL8BXjzJvMnPqdFMx+d3/VIFGc7APZsMC2Z6KNvLgwO6" crossorigin="anonymous" defer></script>
 <style>
@@ -1764,7 +1766,6 @@ body{font-variant-numeric:tabular-nums}
       </select>
       <button class="reset" id="fmore" type="button" aria-expanded="false">More filters</button>
       <button class="reset" id="reset" type="button">Reset</button>
-      <button class="reset" id="sharev" type="button" title="Copy a link to this view">Copy link</button>
     </div>
   </section>
 
@@ -1807,11 +1808,9 @@ body{font-variant-numeric:tabular-nums}
       <div class="ovc"><div class="ovh"><div><h3>What changed this month</h3><div class="sub">SEBI, RBI and IFSCA rules for foreign investment</div></div><button class="link" data-go="regulation" data-view="regyear">This year's rules ↗</button></div><div id="ov-regchg"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>New FPI registrations</h3><div class="sub">Latest additions to the NSDL register</div></div><button class="link" data-go="directory">FPIs ↗</button></div><div id="ov-regs"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
       <div class="ovc more-d"><div class="ovh"><div><h3>Indian investment abroad</h3><div class="sub">RBI overseas direct investment, latest month</div></div><button class="link" data-go="odi">Outbound ↗</button></div><div id="ov-odi"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
-      <div class="ovc more-d gated"><div class="ovh"><div><h3>Funding and deal news</h3><div class="sub">Startup media and global coverage</div></div><button class="link" data-go="markets">Markets ↗</button></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-news"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
-      <div class="ovc more-d gated"><div class="ovh"><div><h3>SEBI filings</h3><div class="sub">Latest takeover and public issue filings</div></div><button class="link" data-go="markets">Markets ↗</button></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-sebi"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
       <div class="ovc more-d gated"><div class="ovh"><div><h3>Where the money comes from</h3><div class="sub">Capital deals in the last 90 days. Tap a row to see them.<span class="asof" id="asof-where"></span></div></div></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-break"></div></div>
       <div class="ovc more-d span2 gated"><div class="ovh"><div><h3>The last 30 days</h3><div class="sub">Reported deal value by category, and the most active investors<span class="asof" id="asof-30"></span></div></div><button class="link" data-go="investors">Investors ↗</button></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-week"></div></div>
-      <button id="d-more" type="button">Show 5 more panels from today</button>
+      <button id="d-more" type="button">Show 3 more panels from today</button>
     </div>
     <p class="dsrc" data-src="review,nsdl_flows,nsdl_fpi_list" data-what="Sources: news reports, NSE, NSDL and DPIIT. Each section shows its own source and update time" style="margin:-4px 0 14px"></p>
     <p class="dsrc" id="fx-home" style="margin:-6px 0 14px" hidden></p>
@@ -2052,7 +2051,7 @@ body{font-variant-numeric:tabular-nums}
     <div class="fhead" style="margin-bottom:10px">
       <p class="sub" style="margin:0;max-width:640px" id="dir-intro"></p>
       <div class="seg" role="group" aria-label="Directory" id="dirseg" hidden>
-        <button data-v="fpi" aria-pressed="true">FPIs (NSDL)</button><button data-v="ifsca" aria-pressed="false">GIFT IFSC</button>
+        <button data-v="fpi" aria-pressed="true">FPIs (NSDL)</button><button data-v="ifsca" aria-pressed="false">GIFT City</button>
       </div>
     </div>
     <div class="ftiles" id="dir-tiles"></div>
@@ -2066,7 +2065,7 @@ body{font-variant-numeric:tabular-nums}
       <select id="dyear-f" aria-label="Year registered"><option value="">Any year</option></select>
     </div>
     <div class="filters" id="dir-ifsca-filters" hidden>
-      <input type="search" id="iq2" placeholder="Search entity or fund name…" aria-label="Search GIFT IFSC entities">
+      <input type="search" id="iq2" placeholder="Search entity or fund name…" aria-label="Search GIFT City (IFSC) entities">
       <select id="icat2" aria-label="Category"></select>
       <select id="itype2" aria-label="Type"><option value="">All types</option></select>
       <button class="reset" id="leads-csv" type="button" hidden title="Only visible to you">Download all (CSV)</button>
@@ -2304,7 +2303,8 @@ async function refresh() {
       }
     }
     // Older stories carry one category; newer ones can carry several.
-    state.events = events.map((e) => ({ ...e, event_types: e.event_types?.length ? e.event_types : [e.event_type], parties: e.parties || [] }));
+    state.events = events.map((e) => ({ ...e, title: e.source && e.source.startsWith("nse") ? nseTitle(e.title) : e.title, investor: nameCase(e.investor), target: nameCase(e.target), investor_country: e.investor_country ? countryName(e.investor_country) : e.investor_country,
+      event_types: e.event_types?.length ? e.event_types : [e.event_type], parties: (e.parties || []).map(nameCaseParty) }));
     state.eventsLoaded = true;
     mergeFirms();
     state.runs = runs;
@@ -2694,6 +2694,16 @@ const ALIAS = {
   "general atlantic singapore": "general atlantic", "bofa": "bank of america", "citi": "citigroup",
   "nps korea": "national pension service of korea", "national pension service": "national pension service of korea",
   "ihc": "international holding company", "ta": "ta associates",
+  // Group entities that the exchange files name separately; checked against the stories on 26-Nov-26. Funds run by these firms stay separate.
+  "goldman sachs bank europe se - odi": "goldman sachs", "goldman sachs bank europe se": "goldman sachs", "goldman sachs bank europese": "goldman sachs",
+  "goldman sachs bank europe se- odi": "goldman sachs", "goldman sachs (singapore)": "goldman sachs", "goldman sachs investments mauritius i": "goldman sachs",
+  "goldman sachs investments (mauritius) i short term": "goldman sachs", "goldman sachs (singapore) - odi": "goldman sachs",
+  "morgan stanley asia singapore": "morgan stanley", "morgan stanley asia singapore -odi": "morgan stanley", "morgan stanley pe": "morgan stanley",
+  "bnp paribas financial markets": "bnp paribas", "bnp paribas arbitrage": "bnp paribas", "bnp paribas financial markets - odi": "bnp paribas",
+  "societe generale - odi": "societe generale", "societe generale odi": "societe generale",
+  "citigroup global markets singapore": "citigroup", "citigroup global markets mauritius private": "citigroup",
+  "norges bank on account of the government pension fund global": "norges bank", "norges bank investment management": "norges bank", "norges": "norges bank",
+  "nomura singapore": "nomura",
 };
 // A holder named in a filing joins the news firm it matches once words like "Fund" are dropped (see mergeFirms).
 const EXTRA = new Map(), loose = (k) => k.replace(/\b(funds?|investments?|trust)\b/g, "").replace(/\s+/g, " ").trim();
@@ -2760,7 +2770,7 @@ function buildInvestors() {
   });
   return [...by.values()].map((r) => ({
     ...r,
-    name: [...r.names.entries()].sort((a, b) => b[1] - a[1] || a[0].length - b[0].length)[0][0],
+    name: [...r.names.entries()].sort((a, b) => (baseKey(b[0]) === r.key) - (baseKey(a[0]) === r.key) || b[1] - a[1] || a[0].length - b[0].length)[0][0],
     type: [...r.types.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || null,
     first: seenFirst.get(r.key) || r.first,
     stories: r.stories.sort((a, b) => (b.published_at || b.fetched_at) > (a.published_at || a.fetched_at) ? 1 : -1),
@@ -2774,12 +2784,12 @@ function buildHolders() {
   state.holdings.forEach((h) => { if (!latest.has(h.company) || h.period_end > latest.get(h.company)) latest.set(h.company, h.period_end); });
   state.holdings.filter((h) => h.period_end === latest.get(h.company)).forEach((h) => {
     const k = invKey(h.holder), r = by.get(k) || { key: k, names: new Map(), cos: [], top: null };
-    r.names.set(titleCase(h.holder), (r.names.get(titleCase(h.holder)) || 0) + 1);
+    { const dn = nameCase(h.holder); r.names.set(dn, (r.names.get(dn) || 0) + 1); }
     r.cos.push(h);
     if (!r.top || h.pct > r.top.pct) r.top = h;
     by.set(k, r);
   });
-  by.forEach((r) => r.name = [...r.names.entries()].sort((a, b) => b[1] - a[1])[0][0]);
+  by.forEach((r) => r.name = [...r.names.entries()].sort((a, b) => (baseKey(b[0]) === r.key) - (baseKey(a[0]) === r.key) || b[1] - a[1])[0][0]);
   return by;
 }
 document.querySelectorAll("#iview button").forEach((b) => b.onclick = () => {
@@ -2911,13 +2921,13 @@ function renderInvestors() {
     : "";
   if (!rows.length) { $("investors").innerHTML = `${state.holdings.length ? `<div class="empty">No investors match these filters.</div>` : `<div class="skel"></div><div class="skel"></div><div class="skel"></div>`}`; $("imore").hidden = true; return; }
   $("investors").innerHTML = rows.slice(0, invShown).map((r) => {
-    const n = r.news, h = r.hold, facts = n ? [n.country, INV_TYPES[n.type]].filter(Boolean).map(esc).join(" · ") : (() => { const g = state.registry.get(r.key); return g ? [titleCase(g.country), g.sub_category].filter(Boolean).map(esc).join(" · ") : "Foreign holder named in filings"; })();
+    const n = r.news, h = r.hold, facts = n ? [n.country, INV_TYPES[n.type]].filter(Boolean).map(esc).join(" · ") : (() => { const g = state.registry.get(r.key); return g ? [countryName(g.country), g.sub_category].filter(Boolean).map(esc).join(" · ") : "Foreign holder named in filings"; })();
     return `<a class="irow" href="#firm/${encodeURIComponent(r.key)}" aria-label="Open profile of ${esc(r.name)}">
       <div class="in"><b>${esc(r.name)}</b>${n && n.first >= monthAgo ? `<span class="new" title="First appeared on this tracker in the last 30 days">NEW</span>` : ""}<div class="sub">${facts}</div>
         ${n ? `<div class="cats">${Object.keys(TYPES).filter((t) => n.cats[t]).map((t) => `<span class="cat" style="color:${color(t)}">${TYPES[t]}${n.cats[t] > 1 ? ` × ${n.cats[t]}` : ""}</span>`).join("")}</div>` : ""}</div>
-      <div class="ic"><b>${n ? n.stories.length : "–"}</b><span>In the news</span></div>
-      <div class="ic"><b>${h ? h.cos.length : "–"}</b><span>Companies held</span></div>
-      <div class="ic"><b>${h ? (+h.top.pct).toFixed(2) + "%" : "–"}</b><span>${h ? esc(titleCase(h.top.company).slice(0, 22)) : "Largest stake"}</span></div>
+      <div class="ic${n ? "" : " nil"}"><b>${n ? n.stories.length : "–"}</b><span>In the news</span></div>
+      <div class="ic${h ? "" : " nil"}"><b>${h ? h.cos.length : "–"}</b><span>Companies held</span></div>
+      <div class="ic${h ? "" : " nil"}"><b>${h ? (+h.top.pct).toFixed(2) + "%" : "–"}</b><span>${h ? esc(titleCase(h.top.company).slice(0, 22)) : "Largest stake"}</span></div>
       <div class="ic"><b>${n?.biggest ? esc(money(n.biggest)) : "–"}</b><span>Largest deal</span></div>
       <span class="go">Profile →</span></a>`;
   }).join("");
@@ -2932,7 +2942,7 @@ const SOURCES = {
   news_backfill: ["Google News history (Apr 2026 to date)", "One-time collection of past weeks."],
   nsdl_flows: ["NSDL FPI flows", "Daily FPI buying and selling by segment, checked twice a day. Feeds the Flows tab."],
   nsdl_fpi_list: ["NSDL FPI register", "The full list of SEBI-registered FPIs, read daily. Feeds the Directory tab."],
-  ifsca_directory: ["IFSCA directory", "GIFT IFSC regulated entities and funds, list read daily and registration details filled in gradually. Feeds the Directory tab."],
+  ifsca_directory: ["IFSCA directory", "GIFT City (IFSC) regulated entities and funds, list read daily and registration details filled in gradually. Feeds the Directory tab."],
   dpiit_fdi: ["DPIIT FDI fact sheet", "Quarterly FDI by country, sector and state, loaded when each new fact sheet comes out. Feeds the Flows tab."],
 };
 // Plain-language reason for a failed run.
@@ -3620,7 +3630,7 @@ function aboutHtml(key) {
   const r = state.registry.get(key), w = state.profiles.get(key);
   if (!r && !w) return "";
   const rows = [], add = (l, v) => { if (v) rows.push(`<div><dt>${l}</dt><dd>${v}</dd></div>`); };
-  const place = [w?.headquarters, w?.country].filter(Boolean).filter((x, i, a) => a.indexOf(x) === i).join(", ") || (r?.country ? titleCase(r.country) : "");
+  const place = [w?.headquarters, w?.country].filter(Boolean).filter((x, i, a) => a.indexOf(x) === i).join(", ") || (r?.country ? countryName(r.country) : "");
   add("Type", esc(w?.description || r?.sub_category || ""));
   add("Based in", esc(place));
   add("Founded", esc(w?.inception ? w.inception.slice(0, 4) : w?.site_founded || ""));
@@ -3901,7 +3911,6 @@ async function copyLink(url, btn) {
   try { await navigator.clipboard.writeText(url); btn.textContent = "Link copied"; } catch { prompt("Copy this link", url); }
   setTimeout(() => btn.textContent = was, 2000);
 }
-$("sharev").addEventListener("click", () => { syncUrl(); copyLink(location.href, $("sharev")); });
 // Every page can be linked or cited: the link carries the tab and filters; the citation names the page, link and access date.
 $("cp-link").addEventListener("click", () => { syncUrl(); copyLink(location.href, $("cp-link")); });
 $("cp-cite").addEventListener("click", () => { syncUrl(); copyLink(`Indian Capital Tracker, "${$("ptitle").textContent}", ${location.origin}${location.pathname}${location.search}, accessed ${toDMY(dayStr(new Date()))}.`, $("cp-cite")); });
@@ -3926,7 +3935,7 @@ const GLOSSARY = {
   "WOS": "Wholly owned subsidiary. A company the investor owns outright.",
   "GIFT City": "Gujarat International Finance Tec-City, near Gandhinagar. Its IFSC zone is treated as offshore, so funds there can pool global money in dollars.",
   "IFSC": "International Financial Services Centre. The zone inside GIFT City that runs on offshore-style rules: foreign currency, its own regulator, tax breaks.",
-  "IFSCA": "International Financial Services Centres Authority. The single regulator for GIFT IFSC; it licenses the fund managers, banks and insurers there.",
+  "IFSCA": "International Financial Services Centres Authority. The single regulator for GIFT City (IFSC); it licenses the fund managers, banks and insurers there.",
   "NSDL": "National Securities Depository Ltd. Publishes daily FPI buying and selling, and the register of every FPI.",
   "DPIIT": "Department for Promotion of Industry and Internal Trade. Publishes India's official FDI figures each quarter.",
   "SEBI": "Securities and Exchange Board of India. Regulates the stock markets and registers FPIs.",
@@ -4222,15 +4231,15 @@ function watchGroups(id, o) {
   const mo = new MutationObserver(run); mo.observe(box, { childList: true }); run();
 }
 watchGroups("odi-body", { mode: "tabs", labels: { "Each month": "By month", "Top destinations": "Top destinations", "Every investment": "All investments" } });
-watchGroups("mk-body", { mode: "acc", open: ["Daily FII and DII net flows"], drop: ["India's foreign exchange reserves"], panes: [
+watchGroups("mk-body", { mode: "acc", open: ["Daily FII and DII net flows"], drop: ["India's foreign exchange reserves", "Who invested in whom", "Most-pledged promoter holdings", "FPI debt limits"], panes: [
   ["Flows", ["Daily FII and DII net flows", "FII / FPI activity", "Derivatives positions"]],
-  ["Deals", ["Bulk and block deals", "Who invested in whom", "Competition Commission approvals", "Exchange announcements"]],
-  ["Holdings and limits", ["FPI debt limits", "Largest FPI government-bond holdings", "FPI equity by sector", "Most-pledged promoter holdings"]],
+  ["Deals", ["Bulk and block deals", "Competition Commission approvals", "Exchange announcements"]],
+  ["Holdings", ["Largest FPI government-bond holdings", "FPI equity by sector"]],
   ["Filings", ["SEBI takeover filings", "SEBI public issue filings", "SEBI enforcement orders"]],
   ["News", ["Funding and deal news"]]] });
 // The Flows navigator: one tile per section; a tile opens the section and scrolls to it.
 const FL_NAV = [["sec-fpi", "FPI flows", "Net investment by day, month, quarter and year"], ["acc-fx", "Rupee and reserves", "Exchange rates, USD/INR and forex reserves"], ["acc-debt", "Debt limits and bonds", "FPI limits used, FAR bond holdings"],
-  ["acc-fdi", "FDI", "Foreign direct investment by country, sector, state"], ["acc-big", "Large deals and indices", "Deals over USD 250 million, index changes"], ["acc-odi", "Indian money abroad", "Overseas investment by Indian companies"], ["acc-mk", "Exchange data", "FII/DII flows, bulk deals, derivatives, SEBI filings"]];
+  ["acc-fdi", "FDI", "Foreign direct investment by country, sector, state"], ["acc-big", "Large deals and indices", "Deals over USD 250 million, index changes"]];
 function drawFlowsNav() {
   const box = $("fl-nav"); if (!box || box.dataset.done) return; box.dataset.done = "1";
   box.innerHTML = `<p class="fnav-h">What is on this page. Tap a box to jump straight to it.</p><div class="fnav">${FL_NAV.map(([id, t, s2]) => `<button type="button" data-n="${id}"><b>${esc(t)}</b><span>${esc(s2)}</span></button>`).join("")}</div>`;
@@ -4329,6 +4338,7 @@ function setTab(t) {
   document.querySelector(".filterbar").classList.toggle("noq", t === "investors");
   ["kpis", "kpi-note"].forEach((id) => $(id).hidden = t !== "feed");
   if (t === "directory" || t === "gift") dir.view = t === "gift" ? "ifsca" : "fpi";
+  document.body.dataset.dirview = dir.view;
   setTitle();
   if (typeof syncSearch === "function") syncSearch();
   if (t === "flows") { renderFlows(); renderFpiHistory(); }
@@ -4397,7 +4407,7 @@ $("theme").onclick = () => { const v = document.documentElement.dataset.theme ==
 // The tab's own (hidden) box that the header search fills in.
 const isDir = () => state.tab === "directory" || state.tab === "gift";
 const searchBox = () => isDir() ? (dir.view === "fpi" ? "dq" : "iq2") : state.tab === "investors" ? "iq" : "q";
-const SEARCH_HINT = { investors: "Search investors, funds or companies…", directory: "Search FPI names or registration numbers…", directory_ifsca: "Search GIFT IFSC entities or funds…" };
+const SEARCH_HINT = { investors: "Search investors, funds or companies…", directory: "Search FPI names or registration numbers…", directory_ifsca: "Search GIFT City (IFSC) entities or funds…" };
 function syncSearch() {
   const k = state.tab === "gift" ? "directory_ifsca" : state.tab;
   $("gq").placeholder = SEARCH_HINT[k] || "Search firms, FPIs, deals…";
@@ -4493,7 +4503,7 @@ async function loadOverviewCross() {
     if (t) {
       const all = t.rows.find((r) => /^total$/i.test(r.Country)), c1 = t.rows.filter((r) => r !== all && r.Country).sort((a, b) => (b["AUC (INR Cr.)_Total"] || 0) - (a["AUC (INR Cr.)_Total"] || 0))[0];
       const n = counts.find((c) => String(c.country || "").toUpperCase() === String(c1?.Country).toUpperCase())?.n;
-      if (c1) out.push(tile("Largest FPI country by assets", esc(titleCase(c1.Country)), `${all ? (c1["AUC (INR Cr.)_Total"] / all["AUC (INR Cr.)_Total"] * 100).toFixed(1) + "% of FPI assets" : ""}${n ? ` · ${nfmt(n)} FPIs registered` : ""}`, 0));
+      if (c1) out.push(tile("Largest FPI country by assets", esc(countryName(c1.Country)), `${all ? (c1["AUC (INR Cr.)_Total"] / all["AUC (INR Cr.)_Total"] * 100).toFixed(1) + "% of FPI assets" : ""}${n ? ` · ${nfmt(n)} FPIs registered` : ""}`, 0));
     }
     $("ov-cross").innerHTML = out.join("");
   } catch { ovX = null; }
@@ -4519,7 +4529,7 @@ function drawTabSums() {
     $("fl-sum").innerHTML = card(`FPI net investment, ${fy[0].y} to ${CYr}`, "", vbars(fy.map((r) => r.cr == null ? { v: null, l: `'${String(r.y).slice(2)}`, t: `${r.y}: not available` } : { v: usdOfYear(r.cr, r.y), l: `'${String(r.y).slice(2)}`, t: `${r.y}: ${u(r)}` }), { signed: true, money: true, labelEvery: innerWidth < 700 ? 4 : 1, W: innerWidth < 700 ? 300 : 900 }),
         `Largest inflow: ${best.y}, ${u(best)}. Largest outflow: ${worst.y}, ${u(worst)}. Past years at that year's average rate.`, true) +
       card("Indian investment abroad", "", vbars(oy.filter((r) => r.months >= 6).map((r) => ({ v: r.usd_m, l: String(r.y), t: `${r.y}: ${fmtUsd(r.usd_m)}${r.months < 12 ? ` (${r.months} months)` : ""}. Opens the deals`, a: () => { setTab("odi"); toTop(); } })), { color: "#f0884a", money: true }), "Committed each year, from RBI.") +
-      card(`Where it goes, ${CYr}`, "", hrows((H.odi_top_country || []).map((c) => ({ l: titleCase(c.c), v: c.usd_m, r: fmtUsd(c.usd_m), c: "#f0884a" }))), "Top destinations of Indian overseas investment.");
+      card(`Where it goes, ${CYr}`, "", hrows((H.odi_top_country || []).map((c) => ({ l: countryName(c.c), v: c.usd_m, r: fmtUsd(c.usd_m), c: "#f0884a" }))), "Top destinations of Indian overseas investment.");
   }
   if (state.tab === "regulation" && $("reg-sum")) {
     const today = dayStr(new Date());
@@ -4537,7 +4547,7 @@ function drawTabSums() {
     const ry = (H.reg_by_year || []).filter((r) => r.y >= 2023), cat = H.reg_by_cat || {};
     $("regx-sum").innerHTML = card("FPI register", `${nfmt(H.reg_total)} <small>registered FPIs · Category I ${nfmt(cat.I)} · Category II ${nfmt(cat.II)}</small>`,
         vbars(ry.map((r) => ({ v: r.n, l: String(r.y), t: `${r.y}: ${nfmt(r.n)} new FPIs. Lists them`, dim: r.y === CYr, a: () => { if (state.tab !== "directory") setTab("directory"); setTimeout(() => { selSet("dyear-f", String(r.y)); selFire("dyear-f"); $("dir-fpi-filters").scrollIntoView({ block: "center" }); }, 400); } })), { color: "var(--bar)" }), "New registrations by year. Dates are available for registrations since 2023.") +
-      card("Where FPIs are based", "", hrows((H.reg_by_country || []).map((c) => ({ l: titleCase(c.c), v: c.n, r: nfmt(c.n), t: `${titleCase(c.c)}: ${nfmt(c.n)} FPIs. Lists them`, a: () => { if (state.tab !== "directory") setTab("directory"); setTimeout(() => { const o = [...$("dcountry-f").options].find((o) => o.value.toLowerCase() === c.c.toLowerCase() || o.text.toLowerCase().startsWith(titleCase(c.c).toLowerCase())); if (o) { $("dcountry-f").value = o.value; selFire("dcountry-f"); } $("dir-fpi-filters").scrollIntoView({ block: "center" }); }, 400); } }))), "Registered FPIs by country, from NSDL.") +
+      card("Where FPIs are based", "", hrows((H.reg_by_country || []).map((c) => ({ l: countryName(c.c), v: c.n, r: nfmt(c.n), t: `${countryName(c.c)}: ${nfmt(c.n)} FPIs. Lists them`, a: () => { if (state.tab !== "directory") setTab("directory"); setTimeout(() => { const o = [...$("dcountry-f").options].find((o) => o.value.toLowerCase() === c.c.toLowerCase() || o.text.toLowerCase().startsWith(countryName(c.c).toLowerCase())); if (o) { $("dcountry-f").value = o.value; selFire("dcountry-f"); } $("dir-fpi-filters").scrollIntoView({ block: "center" }); }, 400); } }))), "Registered FPIs by country, from NSDL.") +
       card("GIFT City", `${nfmt(H.gift_total)} <small>entities regulated by IFSCA</small>`, hrows((H.gift_by_cat || []).slice(0, 6).map((c) => ({ l: c.c, v: c.n, r: nfmt(c.n), c: "var(--bar)", t: `${c.c}: ${nfmt(c.n)} entities. Lists them`, a: () => { if (state.tab !== "gift") setTab("gift"); setTimeout(() => { selSet("icat2", c.c); selFire("icat2"); $("dir-ifsca-filters").scrollIntoView({ block: "center" }); }, 600); } }))), "By licence type.");
   }
 }
@@ -4637,7 +4647,7 @@ function renderHome() {
     s: `Category I ${nfmt((H.reg_by_cat || {}).I)} · Category II ${nfmt((H.reg_by_cat || {}).II)}. New FPIs by year: ${ry2.map((r) => `${r.y} ${nfmt(r.n)}`).join(" · ")}.`,
     body: vbars(ry2.map((r) => ({ v: r.n, l: String(r.y), t: `${r.y}: ${nfmt(r.n)} new FPIs`, a: () => { setTab("directory"); toTop(); }, dim: r.y === CYr })), { color: "var(--bar)" }), more: "Open the FPI register" });
   cards.push({ go: "gift", h: "GIFT City", k: `${nfmt(H.gift_total)} <small>entities regulated by IFSCA</small>`,
-    s: "Fund managers, banks, insurers and others licensed at GIFT IFSC. Bars show new entities by registration year.",
+    s: "Fund managers, banks, insurers and others licensed at GIFT City (IFSC). Bars show new entities by registration year.",
     body: vbars(gy.map((r) => ({ v: r.n, l: `'${String(r.y).slice(2)}`, t: `${r.y}: ${nfmt(r.n)} new GIFT City entities`, a: () => { setTab("gift"); toTop(); }, dim: r.y === CYr })), { color: "var(--bar)" }), more: "Open GIFT City" });
   box.innerHTML = cards.map((c, i) => `<div class="hc" role="link" tabindex="0" data-hc="${i}"><h3>${c.h}</h3><div class="k">${c.k}</div>${c.body}<div class="s">${c.s}</div><div class="go">${c.more} →</div></div>`).join("");
   box.querySelectorAll(".hc").forEach((el) => {
@@ -4709,7 +4719,7 @@ function renderOverview() {
   $("ov-stories").innerHTML = state.events.slice(0, 6).map((e) => `<div class="ovrow scard"><div style="min-width:0"><div class="t"><a href="${safeUrl(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a></div>
       <div class="meta" style="margin-top:5px">${typePill(typeOf(e))}${srcTag(e)}<span>${ago(e.published_at || e.fetched_at)}</span></div></div>${amtTag(e)}</div>`).join("");
   if (ovRegs) {
-    const rows = [...ovRegs.f.map((r) => ({ n: r.name, m: `FPI · ${r.country ? SHORT_COUNTRY[r.country] || titleCase(r.country) : ""} · Cat ${r.category || ""}`, d: r.registered_on, c: "var(--in)" }))].sort((a, b) => String(b.d || "").localeCompare(String(a.d || ""))).slice(0, 7);
+    const rows = [...ovRegs.f.map((r) => ({ n: r.name, m: `FPI · ${r.country ? countryName(r.country) : ""} · Cat ${r.category || ""}`, d: r.registered_on, c: "var(--in)" }))].sort((a, b) => String(b.d || "").localeCompare(String(a.d || ""))).slice(0, 7);
     $("ov-regs").innerHTML = rows.map((r) => `<div class="ovrow"><div style="min-width:0"><div class="t">${esc(r.n)}</div><div class="meta" style="margin-top:5px"><span class="tg"><i style="background:${r.c}"></i>${esc(r.m)}</span></div></div><span class="side">${toDMY(r.d)}</span></div>`).join("") || `<div class="sub">No new registrations.</div>`;
   }
   // The last 30 days: reported amounts by category, and investors with the most stories.
@@ -4787,7 +4797,41 @@ const FPI_SORT = {
   registered: [(d) => d ? "registered_on.desc.nullslast,reg_year.desc.nullslast,serial.desc.nullslast" : "reg_year.asc.nullslast,serial.asc.nullslast", true],
   valid: [(d) => `valid_upto.${d ? "desc" : "asc"}.nullslast,name.asc`, false],
 };
-const SHORT_COUNTRY = { "UNITED STATES OF AMERICA": "USA", "UNITED KINGDOM": "UK", "UNITED ARAB EMIRATES": "UAE", "INDIA IFSC [GIFT CITY]": "GIFT IFSC", "KOREA, REPUBLIC OF": "South Korea", "HONG KONG SAR": "Hong Kong" };
+// One spelling per country everywhere (the NSDL, IFSCA, RBI and news sources each write them differently).
+const COUNTRY_CANON = { "UNITED STATES OF AMERICA": "United States", "UNITED STATES": "United States", USA: "United States", US: "United States", "U.S.": "United States",
+  "UNITED KINGDOM": "United Kingdom", UK: "United Kingdom", "U.K.": "United Kingdom", "UNITED ARAB EMIRATES": "UAE", UAE: "UAE",
+  "INDIA IFSC [GIFT CITY]": "GIFT City (IFSC)", "INDIA IFSC (GIFT CITY)": "GIFT City (IFSC)", "GIFT IFSC": "GIFT City (IFSC)", "GIFT CITY": "GIFT City (IFSC)",
+  "KOREA, REPUBLIC OF": "South Korea", KOREA: "South Korea", "REPUBLIC OF KOREA": "South Korea", "HONG KONG SAR": "Hong Kong", "RUSSIAN FEDERATION": "Russia",
+  "TAIWAN, PROVINCE OF CHINA": "Taiwan", "VIET NAM": "Vietnam", "THE NETHERLANDS": "Netherlands", "CAYMAN ISLANDS": "Cayman Islands", "BRITISH VIRGIN ISLANDS": "British Virgin Islands" };
+const countryName = (c) => { const t = String(c ?? "").trim(); return t ? COUNTRY_CANON[t.toUpperCase()] || titleCase(t) : ""; };
+const SHORT_COUNTRY = COUNTRY_CANON;
+// Exchange files write client names in capitals (NORWEST VENTURE PARTNERS X MAURITIUS). Shown in normal case; words that really are
+// capitals (LLC, ICAV, HDFC, UBS…) stay as they are. Mixed-case text is left alone.
+const NAME_CAPS = new Set("LLC LLP LP PLC ICAV SICAV UCITS ETF FPI ODI NPS HDFC ICICI SBI LIC UBS BNP HSBC JP DSP IIFL KKR TPG CVC GIC ADIA USA UK UAE IFSC GIFT IT AI AG SA NV BV SE AB AS AIF VCC FII DII PCC ESG EM NSE BSE SEBI RBI FDI II III IV VI VII VIII IX XI XII HK FZE DMCC SPC FCP SCA SAS SRL BHD PJSC OPC REIT INVIT AMC MF PMS CPPIB CPP ADQ PIF QIA KIA CDPQ OMERS GSAM JPMORGAN MSCI FTSE ICICI IDFC IDBI AU SIDBI NABARD".split(" "));
+const NAME_SUFFIX = { GMBH: "GmbH", PTE: "Pte", LTD: "Ltd", INC: "Inc", CORP: "Corp", CO: "Co" }, NAME_SMALL = new Set(["AND", "OF", "THE", "FOR", "ON", "IN"]);
+const NC_MEMO = new Map();
+function nameCase(v) {
+  const t = String(v ?? ""); if (!/[A-Z]{2}/.test(t)) return t;
+  const hit = NC_MEMO.get(t); if (hit !== undefined) return hit;
+  const out = nameCaseRaw(t); NC_MEMO.set(t, out); return out;
+}
+function nameCaseRaw(t) {
+  const words = t.split(/(\s+)/), isCap = (w) => /^[A-Z(][A-Z.'&,:()\-]*$/.test(w) && w.replace(/[^A-Z]/g, "").length >= 2;
+  const caps = words.filter(isCap).length, longer = words.filter((w) => w.replace(/[^A-Za-z]/g, "").length >= 3), longCaps = longer.filter(isCap).length;
+  // Only text that is mostly capitals is changed; a headline that merely mentions KKR or an IPO is left alone.
+  if (!longer.length || longCaps / longer.length < 0.6 || (caps < 2 && longer.length > 1)) return t;
+  return words.map((w, i) => {
+    if (!isCap(w)) return w;
+    const bare = w.replace(/[^A-Z]/g, "");
+    if (NAME_SUFFIX[bare]) return w.replace(/[A-Z]+/, NAME_SUFFIX[bare]);
+    if (NAME_SMALL.has(bare) && i > 0) return w.toLowerCase();
+    if (NAME_CAPS.has(bare) || (bare.length <= 4 && !/[AEIOUY]/.test(bare))) return w;   // LLC, HDFC, UBS… and consonant-only initials (BNP, HSBC)
+    return w.replace(/[A-Z]+/g, (m) => m[0] + m.slice(1).toLowerCase());
+  }).join("");
+}
+// "NORWEST VENTURE PARTNERS X MAURITIUS sold Amagi Media Labs…": only the client's name (before bought/sold) is in capitals.
+const nseTitle = (t) => { const m = /^(.+?)( (?:bought|sold) .*)$/.exec(String(t ?? "")); return m ? nameCase(m[1]) + m[2] : t; };
+const nameCaseParty = (p) => (p && p.name ? { ...p, name: nameCase(p.name) } : p);
 // SEBI's sub-category names are long; the table shows a short form and keeps the full name on hover.
 const FPI_TYPE = {
   "Appropriately Regulated Fund": "Regulated fund",
@@ -4843,7 +4887,7 @@ async function countryAum() {
   const max = Math.max(...list.map((r) => r.total), 1);
   return `<h2 class="fsec">Assets held by country</h2><p class="note">FPI assets under custody for the ten largest countries, in the currency you chose, with a second currency in brackets (NSDL). ${all ? `All countries: ${bothT(all.total)}.` : ""}</p>
     <div class="ftable-wrap"><div class="scroll"><table class="ftable"><thead><tr><th>Country</th><th class="num">Equity</th><th class="num">Debt</th><th class="num">Total</th><th class="num">Share</th><th class="num">FPIs registered</th><th></th></tr></thead><tbody>${list.map((r) =>
-      `<tr><td>${esc(titleCase(r.c))}</td><td class="num">${bothH(r.eq)}</td><td class="num">${bothH(r.debt)}</td><td class="num">${bothH(r.total)}</td><td class="num">${all ? (r.total / all.total * 100).toFixed(1) + "%" : "–"}</td><td class="num">${dir.countryN?.has(String(r.c).toUpperCase()) ? nfmt(dir.countryN.get(String(r.c).toUpperCase())) : "–"}</td><td style="width:22%"><div style="height:6px;border-radius:3px;background:var(--accent);width:${(r.total / max * 100).toFixed(1)}%"></div></td></tr>`).join("")}</tbody></table></div></div>`;
+      `<tr><td>${esc(countryName(r.c))}</td><td class="num">${bothH(r.eq)}</td><td class="num">${bothH(r.debt)}</td><td class="num">${bothH(r.total)}</td><td class="num">${all ? (r.total / all.total * 100).toFixed(1) + "%" : "–"}</td><td class="num">${dir.countryN?.has(String(r.c).toUpperCase()) ? nfmt(dir.countryN.get(String(r.c).toUpperCase())) : "–"}</td><td style="width:22%"><div style="height:6px;border-radius:3px;background:var(--accent);width:${(r.total / max * 100).toFixed(1)}%"></div></td></tr>`).join("")}</tbody></table></div></div>`;
 }
 
 $("dir-aum").addEventListener("click", (ev) => {
@@ -4885,7 +4929,7 @@ async function openDirectory() {
     try {
       const [[st], countries, types] = await Promise.all([api("directory_stats?select=*"), api("fpi_country_counts?select=country,n&order=n.desc"), api("ifsca_type_counts?select=*&order=n.desc")]);
       dir.stats = st;
-      $("dcountry-f").innerHTML = `<option value="">All countries</option>` + countries.filter((c) => c.country).map((c) => `<option value="${esc(c.country)}">${esc(titleCase(c.country))} (${nfmt(c.n)})</option>`).join("");
+      $("dcountry-f").innerHTML = `<option value="">All countries</option>` + countries.filter((c) => c.country).map((c) => `<option value="${esc(c.country)}">${esc(countryName(c.country))} (${nfmt(c.n)})</option>`).join("");
       const y = new Date().getFullYear();
       $("dyear-f").innerHTML = `<option value="">Any year</option>` + [0, 1, 2, 3, 4].map((i) => `<option value="${y - i}">Registered in ${y - i}</option>`).join("") + `<option value="older">Before ${y - 4}</option>`;
       dir.types = types;
@@ -4928,11 +4972,10 @@ function renderDirTiles() {
     ? "Every foreign portfolio investor registered with SEBI, from NSDL's FPI register. Updated daily."
     : "Every entity in IFSCA's directory of regulated entities at GIFT IFSC: fund managers, their schemes, banks, insurers and more. Updated daily.";
   $("dir-tiles").innerHTML = fpi ? [
-    tile("FPIs on the register", nfmt(s.fpis), `Category I ${nfmt(s.fpi_cat1)} · Category II ${nfmt(s.fpi_cat2)}`, 0),
     tile(`Registered in ${new Date().getFullYear()}`, nfmt(s.fpi_this_year), "From the year in the registration number", 0),
     tile("Registered in the last 30 days", nfmt(s.fpi_new_30d), "New FPIs, newest first in the list below", 0),
   ].join("") : [
-    tile("FPIs based in GIFT IFSC", nfmt(s.fpi_gift), "FPIs whose country is India IFSC (GIFT City)", 0),
+    tile("FPIs based in GIFT City", nfmt(s.fpi_gift), "FPIs registered with GIFT City (IFSC) as their country", 0),
     tile("Entities in the directory", nfmt(s.ifsca), "All categories, including surrendered or cancelled", 0),
     tile("Fund management entries", nfmt(s.ifsca_funds), "Fund managers and their schemes", 0),
     tile("Registered in the last 30 days", nfmt(s.ifsca_new_30d), s.ifsca_detailed < s.ifsca ? `Registration dates read for ${nfmt(s.ifsca_detailed)} of ${nfmt(s.ifsca)} so far` : "From IFSCA's registration dates", 0),
@@ -4988,7 +5031,7 @@ function dirRow(r) {
       : r.reg_year ? `${r.reg_year}<small>year only</small>` : "–";
     const st = r.status || "Registered";
     const stat = `<span class="stat${/late/i.test(st) ? " late" : st !== "Registered" ? " bad" : ""}"><i></i>${esc(st === "On Late Fee Window" ? "Late-fee window" : st)}</span>`;
-    const country = r.country ? SHORT_COUNTRY[r.country] || titleCase(r.country) : "–";
+    const country = r.country ? countryName(r.country) : "–";
     return `<tr class="r" data-reg="${esc(r.reg_no)}">
       <td><div class="fn">${firmLink(r.name)}${isNew ? `<span class="new" title="Registered in the last 30 days">NEW</span>` : ""}</div><div class="freg">${esc(r.reg_no)}<span class="cm"> · ${esc(country)}</span></div></td>
       <td class="h-country">${esc(country)}</td>
@@ -5762,6 +5805,13 @@ function normDate(v) {
   return v;
 }
 const normDatesIn = (t) => String(t).replace(/\b(20\d\d)-(\d\d)-(\d\d)\b/g, (x) => toDMY(x));
+// A table that leaves out the listed columns when fewer than a quarter of their cells have a value (the registry match is by exact name, so it is often empty).
+function mkSparse(head, rows, nText, cols) {
+  const filled = (c) => c.h !== undefined || (c !== "–" && c !== "" && c != null), drop = new Set(cols.filter((i) => rows.length && rows.filter((r) => filled(r[i])).length / rows.length < 0.25));
+  if (!drop.size) return mkTable(head, rows, nText);
+  const keep = (_, i) => !drop.has(i);
+  return mkTable(head.filter(keep), rows.map((r) => r.filter(keep)), nText - [...drop].filter((i) => i < nText).length);
+}
 const mkTable = (head, rows, nText = 1) => rows.length
   ? `<div class="ftable-wrap"><div class="scroll"><table class="ftable"><thead><tr>${head.map((h, i) => `<th${i >= nText ? ' class="num"' : ""}>${esc(h)}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c, i) => `<td${i >= nText ? ' class="num"' : ""}>${c && typeof c === "object" ? c.h : esc(normDate(c))}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>`
   : `<p class="note">No data yet.</p>`;
@@ -5772,9 +5822,9 @@ const mkForeign = (name) => MK_FOREIGN.test(name || "") && !MK_DOMESTIC.test(nam
 // An investor name becomes a link to its profile when the firm appears in the stories (same key the Network tab uses).
 const xFirm = (name) => {
   try {
-    if (state.events?.length) { ensureNet(); const k = invKey(name); if (net.g.nodes.has(k)) return { h: `<a href="#firm/${encodeURIComponent(k)}">${esc(name)}</a>` }; }
+    if (state.events?.length) { ensureNet(); const k = invKey(name); if (net.g.nodes.has(k)) return { h: `<a href="#firm/${encodeURIComponent(k)}">${esc(nameCase(name))}</a>` }; }
   } catch {}
-  return name || "–";
+  return nameCase(name) || "–";
 };
 // Registry facts for a list of client names: FPI country and category (NSDL register) and whether IFSCA lists the name.
 async function xRegistry(names) {
@@ -5828,7 +5878,7 @@ async function renderOdi() {
     ${mkSec("Every investment", `${nfmt(list.length)} of ${nfmt(odi.rows.length)} in ${ml(m.month)}, largest first. Names of individual investors are not shown.`, `
       <div class="filters"><input id="odi-q" type="search" placeholder="Search company, overseas entity or activity" value="${esc(odi.q)}" aria-label="Search outbound investments">
       <select id="odi-c" aria-label="Country"><option value="">All countries</option>${countries.map(([c]) => `<option${c === odi.country ? " selected" : ""} value="${esc(c)}">${esc(titleCase(c))}</option>`).join("")}</select></div>
-      ${mkTable(["Indian company", "Overseas entity", "JV / WOS", "Country", "Activity", "Equity", "Loan", "Guarantee", "Total"], list.slice(0, odi.n || 100).map((r) => [who(r), titleCase(r.jv_name), r.jv_type || "–", titleCase(r.country), titleCase(r.activity), fmtUsd(+r.equity), fmtUsd(+r.loan), fmtUsd(+r.guarantee), fmtUsd(+r.total)]), 5)}
+      ${mkTable(["Indian company", "Overseas entity", "JV / WOS", "Country", "Activity", "Equity", "Loan", "Guarantee", "Total"], list.slice(0, odi.n || 100).map((r) => [who(r), titleCase(r.jv_name), r.jv_type || "–", countryName(r.country), titleCase(r.activity), fmtUsd(+r.equity), fmtUsd(+r.loan), fmtUsd(+r.guarantee), fmtUsd(+r.total)]), 5)}
       ${list.length > (odi.n || 100) ? `<p><button class="reset" id="odi-more" type="button">Show 200 more</button></p>` : ""}`)}
     ${src}`;
   barChart($("odi-chart"), odi.months.map((x) => ({ ...x, v: +x.total })), {
@@ -5882,11 +5932,11 @@ async function renderMarkets() {
   deals.splice(mk.dealsN || 100);
   const reg = await xRegistry(deals.map((r) => r.clientName));
   out.push(mkSec("Bulk and block deals", `Latest ${deals.length} of ${nfmt(dealTotal)} NSE and BSE deals since April 2025 where the client looks foreign. "Foreign" is read from the client's name, so some are missed. Country and category come from NSDL's FPI register, GIFT City from IFSCA's list; both need an exact name match, so a dash means no match. Linked names have a profile.`,
-    mkTable(["Date", "Exchange", "Foreign investor", "Company invested in", "Country", "FPI category", "GIFT City", "Side", "Quantity", "Avg price", "Value"], deals.map((r) => {
+    mkSparse(["Date", "Exchange", "Foreign investor", "Company invested in", "Country", "FPI category", "GIFT City", "Side", "Quantity", "Avg price", "Value"], deals.map((r) => {
       const f = reg.get(r.clientName);
-      return [r.date, `${r.exchange || "NSE"} ${r.kind || ""}`.trim(), xFirm(r.clientName), r.name || r.symbol || "–", f.country ? SHORT_COUNTRY[f.country] || titleCase(f.country) : "–", f.cat ? `Cat ${f.cat}` : "–", f.gift ? "Yes" : "–",
+      return [r.date, `${r.exchange || "NSE"} ${r.kind || ""}`.trim(), xFirm(r.clientName), r.name || r.symbol || "–", f.country ? countryName(f.country) : "–", f.cat ? `Cat ${f.cat}` : "–", f.gift ? "Yes" : "–",
         r.buySell || "–", mkFmt(r.qty), mkFmt(r.watp, 2), mkUsd(mkNum(r.qty) * mkNum(r.watp) / 1e7)];
-    }), 8) + (deals.length < dealTotal ? `<p><button class="reset" id="mk-more" type="button">Show 200 more</button></p>` : "")));
+    }), 8, [4, 5, 6]) + (deals.length < dealTotal ? `<p><button class="reset" id="mk-more" type="button">Show 200 more</button></p>` : "")));
   const who = (state.events || []).filter((e) => e.event_type === "entry" && e.investor && e.target && mkForeign(e.investor));
   who.splice(0, who.length, ...mkOnce(who, (e) => [e.investor, e.target, (e.published_at || e.fetched_at || "").slice(0, 10), e.amount_text].map((x) => String(x ?? "").toUpperCase()).join("|")).slice(0, 40));
   out.push(mkSec("Who invested in whom", "Latest investments from the news and exchange deals, newest first. Foreign investors only, judged from the name.",
@@ -6097,7 +6147,7 @@ function mbBuild(key, name, kind, enr, note, fa) {
   const recentExit = st.sell.find((e) => Date.now() - new Date(mbWhen(e)) < 90 * 864e5);
   const fundM = fa?.fund_size_usd_m ?? (enr?.total_assets_usd ? enr.total_assets_usd / 1e6 : null), na = new Set(fa?.not_applicable || []);
   const people = fa?.key_people ? fa.key_people.split(/[;\n]+/).map((x) => x.trim()).filter(Boolean) : [enr?.ceo && `${enr.ceo} (CEO)`, enr?.chair && `${enr.chair} (chair)`, ...(enr?.founders || []).slice(0, 3).map((f) => `${f} (founder)`)].filter(Boolean);
-  const facts = [["Type", prof?.description || reg?.sub_category], ["Based in", [prof?.headquarters || enr?.headquarters, prof?.country || (reg?.country ? titleCase(reg.country) : "")].filter(Boolean).filter((x, i, a) => a.indexOf(x) === i).join(", ")],
+  const facts = [["Type", prof?.description || reg?.sub_category], ["Based in", [prof?.headquarters || enr?.headquarters, prof?.country || (reg?.country ? countryName(reg.country) : "")].filter(Boolean).filter((x, i, a) => a.indexOf(x) === i).join(", ")],
     ["Fund size", fundM ? { h: usdBr(fundM) } : ""], ["Employees", enr?.employees ? nfmt(enr.employees) : ""], ["Key people", people.join(" · ")],
     ["About", fa?.background], ["Owner or parent", prof?.owner || prof?.parent], ["FPI registration", reg ? `${reg.reg_no}${reg.category ? ` · Category ${reg.category}` : ""}${reg.status && reg.status !== "Registered" ? ` · ${reg.status}` : ""}` : ""],
     ["Website", (fa?.website || prof?.website) && /^https?:\/\//.test(fa?.website || prof?.website) ? { h: `<a href="${safeUrl(fa?.website || prof.website)}" target="_blank" rel="noopener">${esc((fa?.website || prof.website).replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, ""))}</a>` } : ""]];
@@ -6247,7 +6297,7 @@ async function gRemote(q) {
     api(`ifsca_entities?select=enc_id,name,category,sub_category,reg_no,reg_date,address,website&name=ilike.*${encodeURIComponent(c)}*&order=reg_date.desc.nullslast&limit=6`).catch(() => []),
   ]);
   return [
-    ...fpi.map((r) => ({ g: "FPIs", t: r.name, sub: `${r.country ? SHORT_COUNTRY[r.country] || titleCase(r.country) : ""}${r.category ? ` · Category ${r.category}` : ""}`, go: () => openEntity("fpi", r) })),
+    ...fpi.map((r) => ({ g: "FPIs", t: r.name, sub: `${r.country ? countryName(r.country) : ""}${r.category ? ` · Category ${r.category}` : ""}`, go: () => openEntity("fpi", r) })),
     ...gift.map((r) => ({ g: "GIFT City", t: r.name, sub: `${r.sub_category || r.category || ""}`, go: () => openEntity("gift", r) })),
   ];
 }
@@ -6328,7 +6378,7 @@ function firmFor(name) {
   if (net.prefixFor !== net.g) { net.prefixFor = net.g; net.prefix = [...net.g.nodes.values()].filter((n) => n.key.length >= 6).sort((a, b) => b.key.length - a.key.length); }
   return net.prefix.find((n) => k.startsWith(n.key + " ")) || null;
 }
-const firmLink = (name, label = name) => { const n = firmFor(name); return n ? `<a class="flink" href="#firm/${encodeURIComponent(n.key)}">${esc(label)}</a>` : esc(label); };
+const firmLink = (name, label = name) => { const n = firmFor(name); return n ? `<a class="flink" href="#firm/${encodeURIComponent(n.key)}">${esc(nameCase(label))}</a>` : esc(nameCase(label)); };
 
 // The rest of the site's data about one firm, added under its profile: FPI registrations, GIFT City licences,
 // exchange deals and RBI outbound investments. Every row is matched back through firmFor, so a loose search
@@ -6346,12 +6396,12 @@ async function firmXrefs(n) {
   const F = fpis.filter((r) => mine(r.name)), G = gift.filter((r) => mine(r.name)), O = outb.filter((r) => mine(r.indian_party)), D = deals.filter((r) => mine(r.clientName));
   const out = [];
   if (F.length) out.push(eSec(`FPI registrations · ${F.length}`, "Entities registered with SEBI as foreign portfolio investors, from NSDL's register.",
-    mkTable(["Entity", "Registration", "Country", "Category", "Status"], F.slice(0, 25).map((r) => [r.name, r.reg_no, r.country ? SHORT_COUNTRY[r.country] || titleCase(r.country) : "–", r.category ? `Cat ${r.category}` : "–", r.status || "Registered"]), 5)));
+    mkTable(["Entity", "Registration", "Country", "Category", "Status"], F.slice(0, 25).map((r) => [r.name, r.reg_no, r.country ? countryName(r.country) : "–", r.category ? `Cat ${r.category}` : "–", r.status || "Registered"]), 5)));
   if (G.length) out.push(eSec(`GIFT City · ${G.length}`, "Entities licensed by IFSCA at GIFT IFSC.",
     mkTable(["Entity", "Type", "Registration", "Since"], G.slice(0, 25).map((r) => [r.name, r.sub_category || r.category || "–", r.reg_no || "–", r.reg_date ? toDMY(r.reg_date) : "–"]), 4)));
   if (D.length) out.push(eDeals(D));
   if (O.length) out.push(eSec(`Overseas investments · ${O.length}`, "Commitments to joint ventures and subsidiaries abroad, from RBI's monthly ODI data, in the currency you chose.",
-    mkTable(["Month", "Overseas entity", "JV / WOS", "Country", "Activity", "Total"], O.slice(0, 25).map((r) => [monLabel(r.month), titleCase(r.jv_name), r.jv_type || "–", titleCase(r.country), titleCase(r.activity), fmtUsd(+r.total)]), 5)));
+    mkTable(["Month", "Overseas entity", "JV / WOS", "Country", "Activity", "Total"], O.slice(0, 25).map((r) => [monLabel(r.month), titleCase(r.jv_name), r.jv_type || "–", countryName(r.country), titleCase(r.activity), fmtUsd(+r.total)]), 5)));
   el.innerHTML = out.join("") || `<p class="note">Not found in the FPI register, the GIFT City list, exchange deals or RBI's outbound data under this name. These are matched by name, so an entity filed under a different name won't show.</p>`;
 }
 
@@ -6364,7 +6414,7 @@ async function loadOvOdi() {
     const [m, prev] = months, top = await api(`odi_deals?select=indian_party,jv_name,country,total&month=eq.${m.month}&is_individual=eq.false&order=total.desc&limit=4`);
     const chg = prev?.total ? Math.round((m.total / prev.total - 1) * 100) : null;
     box.innerHTML = `<div class="feat"><small>${esc(monLabel(m.month))} · RBI</small><div class="t">Indian companies committed <b class="amt-tag">${fmtUsd(+m.total)}</b> abroad across ${nfmt(m.deals)} investments${chg == null ? "" : `, ${chg >= 0 ? "up" : "down"} ${Math.abs(chg)}% on ${esc(monLabel(prev.month))}`}.</div></div>` +
-      top.map((r) => `<div class="ovrow"><span class="stripe" style="background:var(--outbound)"></span><div style="min-width:0"><div class="t">${firmLink(r.indian_party, titleCase(r.indian_party))}</div><div class="sub">${esc(titleCase(r.jv_name))} · ${esc(titleCase(r.country))}</div></div><b class="amt-tag">${fmtUsd(+r.total)}</b></div>`).join("");
+      top.map((r) => `<div class="ovrow"><span class="stripe" style="background:var(--outbound)"></span><div style="min-width:0"><div class="t">${firmLink(r.indian_party, titleCase(r.indian_party))}</div><div class="sub">${esc(titleCase(r.jv_name))} · ${esc(countryName(r.country))}</div></div><b class="amt-tag">${fmtUsd(+r.total)}</b></div>`).join("");
   } catch (e) { box.innerHTML = `<div class="sub">Could not load RBI outbound data: ${esc(e.message)}</div>`; }
 }
 
@@ -6405,7 +6455,7 @@ async function openEntity(kind, ref) {
     let head = "", facts = [], extra = "";
     if (kind === "fpi") {
       head = "Foreign portfolio investor";
-      facts = [["Registration number", ref.reg_no], ["Country", ref.country ? titleCase(ref.country) : ""], ["Category", ref.category ? `Category ${ref.category}${ref.sub_category ? ` · ${ref.sub_category}` : ""}` : ""],
+      facts = [["Registration number", ref.reg_no], ["Country", ref.country ? countryName(ref.country) : ""], ["Category", ref.category ? `Category ${ref.category}${ref.sub_category ? ` · ${ref.sub_category}` : ""}` : ""],
         ["Status", ref.status], ["Registered", ref.registered_on], ["Valid until", ref.valid_upto]];
       const gift = await api(`ifsca_entities?select=name,category,sub_category,reg_date&name=eq.${encodeURIComponent(gClean(name))}&limit=1`).catch(() => []);
       if (gift[0]) facts.push(["Also in GIFT City", `${gift[0].sub_category || gift[0].category}${gift[0].reg_date ? `, registered ${gift[0].reg_date}` : ""}`]);
@@ -7008,9 +7058,9 @@ async function drawFpiWatch() {
   const list = (fw.data[fw.view] || []), today = dayStr(new Date());
   const dd = (d) => d ? toDMY(String(d)) : "–", days = (d) => d ? Math.round((new Date(d) - new Date(today)) / 864e5) : null;
   const cols = fw.view === "new" ? ["FPI", "Registration no.", "Country", "Category", "Type", "Registered", "Valid until"] : fw.view === "dropped" ? ["FPI", "Registration no.", "Country", "Category", "Type", "Valid until", "Last listed"] : ["FPI", "Registration no.", "Country", "Category", "Type", "Valid until", "Days left"];
-  const row = (r) => fw.view === "new" ? [r.name, r.reg_no, titleCase(r.country), r.category ? `Cat ${r.category}` : "", r.sub_category, dd(r.registered_on), dd(r.valid_upto)]
-    : fw.view === "dropped" ? [r.name, r.reg_no, titleCase(r.country), r.category ? `Cat ${r.category}` : "", r.sub_category, dd(r.valid_upto), dd(r.last_seen)]
-    : [r.name, r.reg_no, titleCase(r.country), r.category ? `Cat ${r.category}` : "", r.sub_category, dd(r.valid_upto), days(r.valid_upto)];
+  const row = (r) => fw.view === "new" ? [nameCase(r.name), r.reg_no, countryName(r.country), r.category ? `Cat ${r.category}` : "", r.sub_category, dd(r.registered_on), dd(r.valid_upto)]
+    : fw.view === "dropped" ? [nameCase(r.name), r.reg_no, countryName(r.country), r.category ? `Cat ${r.category}` : "", r.sub_category, dd(r.valid_upto), dd(r.last_seen)]
+    : [nameCase(r.name), r.reg_no, countryName(r.country), r.category ? `Cat ${r.category}` : "", r.sub_category, dd(r.valid_upto), days(r.valid_upto)];
   const q = fw.q.trim().toLowerCase(), shown = list.filter((r) => !q || [r.name, r.reg_no, r.country].some((x) => String(x || "").toLowerCase().includes(q)));
   box.innerHTML = `<div class="watch-h"><div><h3>FPI watch lists</h3><div class="sub">From NSDL's FPI register, updated daily. Registration numbers and names only.</div></div><button type="button" class="csvbtn" id="fw-csv">Download CSV (${nfmt(shown.length)})</button></div>
     <div class="qviews" role="group" aria-label="Watch list">${FW_VIEWS.map(([k, l]) => `<button type="button" data-fw="${k}" aria-pressed="${fw.view === k}">${l}<b>${nfmt((fw.data[k] || []).length)}</b></button>`).join("")}</div>
