@@ -742,7 +742,7 @@ html.lenis,html.lenis body{height:auto}
 /* Tokens. Dark is the default; light keeps its own palette below with the same signal meanings. */
 :root{
   --font-ui:Geist,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
-  --font-mono:Geist,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   --font-code:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   --r-sm:4px; --r:6px; --r-lg:8px;
   --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:20px;
@@ -1409,7 +1409,7 @@ body{font-variant-numeric:tabular-nums}
   --entry:#2f5fd0;--exit:#b46b00;--fund_launch:#0f8a80;--relocation:#6b5bd6;--outbound:#a35f2c;--regulation:#4b5565;--other:#6b7487;
   --shadow:none;--bar:#a3abbb;
 }
-:root:not(#x){--font-ui:Geist,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--font-mono:Geist,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--font-code:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+:root:not(#x){--font-ui:Geist,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--font-mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--font-code:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
   --ease:cubic-bezier(.22,1,.36,1);--r-sm:6px;--r:8px;--r-lg:12px}
 
 /* ---- Page and background: one calm surface, no colour washes ---- */
@@ -1481,6 +1481,7 @@ body{font-variant-numeric:tabular-nums}
 :root:not(#ds1):not(#ds2) .cmdk-btn{background:var(--raised)!important;border:1px solid var(--line)!important;color:var(--ink-2)!important}
 :root:not(#ds1):not(#ds2) kbd{font-family:var(--font-code);font-size:11px;padding:1px 5px;border-radius:4px;border:1px solid var(--line-2);background:var(--panel-2);color:var(--muted)}
 :root:not(#ds1):not(#ds2) a,:root:not(#ds1):not(#ds2) .link{color:var(--link)}
+:root:not(#ds1):not(#ds2) a.skip,:root:not(#ds1):not(#ds2) a.skip:hover{color:var(--accent-ink)}
 :root:not(#ds1):not(#ds2) .link:hover,:root:not(#ds1):not(#ds2) a:hover{color:var(--ink)}
 :root:not(#ds1):not(#ds2) :focus-visible{outline:2px solid var(--in)!important;outline-offset:2px}
 
@@ -1803,6 +1804,7 @@ body{font-variant-numeric:tabular-nums}
     <div class="ftiles" id="ov-tiles"></div>
     <div class="ftiles" id="ov-cross"></div>
     <div class="ovbanner"><div><b>Sign in to see everything on Home.</b> <span>Free. No subscription, just a login.</span></div><button class="reset" type="button" data-login>Sign in</button></div>
+    <h2 class="sr-only">Latest activity</h2>
     <div class="ovgrid ovgrid-a">
       <div class="ovc span2"><div class="ovh"><div><h3>Latest FPI flow</h3><div class="sub" id="ov-flow-sub">NSDL</div></div><button class="link" data-go="flows">Flows ↗</button></div><div class="flowwrap"><div id="ov-flow"></div><div class="fchart" id="ov-fpibars"></div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>Biggest deals this week</h3><div class="sub">Largest agreed or completed deals, last 7 days<span class="asof" id="asof-deals"></span></div></div><button class="link" data-go="feed" data-view="week">See these deals ↗</button></div><div id="ov-deals"><!--skel--></div></div>
