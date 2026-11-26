@@ -2228,14 +2228,15 @@ function usdInr() {
   return r > 60 && r < 140 ? r : 88;
 }
 function amountCr(e) {
-  if (+e.amount_usd_m > 0) return { cr: e.amount_usd_m * usdInr() / 10, usd: +e.amount_usd_m };
+  // A rupee amount as reported (exchange deals, Indian news) is shown exactly as published; only its US$ figure is converted.
+  // Converting the stored US$ back to rupees at today's rate made "₹2,396.4 cr" deals show as "₹2,351 cr".
   const m = /(?:rs\.?|₹|inr)\s*([\d,]*\.?\d+)\s*(lakh\s+crore|lakh\s+cr|crores?|cr|billion|bn|million|mn|lakh)?\b/i.exec(e.amount_text || "");
   if (m) {
     const n = parseFloat(m[1].replace(/,/g, "")), u = (m[2] || "").toLowerCase().replace(/\s+/g, " ");
     const cr = u ? n * CR_UNIT[u] : n / 1e7;
     return { cr, usd: cr * 10 / usdInr() };
   }
-  return e.amount_usd_m ? { cr: e.amount_usd_m * usdInr() / 10, usd: e.amount_usd_m } : null;
+  return +e.amount_usd_m > 0 ? { cr: e.amount_usd_m * usdInr() / 10, usd: +e.amount_usd_m } : null;
 }
 const fmtCr = (cr) => cr >= 1e5 ? `₹${+(cr / 1e5).toFixed(1)} lakh cr` : `₹${cr.toLocaleString("en-IN", { maximumFractionDigits: cr >= 100 ? 0 : cr >= 1 ? 1 : 2 })} cr`;
 // ---------- Currency: one choice for the whole site, kept on this device ----------
@@ -2304,6 +2305,7 @@ async function refresh() {
     }
     // Older stories carry one category; newer ones can carry several.
     state.events = events.map((e) => ({ ...e, event_types: e.event_types?.length ? e.event_types : [e.event_type], parties: e.parties || [] }));
+    state.eventsLoaded = true;
     mergeFirms();
     state.runs = runs;
     state.latest = Object.fromEntries(latest.map((r) => [r.source, r.finished_at]));
@@ -2631,6 +2633,8 @@ document.addEventListener("click", (ev) => { const b = ev.target.closest("[data-
 function renderFeed() {
   const rows = filtered();
   $("fnote-slot").innerHTML = feedNotice();
+  // While the stories are still loading, show the loading placeholder, not "no match".
+  if (!rows.length && !state.eventsLoaded) { $("feed").innerHTML = `<div class="skl" aria-busy="true" aria-label="Loading deals"><i></i><i></i><i></i></div>`; return; }
   if (!rows.length) { $("feed").innerHTML = noRows("No stories match these filters, so try a wider date range or reset them.", "feed"); return; }
   // The list shows 50 stories and adds more on request: 1,000+ cards at once made the page 58,000px tall, and 400 was the hard limit before.
   const sig = `${rows.length}:${rows[0]?.id}:${state.sort}`;
@@ -4472,7 +4476,7 @@ async function loadOverviewCross() {
   ovX = true;
   try {
     const [deals, ctry, counts] = await Promise.all([
-      apiAll("feed_records?select=key,data&dataset=in.(nse_deals,bse_deals)"),
+      dealRecords(),
       api("feed_records?select=data&dataset=eq.nsdl&key=eq.fpi_auc_country_top10&limit=1"),
       api("fpi_country_counts?select=country,n"),
     ]);
@@ -4802,15 +4806,20 @@ const nfmt = (n) => Number(n || 0).toLocaleString("en-IN");
 const term = (s) => s.trim().replace(/[,()"*\\:]/g, " ").replace(/\s+/g, " ");
 
 // All rows of a large table, a page at a time (the API caps one response); stable order so pages do not overlap.
+// Every row of a large table, 1,000 at a time. Pages are fetched four at a time (was one after another, which kept
+// Market data blank for about 10 seconds while the exchange-deal history paged in).
 async function apiAll(path, order = "key") {
-  const out = [];
-  for (let o = 0; o < 100000; o += 1000) {
-    const rows = await api(`${path}${path.includes("?") ? "&" : "?"}order=${order}&limit=1000&offset=${o}`);
-    out.push(...rows);
-    if (rows.length < 1000) break;
+  const out = [], page = (o) => api(`${path}${path.includes("?") ? "&" : "?"}order=${order}&limit=1000&offset=${o}`);
+  for (let o = 0; o < 100000; o += 4000) {
+    const pages = await Promise.all([0, 1000, 2000, 3000].map((d) => page(o + d)));
+    let short = false;
+    for (const rows of pages) { if (short) break; out.push(...rows); if (rows.length < 1000) short = true; }
+    if (short) break;
   }
   return out;
 }
+// The exchange bulk/block deal history is used by three views; it is downloaded once and shared.
+const dealRecords = () => dealRecords.p ||= apiAll("feed_records?select=dataset,key,as_of,data&dataset=in.(nse_deals,bse_deals)").catch((e) => { dealRecords.p = null; throw e; });
 async function apiPage(path) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { headers: { apikey: KEY, Prefer: "count=exact" } });
   if (!res.ok) throw new Error((await res.json().catch(() => ({}))).message || res.statusText);
@@ -5741,8 +5750,20 @@ const mkNum = (v) => { const n = parseFloat(String(v ?? "").replace(/,/g, "")); 
 const mkOnce = (rows, key) => { const seen = new Set(); return rows.filter((r) => { const k = key(r); return seen.has(k) ? false : (seen.add(k), true); }); };
 const mkTrade = (r) => [r.date, r.symbol || r.code, r.clientName, r.buySell, r.qty].map((x) => String(x ?? "").trim().toUpperCase()).join("|");
 const mkFmt = (v, d = 0) => { const n = mkNum(v); return n === null ? "–" : n.toLocaleString("en-IN", { maximumFractionDigits: d }); };
+// Source files write dates their own way (25-Nov-2026, 2026-11-25, 25/11/2026). Table cells and headings that are just a date
+// are shown in the site's one format, 25 Nov 2026.
+const MON_IX = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
+function normDate(v) {
+  if (typeof v !== "string") return v;
+  const t = v.trim(); let m;
+  if ((m = /^(\d{4})-(\d{2})-(\d{2})(?:[T ][\d:.]+Z?)?$/.exec(t))) return toDMY(`${m[1]}-${m[2]}-${m[3]}`);
+  if ((m = /^(\d{1,2})[-\s]([A-Za-z]{3})[a-z]*[-\s](\d{4}|\d{2})$/.exec(t)) && MON_IX[m[2].toLowerCase()] != null) return `${+m[1]} ${MONTH_ABBR[MON_IX[m[2].toLowerCase()]]} ${m[3].length === 2 ? "20" + m[3] : m[3]}`;
+  if ((m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(t)) && +m[2] <= 12) return `${+m[1]} ${MONTH_ABBR[+m[2] - 1]} ${m[3]}`;
+  return v;
+}
+const normDatesIn = (t) => String(t).replace(/\b(20\d\d)-(\d\d)-(\d\d)\b/g, (x) => toDMY(x));
 const mkTable = (head, rows, nText = 1) => rows.length
-  ? `<div class="ftable-wrap"><div class="scroll"><table class="ftable"><thead><tr>${head.map((h, i) => `<th${i >= nText ? ' class="num"' : ""}>${esc(h)}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c, i) => `<td${i >= nText ? ' class="num"' : ""}>${c && typeof c === "object" ? c.h : esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>`
+  ? `<div class="ftable-wrap"><div class="scroll"><table class="ftable"><thead><tr>${head.map((h, i) => `<th${i >= nText ? ' class="num"' : ""}>${esc(h)}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c, i) => `<td${i >= nText ? ' class="num"' : ""}>${c && typeof c === "object" ? c.h : esc(normDate(c))}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>`
   : `<p class="note">No data yet.</p>`;
 // Same name test as the ingest function: a heuristic, so it can miss some foreign investors.
 const MK_FOREIGN = /\b(PTE|LLC|L\.?P\.?|PLC|SICAV|ICAV|S\.?A\.?|SARL|GMBH|AG|INC|N\.?V\.?|B\.?V\.?|MAURITIUS|SINGAPORE|CAYMAN|IRELAND|LUXEMBOURG|NORWAY|ABU DHABI|DUBAI|QATAR|KUWAIT|SAUDI|JAPAN|KOREA|TAIWAN|HONG KONG|CANADA|AUSTRALIA|MASTER FUND|FEEDER|OFFSHORE|EMERGING MARKETS?|GOVERNMENT OF|MONETARY AUTHORITY|INVESTMENT AUTHORITY|PENSION|SOVEREIGN|ODI|FPI|GOLDMAN SACHS|MORGAN STANLEY|CITIGROUP|BNP PARIBAS|SOCIETE GENERALE|J\.?P\.? ?MORGAN|BOFA|MERRILL|NOMURA|UBS|CLSA|VANGUARD|BLACKROCK|GIC|NORGES|TEMASEK|FIDELITY|ABERDEEN|MACQUARIE|HSBC|BARCLAYS|CITADEL|JANE STREET|SOCIETE)\b/i, MK_DOMESTIC = /(MUTUAL FUND|\bMF\b|INSURANCE|\bHUF\b|PRIVATE LIMITED|PVT\.? LTD|BROKING|SHARE BROKERS)/i;
@@ -5759,19 +5780,20 @@ const xFirm = (name) => {
 async function xRegistry(names) {
   const out = new Map(), key = (n) => String(n || "").toUpperCase().replace(/\s+/g, " ").trim();
   const uniq = [...new Set(names.filter(Boolean))];
-  for (let i = 0; i < uniq.length; i += 25) {
-    const list = encodeURIComponent(uniq.slice(i, i + 25).map((n) => `"${n.replace(/"/g, "")}"`).join(","));
-    const [reg, gift] = await Promise.all([
-      api(`fpi_registry?select=name,country,category&name=in.(${list})&limit=100`).catch(() => []),
-      api(`ifsca_entities?select=name&name=in.(${list})&limit=100`).catch(() => []),
-    ]);
+  // All name batches are looked up at once (they were one after another).
+  const batches = []; for (let i = 0; i < uniq.length; i += 25) batches.push(encodeURIComponent(uniq.slice(i, i + 25).map((n) => `"${n.replace(/"/g, "")}"`).join(",")));
+  const res = await Promise.all(batches.map((list) => Promise.all([
+    api(`fpi_registry?select=name,country,category&name=in.(${list})&limit=100`).catch(() => []),
+    api(`ifsca_entities?select=name&name=in.(${list})&limit=100`).catch(() => []),
+  ])));
+  res.forEach(([reg, gift]) => {
     reg.forEach((r) => out.set(key(r.name), { ...(out.get(key(r.name)) || {}), country: r.country, cat: r.category }));
     gift.forEach((r) => out.set(key(r.name), { ...(out.get(key(r.name)) || {}), gift: true }));
-  }
+  });
   return { get: (n) => out.get(key(n)) || {} };
 }
 const lgsm = (a) => Array.isArray(a) ? `<span class="lg">${esc(a[0])}</span><span class="sm">${esc(a[1])}</span>` : esc(a);
-const mkSec = (title, note, body) => `<h2 class="fsec">${esc(title)}</h2><p class="note">${lgsm(note)}</p>${body}`;
+const mkSec = (title, note, body) => `<h2 class="fsec">${esc(normDatesIn(title))}</h2><p class="note">${lgsm(note)}</p>${body}`;
 
 // ---------- Outbound (ODI) ----------
 const odi = { loaded: false, rows: [], months: [], month: null, q: "", country: "" };
@@ -5797,7 +5819,7 @@ async function renderOdi() {
   const q = odi.q.toUpperCase();
   const list = odi.rows.filter((r) => (!odi.country || r.country === odi.country) && (!q || `${r.indian_party || ""} ${r.jv_name} ${r.activity}`.toUpperCase().includes(q)));
   const who = (r) => r.indian_party ? { h: firmLink(r.indian_party, titleCase(r.indian_party)) } : { h: `<span class="ftype">Individual</span>` };
-  const src = `<p class="dsrc">Source: <a href="${esc(m.source_url)}" target="_blank" rel="noopener">RBI, Overseas Direct Investment for ${esc(ml(m.month))}</a>${m.released_on ? ` · released ${esc(m.released_on)}` : ""} · amounts are financial commitments reported by banks, provisional.</p>`;
+  const src = `<p class="dsrc">Source: <a href="${esc(m.source_url)}" target="_blank" rel="noopener">RBI, Overseas Direct Investment for ${esc(ml(m.month))}</a>${m.released_on ? ` · released ${esc(toDMY(String(m.released_on).slice(0, 10)))}` : ""} · amounts are financial commitments reported by banks, provisional.</p>`;
   body.innerHTML = `
     <div class="filters fperiod"><select id="odi-month" aria-label="Month">${odi.months.slice().reverse().map((x) => `<option value="${x.month}"${x.month === odi.month ? " selected" : ""}>${esc(ml(x.month))}</option>`).join("")}</select></div>
     <p class="takeaway">In ${esc(ml(m.month))}, Indian companies committed <b>${fmtUsd(+m.total)}</b> abroad across ${nfmt(m.deals)} investments${chg == null ? "" : `, ${chg >= 0 ? "up" : "down"} ${Math.abs(chg)}% on ${esc(ml(prev.month))}`}. Equity ${fmtUsd(+m.equity)}, loans ${fmtUsd(+m.loan)}, guarantees ${fmtUsd(+m.guarantee)}.</p>
@@ -5831,7 +5853,7 @@ async function openMarkets() {
       api("feed_records?select=key,as_of,data&dataset=eq.rbi_reserves&order=as_of.desc.nullslast&limit=1").catch(() => []),
     ]);
     mk.cci = cci; mk.rbi = rbi;
-    rows.push(...await apiAll("feed_records?select=dataset,key,as_of,data&dataset=in.(nse_deals,bse_deals)").catch(() => []));
+    rows.push(...await dealRecords().catch(() => []));
     for (const r of rows) (mk.data[r.dataset] ||= []).push(r);
     mk.loaded = true;
     await renderMarkets();
@@ -6350,7 +6372,7 @@ async function loadOvOdi() {
 const xCache = {};
 async function dealsAll() {
   if (!xCache.deals) {
-    try { xCache.deals = (await apiAll("feed_records?select=key,data&dataset=in.(nse_deals,bse_deals)")).filter((r) => /^((BULK|BLOCK)_DEALS|BSE_(BULK|BLOCK))\|/.test(r.key)).map((r) => r.data); xCache.deals = mkOnce(xCache.deals, mkTrade); }
+    try { xCache.deals = (await dealRecords()).filter((r) => /^((BULK|BLOCK)_DEALS|BSE_(BULK|BLOCK))\|/.test(r.key)).map((r) => r.data); xCache.deals = mkOnce(xCache.deals, mkTrade); }
     catch { xCache.deals = []; }
   }
   return xCache.deals;
@@ -6993,7 +7015,7 @@ async function drawFpiWatch() {
   box.innerHTML = `<div class="watch-h"><div><h3>FPI watch lists</h3><div class="sub">From NSDL's FPI register, updated daily. Registration numbers and names only.</div></div><button type="button" class="csvbtn" id="fw-csv">Download CSV (${nfmt(shown.length)})</button></div>
     <div class="qviews" role="group" aria-label="Watch list">${FW_VIEWS.map(([k, l]) => `<button type="button" data-fw="${k}" aria-pressed="${fw.view === k}">${l}<b>${nfmt((fw.data[k] || []).length)}</b></button>`).join("")}</div>
     <div class="filters" style="margin-bottom:8px"><input type="search" id="fw-q" placeholder="Search name, registration number or country" aria-label="Search the watch list" value="${esc(fw.q)}"></div>
-    <div class="watch-w"><table><thead><tr>${cols.map((c) => `<th>${c}</th>`).join("")}</tr></thead><tbody>${shown.slice(0, 300).map((r) => { const v = row(r); return `<tr>${v.map((x, i) => i === 6 && fw.view !== "new" && fw.view !== "dropped" ? `<td class="due${x != null && x <= 30 ? " soon" : ""}">${x == null ? "–" : x < 0 ? `${-x} days ago` : `${x} days`}</td>` : `<td>${esc(x ?? "")}</td>`).join("")}</tr>`; }).join("") || `<tr><td colspan="${cols.length}">Nothing on this list.</td></tr>`}</tbody></table></div>
+    <div class="watch-w"><table><thead><tr>${cols.map((c) => `<th>${c}</th>`).join("")}</tr></thead><tbody>${shown.slice(0, 300).map((r) => { const v = row(r); return `<tr>${v.map((x, i) => i === 6 && fw.view !== "new" && fw.view !== "dropped" ? `<td class="due${x != null && x <= 30 ? " soon" : ""}">${x == null ? "–" : x < 0 ? `${-x} day${x === -1 ? "" : "s"} ago` : `${x} day${x === 1 ? "" : "s"}`}</td>` : `<td>${esc(x ?? "")}</td>`).join("")}</tr>`; }).join("") || `<tr><td colspan="${cols.length}">Nothing on this list.</td></tr>`}</tbody></table></div>
     ${shown.length > 300 ? `<div class="sub" style="margin-top:6px">Showing 300 of ${nfmt(shown.length)}. Download the CSV for the full list.</div>` : ""}`;
   box.querySelectorAll("[data-fw]").forEach((b) => b.onclick = () => { fw.view = b.dataset.fw; drawFpiWatch(); });
   const qi = $("fw-q"); qi.oninput = () => { fw.q = qi.value; drawFpiWatch().then(() => { const i = $("fw-q"); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }); };
@@ -7059,7 +7081,7 @@ function drawFxDesk() {
   const line = pts.map((x, i) => `${i ? "L" : "M"}${(i + 0.5) * (W / n)},${yfx(x.fx)}`).join("");
   const ticks = pts.map((x, i) => x.k.endsWith("-01") ? `<text x="${(i + 0.5) * (W / n)}" y="${H + 14}" text-anchor="middle">${x.k.slice(0, 4)}</text>` : "").join("");
   const fwdRows = (fxd.fwd || []).filter((r) => ["1M", "2M", "3M", "6M", "9M", "12M", "1Y"].includes(r.tenor));
-  box.innerHTML = `<h2>FX desk</h2><p class="sub" style="margin:0">FBIL reference rates (₹ per unit; yen per 100) for ${toDMY(last.day)}. FBIL's free feed runs about a week behind; the live rate is on Home.</p>
+  box.innerHTML = `<h2>FX desk</h2><p class="sub" style="margin:0">FBIL reference rates (₹ per unit; yen per 100) for ${toDMY(last.day)}. FBIL's free feed runs about a week behind; the rate used for current figures is in the footer.</p>
     <div class="fxg">${card("USD", "US dollar")}${card("EUR", "Euro")}${card("GBP", "Pound")}${card("JPY", "Yen (100)")}${card("AED", "UAE dirham")}</div>
     <div class="fxrow"><div class="hc" style="cursor:default"><h3>USD/INR and FPI money, by month</h3>
       <svg viewBox="0 0 ${W} ${H + 18}" role="img" aria-label="USD/INR against monthly FPI flows"><line x1="0" x2="${W}" y1="${mid}" y2="${mid}" stroke="var(--line)"/>${bars}<path d="${line}" fill="none" stroke="var(--ink)" stroke-width="2"/>${ticks}</svg>
