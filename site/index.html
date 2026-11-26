@@ -1059,7 +1059,7 @@ button,.reset,select,summary,.link,.kpi,.card,.bk,.ovrow,.ftable tbody tr,nav.ta
 .stack-h{display:none}
 body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-weight:600;margin:40px 0 8px;padding-top:24px;border-top:1px solid var(--line)}
 /* Readability floor: the second-currency brackets scale with their parent and fell to 9px; never below 11px. */
-:root:not(#ds1):not(#ds2):not(#fl) .inr,:root:not(#ds1):not(#ds2):not(#fl) small.inr,:root:not(#ds1):not(#ds2):not(#fl) .amt-tag span{font-size:max(11px,.75em)!important}
+:root:not(#ds1):not(#ds2):not(#fl) .inr,:root:not(#ds1):not(#ds2):not(#fl) small.inr,:root:not(#ds1):not(#ds2):not(#fl) .amt-tag span{font-size:12px!important}
 /* Today: the five lower panels open on request (they are one click away in their own tabs) */
 body:not(.home-more) #tab-overview .ovc.more-d{display:none}
 #d-more{grid-column:1/-1;justify-self:center;margin:4px 0 8px;padding:10px 22px;border:1px solid var(--line-2,var(--line));border-radius:var(--r-sm,8px);background:var(--panel);color:var(--ink);font:500 14px var(--font-ui,inherit);cursor:pointer}
@@ -1067,6 +1067,8 @@ body:not(.home-more) #tab-overview .ovc.more-d{display:none}
 body.home-more #d-more{display:none}
 @media print{.csvbar,#d-more,.m-more{display:none!important}}
 .asof{color:var(--muted);white-space:nowrap}
+.pg-tools{margin-top:2px}.pg-tools,.pg-tools .link{font-size:12px;color:var(--muted)}.pg-tools .link:hover{color:var(--accent)}
+@media print{.pg-tools{display:none!important}}
 </style>
 <script src="vendor/lenis.min.js" integrity="sha384-HW3Ly4XWKJet3D65KqJnRL8BXjzJvMnPqdFMx+d3/VIFGc7APZsMC2Z6KNvLgwO6" crossorigin="anonymous" defer></script>
 <style>
@@ -1697,6 +1699,7 @@ body{font-variant-numeric:tabular-nums}
       <div class="eyebrow">Indian Capital Tracker</div>
       <h1 id="ptitle">Overview</h1>
       <div class="sub" id="psub">Foreign investments into India, exits from India, offshore fund launches, and jurisdiction moves</div>
+      <div class="sub pg-tools"><button class="link" id="cp-link" type="button">Copy link</button> · <button class="link" id="cp-cite" type="button" title="Copy a citation for this page">Cite</button></div>
     </div>
     <div>
       <div class="htools">
@@ -2213,8 +2216,9 @@ function ago(iso) {
 // Every amount is shown as "₹X cr (~$Y)". Rupee amounts keep the reported figure; others convert from US$.
 const CR_UNIT = { "lakh crore": 1e5, "lakh cr": 1e5, "crore": 1, "crores": 1, "cr": 1, "billion": 100, "bn": 100, "million": 0.1, "mn": 0.1, "lakh": 0.01 };
 // The rupee rate is FBIL's published USD/INR reference rate (the rate Indian banks, custodians and auditors use). It is used while it is
-// under 14 days old; otherwise the ECB reference rate (Frankfurter) stands in, and the footer says which one is in use.
-function fbilFresh() { return CCY_R.usdinr > 60 && CCY_R.usdinr < 140 && CCY_R.day && Date.now() - new Date(CCY_R.day + "T00:00:00Z") < 14 * 864e5; }
+// under 3 days old. FBIL's public feed runs about a week behind, so the ECB reference rate (Frankfurter, current to the previous working day) is normally
+// the one in use for today's figures; the footer says which one and gives FBIL's latest for comparison.
+function fbilFresh() { return CCY_R.usdinr > 60 && CCY_R.usdinr < 140 && CCY_R.day && Date.now() - new Date(CCY_R.day + "T00:00:00Z") < 3 * 864e5; }
 function usdInr() {
   if (fbilFresh()) return CCY_R.usdinr;
   if (window.__fx > 60 && window.__fx < 140) return window.__fx; // ECB reference rate (Frankfurter), once loaded
@@ -2245,7 +2249,7 @@ function fmtBig(code, m) { return m >= 1e6 ? `${code} ${+(m / 1e6).toFixed(2)} t
 const fmtUsd = (u) => { const c = effCcy(); return c === "USD" ? fmtBig("USD", u) : c === "INR" ? fmtCr(u * usdInr() / 10) : fmtBig(c, u * CCY_R[c]); };
 const fmtUsdS = (u) => {
   const c = effCcy(), sy = CCYS[c][1];
-  if (c === "INR") { const cr = u * usdInr() / 10; return cr >= 1e5 ? `₹${+(cr / 1e5).toFixed(1)}L cr` : `₹${cr >= 100 ? Math.round(cr).toLocaleString("en-IN") : +cr.toFixed(1)}cr`; }
+  if (c === "INR") { const cr = u * usdInr() / 10; return cr >= 1e5 ? `₹${+(cr / 1e5).toFixed(1)}L cr` : `₹${cr >= 100 ? Math.round(cr).toLocaleString("en-IN") : +cr.toFixed(1)} cr`; }
   const m = c === "USD" ? u : u * CCY_R[c];
   return m >= 1e6 ? `${sy}${+(m / 1e6).toFixed(1)}tn` : m >= 1000 ? `${sy}${+(m / 1000).toFixed(1)}bn` : `${sy}${m >= 10 ? Math.round(m) : +m.toFixed(1)}m`;
 };
@@ -3894,6 +3898,9 @@ async function copyLink(url, btn) {
   setTimeout(() => btn.textContent = was, 2000);
 }
 $("sharev").addEventListener("click", () => { syncUrl(); copyLink(location.href, $("sharev")); });
+// Every page can be linked or cited: the link carries the tab and filters; the citation names the page, link and access date.
+$("cp-link").addEventListener("click", () => { syncUrl(); copyLink(location.href, $("cp-link")); });
+$("cp-cite").addEventListener("click", () => { syncUrl(); copyLink(`Indian Capital Tracker, "${$("ptitle").textContent}", ${location.origin}${location.pathname}${location.search}, accessed ${toDMY(dayStr(new Date()))}.`, $("cp-cite")); });
 ["feed", "board", "fnote-slot"].forEach((id) => $(id).addEventListener("click", (ev) => {
   const s = ev.target.closest("[data-share]"), c = ev.target.closest("[data-clear]");
   if (s) copyLink(`${location.origin}${location.pathname}?story=${encodeURIComponent(s.dataset.share)}`, s);
@@ -4353,7 +4360,7 @@ const TITLES = {
   firm: ["Investor profile", "One investor's deals, connections and sources"],
   entity: ["Profile", "Everything the site holds on one name"],
   users: ["Users", "Who signs in and what they open (owner only)"],
-  flows: ["FPI flows", "Is foreign money coming in or going out? Foreign funds' purchases and sales of Indian shares and bonds, day by day"],
+  flows: ["FPI flows", "Foreign funds' purchases and sales of Indian shares and bonds, day by day"],
   markets: ["Market data", "Big trades by foreign funds, and daily buying and selling on the exchange"],
   odi: ["Outbound investment", "Money Indian companies sent overseas each month, and where it went (RBI data)"],
   regulation: ["Rules and circulars", "The rules for foreign money in India, in plain English, and what changed recently"],
@@ -6012,9 +6019,9 @@ async function xtInit() {
 // The footer line that says which USD/INR rate the rupee figures use.
 function fxNote() {
   const last = window.__fxLast; if (!last && !fbilFresh()) return;
-  const dm = (d) => new Date(d + "T00:00:00Z").toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit", timeZone: "UTC" }).replace(/ /g, "-");
+  const dm = toDMY;
   const t = fbilFresh() ? `Exchange rates: US$1 = ₹${CCY_R.usdinr.toFixed(2)} (FBIL reference rate for ${dm(CCY_R.day)})`
-    : `Exchange rates: US$1 = ₹${last.usd_inr.toFixed(2)} (European Central Bank reference rate for ${last.date}, via Frankfurter; FBIL rate not current)`;
+    : `Exchange rates: US$1 = ₹${last.usd_inr.toFixed(2)} (European Central Bank reference rate for ${toDMY(last.date)}, via Frankfurter)${CCY_R.usdinr > 60 && CCY_R.day ? `. FBIL's own published rate runs about a week behind: ₹${CCY_R.usdinr.toFixed(2)} for ${dm(CCY_R.day)}` : ""}`;
   $("fx-home").textContent = t; $("fx-home").hidden = false; $("fx-foot").textContent = t + ". Figures reported directly in US$ by NSDL are shown as published.";
 }
 
@@ -6413,11 +6420,11 @@ var gnav = { open: null };
 // showing them as sub-tabs. Tab ids are unchanged, so old links (#feed, #network, ...) still open the right view.
 const GNAV = [
   { id: "home", label: "Today", icon: "overview", views: [["overview", "Today", "What happened today, in a few lines"]] },
-  { id: "who", label: "Who invests", icon: "feed", views: [["feed", "Deals", "Every investment, sale and new fund"], ["investors", "Investors", "One page per foreign investor"], ["network", "Connections", "Who invests alongside whom"], ["directory", "Registered funds", "Foreign funds allowed to invest in Indian markets"]], also: ["firm", "entity"] },
-  { id: "money", label: "Money flow", icon: "flows", views: [["flows", "Daily flows", "Are foreign funds buying or selling?"], ["markets", "Stock-market detail", "Big trades and daily buying and selling"]] },
-  { id: "abroad", label: "Going abroad", icon: "odi", views: [["odi", "Going abroad", "Indian companies investing overseas"]] },
+  { id: "who", label: "Investors", icon: "feed", views: [["feed", "Deals", "Every investment, sale and new fund"], ["investors", "Investors", "One page per foreign investor"], ["network", "Connections", "Who invests alongside whom"], ["directory", "FPI register", "Foreign funds allowed to invest in Indian markets"]], also: ["firm", "entity"] },
+  { id: "money", label: "Flows", icon: "flows", views: [["flows", "FPI flows", "Are foreign funds buying or selling?"], ["markets", "Market data", "Big trades and daily buying and selling"]] },
+  { id: "abroad", label: "Outbound", icon: "odi", views: [["odi", "Outbound investment", "Indian companies investing overseas"]] },
   { id: "gift", label: "GIFT City", icon: "gift", views: [["gift", "GIFT City", "India's international finance hub"]] },
-  { id: "rules", label: "Rules", icon: "regulation", views: [["regulation", "Rules", "The rules for foreign money, in plain English"]] },
+  { id: "rules", label: "Rules", icon: "regulation", views: [["regulation", "Rules and circulars", "The rules for foreign money, in plain English"]] },
 ];
 const gnavOwner = (t) => GNAV.find((g) => gnavViews(g).some((v) => v[0] === t) || (g.also || []).includes(t));
 function gnavViews(g) {
