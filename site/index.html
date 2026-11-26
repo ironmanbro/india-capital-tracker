@@ -816,7 +816,7 @@ select option,select optgroup{background-color:var(--panel);color:var(--ink)}
 
 /* Rail. */
 nav.tabs{border-radius:10px!important}
-nav.tabs button[aria-selected="true"]{background:rgba(59,130,246,.14);color:var(--ink);box-shadow:inset 2px 0 0 var(--accent)}
+nav.tabs button[aria-selected="true"]{background:rgba(59,130,246,.14);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line-2,var(--line))}
 nav.tabs .logo{border-radius:var(--r-lg);font-family:var(--font-mono)}
 
 /* ---------- Story cards ---------- */
@@ -874,7 +874,7 @@ nav.tabs .logo{border-radius:var(--r-lg);font-family:var(--font-mono)}
 .cmdk-it{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--r);cursor:pointer;min-width:0}
 .cmdk-it b{font-weight:500;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
 .cmdk-it small{color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:45%}
-.cmdk-it[aria-selected="true"]{background:color-mix(in srgb,var(--accent) 16%,transparent);box-shadow:inset 2px 0 0 var(--accent)}
+.cmdk-it[aria-selected="true"]{background:color-mix(in srgb,var(--accent) 16%,transparent);box-shadow:inset 0 0 0 1px var(--line-2,var(--line))}
 .cmdk-it mark{background:none;color:var(--accent);font-weight:700}
 .cmdk-none{padding:18px 12px;color:var(--muted);font-size:13px}
 .cmdk-foot{display:flex;gap:14px;padding:8px 14px;border-top:1px solid var(--line);font-size:11.5px;color:var(--muted)}
