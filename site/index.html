@@ -1071,6 +1071,11 @@ body.home-more #d-more{display:none}
 @media print{.pg-tools{display:none!important}}
 body[data-dirview="ifsca"] #acc-fpilim,body[data-dirview="ifsca"] #acc-aum{display:none}
 .irow .ic.nil b{color:var(--muted);font-weight:400}.irow .ic.nil span{opacity:.45}
+.alerts{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin:0 0 14px}
+.alert{display:block;text-align:left;padding:10px 14px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:var(--r-sm,8px);background:var(--panel);color:var(--ink);cursor:pointer;font:inherit}
+.alert.warn{border-left-color:var(--warn,#9a6700)}.alert:hover{border-color:var(--line-2,var(--line));border-left-color:inherit}
+.alert b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}.alert .at{display:block;font-weight:600;margin:2px 0}.alert .as{display:block;font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media print{.alerts{display:none}}
 </style>
 <script src="vendor/lenis.min.js" integrity="sha384-HW3Ly4XWKJet3D65KqJnRL8BXjzJvMnPqdFMx+d3/VIFGc7APZsMC2Z6KNvLgwO6" crossorigin="anonymous" defer></script>
 <style>
@@ -1341,7 +1346,7 @@ body{font-variant-numeric:tabular-nums}
 .watch-h h3{margin:0;font-size:16px}
 .watch .qviews{margin:0 0 10px}
 .watch .qviews b{margin-left:6px;font-weight:700;opacity:.8}
-.watch-w{overflow-x:auto;max-height:520px;overflow-y:auto;border:1px solid var(--line);border-radius:12px}
+.watch-w{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
 .watch table{width:100%;border-collapse:collapse;font-size:13px;background:none;border:0;box-shadow:none}
 .watch th{position:sticky;top:0;background:var(--panel);text-align:left;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);padding:9px 12px;border-bottom:1px solid var(--line);font-weight:600}
 .watch td{padding:9px 12px;border-bottom:1px solid var(--line)}
@@ -1793,6 +1798,7 @@ body{font-variant-numeric:tabular-nums}
 
   <section id="tab-overview">
     <a class="rulebook" href="/rules">Rulebook: FPI, FDI and FVCI &mdash; plain-English summaries, official documents and the latest changes <span aria-hidden="true">&rarr;</span></a>
+    <div class="alerts" id="ov-alerts" role="region" aria-label="Alerts" hidden></div>
     <p class="takeaway" id="ov-take"></p>
     <div class="ftiles" id="ov-tiles"></div>
     <div class="ftiles" id="ov-cross"></div>
@@ -4671,8 +4677,23 @@ function asofStamps(deals) {
   const all = state.events.filter((e) => e.event_type !== "regulation");
   put("asof-deals", newest(deals)); put("asof-stories", newest(all)); const n = newest(all); put("asof-where", n); put("asof-30", n);
 }
+// Today's alerts: only what needs a look today. Shown when there is something to say; otherwise the strip is not drawn.
+function renderAlerts() {
+  const box = $("ov-alerts"); if (!box || !state.events.length) return;
+  const now = Date.now(), today = dayStr(new Date()), items = [];
+  const soon = state.events.filter((e) => e.event_type === "regulation" && e.effective_on && String(e.effective_on) >= today && (new Date(e.effective_on) - now) / 864e5 <= 14).sort((a, b) => String(a.effective_on).localeCompare(String(b.effective_on)));
+  if (soon.length) items.push({ k: "Rules", t: `${soon.length} rule${soon.length === 1 ? "" : "s"} take effect in the next 14 days`, s: `${toDMY(String(soon[0].effective_on))}: ${soon[0].title}`, go: "regulation", tone: "warn" });
+  const big = state.events.filter((e) => now - new Date(e.published_at || e.fetched_at) < 3 * 864e5 && FIRM.has(e.deal_stage) && isNamedDeal(e) && (amountCr(e)?.cr || 0) >= 500).sort((a, b) => amountCr(b).cr - amountCr(a).cr);
+  if (big.length) items.push({ k: "Deals", t: `${big.length} large deal${big.length === 1 ? "" : "s"} of ₹500 cr or more in the last 3 days`, s: `${big[0].investor} → ${big[0].target}: ${fmtCr(amountCr(big[0]).cr)}`, go: "feed", tone: "info" });
+  const dueSoon = fw.data && (fw.data.expiring || []).filter((r) => r.valid_upto && (new Date(r.valid_upto) - now) / 864e5 <= 7).length;
+  if (dueSoon) items.push({ k: "FPI register", t: `${dueSoon} FPI registration${dueSoon === 1 ? "" : "s"} expire within 7 days`, s: "Renewal is due; late fees apply after expiry", go: "directory", tone: "warn" });
+  box.hidden = !items.length;
+  box.innerHTML = items.map((a) => `<button type="button" class="alert ${a.tone}" data-go="${a.go}"><b>${esc(a.k)}</b><span class="at">${esc(a.t)}</span><span class="as">${esc(a.s)}</span></button>`).join("");
+  box.querySelectorAll("[data-go]").forEach((b) => b.onclick = () => { setTab(b.dataset.go); toTop(); });
+}
 function renderOverview() {
   renderHome();
+  renderAlerts();
   renderOvRegChanges();
   if (!odi.ovLoaded) { odi.ovLoaded = true; loadOvOdi(); }
   if (!$("tab-overview") || !state.events.length) return;
@@ -4783,7 +4804,8 @@ addEventListener("resize", () => { if (innerWidth === lastResizeW) return; lastR
 
 // ---------- Directory: NSDL's FPI register and IFSCA's directory of GIFT IFSC entities ----------
 // Both lists are too long to load at once, so each search asks the database for one page of matches.
-const dir = { new30: false, view: "fpi", shown: 0, size: 50, stats: null, meta: false, seq: 0, sort: { col: "registered", desc: true }, isort: { col: "registered", desc: true } };
+const GIFT_NON_FIN = ["Qualified Jewellers", "Metals & Commodities entities", "Surrendered/Cancelled CoRs"];
+const dir = { new30: false, fin: true, view: "fpi", shown: 0, size: 50, stats: null, meta: false, seq: 0, sort: { col: "registered", desc: true }, isort: { col: "registered", desc: true } };
 // GIFT IFSC table columns that can be sorted.
 const IFSC_SORT = {
   name: [(d) => `name.${d ? "desc" : "asc"}`, false],
@@ -4953,10 +4975,12 @@ function drawGiftViews() {
   const catN = (c) => (dir.types || []).filter((t) => t.category === c).reduce((a, t) => a + t.n, 0);
   const cats = [...new Set((dir.types || []).map((t) => t.category).filter(Boolean))].sort((a, b) => catN(b) - catN(a)).slice(0, 6);
   const cur = $("icat2").value, plain = !$("iq2").value && !$("itype2").value && !dir.new30;
-  const views = [["All entities", "", false, plain && !cur], ...cats.map((c) => [c.replace(/ entities$/i, ""), c, false, plain && cur === c]), ["Registered in the last 30 days", "", true, dir.new30 && !cur]];
+  const finCats = cats.filter((c) => !GIFT_NON_FIN.includes(c)), otherCats = cats.filter((c) => GIFT_NON_FIN.includes(c) && c !== "Surrendered/Cancelled CoRs");
+  const views = [["Financial services", "", false, plain && !cur && dir.fin, true], ...finCats.map((c) => [c.replace(/ entities$/i, ""), c, false, plain && cur === c]), ["Registered in the last 30 days", "", true, dir.new30 && !cur, false],
+    ...otherCats.map((c) => [c.replace(/ entities$/i, ""), c, false, plain && cur === c]), ["All entities", "", false, plain && !cur && !dir.fin, false]];
   box.innerHTML = views.map((v, i) => `<button type="button" data-gv="${i}" aria-pressed="${!!v[3]}">${esc(v[0])}</button>`).join("");
   box.querySelectorAll("button").forEach((b) => b.onclick = () => {
-    const v = views[b.dataset.gv]; dir.new30 = v[2]; $("iq2").value = ""; selSet("itype2", ""); selSet("icat2", v[1]); fillIfscaTypes(); runDirSearch(true); drawGiftViews();
+    const v = views[b.dataset.gv]; dir.new30 = v[2]; if (v[4] !== undefined) dir.fin = v[4]; $("iq2").value = ""; selSet("itype2", ""); selSet("icat2", v[1]); fillIfscaTypes(); runDirSearch(true); drawGiftViews();
   });
 }
 function fillIfscaTypes() {
@@ -5003,6 +5027,8 @@ function dirPath() {
   const q = term($("iq2").value), f = [];
   if (q) f.push(`name=ilike.*${enc(q)}*`);
   if ($("icat2").value) f.push(`category=eq.${enc($("icat2").value)}`);
+  // The register is shown without jewellers, commodity traders and cancelled licences until "All entities" is chosen (a name search always looks at everything).
+  else if (dir.fin && !q && !dir.new30) f.push(`category=not.in.(${encodeURIComponent(GIFT_NON_FIN.map((c) => `"${c}"`).join(","))})`);
   if ($("itype2").value) f.push(`sub_category=eq.${enc($("itype2").value)}`);
   if (dir.new30) f.push(`reg_date=gte.${new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10)}`);
   const order = IFSC_SORT[dir.isort.col][0](dir.isort.desc);
@@ -6492,10 +6518,10 @@ var gnav = { open: null };
 // showing them as sub-tabs. Tab ids are unchanged, so old links (#feed, #network, ...) still open the right view.
 const GNAV = [
   { id: "home", label: "Today", icon: "overview", views: [["overview", "Today", "What happened today, in a few lines"]] },
-  { id: "who", label: "Investors", icon: "feed", views: [["feed", "Deals", "Every investment, sale and new fund"], ["investors", "Investors", "One page per foreign investor"], ["network", "Connections", "Who invests alongside whom"], ["directory", "FPI register", "Foreign funds allowed to invest in Indian markets"]], also: ["firm", "entity"] },
+  { id: "deals", label: "Deals", icon: "feed", views: [["feed", "Deals", "Every investment, sale and new fund"]] },
+  { id: "who", label: "Investors", icon: "investors", views: [["investors", "Investors", "One page per foreign investor"], ["network", "Connections", "Who invests alongside whom"], ["directory", "FPI register", "Foreign funds allowed to invest in Indian markets"], ["gift", "GIFT City register", "Fund managers, banks and insurers in GIFT City"]], also: ["firm", "entity"] },
   { id: "money", label: "Flows", icon: "flows", views: [["flows", "FPI flows", "Are foreign funds buying or selling?"], ["markets", "Market data", "Big trades and daily buying and selling"]] },
   { id: "abroad", label: "Outbound", icon: "odi", views: [["odi", "Outbound investment", "Indian companies investing overseas"]] },
-  { id: "gift", label: "GIFT City", icon: "gift", views: [["gift", "GIFT City", "India's international finance hub"]] },
   { id: "rules", label: "Rules", icon: "regulation", views: [["regulation", "Rules and circulars", "The rules for foreign money, in plain English"]] },
 ];
 const gnavOwner = (t) => GNAV.find((g) => gnavViews(g).some((v) => v[0] === t) || (g.also || []).includes(t));
@@ -7045,7 +7071,7 @@ new MutationObserver(() => { clearTimeout(phoneT); phoneT = setTimeout(() => { t
 setTimeout(() => { try { msEnhance(); cardTables(); chartButtons(); } catch {} }, 500);
 
 // ---------- Custody: FPI watch lists (expiring, late fee, new, dropped off, invalid) ----------
-const fw = { data: null, view: "expiring", q: "" };
+const fw = { data: null, view: "expiring", q: "", n: 25 };
 const FW_VIEWS = [["expiring", "Renewal due in 90 days"], ["late_fee", "In late-fee window"], ["new", "New in 30 days"], ["dropped", "Dropped off the register"], ["invalid", "Invalid"]];
 function csvDownload(name, rows) {
   const q = (v) => { const t = String(v ?? ""); return /[",\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t; };
@@ -7065,10 +7091,11 @@ async function drawFpiWatch() {
   box.innerHTML = `<div class="watch-h"><div><h3>FPI watch lists</h3><div class="sub">From NSDL's FPI register, updated daily. Registration numbers and names only.</div></div><button type="button" class="csvbtn" id="fw-csv">Download CSV (${nfmt(shown.length)})</button></div>
     <div class="qviews" role="group" aria-label="Watch list">${FW_VIEWS.map(([k, l]) => `<button type="button" data-fw="${k}" aria-pressed="${fw.view === k}">${l}<b>${nfmt((fw.data[k] || []).length)}</b></button>`).join("")}</div>
     <div class="filters" style="margin-bottom:8px"><input type="search" id="fw-q" placeholder="Search name, registration number or country" aria-label="Search the watch list" value="${esc(fw.q)}"></div>
-    <div class="watch-w"><table><thead><tr>${cols.map((c) => `<th>${c}</th>`).join("")}</tr></thead><tbody>${shown.slice(0, 300).map((r) => { const v = row(r); return `<tr>${v.map((x, i) => i === 6 && fw.view !== "new" && fw.view !== "dropped" ? `<td class="due${x != null && x <= 30 ? " soon" : ""}">${x == null ? "–" : x < 0 ? `${-x} day${x === -1 ? "" : "s"} ago` : `${x} day${x === 1 ? "" : "s"}`}</td>` : `<td>${esc(x ?? "")}</td>`).join("")}</tr>`; }).join("") || `<tr><td colspan="${cols.length}">Nothing on this list.</td></tr>`}</tbody></table></div>
-    ${shown.length > 300 ? `<div class="sub" style="margin-top:6px">Showing 300 of ${nfmt(shown.length)}. Download the CSV for the full list.</div>` : ""}`;
-  box.querySelectorAll("[data-fw]").forEach((b) => b.onclick = () => { fw.view = b.dataset.fw; drawFpiWatch(); });
-  const qi = $("fw-q"); qi.oninput = () => { fw.q = qi.value; drawFpiWatch().then(() => { const i = $("fw-q"); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }); };
+    <div class="watch-w"><table><thead><tr>${cols.map((c) => `<th>${c}</th>`).join("")}</tr></thead><tbody>${shown.slice(0, fw.n).map((r) => { const v = row(r); return `<tr>${v.map((x, i) => i === 6 && fw.view !== "new" && fw.view !== "dropped" ? `<td class="due${x != null && x <= 30 ? " soon" : ""}">${x == null ? "–" : x < 0 ? `${-x} day${x === -1 ? "" : "s"} ago` : `${x} day${x === 1 ? "" : "s"}`}</td>` : `<td>${esc(x ?? "")}</td>`).join("")}</tr>`; }).join("") || `<tr><td colspan="${cols.length}">Nothing on this list.</td></tr>`}</tbody></table></div>
+    ${shown.length > fw.n ? `<div style="margin-top:8px;display:flex;gap:10px;align-items:center"><button type="button" class="reset" id="fw-more">Show 25 more</button><span class="sub">Showing ${nfmt(Math.min(fw.n, shown.length))} of ${nfmt(shown.length)}. The CSV has the full list.</span></div>` : `<div class="sub" style="margin-top:6px">Showing all ${nfmt(shown.length)}.</div>`}`;
+  box.querySelectorAll("[data-fw]").forEach((b) => b.onclick = () => { fw.view = b.dataset.fw; fw.n = 25; drawFpiWatch(); });
+  const fm = $("fw-more"); if (fm) fm.onclick = () => { fw.n += 25; drawFpiWatch(); };
+  const qi = $("fw-q"); qi.oninput = () => { fw.q = qi.value; fw.n = 25; drawFpiWatch().then(() => { const i = $("fw-q"); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }); };
   $("fw-csv").onclick = () => csvDownload(`fpi-${fw.view}-${today}.csv`, [cols, ...shown.map((r) => row(r))]);
 }
 // ---------- Excel/CSV export on every table ----------
