@@ -1,0 +1,42 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Concept 2 · Editorial</title>
+<style>
+:root{--bg:#fbf7f0;--ink:#1a1612;--m:#6b6258;--l:#d9d0c1;--acc:#990f3d;--pos:#0b6e4f;--neg:#b3261e}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 Georgia,"Times New Roman",serif}
+.sans{font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+header{border-bottom:3px double var(--ink);text-align:center;padding:18px 16px 10px}
+.mast{font-size:44px;font-weight:700;letter-spacing:-.01em;margin:0}.mast em{color:var(--acc)}
+.date{font:12px system-ui;color:var(--m);letter-spacing:.08em;text-transform:uppercase}
+nav{display:flex;justify-content:center;gap:26px;padding:10px;border-bottom:1px solid var(--l);font:600 12px system-ui;letter-spacing:.1em;text-transform:uppercase}nav a{color:var(--ink)}nav a.on{color:var(--acc)}
+.strip{display:flex;justify-content:center;gap:30px;padding:8px;background:#f1eadd;font:13px system-ui;flex-wrap:wrap}.strip b{font-variant-numeric:tabular-nums}
+main{max-width:1100px;margin:0 auto;padding:24px 20px;display:grid;grid-template-columns:2fr 1fr;gap:34px}
+.kick{font:700 11px system-ui;letter-spacing:.12em;text-transform:uppercase;color:var(--acc)}
+h1{font-size:40px;line-height:1.1;margin:6px 0 10px}h2{font-size:21px;line-height:1.25;margin:4px 0}
+.dek{color:var(--m);font-size:19px}.by{font:12px system-ui;color:var(--m);margin:10px 0}
+figure{margin:18px 0;padding:14px 0;border-top:1px solid var(--ink);border-bottom:1px solid var(--l)}figcaption{font:12px system-ui;color:var(--m);margin-top:6px}.fh{font:700 13px system-ui;margin-bottom:6px}
+aside section{border-top:2px solid var(--ink);padding:10px 0 18px}aside h3{font:700 12px system-ui;letter-spacing:.1em;text-transform:uppercase;margin:0 0 8px}
+.row{display:flex;justify-content:space-between;font:14px system-ui;padding:5px 0;border-bottom:1px solid var(--l)}.pos{color:var(--pos)}.neg{color:var(--neg)}
+.story{padding:12px 0;border-bottom:1px solid var(--l)}
+@media(max-width:800px){main{grid-template-columns:1fr}h1{font-size:30px}.mast{font-size:32px}}
+</style></head><body>
+<header><div class="date">Thursday 26 November 2026</div><p class="mast">The Capital <em>Ledger</em></p><div class="date">Foreign money in and out of India · from primary sources</div></header>
+<nav><a class="on">Today</a><a>Flows</a><a>Deals</a><a>Investors</a><a>Regulation</a><a>GIFT City</a><a>Explainers</a></nav>
+<div class="strip" id="st"></div>
+<main><div>
+<div class="kick">Flows</div><h1>Foreign investors have put ₹1.5 lakh crore into Indian markets this month, reversing October’s exit</h1>
+<p class="dek">November’s net buying is almost entirely equity, as large blocks changed hands in healthcare and building materials.</p><div class="by">By the Ledger desk · Data: NSDL, NSE · Updated 26-Nov-26 14:08 UTC</div>
+<figure><div class="fh">Daily FPI net investment, all segments (₹ cr)</div><div id="ch"></div><figcaption>Source: NSDL FPI Monitor. Series shown for illustration.</figcaption></figure>
+<p>Net inflows over the last five sessions came to ₹41,208 crore, taking the November total to ₹1,53,624 crore. October saw a net outflow of ₹24,475 crore. Equity accounts for ₹1,45,308 crore of the month’s buying, with debt adding ₹7,614 crore.</p>
+<div class="story"><div class="kick">Deals</div><h2>Foreign funds sell ₹604 crore of Medanta in a single block</h2><div class="by sans">Exchange data · 25-Nov-26</div></div>
+<div class="story"><div class="kick">Regulation</div><h2>SEBI updates framework for trusted foreign investors</h2><div class="by sans">SEBI circular · what it means for FPIs</div></div>
+</div><aside>
+<section><h3>Markets</h3><div id="fd"></div></section>
+<section><h3>Foreign limits</h3><div id="lm"></div></section>
+<section><h3>Explainer</h3><p style="font-size:15px;margin:0"><b>What is an FPI?</b> A foreign portfolio investor buys listed Indian securities without taking control. Registration runs through a custodian bank under SEBI rules. <a href="#" style="color:var(--acc)">Read the guide →</a></p></section>
+</aside></main>
+<script src="data.js"></script><script>
+const D=window.D,$=i=>document.getElementById(i),c=v=>v>0?"pos":v<0?"neg":"";
+$("st").innerHTML=D.ticks.map(t=>`<span>${t[0]} <b class="${t[2]}">${t[1]}</b></span>`).join("");
+bars($("ch"),D.daily,{h:190,ax:"#999",r:1});
+$("fd").innerHTML=D.fiidii.map(r=>`<div class="row"><span>${r[0]} · FII</span><b class="${c(r[1])}">${fmt(r[1])}</b></div>`).join("");
+$("lm").innerHTML=D.limits.map(r=>`<div class="row"><span>${r[0]}</span><b>${r[3]}%</b></div>`).join("");
+</script></body></html>

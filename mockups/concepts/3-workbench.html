@@ -1,0 +1,39 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Concept 3 · Analyst Workbench</title>
+<style>
+:root{--bg:#f6f7fb;--s:#fff;--l:#e6e8ef;--ink:#101828;--m:#667085;--acc:#4f46e5;--accbg:#eef0ff;--pos:#067647;--neg:#b42318;--posbg:#ecfdf3;--negbg:#fef3f2}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;display:grid;grid-template-columns:232px 1fr;min-height:100vh}
+.side{background:var(--s);border-right:1px solid var(--l);padding:18px 12px;position:sticky;top:0;height:100vh}
+.brand{font-weight:700;font-size:16px;padding:4px 10px 16px;display:flex;gap:8px;align-items:center}.brand i{width:22px;height:22px;border-radius:6px;background:var(--acc)}
+.side a{display:flex;justify-content:space-between;padding:8px 10px;border-radius:8px;color:var(--m);font-weight:500;margin-bottom:2px}.side a.on{background:var(--accbg);color:var(--acc)}.side small{color:var(--m);text-transform:uppercase;letter-spacing:.08em;font-size:11px;display:block;margin:18px 10px 6px}
+.main{padding:20px 28px;max-width:1260px}
+.bar{display:flex;gap:10px;align-items:center;margin-bottom:18px}.search{flex:1;background:var(--s);border:1px solid var(--l);border-radius:10px;padding:9px 14px;color:var(--m)}
+.chip{border:1px solid var(--l);background:var(--s);border-radius:20px;padding:6px 12px;font-weight:500}.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+h1{font-size:24px;margin:0 0 2px}.sub{color:var(--m);margin-bottom:16px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px}
+.card{background:var(--s);border:1px solid var(--l);border-radius:12px;padding:16px}.k small{color:var(--m)}.k b{display:block;font-size:26px;margin:2px 0;font-variant-numeric:tabular-nums}.pill{display:inline-block;border-radius:12px;padding:1px 8px;font-size:12px;font-weight:600}
+.pos{color:var(--pos)}.neg{color:var(--neg)}.pill.pos{background:var(--posbg)}.pill.neg{background:var(--negbg)}
+.row2{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px}.card h3{margin:0 0 10px;font-size:15px;display:flex;justify-content:space-between}.card h3 span{color:var(--m);font-weight:400;font-size:12px}
+table{width:100%;border-collapse:collapse}td,th{padding:8px 6px;border-bottom:1px solid var(--l);text-align:right}th{color:var(--m);font-weight:500;font-size:12px}td:first-child,th:first-child{text-align:left}
+.meter{height:6px;background:var(--l);border-radius:4px}.meter i{display:block;height:100%;background:var(--acc);border-radius:4px}
+@media(max-width:900px){body{grid-template-columns:1fr}.side{display:none}.kpis{grid-template-columns:1fr 1fr}.row2{grid-template-columns:1fr}}
+</style></head><body>
+<div class="side"><div class="brand"><i></i>Capital Tracker</div>
+<a class="on">Overview</a><a>Flows</a><a>Deals <span>309</span></a><a>Investors <span>1,646</span></a><a>Registrations</a><a>Regulations</a>
+<small>Saved views</small><a>FPI equity, 30d</a><a>Blocks &gt; ₹100 cr</a><a>Watchlist</a><small>Tools</small><a>Export</a><a>API</a></div>
+<div class="main">
+<div class="bar"><div class="search">Search companies, investors, circulars…  ⌘K</div><span class="chip on">30D</span><span class="chip">YTD</span><span class="chip">Custom</span><span class="chip">⬇ Export</span></div>
+<h1>Overview</h1><div class="sub">Data to 26-Nov-26 · refreshed hourly · all grade-A sources</div>
+<div class="kpis" id="k"></div>
+<div class="row2"><div class="card"><h3>Daily net FPI flow <span>₹ cr · all segments</span></h3><div id="ch"></div></div>
+<div class="card"><h3>By segment <span>Nov MTD</span></h3><table id="seg"></table></div></div>
+<div class="row2"><div class="card"><h3>Largest exchange deals <span>25-Nov</span></h3><table id="dl"></table></div>
+<div class="card"><h3>FPI debt limits used</h3><div id="lm"></div></div></div>
+</div>
+<script src="data.js"></script><script>
+const D=window.D,$=i=>document.getElementById(i),c=v=>v>0?"pos":v<0?"neg":"";
+$("k").innerHTML=[["FPI net today","+3,790","₹ cr","pos","▲ vs −24,475 Oct"],["Nov MTD","+1,53,624","₹ cr","pos","▲ equity-led"],["USD/INR","93.3461","FBIL","",""],["G-sec limit used","16.74%","CCIL","",""]].map(k=>`<div class="card k"><small>${k[0]} · ${k[2]}</small><b>${k[1]}</b>${k[4]?`<span class="pill ${k[3]}">${k[4]}</span>`:""}</div>`).join("");
+bars($("ch"),D.daily,{h:210,pos:"#4f46e5",neg:"#f79009",r:3,ax:"#ccd"});
+$("seg").innerHTML=D.seg.slice(0,5).map(r=>`<tr><td>${r[0]}</td><td class="${c(r[3])}">${fmt(r[3])}</td></tr>`).join("");
+$("dl").innerHTML="<tr><th>Stock</th><th>Client</th><th>Side</th><th>₹ cr</th></tr>"+D.deals.map(d=>`<tr><td><b>${d[0]}</b></td><td style="text-align:left;color:var(--m)">${d[1].slice(0,26)}</td><td><span class="pill ${d[2]=="BUY"?"pos":"neg"}">${d[2]}</span></td><td>${d[3]}</td></tr>`).join("");
+$("lm").innerHTML=D.limits.map(r=>`<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between"><span>${r[0]}</span><b>${r[3]}%</b></div><div class="meter"><i style="width:${r[3]}%"></i></div></div>`).join("");
+</script></body></html>

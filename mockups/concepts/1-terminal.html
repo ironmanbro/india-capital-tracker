@@ -1,0 +1,37 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Concept 1 · Desk Terminal</title>
+<style>
+:root{--bg:#0b0e13;--p:#11161d;--l:#232b36;--ink:#dde3ea;--m:#8a95a3;--acc:#f5a623;--pos:#2ecc8f;--neg:#ff6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:12px/1.4 ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+.top{display:flex;align-items:center;gap:18px;padding:0 14px;height:34px;background:#000;border-bottom:1px solid var(--l)}
+.logo{color:var(--acc);font-weight:700;letter-spacing:.08em}.top a{color:var(--m);text-decoration:none}.top a.on{color:var(--acc);border-bottom:2px solid var(--acc);padding:9px 0}
+.cmd{margin-left:auto;background:var(--p);border:1px solid var(--l);color:var(--m);padding:4px 10px;width:260px}
+.tick{display:flex;border-bottom:1px solid var(--l);overflow:auto}.tick div{padding:7px 16px;border-right:1px solid var(--l);white-space:nowrap}.tick small{display:block;color:var(--m);font-size:10px;text-transform:uppercase}.tick b{font-size:15px}
+.g{display:grid;grid-template-columns:repeat(12,1fr);gap:1px;background:var(--l)}.p{background:var(--p);padding:0}.p h2{margin:0;padding:7px 12px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--acc);border-bottom:1px solid var(--l);display:flex;justify-content:space-between}.p h2 span{color:var(--m)}
+.c8{grid-column:span 8}.c4{grid-column:span 4}.c6{grid-column:span 6}.c12{grid-column:span 12}
+table{width:100%;border-collapse:collapse}td,th{padding:4px 12px;text-align:right;border-bottom:1px solid #1a212b}th{color:var(--m);font-weight:400}td:first-child,th:first-child{text-align:left}
+.pos{color:var(--pos)}.neg{color:var(--neg)}.tot td{font-weight:700;background:#161d27}.m{color:var(--m)}
+.bar{display:inline-block;width:80px;height:6px;background:#222c38}.bar i{display:block;height:100%;background:var(--acc)}
+.foot{padding:6px 12px;color:var(--m);font-size:10px}.tag{border:1px solid var(--pos);color:var(--pos);padding:0 4px;font-size:10px}
+@media(max-width:900px){.c8,.c4,.c6{grid-column:span 12}}
+</style></head><body>
+<div class="top"><span class="logo">ICT ▌TERMINAL</span><a class="on">MONITOR</a><a>DEALS</a><a>INVESTORS</a><a>REGISTRATIONS</a><a>REGULATIONS</a><div class="cmd">⌘K  search company, investor, circular…</div></div>
+<div class="tick" id="tk"></div>
+<div class="g">
+<section class="p c8"><h2>FPI net investment <span>₹ cr · NSDL · <i class="tag">A</i></span></h2><table id="seg"></table><div id="ch" style="padding:8px 12px"></div><div class="foot">Source: NSDL FPI Monitor, daily. Grade A = regulator/exchange data.</div></section>
+<section class="p c4"><h2>Largest exchange deals <span>25-Nov · ₹ cr</span></h2><table id="dl"></table>
+<h2>FII/FPI vs DII cash <span>provisional</span></h2><table id="fd"></table></section>
+<section class="p c4"><h2>FPI debt limits <span>CCIL</span></h2><table id="lm"></table></section>
+<section class="p c4"><h2>Nearing the foreign limit <span>held / cap %</span></h2><table id="nr"></table></section>
+<section class="p c4"><h2>Wire <span>latest</span></h2><table id="nw"></table></section>
+</div>
+<script src="data.js"></script><script>
+const D=window.D,$=i=>document.getElementById(i),c=v=>v>0?"pos":v<0?"neg":"";
+$("tk").innerHTML=D.ticks.map(t=>`<div><small>${t[0]} · ${t[3]}</small><b class="${t[2]}">${t[1]}</b></div>`).join("");
+$("seg").innerHTML="<tr><th>Segment</th><th>26-Nov</th><th>5 sess</th><th>Nov MTD</th><th>Oct</th></tr>"+D.seg.map(r=>`<tr class="${r[0]=="Total"?"tot":""}"><td>${r[0]}</td>${r.slice(1).map(v=>`<td class="${c(v)}">${fmt(v)}</td>`).join("")}</tr>`).join("");
+bars($("ch"),D.daily,{h:170,pos:"#2ecc8f",neg:"#ff6b61",ax:"#445"});
+$("dl").innerHTML=D.deals.map(d=>`<tr><td>${d[0]}</td><td class="m">${d[1].slice(0,18)}</td><td class="${d[2]=="BUY"?"pos":"neg"}">${d[2]}</td><td>${d[3]}</td></tr>`).join("");
+$("fd").innerHTML="<tr><th>Date</th><th>FII</th><th>DII</th></tr>"+D.fiidii.map(r=>`<tr><td>${r[0]}</td><td class="${c(r[1])}">${fmt(r[1])}</td><td class="${c(r[2])}">${fmt(r[2])}</td></tr>`).join("");
+$("lm").innerHTML=D.limits.map(r=>`<tr><td>${r[0]}</td><td class="m">${r[3]}%</td><td><span class="bar"><i style="width:${r[3]}%"></i></span></td></tr>`).join("");
+$("nr").innerHTML=D.near.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td class="m">${r[2]}</td></tr>`).join("");
+$("nw").innerHTML=D.news.map(r=>`<tr><td class="m">${r[0]}</td><td style="text-align:left">${r[1].slice(0,52)}…</td></tr>`).join("");
+</script></body></html>

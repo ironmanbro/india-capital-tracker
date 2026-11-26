@@ -1,0 +1,36 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Concept 4 · Institutional Portal</title>
+<style>
+:root{--navy:#0a2540;--navy2:#13365c;--bg:#fff;--soft:#f4f6f9;--l:#dde3ea;--ink:#16202c;--m:#5b6b7c;--acc:#0b6bcb;--gold:#b8860b;--pos:#0b7a4b;--neg:#b3261e}
+*{box-sizing:border-box}body{margin:0;color:var(--ink);font:15px/1.55 "Segoe UI",system-ui,-apple-system,sans-serif}
+.util{background:var(--navy);color:#b9c8d9;font-size:12px;padding:6px 32px;display:flex;justify-content:space-between}
+header{border-bottom:1px solid var(--l);padding:0 32px;display:flex;align-items:center;gap:34px;height:64px;position:sticky;top:0;background:#fff}
+.logo{font-weight:700;font-size:19px;color:var(--navy)}.logo span{color:var(--gold)}header a{color:var(--ink);font-weight:500}header .btn{margin-left:auto;background:var(--navy);color:#fff;padding:9px 18px;border-radius:2px;font-weight:600}
+.hero{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;padding:56px 32px 70px}.in{max-width:1180px;margin:0 auto}
+.hero h1{font:400 42px/1.15 Georgia,serif;max-width:760px;margin:0 0 14px}.hero p{color:#b9c8d9;font-size:18px;max-width:640px;margin:0 0 26px}
+.sbox{display:flex;max-width:640px;background:#fff;border-radius:2px}.sbox div{flex:1;padding:14px 16px;color:var(--m)}.sbox b{background:var(--gold);color:#fff;padding:14px 22px}
+.live{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--l);border:1px solid var(--l);margin:-40px auto 0;max-width:1180px;position:relative;box-shadow:0 8px 24px rgba(10,37,64,.12)}
+.live div{background:#fff;padding:18px 22px}.live small{color:var(--m);font-size:12px;text-transform:uppercase;letter-spacing:.06em}.live b{display:block;font-size:26px;color:var(--navy)}.live i{font-style:normal;color:var(--m);font-size:12px}
+section.s{padding:56px 32px}.s h2{font:400 30px Georgia,serif;margin:0 0 6px;color:var(--navy)}.lead{color:var(--m);margin:0 0 26px}
+.aud{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}.aud div{border:1px solid var(--l);border-top:3px solid var(--gold);padding:20px;background:#fff}.aud b{font-size:17px;color:var(--navy)}.aud p{color:var(--m);font-size:14px;margin:6px 0 10px}.aud a{color:var(--acc);font-weight:600}
+.soft{background:var(--soft)}.two{display:grid;grid-template-columns:1.4fr 1fr;gap:34px}
+table{width:100%;border-collapse:collapse;background:#fff}th{background:var(--navy);color:#fff;text-align:left;padding:10px 14px;font-size:13px}td{padding:10px 14px;border-bottom:1px solid var(--l)}td:not(:first-child){text-align:right;font-variant-numeric:tabular-nums}
+.pos{color:var(--pos)}.neg{color:var(--neg)}.feed div{padding:12px 0;border-bottom:1px solid var(--l)}.feed small{color:var(--gold);font-weight:700;text-transform:uppercase;font-size:11px;letter-spacing:.08em}
+.verify{font-size:12px;color:var(--m);border-left:3px solid var(--gold);padding-left:10px;margin-top:10px}
+footer{background:var(--navy);color:#9fb2c8;padding:34px 32px;font-size:13px}
+@media(max-width:900px){.aud,.live{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}.hero h1{font-size:30px}}
+</style></head><body>
+<div class="util"><span>Independent research · not affiliated with any bank or regulator</span><span>Data as of 26-Nov-26 · Methodology · Sources</span></div>
+<header><div class="logo">India Capital <span>Monitor</span></div><a>Markets</a><a>Investing in India</a><a>Regulation</a><a>Tax</a><a>GIFT City</a><a>Data</a><a class="btn">Get alerts</a></header>
+<div class="hero"><div class="in"><h1>The reference for foreign capital in India.</h1><p>Live flows, filings and rules from SEBI, RBI, NSDL and the exchanges — with every figure traced to its source.</p><div class="sbox"><div>Search an FPI, a company, a circular…</div><b>Search</b></div></div></div>
+<div class="live" id="lv"></div>
+<section class="s"><div class="in"><h2>Start with your role</h2><p class="lead">Curated paths for the people who work with foreign investment in India.</p>
+<div class="aud"><div><b>Foreign investors</b><p>Choose a route, register as an FPI, understand limits.</p><a>Investor guide →</a></div><div><b>Custodians &amp; FX teams</b><p>Settlement, limits utilisation, KYC and reporting.</p><a>Operations →</a></div><div><b>Tax &amp; legal</b><p>Rates, treaties, GAAR and the circular library.</p><a>Tax &amp; law →</a></div><div><b>NRIs &amp; students</b><p>Plain-English explainers with sources.</p><a>Learn →</a></div></div></div></section>
+<section class="s soft"><div class="in two"><div><h2>FPI net investment</h2><p class="lead">₹ crore · NSDL · grade A source</p><table id="seg"></table><div class="verify">Last verified 26-Nov-26 · Source: NSDL FPI Monitor · Methodology</div></div>
+<div><h2>Latest developments</h2><p class="lead">Regulation, deals and GIFT City</p><div class="feed" id="nw"></div></div></div></section>
+<footer>Methodology · Sources · Privacy · Terms · Disclaimer — For information only; not investment, legal or tax advice.</footer>
+<script src="data.js"></script><script>
+const D=window.D,$=i=>document.getElementById(i),c=v=>v>0?"pos":v<0?"neg":"";
+$("lv").innerHTML=D.ticks.slice(0,4).map(t=>`<div><small>${t[0]}</small><b>${t[1]}</b><i>${t[3]} · ${D.asof}</i></div>`).join("");
+$("seg").innerHTML="<tr><th>Segment</th><th>26-Nov</th><th>Nov MTD</th><th>Oct</th></tr>"+D.seg.map(r=>`<tr><td>${r[0]}</td><td class="${c(r[1])}">${fmt(r[1])}</td><td class="${c(r[3])}">${fmt(r[3])}</td><td class="${c(r[4])}">${fmt(r[4])}</td></tr>`).join("");
+$("nw").innerHTML=D.news.map(n=>`<div><small>${n[2]} · ${n[0]}</small><br>${n[1]}</div>`).join("");
+</script></body></html>
