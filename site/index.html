@@ -826,6 +826,7 @@ nav.tabs .logo{border-radius:var(--r-lg);font-family:var(--font-mono)}
   background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r-sm);padding:4px 7px;white-space:nowrap}
 .amt-tag span{font-weight:500;color:var(--muted);font-size:11px}
 .src-tag{display:inline-flex;align-items:center;gap:4px;font:500 11px/1 var(--font-ui);color:var(--muted);padding:3px 6px;border-radius:var(--r-sm);background:var(--chip)}
+.src-tag .gr{font:600 10px/1 var(--font-mono,monospace);border:1px solid currentColor;border-radius:2px;padding:1px 3px;margin-left:2px}.src-tag .gr-a{color:var(--pos,#0b7a4b)}.src-tag .gr-c{color:var(--warn,#9a6700)}
 .src-tag svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .scard-foot{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px}
 .scard{transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease}
@@ -2089,6 +2090,7 @@ body{font-variant-numeric:tabular-nums}
       <button class="link" type="button" data-gloss-open>Jargon explained</button> ·
       <a href="/rules">Rulebook</a> · <a href="/terms.html">Terms</a> · <a href="/privacy.html">Privacy</a> · <a href="/disclaimer.html">Disclaimer</a></div>
     <div class="sub" id="fx-foot"></div>
+    <div class="sub">Source grades: <b>A</b> = published by an exchange, depository or regulator (NSE, BSE, NSDL, SEBI, RBI). <b>C</b> = reported in the news and not independently verified.</div>
     <div class="sub"><span class="lg">A personal project tracking cross-border capital in and out of India, built from news reports, NSE, NSDL, SEBI, RBI, IFSCA and DPIIT. Stories can be wrong: check the original. Not affiliated with any employer. Not investment advice.</span><span class="sm">A personal project tracking cross-border capital in and out of India. Stories can be wrong: check the original. Not affiliated with any employer. Not investment advice.</span></div>
   </footer>
 </div>
@@ -2129,6 +2131,12 @@ const KPI_GROUPS = [
   { label: "Indian investment abroad", types: ["outbound"] },
 ];
 
+// One-line summary for a folded section: the first sentence, or whole words ending in "…". Never cut in the middle of a word.
+function accSub(text) {
+  const t = String(text).replace(/\s+/g, " ").trim(); if (t.length <= 120) return t;
+  const first = /^.{20,120}?[.!?](?=\s|$)/.exec(t); if (first) return first[0];
+  return t.slice(0, 117).replace(/\s+\S*$/, "").replace(/[,;:(\s]+$/, "") + "…";
+}
 const state = { events: [], types: new Set(), tab: "overview" };
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -2193,7 +2201,11 @@ function ago(iso) {
 }
 // Every amount is shown as "₹X cr (~$Y)". Rupee amounts keep the reported figure; others convert from US$.
 const CR_UNIT = { "lakh crore": 1e5, "lakh cr": 1e5, "crore": 1, "crores": 1, "cr": 1, "billion": 100, "bn": 100, "million": 0.1, "mn": 0.1, "lakh": 0.01 };
+// The rupee rate is FBIL's published USD/INR reference rate (the rate Indian banks, custodians and auditors use). It is used while it is
+// under 14 days old; otherwise the ECB reference rate (Frankfurter) stands in, and the footer says which one is in use.
+function fbilFresh() { return CCY_R.usdinr > 60 && CCY_R.usdinr < 140 && CCY_R.day && Date.now() - new Date(CCY_R.day + "T00:00:00Z") < 14 * 864e5; }
 function usdInr() {
+  if (fbilFresh()) return CCY_R.usdinr;
   if (window.__fx > 60 && window.__fx < 140) return window.__fx; // ECB reference rate (Frankfurter), once loaded
   let d = null;
   try { d = flows.daily.slice().reverse().find((x) => x.usd && Math.abs(x.Total) > 100); } catch {}
@@ -2235,7 +2247,9 @@ async function ccyLoadRates() {
     const day = Object.keys(by).sort().reverse().find((d) => by[d].USD && ["EUR", "GBP", "JPY", "AED"].every((c) => by[d][c]));
     if (!day) return false;
     const u = by[day].USD, r = {}; ["EUR", "GBP", "JPY", "AED"].forEach((c) => { r[c] = u / by[day][c]; });   // units of c per US$
-    CCY_R = { ...r, day }; try { localStorage.setItem("ict-ccy-rates2", JSON.stringify(CCY_R)); } catch {}
+    const changed = CCY_R.usdinr !== u;
+    CCY_R = { ...r, day, usdinr: u }; try { localStorage.setItem("ict-ccy-rates2", JSON.stringify(CCY_R)); } catch {}
+    if (changed) { try { render(); renderOverview(); fxNote(); } catch {} }
     return true;
   } catch { return false; }
 }
@@ -2582,7 +2596,7 @@ const srcOf = (e) => {
   if (s.includes("rbi")) return ["RBI", "reg"];
   return ["News", "news"];
 };
-const srcTag = (e) => { const [l, k] = srcOf(e); const lab = k === "exch" ? `Exchange · ${l}` : l; return `<span class="src-tag ${k === "news" ? "s-news" : ""}" title="${esc(k === "news" ? "Reported in the news: " + (e.source_name || l) : (e.source_name || l) + " filing")}"><svg viewBox="0 0 24 24" aria-hidden="true">${SRC_ICON[k]}</svg>${lab}</span>`; };
+const srcTag = (e) => { const [l, k] = srcOf(e); const lab = k === "exch" ? `Exchange · ${l}` : l; return `<span class="src-tag ${k === "news" ? "s-news" : ""}" title="${esc(k === "news" ? "Reported in the news: " + (e.source_name || l) : (e.source_name || l) + " filing")}"><svg viewBox="0 0 24 24" aria-hidden="true">${SRC_ICON[k]}</svg>${lab}<b class="gr ${k === "news" ? "gr-c" : "gr-a"}" title="${k === "news" ? "Grade C: reported in the news, not independently verified" : "Grade A: published by an exchange, depository or regulator"}">${k === "news" ? "C" : "A"}</b></span>`; };
 // Placeholder cards shown while stories load, laid out like the real ones.
 const skelCards = (n = 3) => Array.from({ length: n }, () => `<div class="skel" aria-hidden="true"><div class="sk-row"><span class="skb pill" style="width:84px"></span><span class="skb pill" style="width:56px"></span></div><span class="skb line" style="width:92%"></span><span class="skb line" style="width:68%"></span><div class="sk-row"><span class="skb pill" style="width:60px"></span><span class="skb pill" style="width:110px"></span></div></div>`).join("") + `<span class="sr-only">Loading stories</span>`;
 
@@ -3786,6 +3800,8 @@ function renderFollowing() {
 // ---------- Where the money comes from and goes: investor country and sector ----------
 const COUNTRY = { usa: "United States", us: "United States", "u.s.": "United States", "united states of america": "United States", uk: "United Kingdom", "u.k.": "United Kingdom", "united arab emirates": "UAE", "the netherlands": "Netherlands", korea: "South Korea", "republic of korea": "South Korea" };
 const countryOf = (e) => { const c = (e.investor_country || "").trim(); return c ? COUNTRY[c.toLowerCase()] || c : null; };
+// Indian investors are outbound capital, not a source of foreign money: left out of "home country" breakdowns (they are under Going abroad).
+const foreignCountryOf = (e) => { const c = countryOf(e); return c && c !== "India" ? c : null; };
 // The stories carry no sector, so it is read from the company and headline; checked in this order.
 const SECTORS = [
   ["Healthcare", /hospital|health|pharma|diagnostic|clinic|medic|ivf|life ?science|biotech/i],
@@ -3809,7 +3825,7 @@ function renderBreakdown() {
     const mx = list[0]?.[1] || 1;
     return `<div><h4 class="bkh">${title}</h4>${list.map(([k, n]) => `<button class="bkrow" type="button" data-${kind}="${esc(k)}"><span>${esc(k)}</span><span class="bkbar"><i style="width:${n / mx * 100}%"></i></span><b>${n}</b></button>`).join("") || `<div class="sub">No deals yet.</div>`}</div>`;
   };
-  $("ov-break").innerHTML = `<div class="bkcols">${col("Investor's home country", tally(countryOf), "country")}${col("Sector, read from the headline", tally(sectorOf), "sector")}</div>`;
+  $("ov-break").innerHTML = `<div class="bkcols">${col("Foreign investor's home country", tally(foreignCountryOf), "country")}${col("Sector, read from the headline", tally(sectorOf), "sector")}</div>`;
 }
 $("ov-break").addEventListener("click", (ev) => {
   const b = ev.target.closest(".bkrow");
@@ -4151,7 +4167,7 @@ function regroup(box, o) {
     seg.querySelectorAll("button").forEach((b) => b.onclick = () => { regroup.pane[box.id] = +b.dataset.v; seg.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b)); showPane(box, b.dataset.v); });
   } else {
     groups.forEach((g, i) => {
-      const note = g.nodes.find((x) => x.matches && x.matches("p.note")), sub = note ? note.textContent.replace(/\s+/g, " ").trim().slice(0, 130) : "";
+      const note = g.nodes.find((x) => x.matches && x.matches("p.note")), sub = note ? accSub(note.textContent) : "";
       const d = document.createElement("details"); d.className = "acc acc-in"; d.dataset.k = box.id + ":" + g.title;
       d.open = accState.has(d.dataset.k) ? accState.get(d.dataset.k) : (o.open || []).includes(g.title);
       d.innerHTML = `<summary><span class="acc-t">${esc(g.title)}</span><span class="acc-s">${esc(sub)}</span></summary><div class="acc-body"></div>`;
@@ -4540,7 +4556,7 @@ function renderHome() {
   const H = home.data, CYr = new Date().getFullYear();
   const fx = usdInr();
   const chip = $("fxchip"); chip.hidden = false;
-  chip.innerHTML = `USD 1 = ₹${fx.toFixed(2)} <small>${window.__fx ? "live" : "estimate"}</small>`;
+  chip.innerHTML = `USD 1 = ₹${fx.toFixed(2)} <small>${fbilFresh() ? "FBIL " + CCY_R.day.slice(8, 10) + "/" + CCY_R.day.slice(5, 7) : window.__fx ? "ECB" : "estimate"}</small>`;
   chip.title = "Today's figures use this rate. Past years use that year's average rate.";
   const cards = [];
   // Flows: FPI net by year
@@ -4591,6 +4607,9 @@ function renderHome() {
   });
 }
 
+// A deal needs a named investor and a named target. Totals ("Overseas AIFs USD 14.8 billion", "Outward remittances rise 6.1%") are statistics, not deals.
+const GENERIC_PARTY = /^(indian|overseas|foreign|resident|non-resident|domestic|global|total|all)\b|\b(entities|investors|residents|aifs|remittances|companies)$/i;
+const isNamedDeal = (e) => !!(e.investor && e.target && !GENERIC_PARTY.test(e.investor.trim()) && !GENERIC_PARTY.test(e.target.trim()) && !/\b(rises?|falls?|jumps?|surges?|declines?)\b.{0,40}\d(\.\d+)?\s?%/i.test(e.title || ""));
 function renderOverview() {
   renderHome();
   renderOvRegChanges();
@@ -4630,7 +4649,7 @@ function renderOverview() {
     }
   } else $("ov-flow").innerHTML = `<div class="sub">No FPI figures yet.</div>`;
   // Biggest deals of the week by reported amount.
-  const deals = state.events.filter((e) => t7(e) && amountCr(e) && FIRM.has(e.deal_stage) && e.flow_kind !== "presence").sort((a, b) => amountCr(b).usd - amountCr(a).usd);
+  const deals = state.events.filter((e) => t7(e) && amountCr(e) && FIRM.has(e.deal_stage) && e.flow_kind !== "presence" && isNamedDeal(e)).sort((a, b) => amountCr(b).usd - amountCr(a).usd);
   $("ov-deals").innerHTML = deals.length ? `<div class="feat"><small>${TYPES[typeOf(deals[0])]} · ${ago(deals[0].published_at || deals[0].fetched_at)}</small>
       <div class="t"><a href="${safeUrl(deals[0].url)}" target="_blank" rel="noopener">${esc(deals[0].title)}</a></div><div class="scard-foot">${amtTag(deals[0])}${srcTag(deals[0])}</div></div>` +
     deals.slice(1, 4).map((e) => `<div class="ovrow"><span class="stripe" style="background:${color(typeOf(e))}"></span><div><div class="t"><a href="${safeUrl(e.url)}" target="_blank" rel="noopener">${esc(e.investor || e.title)}</a></div><div class="sub">${esc(e.target || e.title).slice(0, 80)}</div></div>${amtTag(e)}</div>`).join("")
@@ -5846,9 +5865,19 @@ function xtNews(X) {
   const seen = new Set();
   return [...(X.startup_funding_news?.data || []).map((r) => ({ title: r.title, url: r.link, src: SRC_NAME[r.source] || r.source, t: xtT(r.published), sum: r.summary })),
     ...(X.gdelt_india_investments?.data || []).map((r) => ({ title: (r.title || "").replace(/\s+/g, " "), url: r.url, src: r.domain, t: xtT(r.seendate), sum: "" }))]
-    .filter((r) => r.title && r.url && !seen.has(gNorm(r.title)) && seen.add(gNorm(r.title))).sort((a, b) => b.t - a.t);
+    .filter((r) => r.title && r.url && DEAL_WORDS.test(`${r.title} ${r.sum || ""}`) && !seen.has(gNorm(r.title)) && seen.add(gNorm(r.title))).sort((a, b) => b.t - a.t);
 }
-const xtSebi = (X, k) => (X[`sebi/${k}`]?.data || []).map((r) => ({ ...r, t: xtT(r.date) })).sort((a, b) => b.t - a.t);
+// The news feeds are keyword searches, so some items are not about money moving at all. Only items that name a deal or an amount are listed.
+const DEAL_WORDS = /\b(rais(?:e|es|ed|ing)|funding|invest(?:s|ed|ing|ment|ments|or|ors)?|acqui(?:re|res|red|sition)|stake|round|valuation|ipo|buyout|buy|sell|sells|sold|bid|merger|takeover|backed|led by|series [a-e]\b|seed|pre-seed|fdi|fpi|crore|million|billion|\$\s?\d|₹\s?\d|rs\.?\s?\d)/i;
+// SEBI sometimes stores markup inside a filing title ("X - DRHP <br><a href='…'>X - Draft Abridged Prospectus</a>"): show only the text before it,
+// and use the link inside it when the row has none. The collector now cleans new rows; this covers the rows already stored.
+const xtClean = (r) => {
+  const raw = String(r.title ?? ""); if (!/[<>]|&lt;|&gt;/.test(raw)) return r;
+  const d = document.createElement("textarea"); d.innerHTML = raw; const t = d.value;
+  const href = /href\s*=\s*['"]?([^'" >]+)/i.exec(t);
+  return { ...r, title: t.split(/<\s*(?:br|a)\b/i)[0].replace(/<[^>]*>/g, "").replace(/[\s\u00a0|-]+$/, "").trim() || r.title.replace(/<[^>]*>/g, ""), url: r.url || (href && /^https?:\/\//i.test(href[1]) ? href[1] : r.url) };
+};
+const xtSebi = (X, k) => (X[`sebi/${k}`]?.data || []).map((r) => ({ ...xtClean(r), t: xtT(r.date) })).sort((a, b) => b.t - a.t);
 const xtNet = (r, a, b) => mkNum(r[a]) - mkNum(r[b]);
 
 function xtMarkets(X) {
@@ -5935,10 +5964,17 @@ async function xtInit() {
   if (fx > 60 && fx < 140 && window.__fx !== fx) { window.__fx = fx; try { render(); renderOverview(); } catch {} }
   const last = X.fx_usd_inr?.data?.slice(-1)[0];
   if (last && window.__fx) {
-    const t = `Exchange rates: US$1 = ₹${last.usd_inr.toFixed(2)} (European Central Bank reference rate for ${last.date}, via Frankfurter)`;
-    $("fx-home").textContent = t; $("fx-home").hidden = false; $("fx-foot").textContent = t + ". Figures reported directly in US$ by NSDL are shown as published.";
+    window.__fxLast = last; fxNote();
   }
   xtHome(X); xtFlows(X); xtSources(X);
+}
+// The footer line that says which USD/INR rate the rupee figures use.
+function fxNote() {
+  const last = window.__fxLast; if (!last && !fbilFresh()) return;
+  const dm = (d) => new Date(d + "T00:00:00Z").toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit", timeZone: "UTC" }).replace(/ /g, "-");
+  const t = fbilFresh() ? `Exchange rates: US$1 = ₹${CCY_R.usdinr.toFixed(2)} (FBIL reference rate for ${dm(CCY_R.day)})`
+    : `Exchange rates: US$1 = ₹${last.usd_inr.toFixed(2)} (European Central Bank reference rate for ${last.date}, via Frankfurter; FBIL rate not current)`;
+  $("fx-home").textContent = t; $("fx-home").hidden = false; $("fx-foot").textContent = t + ". Figures reported directly in US$ by NSDL are shown as published.";
 }
 
 // ---------- Meeting brief: one card at the top of every investor profile ----------

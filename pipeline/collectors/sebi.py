@@ -1,4 +1,4 @@
-import os, re, json, time, requests
+import os, re, json, time, html, requests
 from bs4 import BeautifulSoup
 
 LIST = "https://www.sebi.gov.in/sebiweb/home/HomeAction.do?doListingAll=yes&sid={sid}&ssid={ssid}&smid=0"
@@ -20,6 +20,14 @@ SECTIONS = {
 FOREIGN = re.compile(r"\b(FPI|FII|foreign|portfolio investor|Pte\.?|Mauritius|Cayman|Singapore|LLC|L\.L\.C|Overseas|Fund)\b", re.I)
 ANCHOR = re.compile(r"anchor", re.I)
 PAGE = 25
+
+
+def clean_title(t):
+    """SEBI sometimes puts markup inside a title ("X - DRHP <br><a href='...'>X - Draft Abridged Prospectus</a>").
+    Keep the text before the markup, decoded; never store tags."""
+    t = html.unescape(t or "")
+    t = re.split(r"<\s*(?:br|a)\b", t, maxsplit=1, flags=re.I)[0]
+    return re.sub(r"<[^>]*>", "", t).strip(" -|\u00a0") or ""
 
 
 def fetch_section(name, pages=10):
@@ -44,7 +52,7 @@ def fetch_section(name, pages=10):
             out.append({
                 "date": tds[0],
                 "type": tds[1] if len(tds) > 2 else None,
-                "title": " | ".join(tds[2:]) if len(tds) > 3 else title,
+                "title": clean_title(" | ".join(tds[2:]) if len(tds) > 3 else title),
                 "url": a["href"] if a else None,
                 "foreign_hint": bool(FOREIGN.search(" ".join(tds))),
                 "anchor_hint": bool(ANCHOR.search(" ".join(tds))),
