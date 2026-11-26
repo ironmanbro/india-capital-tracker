@@ -1060,6 +1060,13 @@ button,.reset,select,summary,.link,.kpi,.card,.bk,.ovrow,.ftable tbody tr,nav.ta
 body.flows-stack .stack-h{display:block;font-size:24px;line-height:32px;font-weight:600;margin:40px 0 8px;padding-top:24px;border-top:1px solid var(--line)}
 /* Readability floor: the second-currency brackets scale with their parent and fell to 9px; never below 11px. */
 :root:not(#ds1):not(#ds2):not(#fl) .inr,:root:not(#ds1):not(#ds2):not(#fl) small.inr,:root:not(#ds1):not(#ds2):not(#fl) .amt-tag span{font-size:max(11px,.75em)!important}
+/* Today: the five lower panels open on request (they are one click away in their own tabs) */
+body:not(.home-more) #tab-overview .ovc.more-d{display:none}
+#d-more{grid-column:1/-1;justify-self:center;margin:4px 0 8px;padding:10px 22px;border:1px solid var(--line-2,var(--line));border-radius:var(--r-sm,8px);background:var(--panel);color:var(--ink);font:500 14px var(--font-ui,inherit);cursor:pointer}
+#d-more:hover{border-color:var(--accent)}
+body.home-more #d-more{display:none}
+@media print{.csvbar,#d-more,.m-more{display:none!important}}
+.asof{color:var(--muted);white-space:nowrap}
 </style>
 <script src="vendor/lenis.min.js" integrity="sha384-HW3Ly4XWKJet3D65KqJnRL8BXjzJvMnPqdFMx+d3/VIFGc7APZsMC2Z6KNvLgwO6" crossorigin="anonymous" defer></script>
 <style>
@@ -1788,19 +1795,20 @@ body{font-variant-numeric:tabular-nums}
     <div class="ovbanner"><div><b>Sign in to see everything on Home.</b> <span>Free. No subscription, just a login.</span></div><button class="reset" type="button" data-login>Sign in</button></div>
     <div class="ovgrid ovgrid-a">
       <div class="ovc span2"><div class="ovh"><div><h3>Latest FPI flow</h3><div class="sub" id="ov-flow-sub">NSDL</div></div><button class="link" data-go="flows">Flows ↗</button></div><div class="flowwrap"><div id="ov-flow"></div><div class="fchart" id="ov-fpibars"></div></div></div>
-      <div class="ovc"><div class="ovh"><div><h3>Biggest deals this week</h3><div class="sub">Largest agreed or completed deals, last 7 days</div></div><button class="link" data-go="feed" data-view="week">See these deals ↗</button></div><div id="ov-deals"><!--skel--></div></div>
-      <div class="ovc"><div class="ovh"><div><h3>Latest stories</h3><div class="sub">News collected hourly, reviewed daily at 9am IST</div></div><button class="link" data-go="feed">All stories</button></div><div id="ov-stories"><!--skel--></div></div>
+      <div class="ovc"><div class="ovh"><div><h3>Biggest deals this week</h3><div class="sub">Largest agreed or completed deals, last 7 days<span class="asof" id="asof-deals"></span></div></div><button class="link" data-go="feed" data-view="week">See these deals ↗</button></div><div id="ov-deals"><!--skel--></div></div>
+      <div class="ovc"><div class="ovh"><div><h3>Latest stories</h3><div class="sub">News collected hourly, reviewed daily at 9am IST<span class="asof" id="asof-stories"></span></div></div><button class="link" data-go="feed">All stories</button></div><div id="ov-stories"><!--skel--></div></div>
     </div>
     <div class="hsum-head"><h2>The whole picture</h2><div style="display:flex;gap:8px;align-items:center"><button type="button" class="csvbtn" id="wbrief-open">Weekly brief</button><span class="fxchip" id="fxchip" hidden></span></div></div>
     <div class="hsum" id="hsum"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div>
     <div class="ovgrid">
       <div class="ovc"><div class="ovh"><div><h3>What changed this month</h3><div class="sub">SEBI, RBI and IFSCA rules for foreign investment</div></div><button class="link" data-go="regulation" data-view="regyear">This year's rules ↗</button></div><div id="ov-regchg"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
       <div class="ovc"><div class="ovh"><div><h3>New FPI registrations</h3><div class="sub">Latest additions to the NSDL register</div></div><button class="link" data-go="directory">FPIs ↗</button></div><div id="ov-regs"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
-      <div class="ovc"><div class="ovh"><div><h3>Indian investment abroad</h3><div class="sub">RBI overseas direct investment, latest month</div></div><button class="link" data-go="odi">Outbound ↗</button></div><div id="ov-odi"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
-      <div class="ovc gated"><div class="ovh"><div><h3>Funding and deal news</h3><div class="sub">Startup media and global coverage</div></div><button class="link" data-go="markets">Markets ↗</button></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-news"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
-      <div class="ovc gated"><div class="ovh"><div><h3>SEBI filings</h3><div class="sub">Latest takeover and public issue filings</div></div><button class="link" data-go="markets">Markets ↗</button></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-sebi"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
-      <div class="ovc gated"><div class="ovh"><div><h3>Where the money comes from</h3><div class="sub">Capital deals in the last 90 days. Tap a row to see them.</div></div></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-break"></div></div>
-      <div class="ovc span2 gated"><div class="ovh"><div><h3>The last 30 days</h3><div class="sub">Reported deal value by category, and the most active investors</div></div><button class="link" data-go="investors">Investors ↗</button></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-week"></div></div>
+      <div class="ovc more-d"><div class="ovh"><div><h3>Indian investment abroad</h3><div class="sub">RBI overseas direct investment, latest month</div></div><button class="link" data-go="odi">Outbound ↗</button></div><div id="ov-odi"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
+      <div class="ovc more-d gated"><div class="ovh"><div><h3>Funding and deal news</h3><div class="sub">Startup media and global coverage</div></div><button class="link" data-go="markets">Markets ↗</button></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-news"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
+      <div class="ovc more-d gated"><div class="ovh"><div><h3>SEBI filings</h3><div class="sub">Latest takeover and public issue filings</div></div><button class="link" data-go="markets">Markets ↗</button></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-sebi"><div class="skl" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div></div></div>
+      <div class="ovc more-d gated"><div class="ovh"><div><h3>Where the money comes from</h3><div class="sub">Capital deals in the last 90 days. Tap a row to see them.<span class="asof" id="asof-where"></span></div></div></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-break"></div></div>
+      <div class="ovc more-d span2 gated"><div class="ovh"><div><h3>The last 30 days</h3><div class="sub">Reported deal value by category, and the most active investors<span class="asof" id="asof-30"></span></div></div><button class="link" data-go="investors">Investors ↗</button></div><div class="lockbox"><b>Sign in to see this</b><span>Free. No subscription, just a login.</span><button class="reset" type="button" data-login>Sign in</button></div><div id="ov-week"></div></div>
+      <button id="d-more" type="button">Show 5 more panels from today</button>
     </div>
     <p class="dsrc" data-src="review,nsdl_flows,nsdl_fpi_list" data-what="Sources: news reports, NSE, NSDL and DPIIT. Each section shows its own source and update time" style="margin:-4px 0 14px"></p>
     <p class="dsrc" id="fx-home" style="margin:-6px 0 14px" hidden></p>
@@ -2139,6 +2147,7 @@ function accSub(text) {
   const first = /^.{20,120}?[.!?](?=\s|$)/.exec(t); if (first) return first[0];
   return t.slice(0, 117).replace(/\s+\S*$/, "").replace(/[,;:(\s]+$/, "") + "…";
 }
+document.addEventListener("click", (e) => { if (e.target.closest && e.target.closest("#d-more")) document.body.classList.add("home-more"); });
 const state = { events: [], types: new Set(), tab: "overview" };
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -4170,13 +4179,28 @@ function regroup(box, o) {
     groups.forEach((g, i) => { const d = document.createElement("div"); d.className = "fpane"; d.dataset.p = String(i); d.hidden = i !== cur; g.nodes.forEach((x) => d.append(x)); g.h.remove(); frag.append(d); });
     seg.querySelectorAll("button").forEach((b) => b.onclick = () => { regroup.pane[box.id] = +b.dataset.v; seg.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b)); showPane(box, b.dataset.v); });
   } else {
-    groups.forEach((g, i) => {
+    const makeAcc = (g) => {
       const note = g.nodes.find((x) => x.matches && x.matches("p.note")), sub = note ? accSub(note.textContent) : "";
       const d = document.createElement("details"); d.className = "acc acc-in"; d.dataset.k = box.id + ":" + g.title;
       d.open = accState.has(d.dataset.k) ? accState.get(d.dataset.k) : (o.open || []).includes(g.title);
       d.innerHTML = `<summary><span class="acc-t">${esc(g.title)}</span><span class="acc-s">${esc(sub)}</span></summary><div class="acc-body"></div>`;
-      const body = d.querySelector(".acc-body"); g.nodes.forEach((x) => body.append(x)); g.h.remove(); frag.append(d);
-    });
+      const body = d.querySelector(".acc-body"); g.nodes.forEach((x) => body.append(x)); g.h.remove(); return d;
+    };
+    if (o.panes) {
+      // A few views, each holding its own folded sections; anything not listed goes under "More" so nothing is lost.
+      const names = o.panes.map((p) => p[0]), held = o.panes.map(() => []), rest = [];
+      const paneOf = (g) => o.panes.findIndex((p) => p[1].some((t) => g.title === t || g.title.startsWith(t)));
+      groups.forEach((g) => { const i = paneOf(g); (i >= 0 ? held[i] : rest).push(makeAcc(g)); });
+      // The source line that closed the last section belongs with that section's view, not under every view.
+      if (post.length && groups.length) { const li = paneOf(groups[groups.length - 1]); (li >= 0 ? held[li] : rest).push(...post.splice(0)); }
+      if (rest.length) { names.push("More"); held.push(rest); }
+      const keep = names.map((_, i) => i).filter((i) => held[i].length);
+      const cur = Math.min(regroup.pane[box.id] || 0, keep.length - 1);
+      const seg = document.createElement("div"); seg.className = "seg viewseg"; seg.setAttribute("role", "group"); seg.setAttribute("aria-label", "View");
+      seg.innerHTML = keep.map((i, k) => `<button type="button" data-v="${k}" aria-pressed="${k === cur}">${esc(names[i])}</button>`).join(""); frag.append(seg);
+      keep.forEach((i, k) => { const d = document.createElement("div"); d.className = "fpane"; d.dataset.p = String(k); d.hidden = k !== cur; held[i].forEach((x) => d.append(x)); frag.append(d); });
+      seg.querySelectorAll("button").forEach((b) => b.onclick = () => { regroup.pane[box.id] = +b.dataset.v; seg.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b)); showPane(box, b.dataset.v); });
+    } else groups.forEach((g) => frag.append(makeAcc(g)));
   }
   post.forEach((x) => frag.append(x)); box.append(frag);
 }
@@ -4187,7 +4211,12 @@ function watchGroups(id, o) {
   const mo = new MutationObserver(run); mo.observe(box, { childList: true }); run();
 }
 watchGroups("odi-body", { mode: "tabs", labels: { "Each month": "By month", "Top destinations": "Top destinations", "Every investment": "All investments" } });
-watchGroups("mk-body", { mode: "acc", open: ["Daily FII and DII net flows"], drop: ["India's foreign exchange reserves"] });
+watchGroups("mk-body", { mode: "acc", open: ["Daily FII and DII net flows"], drop: ["India's foreign exchange reserves"], panes: [
+  ["Flows", ["Daily FII and DII net flows", "FII / FPI activity", "Derivatives positions"]],
+  ["Deals", ["Bulk and block deals", "Who invested in whom", "Competition Commission approvals", "Exchange announcements"]],
+  ["Holdings and limits", ["FPI debt limits", "Largest FPI government-bond holdings", "FPI equity by sector", "Most-pledged promoter holdings"]],
+  ["Filings", ["SEBI takeover filings", "SEBI public issue filings", "SEBI enforcement orders"]],
+  ["News", ["Funding and deal news"]]] });
 // The Flows navigator: one tile per section; a tile opens the section and scrolls to it.
 const FL_NAV = [["sec-fpi", "FPI flows", "Net investment by day, month, quarter and year"], ["acc-fx", "Rupee and reserves", "Exchange rates, USD/INR and forex reserves"], ["acc-debt", "Debt limits and bonds", "FPI limits used, FAR bond holdings"],
   ["acc-fdi", "FDI", "Foreign direct investment by country, sector, state"], ["acc-big", "Large deals and indices", "Deals over USD 250 million, index changes"], ["acc-odi", "Indian money abroad", "Overseas investment by Indian companies"], ["acc-mk", "Exchange data", "FII/DII flows, bulk deals, derivatives, SEBI filings"]];
@@ -4614,6 +4643,13 @@ function renderHome() {
 // A deal needs a named investor and a named target. Totals ("Overseas AIFs USD 14.8 billion", "Outward remittances rise 6.1%") are statistics, not deals.
 const GENERIC_PARTY = /^(indian|overseas|foreign|resident|non-resident|domestic|global|total|all)\b|\b(entities|investors|residents|aifs|remittances|companies)$/i;
 const isNamedDeal = (e) => !!(e.investor && e.target && !GENERIC_PARTY.test(e.investor.trim()) && !GENERIC_PARTY.test(e.target.trim()) && !/\b(rises?|falls?|jumps?|surges?|declines?)\b.{0,40}\d(\.\d+)?\s?%/i.test(e.title || ""));
+// "As of" on the Today panels that had no date: the newest item each one is built from.
+function asofStamps(deals) {
+  const newest = (list) => { const m = Math.max(0, ...list.map((e) => +new Date(e.published_at || e.fetched_at) || 0)); return m ? toDMY(dayStr(new Date(m))) : ""; };
+  const put = (id, t) => { const el = $(id); if (el) el.textContent = t ? ` · to ${t}` : ""; };
+  const all = state.events.filter((e) => e.event_type !== "regulation");
+  put("asof-deals", newest(deals)); put("asof-stories", newest(all)); const n = newest(all); put("asof-where", n); put("asof-30", n);
+}
 function renderOverview() {
   renderHome();
   renderOvRegChanges();
@@ -4654,6 +4690,7 @@ function renderOverview() {
   } else $("ov-flow").innerHTML = `<div class="sub">No FPI figures yet.</div>`;
   // Biggest deals of the week by reported amount.
   const deals = state.events.filter((e) => t7(e) && amountCr(e) && FIRM.has(e.deal_stage) && e.flow_kind !== "presence" && isNamedDeal(e)).sort((a, b) => amountCr(b).usd - amountCr(a).usd);
+  asofStamps(deals);
   $("ov-deals").innerHTML = deals.length ? `<div class="feat"><small>${TYPES[typeOf(deals[0])]} · ${ago(deals[0].published_at || deals[0].fetched_at)}</small>
       <div class="t"><a href="${safeUrl(deals[0].url)}" target="_blank" rel="noopener">${esc(deals[0].title)}</a></div><div class="scard-foot">${amtTag(deals[0])}${srcTag(deals[0])}</div></div>` +
     deals.slice(1, 4).map((e) => `<div class="ovrow"><span class="stripe" style="background:${color(typeOf(e))}"></span><div><div class="t"><a href="${safeUrl(e.url)}" target="_blank" rel="noopener">${esc(e.investor || e.title)}</a></div><div class="sub">${esc(e.target || e.title).slice(0, 80)}</div></div>${amtTag(e)}</div>`).join("")
