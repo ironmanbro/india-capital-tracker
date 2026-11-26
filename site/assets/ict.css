@@ -55,3 +55,6 @@ table{width:100%;border-collapse:collapse}th{font-weight:500;color:var(--ink-3);
 @media(max-width:900px){.nav{display:none}.nav.open{display:flex;flex-direction:column;position:absolute;top:62px;left:0;right:0;background:var(--surface);border-bottom:1px solid var(--line);padding:6px 24px;gap:0}.nav.open a{padding:12px 0}.menu{display:inline-block;margin-left:auto}.hdr .btn.p{display:none}.live{grid-template-columns:1fr 1fr}.aud{grid-template-columns:1fr 1fr}.grid2,.grid3{grid-template-columns:1fr}.ftr .in{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.aud{grid-template-columns:1fr}.in{padding:0 16px}.bar span:first-child{width:110px}}
 @media print{.util,.hdr,.hero .cta,.tgl,.ftr{display:none}.sec{padding:20px 0}}
+
+/* legal pages */
+.prose .m{color:var(--ink-3);font-size:14px}.prose .box{border-left:3px solid var(--gold);background:var(--soft);padding:12px 18px;margin:20px 0}.prose a{color:var(--acc)}.prose ul{padding-left:22px}
