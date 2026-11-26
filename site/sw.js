@@ -1,7 +1,7 @@
 // Offline support for the installed app. Pages and data load from the network first, so they are always current;
 // when there is no signal the last copy is shown. Only public GET requests are kept; nothing else is stored.
-const CACHE = "ict-v1";
-const SHELL = ["/", "/manifest.webmanifest", "/favicon.svg", "/icon-192.png"];
+const CACHE = "ict-v2";
+const SHELL = ["/app", "/manifest.webmanifest", "/favicon.svg", "/icon-192.png"];
 const DATA = "https://urpphqybqmxlwhjghsmf.supabase.co/rest/v1/";
 const EDGE = "/sb/rest/v1/";
 
@@ -42,7 +42,7 @@ self.addEventListener("fetch", (e) => {
   const req = e.request, url = new URL(req.url);
   if (req.method !== "GET") return;
   // The site itself: any page address opens the cached app shell when offline.
-  if (req.mode === "navigate") { e.respondWith(networkFirst(req, "/")); return; }
+  if (req.mode === "navigate") { e.respondWith(networkFirst(req, "/app")); return; }
   // Public data reads (stories, flows): latest from the network, last copy when offline.
   // Requests carrying a sign-in token (a signed-in user's own lists) are never stored.
   if ((req.url.startsWith(DATA) || url.pathname.startsWith(EDGE)) && !req.headers.has("authorization")) { e.respondWith(dataFetch(req)); return; }

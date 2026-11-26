@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Methodology and sources · India Capital Tracker</title>
+<meta name="description" content="Where each dataset on India Capital Tracker comes from, how often it refreshes, and what the A and C grades mean.">
+<link rel="canonical" href="https://india-capital-tracker.ironmanbro.workers.dev/methodology.html">
+<meta name="theme-color" content="#0a2540"><link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:wght@400;600&display=swap">
+<link rel="stylesheet" href="/assets/ict.css"></head><body>
+<main id="main" class="prose">
+<h1>Methodology and sources</h1>
+<p>India Capital Tracker collects public information about foreign money moving into and out of India. This page says where each part comes from and how much weight it can bear.</p>
+<h2>Source grades</h2>
+<table><tr><th>Grade</th><th>Meaning</th><th>How it is used</th></tr>
+<tr><td><span class="tag">A</span></td><td>Published by a regulator, depository or exchange (NSDL, NSE, BSE, SEBI, RBI, CCIL, IFSCA, DPIIT).</td><td>Shown as data. Totals are built from these.</td></tr>
+<tr><td><span class="tag c">C</span></td><td>Reported in the press or other secondary sources. Unverified.</td><td>Shown as a lead with a link to the publisher. Never added into any total.</td></tr></table>
+<h2>Datasets</h2>
+<table><tr><th>Dataset</th><th>Source</th></tr>
+<tr><td>FPI net investment (equity, debt, hybrid, funds)</td><td>NSDL FPI Monitor</td></tr>
+<tr><td>Bulk and block deals; FII/DII cash flows</td><td>NSE and BSE files</td></tr>
+<tr><td>FPI registrations</td><td>NSDL register of registered FPIs</td></tr>
+<tr><td>FPI debt limits and utilisation</td><td>CCIL</td></tr>
+<tr><td>GIFT City entities</td><td>IFSCA registers</td></tr>
+<tr><td>Outbound investment (ODI)</td><td>RBI data</td></tr>
+<tr><td>Rules and circulars</td><td>SEBI, RBI, CCI and DPIIT publications</td></tr>
+<tr><td>Reported deals and developments</td><td>News feeds, classified automatically and flagged for review</td></tr></table>
+<h2>Refresh</h2>
+<p>The collector runs hourly. Each source publishes on its own schedule, so every panel shows the date its data runs to. Where a source is late, the last good figure stays visible with its date.</p>
+<h2>Limits you should know about</h2>
+<ul><li>Automated classification of news can be wrong. Check the original before relying on any grade C item.</li>
+<li>Calendar-year and fiscal-year totals differ; each figure says which it is.</li>
+<li>Rule summaries are plain-English orientation, not the official text. Follow the link to the official document.</li></ul>
+<p class="src">This is an independent project. It is not investment, legal or tax advice. See the <a href="/disclaimer.html">disclaimer</a>.</p>
+</main>
+<script src="/assets/ict.js"></script><script>ICT.shell("/methodology.html")</script></body></html>

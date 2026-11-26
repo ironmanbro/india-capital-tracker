@@ -3,7 +3,7 @@
   "short_name": "Capital Tracker",
   "description": "Cross-border money around India: foreign investments and exits, GIFT City fund launches, outbound deals and SEBI/RBI rule changes.",
   "id": "/",
-  "start_url": "/?source=app",
+  "start_url": "/app?source=app",
   "scope": "/",
   "display": "standalone",
   "background_color": "#0b0d12",
